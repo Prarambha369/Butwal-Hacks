@@ -1,0 +1,6 @@
+- Review current Next.js app structure
+- Update homepage content from content/home.json
+- Add About and Contact pages
+- Add events dynamically from content/events.json
+- Ensure all icons are SVGs
+- Deploy updates to staging Vercel

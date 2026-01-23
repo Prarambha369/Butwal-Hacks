@@ -1,0 +1,9 @@
+{
+  "title": "Butwal Hacks",
+  "tagline": "Build. Learn. Collaborate",
+  "mission": "Empowering students and creators in Western Nepal",
+  "events": [
+    {"name": "HackDay", "status": "Upcoming", "date": "2026-01-17"},
+    {"name": "Daydream", "status": "Ended", "date": "Past Event"}
+  ]
+}
