@@ -1,6 +1,5 @@
-"use client"
-
-import { useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import Image from "next/image"
 
 interface Organization {
   name: string
@@ -72,82 +71,39 @@ const organizations: Organization[] = [
 ]
 
 export default function TrustedBy() {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const [isPaused, setIsPaused] = useState(false)
-
-  // Duplicate organizations for seamless loop
-  const duplicatedOrgs = [...organizations, ...organizations]
-
   return (
-    <section className="py-10 sm:py-12 md:py-16 px-4 relative">
+    <section className="py-14 sm:py-16 px-4" aria-labelledby="trusted-by-heading">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8 sm:mb-10 md:mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">Trusted By</h2>
-          <p className="text-gray-400 text-sm sm:text-base px-2">Organizations and communities that believe in our mission</p>
-        </div>
+        <header className="text-center mb-8">
+          <h2 id="trusted-by-heading" className="text-3xl sm:text-4xl font-bold text-white mb-3">Trusted By</h2>
+          <p className="text-slate-300 text-sm sm:text-base px-2">Organizations and communities that support our long-term mission</p>
+        </header>
 
-        <div 
-          className="relative overflow-hidden rounded-lg sm:rounded-xl bg-gradient-to-r from-red-950/20 to-red-900/20 border border-red-500/20 p-4 sm:p-6 md:p-8"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
-          <div
-            className={`flex gap-4 sm:gap-6 md:gap-8 animate-scroll ${isPaused ? 'pause-animation' : ''}`}
-          >
-            {duplicatedOrgs.map((org, index) => (
-              <div
-                key={index}
-                className="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 relative group cursor-pointer"
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-              >
-                <img
-                  src={org.logo || "/placeholder.svg"}
-                  alt={org.name}
-                  className={`w-full h-full rounded-lg object-cover transition-opacity duration-300 ${
-                    hoveredIndex === index ? "opacity-0" : "opacity-100"
-                  }`}
-                  style={{ filter: "grayscale(100%)" }}
-                />
-
-                <img
-                  src={org.colorLogo || "/placeholder.svg"}
-                  alt={`${org.name} color`}
-                  className={`absolute inset-0 w-full h-full rounded-lg object-cover transition-opacity duration-300 ${
-                    hoveredIndex === index ? "opacity-100" : "opacity-0"
-                  }`}
-                />
-
-                {/* Tooltip - hidden on touch devices */}
-                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
-                  <span className="text-white text-xs font-semibold whitespace-nowrap">{org.name}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-r from-slate-950 to-transparent pointer-events-none z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-l from-slate-950 to-transparent pointer-events-none z-10" />
-        </div>
+        <Card className="border-border/70 bg-card/90">
+          <CardHeader>
+            <CardTitle className="text-white text-base sm:text-lg">Institutional and Community Partners</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {organizations.map((org) => (
+                <li key={org.name}>
+                  <article className="border border-border/70 rounded-md p-3 bg-slate-900/50 hover:bg-slate-900 transition-colors">
+                    <Image
+                      src={org.colorLogo || "/placeholder.svg"}
+                      alt={org.name}
+                      width={160}
+                      height={160}
+                      unoptimized
+                      className="w-full aspect-square rounded object-cover mb-2"
+                    />
+                    <h3 className="text-xs sm:text-sm text-slate-200 font-medium leading-snug">{org.name}</h3>
+                  </article>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       </div>
-
-      <style jsx>{`
-        @keyframes scroll {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-        .animate-scroll {
-          animation: scroll 15s linear infinite;
-        }
-        .pause-animation {
-          animation-play-state: paused;
-        }
-      `}</style>
     </section>
   )
 }

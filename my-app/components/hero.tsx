@@ -1,76 +1,54 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import { ChevronRight } from "lucide-react"
+import { ArrowRight, Landmark } from "lucide-react"
 import Image from "next/image"
+import { Badge } from "@/components/ui/badge"
 
 export default function Hero() {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 py-16 sm:py-20">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-48 h-48 sm:w-72 sm:h-72 md:w-96 md:h-96 bg-gradient-to-br from-red-600/20 to-transparent rounded-full blur-3xl animate-pulse" />
-        <div
-          className="absolute bottom-0 right-1/4 w-48 h-48 sm:w-72 sm:h-72 md:w-96 md:h-96 bg-gradient-to-tl from-red-700/20 to-transparent rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "1s" }}
-        />
-        <div
-          className="absolute top-1/2 right-0 w-48 h-48 sm:w-72 sm:h-72 md:w-96 md:h-96 bg-gradient-to-bl from-red-500/15 to-transparent rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "2s" }}
-        />
-      </div>
-
-      <div
-        className={`relative z-10 text-center max-w-4xl transition-all duration-1000 ${
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-        }`}
-      >
-        <div className="flex justify-center mb-4 sm:mb-6">
+    <header className="px-4 py-20 sm:py-24 border-b border-border/70 bg-slate-950">
+      <div className="max-w-6xl mx-auto">
+        <div className="max-w-4xl">
+          <Badge className="mb-5 inline-flex items-center gap-2 border border-primary/50 bg-primary/10 text-primary-foreground">
+            <Landmark className="w-4 h-4" />
+            Non-Profit Foundation Initiative
+          </Badge>
+          <div className="flex items-center gap-4 mb-6">
           <Image
             src="/logo.png"
             alt="Butwal Hacks Logo"
-            width={150}
-            height={150}
-            className="w-24 h-24 sm:w-32 sm:h-32 md:w-[150px] md:h-[150px] rounded-full shadow-lg shadow-red-500/30"
+            width={80}
+            height={80}
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-border"
             priority
           />
-        </div>
-        <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight">
-          <span className="bg-gradient-to-r from-red-500 via-red-600 to-red-700 bg-clip-text text-transparent">
-            Butwal Hacks
-          </span>
-        </h1>
+          <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Butwal Hacks Foundation</p>
+          </div>
 
-        <p className="text-lg md:text-2xl text-gray-300 mb-4 font-light tracking-wide">
-          Empowering Builders, Creators, and Innovators
-        </p>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight">
+            Butwal Hacks: Decentralizing Nepal&apos;s Tech Innovation.
+          </h1>
 
-        <p className="text-sm md:text-lg text-gray-400 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2">
-          A student-led community where curiosity meets creativity. We create spaces for young minds to experiment,
-          collaborate, and transform ideas into reality across Rupandehi District.
-        </p>
+          <p className="mt-6 text-lg sm:text-xl text-slate-200 leading-relaxed max-w-3xl">
+            A non-profit initiative empowering youth in Butwal and Rupandehi to foster a thriving regional hub for
+            technology and collaboration.
+          </p>
 
-        <div className="flex gap-3 sm:gap-4 justify-center flex-wrap px-2">
-          <a
-            href="#events"
-            className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 rounded-lg bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold hover:shadow-lg hover:shadow-red-500/50 transition-all transform hover:scale-105 active:scale-95 text-sm sm:text-base"
-          >
-            Explore Events
-            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-          </a>
-          <a
-            href="#mission"
-            className="px-6 sm:px-8 py-3 rounded-lg border-2 border-red-500 text-red-400 font-semibold hover:bg-red-500/10 transition-all active:scale-95 text-sm sm:text-base"
-          >
-            Our Mission
-          </a>
+          <nav className="mt-8 flex flex-wrap gap-3" aria-label="Primary">
+            <a
+              href="#what-we-do"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+            >
+              Explore Programs
+              <ArrowRight className="w-4 h-4" />
+            </a>
+            <a
+              href="#roadmap"
+              className="rounded-md border border-border bg-card px-5 py-2.5 text-sm font-semibold text-card-foreground hover:bg-muted"
+            >
+              View Roadmap
+            </a>
+          </nav>
         </div>
       </div>
-    </section>
+    </header>
   )
 }
