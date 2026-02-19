@@ -1,12 +1,13 @@
 {
-  "name": "butwal-hacks-monorepo",
-  "version": "1.0.0",
+  "name": "butwal-hacks",
   "private": true,
+  "workspaces": [
+    "my-app"
+  ],
   "scripts": {
-    "dev": "npm --prefix my-app run dev",
-    "build": "npm --prefix my-app run build",
-    "start": "npm --prefix my-app run start",
-    "lint": "npm --prefix my-app run lint",
-    "install": "npm --prefix my-app install"
+    "dev": "cd my-app && npm run dev",
+    "build": "cd my-app && npm run build",
+    "start": "cd my-app && npm run start",
+    "lint": "cd my-app && npm run lint"
   }
 }

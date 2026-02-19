@@ -4,10 +4,10 @@ import { Badge } from "@/components/ui/badge"
 
 export default function Hero() {
   return (
-    <header className="px-4 py-20 sm:py-24 border-b border-border/70 bg-slate-950">
+    <header className="px-4 py-20 sm:py-24 border-b border-border bg-background">
       <div className="max-w-6xl mx-auto">
         <div className="max-w-4xl">
-          <Badge className="mb-5 inline-flex items-center gap-2 border border-primary/50 bg-primary/10 text-primary-foreground">
+          <Badge className="mb-5 inline-flex items-center gap-2 border-2 border-secondary bg-secondary/10 text-secondary">
             <Landmark className="w-4 h-4" />
             Non-Profit Foundation Initiative
           </Badge>
@@ -23,11 +23,11 @@ export default function Hero() {
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Butwal Hacks Foundation</p>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold font-heading text-foreground leading-tight">
             Butwal Hacks: Decentralizing Nepal&apos;s Tech Innovation.
           </h1>
 
-          <p className="mt-6 text-lg sm:text-xl text-slate-200 leading-relaxed max-w-3xl">
+          <p className="mt-6 text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-3xl">
             A non-profit initiative empowering youth in Butwal and Rupandehi to foster a thriving regional hub for
             technology and collaboration.
           </p>

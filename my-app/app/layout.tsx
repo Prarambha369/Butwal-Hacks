@@ -2,13 +2,14 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 
 import { Analytics } from "@vercel/analytics/next"
+import { ThemeToggle } from "@/components/theme-toggle"
 import "./globals.css"
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#0f172a",
+  themeColor: "#8B0000",
 }
 
 export const metadata: Metadata = {
@@ -47,8 +48,22 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const theme = localStorage.getItem('theme') || 'light';
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              })();
+            `,
+          }}
+        />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-NKE935H259"></script>
         <script
           dangerouslySetInnerHTML={{
@@ -62,6 +77,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`font-sans antialiased`}>
+        <div className="fixed top-4 right-4 z-50">
+          <ThemeToggle />
+        </div>
         {children}
         <Analytics />
       </body>
