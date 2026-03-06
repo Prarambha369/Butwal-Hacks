@@ -50,11 +50,11 @@ function EventCard({ event, colorClass }: { event: Event; colorClass: string }) 
         <Card className={`h-full border hover:shadow-lg transition-all ${colorClass}`}>
           <CardHeader>
             <Badge className={`w-fit ${config.className}`}>{config.label}</Badge>
-            <CardTitle className="text-white text-xl">{event.title}</CardTitle>
-            <p className="text-xs sm:text-sm text-slate-400">{event.date}</p>
+            <CardTitle className="text-foreground text-xl">{event.title}</CardTitle>
+            <p className="text-xs sm:text-sm text-muted-foreground">{event.date}</p>
           </CardHeader>
           <CardContent>
-            <p className="text-sm leading-relaxed text-slate-300">{event.description}</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">{event.description}</p>
             <p className="mt-4 text-sm font-semibold inline-flex items-center gap-1 text-primary group-hover:underline">
               Learn More <ArrowRight className="w-4 h-4" />
             </p>
@@ -66,19 +66,19 @@ function EventCard({ event, colorClass }: { event: Event; colorClass: string }) 
 }
 
 export default function EventsGrid() {
-  const colorClasses = ["card-blush", "card-cream"];
+  const colorClasses = ["card-blush", "card-cream"]
 
   return (
-    <section id="events" className="py-12 sm:py-16 md:py-20 px-4" aria-labelledby="events-heading">
-      <div className="max-w-6xl mx-auto">
-        <header className="text-center mb-8 sm:mb-12 md:mb-16">
-          <h2 id="events-heading" className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3 sm:mb-4">Programs and Events</h2>
-          <p className="text-muted-foreground text-base sm:text-lg px-2">
-            We host practical programs that connect youth with modern technology, mentorship, and collaborative learning.
+    <section id="events" className="py-10" aria-labelledby="events-heading">
+      <div className="h-full">
+        <header className="mb-6">
+          <h2 id="events-heading" className="text-3xl sm:text-4xl font-bold font-heading text-foreground mb-2">Programs and Events</h2>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Programs focused on collaborative learning and practical technology outcomes.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {events.map((event, index) => (
             <EventCard key={event.id} event={event} colorClass={colorClasses[index % colorClasses.length]} />
           ))}
