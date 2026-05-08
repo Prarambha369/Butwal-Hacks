@@ -24,70 +24,71 @@ export default function Footer() {
             <p className="mt-5 text-sm font-medium text-primary">⚡ Built with volunteers. Powered by community.</p>
           </section>
 
-          <nav aria-label="Organization links">
-            <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Organization</h4>
-            <ul className="space-y-2.5 text-sm">
-              <li><Link href="/about" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">About Us</Link></li>
-              <li><Link href="/governance" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Governance</Link></li>
-              <li><Link href="/philosophy" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Our Mission</Link></li>
-              <li><Link href="/community" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Our Team</Link></li>
-              <li><Link href="/support" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Partners</Link></li>
-              <li><Link href="/donors" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Impact Report</Link></li>
-            </ul>
-          </nav>
+           <nav aria-label="Organization links">
+             <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Organization</h4>
+             <ul className="space-y-2.5 text-sm">
+               <li><Link href="/about" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">About Us</Link></li>
+               <li><Link href="/governance" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Governance</Link></li>
+               <li><Link href="/philosophy" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Our Mission</Link></li>
+               <li><Link href="/community" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Our Team</Link></li>
+               <li><Link href="/support" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Partners</Link></li>
+               <li><Link href="/donors" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Impact Report</Link></li>
+             </ul>
+           </nav>
 
-          <nav aria-label="Programs links">
-            <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Programs</h4>
-            <ul className="space-y-2.5 text-sm">
-              <li><Link href="/initiatives/hackathon" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Annual Hackathon</Link></li>
-              <li><Link href="/events/daydream-butwal-september-2024" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Daydream Butwal</Link></li>
-              <li><Link href="/events" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Community Events</Link></li>
-              <li><Link href="/initiatives/gamejam" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Workshops & Jams</Link></li>
-              <li><Link href="/support" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Volunteer With Us</Link></li>
-            </ul>
-          </nav>
+           <nav aria-label="Programs links">
+             <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Programs</h4>
+             <ul className="space-y-2.5 text-sm">
+               <li><Link href="/initiatives/hackathon" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Annual Hackathon</Link></li>
+               <li><Link href="/events/daydream-butwal-september-2024" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Daydream Butwal</Link></li>
+               <li><Link href="/events" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Community Events</Link></li>
+               <li><Link href="/initiatives/gamejam" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Workshops & Jams</Link></li>
+               <li><Link href="/support" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Volunteer With Us</Link></li>
+             </ul>
+           </nav>
 
-          <nav aria-label="Resource links">
-            <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Resources</h4>
-            <ul className="space-y-2.5 text-sm">
-              <li><Link href="/resources" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Media Kit</Link></li>
-              <li><Link href="/docs" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Brand Guide</Link></li>
-              <li><Link href="/explore" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">FAQs</Link></li>
-              <li><Link href="/privacy-policy" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Privacy Policy</Link></li>
-              <li><Link href="/terms-of-service" className="rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Terms & Conditions</Link></li>
-            </ul>
-          </nav>
+           <nav aria-label="Resource links">
+             <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Resources</h4>
+             <ul className="space-y-2.5 text-sm">
+               <li><Link href="/resources" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Media Kit</Link></li>
+               <li><Link href="/docs" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Brand Guide</Link></li>
+               <li><Link href="/explore" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">FAQs</Link></li>
+               <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Privacy Policy</Link></li>
+               <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Terms & Conditions</Link></li>
+               <li><Link href="/cookie-policy" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Cookie Policy</Link></li>
+             </ul>
+           </nav>
 
-          <section>
-            <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Connect</h4>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <a href="https://linktr.ee" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
-                  <Link2 className="h-4 w-4" /> Linktree
-                </a>
-              </li>
-              <li>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
-                  <Instagram className="h-4 w-4" /> Instagram
-                </a>
-              </li>
-              <li>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
-                  <Linkedin className="h-4 w-4" /> LinkedIn
-                </a>
-              </li>
-              <li>
-                <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
-                  <span className="text-xs font-semibold">X</span> Twitter / X
-                </a>
-              </li>
-              <li>
-                <a href="mailto:hello@butwalhacks.com" className="inline-flex items-center gap-2 rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
-                  <Mail className="h-4 w-4" /> hello@butwalhacks.com
-                </a>
-              </li>
-            </ul>
-          </section>
+           <section>
+             <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Connect</h4>
+             <ul className="space-y-3 text-sm">
+               <li>
+                 <a href="https://linktr.ee" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+                   <Link2 className="h-4 w-4" /> Linktree
+                 </a>
+               </li>
+               <li>
+                 <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+                   <Instagram className="h-4 w-4" /> Instagram
+                 </a>
+               </li>
+               <li>
+                 <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+                   <Linkedin className="h-4 w-4" /> LinkedIn
+                 </a>
+               </li>
+               <li>
+                 <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+                   <span className="text-xs font-semibold">X</span> Twitter / X
+                 </a>
+               </li>
+               <li>
+                 <a href="mailto:hello@butwalhacks.com" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+                   <Mail className="h-4 w-4" /> hello@butwalhacks.com
+                 </a>
+               </li>
+             </ul>
+           </section>
         </div>
 
         <div className="mt-10 border-t border-border pt-5">
