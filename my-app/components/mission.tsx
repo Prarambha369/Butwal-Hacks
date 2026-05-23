@@ -1,88 +1,164 @@
-"use client"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { BookOpen, Handshake, Laptop, Lightbulb, ShieldCheck, TrendingUp, Users } from "lucide-react"
 
-import { useState } from "react"
-import { Lightbulb, Sparkles, Users, Globe } from "lucide-react"
-
-interface MissionPillar {
-  title: string
-  description: string
-  icon: typeof Lightbulb
-}
-
-const pillars: MissionPillar[] = [
+const foundationIdentity = [
   {
-    title: "Curiosity",
-    description: "Fostering the desire to explore, learn, and ask questions about technology",
-    icon: Lightbulb,
+    title: "Mission",
+    description:
+      "To decentralize technology education and innovation in Nepal by providing youth in Lumbini Province with access to hands-on learning and mentorship.",
   },
   {
-    title: "Creativity",
-    description: "Empowering students to turn ideas into real projects and solutions",
-    icon: Sparkles,
+    title: "Vision",
+    description:
+      "A future where Butwal is recognized as a vibrant technical hub, fostering innovation and social impact nationally.",
   },
   {
-    title: "Collaboration",
-    description: "Building a supportive community where knowledge is shared freely",
+    title: "Values",
+    description:
+      "Integrity, inclusion, collaboration, accountability, and long-term community stewardship.",
+  },
+]
+
+const pillars = [
+  {
+    title: "Hackathons & Game Jams",
+    description: "Hands-on events promoting collaborative learning.",
+    icon: Laptop,
+  },
+  {
+    title: "Workshops & Trainings",
+    description: "Practical sessions on technology, leadership, and open-source skills.",
+    icon: BookOpen,
+  },
+  {
+    title: "Community Engagement",
+    description: "Organize meetups and projects to strengthen local tech culture.",
     icon: Users,
   },
   {
-    title: "Community",
-    description: "Creating lasting spaces for growth beyond the classroom",
-    icon: Globe,
+    title: "Partnerships & Networks",
+    description: "Connect local talent with global initiatives and mentors.",
+    icon: Handshake,
+  },
+  {
+    title: "Innovation & Problem Solving",
+    description: "Encourage development of solutions for local challenges.",
+    icon: Lightbulb,
+  },
+  {
+    title: "Talent Development",
+    description: "Provide ongoing mentorship to nurture future tech leaders.",
+    icon: TrendingUp,
+  },
+]
+
+const roadmap = [
+  {
+    year: "Year 1",
+    title: "Foundation and Local Alignment",
+    description: "Establish local community, host small-scale events, build school partnerships.",
+  },
+  {
+    year: "Year 2",
+    title: "Program Expansion Across Rupandehi",
+    description: "Expand across Rupandehi, launch skill-building programs, strengthen mentorship.",
+  },
+  {
+    year: "Year 3",
+    title: "Regional Leadership",
+    description: "Position as regional tech hub, organize province-wide events, support open-source contributions.",
   },
 ]
 
 export default function Mission() {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null)
-
   return (
-    <section id="mission" className="py-12 sm:py-16 md:py-20 px-4 relative">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8 sm:mb-12 md:mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">What We Stand For</h2>
-          <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto px-2">
-            Butwal Hacks exists to support young people. Every event and program is created with a focus on learning,
-            growth, and accessibility.
-          </p>
-        </div>
+    <section id="mission" className="px-4 py-16 sm:py-20 border-y border-border bg-background">
+      <div className="max-w-6xl mx-auto space-y-14">
+        <section aria-labelledby="foundation-identity">
+          <header className="mb-6">
+            <h2 id="foundation-identity" className="text-3xl sm:text-4xl font-bold font-heading text-foreground">
+              Mission, Vision &amp; Values
+            </h2>
+            <p className="mt-3 text-muted-foreground max-w-3xl">
+              Our foundation model is built for measurable impact, equitable access, and long-term ecosystem growth.
+            </p>
+          </header>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {foundationIdentity.map((item, index) => (
+              <Card key={item.title} className={`border card-${index === 0 ? 'blush' : index === 1 ? 'teal' : 'mint'}`}>
+                <CardHeader>
+                  <CardTitle className="text-foreground">{item.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
 
-        <div className="mb-8 sm:mb-12 md:mb-16 bg-gradient-to-r from-red-900/20 to-red-800/20 border border-red-500/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 backdrop-blur-sm">
-          <p className="text-gray-300 text-center text-sm sm:text-base md:text-lg leading-relaxed">
-            In Rupandehi District, access to tech events and creative communities is still developing. Many students
-            have talent and passion but lack opportunities to practice skills in coding, design, engineering, robotics,
-            and digital creativity. Butwal Hacks fills that gap with a platform that is open, inclusive, supportive, and
-            driven by students who understand other students.
-          </p>
-        </div>
+        <section id="what-we-do" aria-labelledby="core-pillars">
+          <header className="mb-6">
+            <h2 id="core-pillars" className="text-3xl sm:text-4xl font-bold font-heading text-foreground">
+              What We Do
+            </h2>
+            <p className="mt-3 text-muted-foreground max-w-3xl">
+              Our programs focus on practical capability building, trusted partnerships, and regional opportunity.
+            </p>
+          </header>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {pillars.map((pillar, index) => {
+              const Icon = pillar.icon
+              const colorClasses = ["card-blush", "card-peach", "card-cream", "card-mint", "card-teal", "card-sky"];
+              const colorClass = colorClasses[index % colorClasses.length];
+              return (
+                <Card key={pillar.title} className={`border hover:shadow-lg transition-all ${colorClass}`}>
+                  <CardHeader className="flex-row items-start justify-between space-y-0">
+                    <CardTitle className="text-lg font-heading text-foreground leading-snug">{pillar.title}</CardTitle>
+                    <Icon className="w-5 h-5 text-primary" />
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{pillar.description}</p>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </section>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-          {pillars.map((pillar, index) => {
-            const Icon = pillar.icon
-            return (
-              <button
-                key={index}
-                onClick={() => setActiveIndex(activeIndex === index ? null : index)}
-                className={`group relative p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl transition-all duration-300 cursor-pointer text-left ${
-                  activeIndex === index
-                    ? "bg-gradient-to-br from-red-600 to-red-700 scale-[1.02] sm:scale-105"
-                    : "bg-gradient-to-br from-red-900/30 to-red-800/30 hover:from-red-800/50 hover:to-red-700/50"
-                } border border-red-500/20 hover:border-red-500/50 active:scale-[0.98]`}
-              >
-                <Icon className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 mb-2 sm:mb-3 ${activeIndex === index ? "text-white" : "text-red-400"}`} />
-                <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2 ${activeIndex === index ? "text-white" : "text-red-200"}`}>
-                  {pillar.title}
-                </h3>
-                <p
-                  className={`text-xs sm:text-sm leading-relaxed transition-all ${
-                    activeIndex === index ? "text-white" : "text-gray-400 group-hover:text-gray-300"
-                  }`}
-                >
-                  {pillar.description}
-                </p>
-              </button>
-            )
-          })}
-        </div>
+        <section id="roadmap" aria-labelledby="roadmap-heading">
+          <header className="mb-6">
+            <h2 id="roadmap-heading" className="text-3xl sm:text-4xl font-bold font-heading text-foreground">
+              Roadmap (Year 1–3)
+            </h2>
+            <p className="mt-3 text-muted-foreground max-w-3xl">
+              A phased roadmap designed to institutionalize impact and scale responsibly.
+            </p>
+          </header>
+
+          <ol className="relative border-l border-border pl-6 space-y-5">
+            {roadmap.map((item) => (
+              <li key={item.year} className="relative">
+                <span className="absolute -left-[2.05rem] top-1 inline-flex h-4 w-4 rounded-full bg-primary" aria-hidden="true" />
+                <article>
+                  <Badge className="mb-2 bg-primary text-primary-foreground border-0">{item.year}</Badge>
+                  <Card className="border card-cream">
+                    <CardHeader>
+                      <CardTitle className="text-foreground font-heading flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                        {item.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                    </CardContent>
+                  </Card>
+                </article>
+              </li>
+            ))}
+          </ol>
+        </section>
       </div>
     </section>
   )
