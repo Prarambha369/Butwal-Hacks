@@ -1,0 +1,17 @@
+name: "Secrets Audit"
+description: "Scans codebase for leaked API keys and credentials"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  secrets-audit:
+    name: Secrets Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Audit for leaked secrets
+        run: node .github/actions/secrets-audit/audit.mjs
