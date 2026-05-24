@@ -1,0 +1,40 @@
+name: "AI Code Review"
+description: "Claude-powered PR review focused on architecture, security, and business logic"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  ai-review:
+    name: AI Review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff
+        id: diff
+        run: |
+          DIFF=$(git diff origin/main...HEAD -- . ':!.github' ':!*.md' ':!package-lock.json')
+          # Truncate to ~100K chars to stay within Claude context
+          DIFF=$(echo "$DIFF" | head -c 100000)
+          echo "diff<<DIFF_EOF" >> $GITHUB_OUTPUT
+          echo "$DIFF" >> $GITHUB_OUTPUT
+          echo "DIFF_EOF" >> $GITHUB_OUTPUT
+
+      - name: Run AI Review
+        if: steps.diff.outputs.diff != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          node .github/actions/ai-review/review.mjs \
+            "${{ steps.diff.outputs.diff }}" \
+            "${{ github.event.pull_request.title }}" \
+            "${{ github.event.pull_request.body }}" \
+            "${{ github.event.pull_request.number }}"
