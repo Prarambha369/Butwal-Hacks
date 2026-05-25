@@ -1,0 +1,1392 @@
+[
+  {
+    "file": "my-app/app/77-hacks/page.tsx",
+    "imports": [
+      "next",
+      "@/components/breadcrumbs",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 43
+  },
+  {
+    "file": "my-app/app/about/page.tsx",
+    "imports": [
+      "next",
+      "@/components/breadcrumbs",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 37
+  },
+  {
+    "file": "my-app/app/blog/[slug]/page.tsx",
+    "imports": [
+      "next",
+      "next/navigation",
+      "next/link",
+      "lucide-react",
+      "@/components/code-block",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/content",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next",
+      "next/link",
+      "next/navigation"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": true,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": true,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [
+      {
+        "type": "button_tag",
+        "line": 162,
+        "snippet": "<button type=\"button\" className=\"mt-3 w-full rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-vi"
+      },
+      {
+        "type": "coming_soon",
+        "line": 158,
+        "snippet": "placeholder=\"email@example.com\""
+      }
+    ],
+    "line_count": 172
+  },
+  {
+    "file": "my-app/app/blog/page.tsx",
+    "imports": [
+      "next",
+      "next/link",
+      "lucide-react",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/content",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": true,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": true,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [
+      {
+        "type": "button_tag",
+        "line": 31,
+        "snippet": "<button"
+      },
+      {
+        "type": "coming_soon",
+        "line": 99,
+        "snippet": "placeholder=\"email@example.com\""
+      }
+    ],
+    "line_count": 113
+  },
+  {
+    "file": "my-app/app/community/page.tsx",
+    "imports": [
+      "next",
+      "@/lib/seo",
+      "@/components/site-header",
+      "@/components/footer",
+      "lucide-react"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": true,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [
+      {
+        "type": "coming_soon",
+        "line": 84,
+        "snippet": "Coming Soon"
+      }
+    ],
+    "line_count": 134
+  },
+  {
+    "file": "my-app/app/contact/page.tsx",
+    "imports": [
+      "next",
+      "@/components/breadcrumbs",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 29
+  },
+  {
+    "file": "my-app/app/cookie-policy/page.tsx",
+    "imports": [
+      "next",
+      "@/lib/seo",
+      "@/components/site-header",
+      "@/components/footer",
+      "@/components/legal-document-layout"
+    ],
+    "external_deps": [
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 81
+  },
+  {
+    "file": "my-app/app/docs/engineering/environment-setup/page.tsx",
+    "imports": [
+      "next",
+      "next/link",
+      "lucide-react",
+      "@/components/code-block",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": true,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": true,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [
+      {
+        "type": "button_tag",
+        "line": 144,
+        "snippet": "<button type=\"button\" className=\"mt-3 w-full rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-vi"
+      },
+      {
+        "type": "coming_soon",
+        "line": 140,
+        "snippet": "placeholder=\"email@example.com\""
+      }
+    ],
+    "line_count": 155
+  },
+  {
+    "file": "my-app/app/docs/page.tsx",
+    "imports": [
+      "next",
+      "next/link",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 49
+  },
+  {
+    "file": "my-app/app/donors/page.tsx",
+    "imports": [
+      "next",
+      "next/link",
+      "@/components/breadcrumbs",
+      "@/components/ui/badge",
+      "@/components/ui/card",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 338
+  },
+  {
+    "file": "my-app/app/events/[slug]/page.tsx",
+    "imports": [
+      "next",
+      "next/navigation",
+      "@/components/event-experience-page",
+      "@/lib/content",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next",
+      "next/navigation"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 87
+  },
+  {
+    "file": "my-app/app/events/daydream-butwal-september-2024/page.tsx",
+    "imports": [
+      "next",
+      "@/components/event-experience-page",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": true
+    },
+    "evidence": [
+      {
+        "type": "dangerous_html",
+        "line": 39,
+        "snippet": "<script type=\"application/ld+json\" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }} />"
+      }
+    ],
+    "line_count": 71
+  },
+  {
+    "file": "my-app/app/events/page.tsx",
+    "imports": [
+      "next",
+      "next/link",
+      "@/components/breadcrumbs",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/content",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 44
+  },
+  {
+    "file": "my-app/app/explore/page.tsx",
+    "imports": [
+      "next",
+      "next/link",
+      "@/components/breadcrumbs",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 98
+  },
+  {
+    "file": "my-app/app/governance/page.tsx",
+    "imports": [
+      "next",
+      "next/link",
+      "lucide-react",
+      "@/components/breadcrumbs",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 215
+  },
+  {
+    "file": "my-app/app/initiatives/[slug]/page.tsx",
+    "imports": [
+      "next",
+      "next/navigation",
+      "next/link",
+      "lucide-react",
+      "@/components/breadcrumbs",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/content",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next",
+      "next/link",
+      "next/navigation"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 112
+  },
+  {
+    "file": "my-app/app/initiatives/page.tsx",
+    "imports": [
+      "next",
+      "next/link",
+      "@/components/breadcrumbs",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/content",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 44
+  },
+  {
+    "file": "my-app/app/layout.tsx",
+    "imports": [
+      "react",
+      "next",
+      "next/script",
+      "@vercel/analytics/next",
+      "@/components/theme-provider",
+      "./globals.css"
+    ],
+    "external_deps": [
+      "@vercel/analytics/next",
+      "next",
+      "next/script",
+      "react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 69
+  },
+  {
+    "file": "my-app/app/not-found.tsx",
+    "imports": [
+      "next",
+      "next/link",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 34
+  },
+  {
+    "file": "my-app/app/page.tsx",
+    "imports": [
+      "next",
+      "next/link",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/content",
+      "@/lib/seo",
+      "lucide-react",
+      "@/components/ui/badge"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": true,
+      "img_without_alt": false,
+      "dangerous_html": true
+    },
+    "evidence": [
+      {
+        "type": "coming_soon",
+        "line": 244,
+        "snippet": "Discord (Coming Soon)"
+      },
+      {
+        "type": "dangerous_html",
+        "line": 40,
+        "snippet": "<script type=\"application/ld+json\" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />"
+      }
+    ],
+    "line_count": 316
+  },
+  {
+    "file": "my-app/app/philosophy/page.tsx",
+    "imports": [
+      "next",
+      "@/components/breadcrumbs",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 140
+  },
+  {
+    "file": "my-app/app/privacy-policy/page.tsx",
+    "imports": [
+      "next",
+      "@/lib/seo",
+      "@/components/site-header",
+      "@/components/footer",
+      "@/components/legal-document-layout"
+    ],
+    "external_deps": [
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 107
+  },
+  {
+    "file": "my-app/app/resources/page.tsx",
+    "imports": [
+      "next",
+      "@/lib/seo",
+      "@/components/site-header",
+      "@/components/footer",
+      "lucide-react"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 173
+  },
+  {
+    "file": "my-app/app/robots.ts",
+    "imports": [
+      "next",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 14
+  },
+  {
+    "file": "my-app/app/sitemap.ts",
+    "imports": [
+      "next",
+      "@/lib/content",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 46
+  },
+  {
+    "file": "my-app/app/support/page.tsx",
+    "imports": [
+      "next",
+      "next/link",
+      "lucide-react",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/lib/seo"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": true,
+      "onSubmit": false,
+      "button_tag": true,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": true,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [
+      {
+        "type": "form_tag",
+        "line": 231,
+        "snippet": "<form className=\"rounded-xl border border-border bg-card p-6\" aria-label=\"Sponsor inquiry form\">"
+      },
+      {
+        "type": "button_tag",
+        "line": 57,
+        "snippet": "<button className=\"inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90\">"
+      },
+      {
+        "type": "coming_soon",
+        "line": 235,
+        "snippet": "<input type=\"text\" placeholder=\"John Doe\" className=\"mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground\" />"
+      }
+    ],
+    "line_count": 274
+  },
+  {
+    "file": "my-app/app/terms-of-service/page.tsx",
+    "imports": [
+      "next",
+      "@/lib/seo",
+      "@/components/site-header",
+      "@/components/footer",
+      "@/components/legal-document-layout"
+    ],
+    "external_deps": [
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 90
+  },
+  {
+    "file": "my-app/components/breadcrumbs.tsx",
+    "imports": [
+      "next/link"
+    ],
+    "external_deps": [
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 38
+  },
+  {
+    "file": "my-app/components/code-block.tsx",
+    "imports": [
+      "lucide-react",
+      "react"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": true,
+      "onClick": true,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [
+      {
+        "type": "button_tag",
+        "line": 27,
+        "snippet": "<button"
+      },
+      {
+        "type": "onClick",
+        "line": 29,
+        "snippet": "onClick={onCopy}"
+      }
+    ],
+    "line_count": 48
+  },
+  {
+    "file": "my-app/components/coming-soon-section.tsx",
+    "imports": [
+      "@/components/events-grid",
+      "@/components/hero",
+      "@/components/mission",
+      "@/components/trusted-by"
+    ],
+    "external_deps": [],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 20
+  },
+  {
+    "file": "my-app/components/event-experience-page.tsx",
+    "imports": [
+      "next/link",
+      "lucide-react",
+      "@/components/breadcrumbs",
+      "@/components/footer",
+      "@/components/site-header",
+      "@/components/ui/badge"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 222
+  },
+  {
+    "file": "my-app/components/events-grid.tsx",
+    "imports": [
+      "lucide-react",
+      "@/components/ui/badge",
+      "@/components/ui/card"
+    ],
+    "external_deps": [
+      "lucide-react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": true,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [
+      {
+        "type": "coming_soon",
+        "line": 37,
+        "snippet": "tba: { className: \"bg-secondary border-border text-secondary-foreground\", label: \"Coming Soon\" },"
+      }
+    ],
+    "line_count": 89
+  },
+  {
+    "file": "my-app/components/footer.tsx",
+    "imports": [
+      "lucide-react",
+      "next/link"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 113
+  },
+  {
+    "file": "my-app/components/hero.tsx",
+    "imports": [
+      "lucide-react",
+      "@/components/ui/badge"
+    ],
+    "external_deps": [
+      "lucide-react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 42
+  },
+  {
+    "file": "my-app/components/legal-document-layout.tsx",
+    "imports": [
+      "next/link",
+      "react"
+    ],
+    "external_deps": [
+      "next/link",
+      "react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 103
+  },
+  {
+    "file": "my-app/components/mission.tsx",
+    "imports": [
+      "@/components/ui/badge",
+      "@/components/ui/card",
+      "lucide-react"
+    ],
+    "external_deps": [
+      "lucide-react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 158
+  },
+  {
+    "file": "my-app/components/return-home-link.tsx",
+    "imports": [
+      "next/link",
+      "lucide-react"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next/link"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 14
+  },
+  {
+    "file": "my-app/components/site-header.tsx",
+    "imports": [
+      "next/image",
+      "next/link",
+      "react",
+      "lucide-react",
+      "@/lib/nav-config",
+      "@/components/theme-toggle"
+    ],
+    "external_deps": [
+      "lucide-react",
+      "next/image",
+      "next/link",
+      "react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": true,
+      "onClick": true,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [
+      {
+        "type": "button_tag",
+        "line": 38,
+        "snippet": "<button"
+      },
+      {
+        "type": "onClick",
+        "line": 91,
+        "snippet": "onClick={() => setMobileMenuOpen(!mobileMenuOpen)}"
+      }
+    ],
+    "line_count": 167
+  },
+  {
+    "file": "my-app/components/theme-provider.tsx",
+    "imports": [
+      "react",
+      "next-themes"
+    ],
+    "external_deps": [
+      "next-themes",
+      "react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 10
+  },
+  {
+    "file": "my-app/components/theme-toggle.tsx",
+    "imports": [
+      "react",
+      "next-themes"
+    ],
+    "external_deps": [
+      "next-themes",
+      "react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": true,
+      "onClick": true,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [
+      {
+        "type": "button_tag",
+        "line": 25,
+        "snippet": "<button"
+      },
+      {
+        "type": "onClick",
+        "line": 26,
+        "snippet": "onClick={toggleTheme}"
+      }
+    ],
+    "line_count": 88
+  },
+  {
+    "file": "my-app/components/trusted-by.tsx",
+    "imports": [
+      "@/components/ui/card",
+      "next/image"
+    ],
+    "external_deps": [
+      "next/image"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": true,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [
+      {
+        "type": "coming_soon",
+        "line": 71,
+        "snippet": "src={org.logo || \"/placeholder.svg\"}"
+      }
+    ],
+    "line_count": 88
+  },
+  {
+    "file": "my-app/components/ui/badge.tsx",
+    "imports": [
+      "react",
+      "class-variance-authority",
+      "@/lib/utils"
+    ],
+    "external_deps": [
+      "class-variance-authority",
+      "react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 26
+  },
+  {
+    "file": "my-app/components/ui/card.tsx",
+    "imports": [
+      "react",
+      "@/lib/utils"
+    ],
+    "external_deps": [
+      "react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 21
+  },
+  {
+    "file": "my-app/lib/content.ts",
+    "imports": [],
+    "external_deps": [],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 124
+  },
+  {
+    "file": "my-app/lib/nav-config.ts",
+    "imports": [
+      "lucide-react",
+      "lucide-react"
+    ],
+    "external_deps": [
+      "lucide-react"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 181
+  },
+  {
+    "file": "my-app/lib/seo.ts",
+    "imports": [
+      "next"
+    ],
+    "external_deps": [
+      "next"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 43
+  },
+  {
+    "file": "my-app/lib/utils.ts",
+    "imports": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "external_deps": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "flags": {
+      "href_hash": false,
+      "form_tag": false,
+      "onSubmit": false,
+      "button_tag": false,
+      "onClick": false,
+      "fetch_or_action": false,
+      "api_path_string": false,
+      "coming_soon": false,
+      "img_without_alt": false,
+      "dangerous_html": false
+    },
+    "evidence": [],
+    "line_count": 6
+  }
+]

@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Zola:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Netflix+Sans:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -123,9 +121,10 @@
 }
 
 @theme inline {
-  --font-sans: 'Netflix Sans', 'Netflix Sans Fallback', sans-serif;
-  --font-heading: 'Zola', 'Zola Fallback', sans-serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  /* Use Inter loaded via next/font — injected as --font-inter CSS variable */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-heading: var(--font-inter), system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'Courier New', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -186,11 +185,11 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Netflix Sans', 'Netflix Sans Fallback', sans-serif;
+    font-family: var(--font-inter), system-ui, sans-serif;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Zola', 'Zola Fallback', sans-serif;
+    font-family: var(--font-inter), system-ui, sans-serif;
     font-weight: 600;
     color: var(--foreground);
   }
@@ -211,7 +210,7 @@
   }
   
   p {
-    font-family: 'Netflix Sans', 'Netflix Sans Fallback', sans-serif;
+    font-family: var(--font-inter), system-ui, sans-serif;
     color: var(--foreground);
     line-height: 1.6;
   }
@@ -234,7 +233,128 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Mobile touch improvements */
+.dot-grid-bg {
+  background-image:
+    radial-gradient(circle at center, color-mix(in srgb, var(--primary-red) 30%, transparent) 1px, transparent 1px),
+    linear-gradient(180deg, transparent 0%, color-mix(in srgb, black 65%, transparent) 100%);
+  background-size: 20px 20px, auto;
+}
+
+.section-fade {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 650ms ease, transform 650ms ease;
+}
+
+.section-fade.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hover-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.hover-shimmer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 10%, color-mix(in srgb, white 18%, transparent) 48%, transparent 85%);
+  transform: translateX(-120%);
+  transition: transform 700ms ease;
+}
+
+.hover-shimmer:hover::before {
+  transform: translateX(120%);
+}
+
+.live-pulse span {
+  animation: livePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, #22c55e 30%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, #22c55e 22%, transparent);
+  }
+}
+
+/* ─── Hero entrance animation ──────────────────────────────────────────────
+   Elements with .hero-animate start invisible and translate-up.
+   animejs triggers the "visible" state on mount via JS.
+   The .is-visible class is the CSS endpoint animejs animates toward.
+──────────────────────────────────────────────────────────────────────────── */
+.hero-animate {
+  opacity: 0;
+  transform: translateY(28px);
+}
+
+/* ─── Dot-grid hero background ─────────────────────────────────────────────
+   Subtle radial dots over a deep crimson-to-black gradient.
+──────────────────────────────────────────────────────────────────────────── */
+.hero-bg {
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 20%, color-mix(in srgb, #8B0000 22%, transparent) 0%, transparent 70%),
+    linear-gradient(160deg, #1a0000 0%, #0a0a0a 60%, #0f0f0f 100%);
+  position: relative;
+}
+
+.hero-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, color-mix(in srgb, #DC143C 18%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+/* ─── Reduced-motion: respect user preference ───────────────────────────────
+   All transitions and animations are cut to near-zero for users who prefer
+   reduced motion. animejs checks this before running entrance animations.
+──────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .section-fade {
+    opacity: 1;
+    transform: none;
+  }
+
+  .hero-animate {
+    opacity: 1;
+    transform: none;
+  }
+
+  .live-pulse span {
+    animation: none;
+  }
+}
+
+/* ─── Animated gradient border for initiative cards ────────────────────────
+   @keyframes used by the .border-trace utility on active initiative cards.
+──────────────────────────────────────────────────────────────────────────── */
+@keyframes borderTrace {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.border-trace {
+  background: linear-gradient(270deg, #22c55e, #16a34a, #15803d, #22c55e);
+  background-size: 300% 300%;
+  animation: borderTrace 3s ease infinite;
+}
 @media (max-width: 768px) {
   body {
     -webkit-tap-highlight-color: transparent;

@@ -1,42 +1,48 @@
-'use client';
+"use client"
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from "react"
+import { useTheme } from "next-themes"
+
+function useMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
+}
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme()
+  const mounted = useMounted()
 
-  useEffect(() => {
-    setMounted(true);
-    // Check current theme
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    setIsDark(isDarkMode);
-  }, []);
+  const isDark = resolvedTheme === "dark"
 
   const toggleTheme = () => {
-    const root = document.documentElement;
-    const newIsDark = !isDark;
-    
-    if (newIsDark) {
-      root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-    
-    setIsDark(newIsDark);
-  };
-
-  if (!mounted) return null;
+    setTheme(isDark ? "light" : "dark")
+  }
 
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-lg bg-card border border-border hover:bg-secondary transition-colors duration-200"
+      className="h-11 w-11 rounded-lg border border-border bg-card p-2 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       aria-label="Toggle theme"
     >
-      {isDark ? (
+      {!mounted ? (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-slate-700"
+        >
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      ) : isDark ? (
         // Sun Icon
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -78,5 +84,5 @@ export function ThemeToggle() {
         </svg>
       )}
     </button>
-  );
+  )
 }

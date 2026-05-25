@@ -1,35 +1,68 @@
-import Hero from "@/components/hero"
-import EventsGrid from "@/components/events-grid"
-import Mission from "@/components/mission"
-import TrustedBy from "@/components/trusted-by"
-import Footer from "@/components/footer"
+import type { Metadata } from "next"
+import SiteHeader from "@/components/site-header"
+import DesktopLanding from "@/components/home/desktop-landing"
+import { buildPageMetadata } from "@/lib/seo"
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Home",
+  description:
+    "Butwal Hacks is a nonprofit tech community in Butwal, Nepal focused on hackathons, learning, mentorship, and youth innovation support.",
+  path: "/",
+})
 
 export default function Home() {
+  /**
+   * JSON-LD structured data — Phase 5 SEO.
+   * Uses NGO + Organization types for maximum Google Rich Result eligibility.
+   * Includes sameAs social profiles for entity disambiguation.
+   */
   const organizationJsonLd = {
     "@context": "https://schema.org",
-    "@type": "NGO",
-    name: "Butwal Hacks",
-    url: "https://butwalhacks.com",
-    logo: "https://butwalhacks.com/logo.png",
-    description:
-      "A non-profit initiative empowering youth in Butwal and Rupandehi to foster a thriving regional hub for technology and collaboration.",
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Butwal",
-      addressRegion: "Lumbini Province",
-      addressCountry: "NP",
-    },
-    sameAs: ["https://butwalhacks.com"],
+    "@graph": [
+      {
+        "@type": ["NGO", "Organization"],
+        "@id": "https://butwalhacks.com/#organization",
+        name: "Butwal Hacks",
+        alternateName: "Butwal Hacks Foundation",
+        url: "https://butwalhacks.com",
+        logo: "https://butwalhacks.com/logo.png",
+        description:
+          "A nonprofit technology community focused on practical learning, mentorship, hackathons, and collaborative innovation in Butwal, Rupandehi and Western Nepal.",
+        foundingDate: "2023",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Butwal",
+          addressRegion: "Lumbini Province",
+          addressCountry: "NP",
+        },
+        email: "hello@butwalhacks.com",
+        sameAs: [
+          "https://github.com/Prarambha369/Butwal-Hacks",
+        ],
+        knowsAbout: [
+          "hackathons",
+          "youth technology education",
+          "mentorship",
+          "open source",
+          "innovation",
+        ],
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://butwalhacks.com/#website",
+        url: "https://butwalhacks.com",
+        name: "Butwal Hacks",
+        publisher: { "@id": "https://butwalhacks.com/#organization" },
+        inLanguage: "en",
+      },
+    ],
   }
 
   return (
     <main className="min-h-screen bg-background">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
-      <Hero />
-      <Mission />
-      <TrustedBy />
-      <EventsGrid />
-      <Footer />
+      <SiteHeader />
+      <DesktopLanding />
     </main>
   )
 }
