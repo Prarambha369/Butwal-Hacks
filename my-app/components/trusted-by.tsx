@@ -51,31 +51,31 @@ const organizations: Organization[] = [
 
 export default function TrustedBy() {
   return (
-    <section className="py-14 sm:py-16 px-4" aria-labelledby="trusted-by-heading">
-      <div className="max-w-6xl mx-auto">
-        <header className="text-center mb-8">
-          <h2 id="trusted-by-heading" className="text-3xl sm:text-4xl font-bold text-white mb-3">Trusted By</h2>
-          <p className="text-slate-300 text-sm sm:text-base px-2">Organizations and communities that support our long-term mission</p>
+    <section className="py-10" aria-labelledby="trusted-by-heading">
+      <div className="h-full">
+        <header className="mb-6">
+          <h2 id="trusted-by-heading" className="text-3xl sm:text-4xl font-bold font-heading text-foreground mb-2">Trusted By</h2>
+          <p className="text-muted-foreground text-sm sm:text-base">Institutional and Community Partners</p>
         </header>
 
-        <Card className="border-border/70 bg-card/90">
+        <Card className="border-border card-cream h-full">
           <CardHeader>
-            <CardTitle className="text-white text-base sm:text-lg">Institutional and Community Partners</CardTitle>
+            <CardTitle className="text-foreground text-base sm:text-lg">Organizations Supporting Our Mission</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3" aria-label="Partner organizations">
               {organizations.map((org) => (
                 <li key={org.name}>
-                  <article className="border border-border/70 rounded-md p-3 bg-slate-900/50 hover:bg-slate-900 transition-colors">
+                  <article className="h-full border border-border rounded-md p-3 bg-card hover:bg-muted transition-colors">
                     <Image
                       src={org.logo || "/placeholder.svg"}
                       alt={org.name}
-                      width={160}
-                      height={160}
+                      width={120}
+                      height={120}
                       unoptimized
-                      className="w-full aspect-square rounded object-cover mb-2"
+                      className="w-full aspect-[4/3] rounded object-contain mb-2"
                     />
-                    <h3 className="text-xs sm:text-sm text-slate-200 font-medium leading-snug">{org.name}</h3>
+                    <h3 className="text-xs sm:text-sm text-foreground font-medium leading-snug text-center">{org.name}</h3>
                   </article>
                 </li>
               ))}
