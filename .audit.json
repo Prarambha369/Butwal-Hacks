@@ -550,7 +550,7 @@
       "next/script",
       "@vercel/analytics/next",
       "@/components/theme-provider",
-      "./globals.css"
+      "./main.css"
     ],
     "external_deps": [
       "@vercel/analytics/next",
