@@ -1,0 +1,674 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Butwal Hacks Internal API",
+    "description": "Complete API reference for the Butwal Hacks platform. Covers all 18 internal API routes.\n\n**Base URL:** `http://localhost:3000` (development) or `https://butwalhacks.com` (production)\n\n**Auth:** Most endpoints require a valid Supabase session. The session token is managed via cookies.\n\n**Methods:** All routes use standard Next.js API route handlers.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Butwal Hacks Maintainers",
+      "url": "https://butwalhacks.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    },
+    {
+      "url": "https://butwalhacks.com",
+      "description": "Production server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "sessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__session",
+        "description": "Clerk session cookie. Set automatically after login via `auth()` from `@clerk/nextjs/server`. Most endpoints extract the user ID from the active session."
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Bearer token for development/testing. Not used in production — all auth is session-based via Clerk."
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "description": "Error message" }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" }
+        }
+      }
+    }
+  },
+  "security": [
+    { "sessionAuth": [] }
+  ],
+  "paths": {
+    "/api/contact": {
+      "post": {
+        "summary": "Submit a contact form message",
+        "description": "Sends an email via Resend to the organization's contact address. No auth required — public form endpoint.",
+        "tags": ["Public"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "subject", "message"],
+                "properties": {
+                  "name": { "type": "string", "minLength": 2, "description": "Sender's full name" },
+                  "email": { "type": "string", "format": "email", "description": "Sender's email address" },
+                  "phone": { "type": "string", "description": "Optional phone number" },
+                  "subject": { "type": "string", "minLength": 5, "description": "Message subject line" },
+                  "message": { "type": "string", "minLength": 10, "description": "Message body" }
+                }
+              },
+              "example": {
+                "name": "John Doe",
+                "email": "john@example.com",
+                "subject": "Partnership Inquiry",
+                "message": "I'd like to discuss a potential partnership with Butwal Hacks."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Message sent successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessResponse" } } } },
+          "400": { "description": "Invalid form data", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "500": { "description": "Email provider error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/sponsor": {
+      "post": {
+        "summary": "Submit a sponsor inquiry",
+        "description": "Sends a sponsor inquiry email via Resend. No auth required — public form endpoint.",
+        "tags": ["Public"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "company", "tier"],
+                "properties": {
+                  "name": { "type": "string", "minLength": 2 },
+                  "email": { "type": "string", "format": "email" },
+                  "company": { "type": "string", "minLength": 1 },
+                  "tier": { "type": "string", "minLength": 1, "description": "Sponsorship tier (e.g., Gold, Silver, Bronze)" },
+                  "message": { "type": "string", "description": "Optional additional message" }
+                }
+              },
+              "example": {
+                "name": "Acme Corp",
+                "email": "sponsor@acme.com",
+                "company": "Acme Corporation",
+                "tier": "Gold",
+                "message": "We're interested in sponsoring the upcoming hackathon."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Inquiry sent successfully" },
+          "400": { "description": "Invalid form data" },
+          "500": { "description": "Email provider error" }
+        }
+      }
+    },
+    "/api/verify/{bhId}": {
+      "get": {
+        "summary": "Verify a Hacker BH-ID",
+        "description": "Public endpoint to verify if a BH-ID exists and return basic profile info. No auth required.",
+        "tags": ["Public"],
+        "security": [],
+        "parameters": [
+          {
+            "name": "bhId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The BH-ID to verify (e.g., BH-26-001)",
+            "example": "BH-26-001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "BH-ID verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "verified": { "type": "boolean", "enum": [true] },
+                    "profile": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "id": { "type": "string" },
+                        "role": { "type": "string" },
+                        "xp": { "type": "integer" }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "verified": true,
+                  "profile": { "name": "Bashyal", "id": "BH-26-001", "role": "organizer", "xp": 250 }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "BH-ID not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "verified": { "type": "boolean", "enum": [false] },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhooks/clerk": {
+      "post": {
+        "summary": "Clerk webhook receiver",
+        "description": "Receives webhook events from Clerk for user, organization, and membership sync. Verifies using Svix signatures.\n\n**Events handled:** `user.created`, `user.updated`, `organization.*`, `organizationMembership.*`",
+        "tags": ["Webhooks"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string", "description": "Clerk event type" },
+                  "data": { "type": "object", "description": "Event payload (varies by type)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Event processed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessResponse" } } } },
+          "400": { "description": "Missing Svix headers or verification failed" },
+          "500": { "description": "Missing CLERK_WEBHOOK_SECRET or database error" }
+        }
+      }
+    },
+    "/api/events/register": {
+      "post": {
+        "summary": "Register for an event",
+        "description": "Registers the authenticated user for an event. Requires Supabase session cookie.",
+        "tags": ["Events"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["event_id"],
+                "properties": {
+                  "event_id": { "type": "string", "format": "uuid", "description": "Event ID to register for" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Registration successful" },
+          "401": { "description": "Unauthorized — not logged in" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/events/checkin": {
+      "post": {
+        "summary": "Check in an attendee",
+        "description": "Marks an event registration as attended. Requires organizer or maintainer role.",
+        "tags": ["Events"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["registration_id"],
+                "properties": {
+                  "registration_id": { "type": "string", "format": "uuid", "description": "Registration ID to mark as attended" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Check-in successful" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/projects": {
+      "post": {
+        "summary": "Submit a new project",
+        "description": "Creates a new project entry. Auto-sets `profile_id` from the authenticated user's session.",
+        "tags": ["Projects"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title"],
+                "properties": {
+                  "title": { "type": "string", "description": "Project title" },
+                  "description": { "type": "string", "nullable": true },
+                  "demo_url": { "type": "string", "format": "uri", "nullable": true },
+                  "github_url": { "type": "string", "format": "uri", "nullable": true },
+                  "cover_image": { "type": "string", "format": "uri", "nullable": true },
+                  "video_url": { "type": "string", "format": "uri", "nullable": true },
+                  "tech_stack": { "type": "array", "items": { "type": "string" } },
+                  "team_id": { "type": "string", "format": "uuid", "nullable": true },
+                  "event_id": { "type": "string", "format": "uuid", "nullable": true }
+                }
+              },
+              "example": {
+                "title": "AgriTech Smart Monitor",
+                "description": "IoT-based crop monitoring system",
+                "tech_stack": ["React", "Python", "IoT"],
+                "github_url": "https://github.com/user/agritech"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Project created" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/projects/like": {
+      "post": {
+        "summary": "Toggle project like",
+        "description": "Toggles the like state for the authenticated user on a project. Calls `toggle_project_like` RPC function.",
+        "tags": ["Projects"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["project_id"],
+                "properties": {
+                  "project_id": { "type": "string", "format": "uuid", "description": "Project ID to like/unlike" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Like toggled" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/profile/complete": {
+      "post": {
+        "summary": "Complete profile onboarding",
+        "description": "Updates the authenticated user's profile fields during the onboarding flow.",
+        "tags": ["Profile"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "full_name": { "type": "string" },
+                  "bio": { "type": "string" },
+                  "avatar_url": { "type": "string", "format": "uri" },
+                  "github_username": { "type": "string" },
+                  "skills": { "type": "array", "items": { "type": "string" } },
+                  "socials": {
+                    "type": "object",
+                    "properties": {
+                      "github": { "type": "string" },
+                      "linkedin": { "type": "string" },
+                      "twitter": { "type": "string" },
+                      "website": { "type": "string" }
+                    }
+                  }
+                }
+              },
+              "example": {
+                "full_name": "Jane Hacker",
+                "bio": "Full-stack developer passionate about open source.",
+                "skills": ["React", "TypeScript", "Node.js"],
+                "github_username": "janehacker"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Profile updated" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/profile/update": {
+      "post": {
+        "summary": "Update profile fields",
+        "description": "Updates the authenticated user's profile fields. Same as `/api/profile/complete` but can be used for partial updates after onboarding.",
+        "tags": ["Profile"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "bio": { "type": "string" },
+                  "avatar_url": { "type": "string", "format": "uri" },
+                  "skills": { "type": "array", "items": { "type": "string" } },
+                  "socials": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Profile updated" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/badges/check": {
+      "get": {
+        "summary": "Get user badges",
+        "description": "Returns all badges earned by the authenticated user.",
+        "tags": ["Badges"],
+        "responses": {
+          "200": {
+            "description": "List of badges",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "badges": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "badges": { "type": "object", "description": "Badge details from join" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/certificates": {
+      "get": {
+        "summary": "Get user certificates",
+        "description": "Returns all certificates issued to the authenticated user.",
+        "tags": ["Certificates"],
+        "responses": {
+          "200": {
+            "description": "List of certificates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "certificates": {
+                      "type": "array",
+                      "items": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "summary": "Fetch user notifications",
+        "description": "Returns all notifications for the authenticated user, ordered by most recent first.",
+        "tags": ["Notifications"],
+        "responses": {
+          "200": {
+            "description": "List of notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "notifications": {
+                      "type": "array",
+                      "items": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/reviews": {
+      "post": {
+        "summary": "Submit event review",
+        "description": "Submits or updates a star rating for an event. Uses upsert so re-rating updates the existing entry.",
+        "tags": ["Events"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["event_id", "rating"],
+                "properties": {
+                  "event_id": { "type": "string", "format": "uuid" },
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 5, "description": "Star rating (1-5)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Review submitted" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/organizer/metrics": {
+      "get": {
+        "summary": "Get organizer metrics",
+        "description": "Returns event metrics for the authenticated organizer. Includes registration counts per event.",
+        "tags": ["Dashboard"],
+        "responses": {
+          "200": {
+            "description": "Organizer metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "metrics": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "event_registrations": {
+                            "type": "array",
+                            "items": { "type": "object", "properties": { "count": { "type": "integer" } } }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/resources/complete": {
+      "post": {
+        "summary": "Mark resource as completed",
+        "description": "Marks a learning resource as completed by the authenticated user.",
+        "tags": ["Resources"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["resource_id"],
+                "properties": {
+                  "resource_id": { "type": "string", "format": "uuid", "description": "Resource ID to mark complete" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Resource marked complete" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/teams": {
+      "post": {
+        "summary": "Create a team",
+        "description": "Creates a new team and automatically adds the creator as captain. Sets `is_captain: true` for the creator in `team_members`.",
+        "tags": ["Teams"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "event_id"],
+                "properties": {
+                  "name": { "type": "string", "description": "Team name" },
+                  "event_id": { "type": "string", "format": "uuid", "description": "Event the team is for" }
+                }
+              },
+              "example": {
+                "name": "Team Phoenix",
+                "event_id": "abc-123-456"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Team created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "team": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "name": { "type": "string" },
+                        "event_id": { "type": "string", "format": "uuid" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/impact/report/{projectId}": {
+      "get": {
+        "summary": "Generate impact report",
+        "description": "Generates an impact report for a project. No auth required on the route itself (the underlying action may check permissions).",
+        "tags": ["Projects"],
+        "security": [],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "Project ID to generate report for"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Impact report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Report structure varies based on generateImpactReport() implementation"
+                }
+              }
+            }
+          },
+          "500": { "description": "Generation failed" }
+        }
+      }
+    }
+  },
+  "tags": [
+    { "name": "Public", "description": "No authentication required" },
+    { "name": "Webhooks", "description": "External service webhooks (Clerk)" },
+    { "name": "Events", "description": "Event registration and check-in" },
+    { "name": "Projects", "description": "Project CRUD and social features" },
+    { "name": "Profile", "description": "User profile management" },
+    { "name": "Badges", "description": "Badges and achievements" },
+    { "name": "Certificates", "description": "Certificate issuance and lookup" },
+    { "name": "Notifications", "description": "In-app notifications" },
+    { "name": "Dashboard", "description": "Organizer dashboard APIs" },
+    { "name": "Resources", "description": "Learning resources" },
+    { "name": "Teams", "description": "Team creation and management" }
+  ]
+}
