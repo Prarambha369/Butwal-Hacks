@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { buildPageMetadata } from "@/lib/seo"
 import SiteHeader from "@/components/site-header"
 import Footer from "@/components/footer"
+import { TestimonialsSection } from "@/components/testimonials"
+import { MemberDirectory } from "@/components/member-directory"
 import { MessageSquare, Users, Github, Send } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -10,37 +12,37 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/community",
 })
 
-export default function CommunityPage() {
-  const communityLinks = [
-    {
-      name: "Discord",
-      description: "Join discussions, share projects, and connect with the community in real-time.",
-      icon: MessageSquare,
-      href: "#",
-      color: "bg-indigo-50 dark:bg-indigo-950 border-indigo-200 dark:border-indigo-800",
-      buttonColor: "bg-indigo-600 hover:bg-indigo-700 text-white",
-      available: false,
-    },
-    {
-      name: "Telegram",
-      description: "Get quick updates and participate in community conversations.",
-      icon: Send,
-      href: "#",
-      color: "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800",
-      buttonColor: "bg-blue-600 hover:bg-blue-700 text-white",
-      available: false,
-    },
-    {
-      name: "GitHub",
-      description: "Contribute to open-source projects, share code, and collaborate on initiatives.",
-      icon: Github,
-      href: "https://github.com/Prarambha369",
-      color: "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800",
-      buttonColor: "bg-gray-800 hover:bg-gray-900 text-white",
-      available: true,
-    },
-  ]
+const communityLinks = [
+  {
+    name: "Discord",
+    description: "Join discussions, share projects, and connect with the community in real-time.",
+    icon: MessageSquare,
+    href: "#",
+    color: "bg-indigo-50 dark:bg-indigo-950 border-indigo-200 dark:border-indigo-800",
+    buttonColor: "bg-indigo-600 hover:bg-indigo-700 text-white",
+    available: false,
+  },
+  {
+    name: "Telegram",
+    description: "Get quick updates and participate in community conversations.",
+    icon: Send,
+    href: "#",
+    color: "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800",
+    buttonColor: "bg-blue-600 hover:bg-blue-700 text-white",
+    available: false,
+  },
+  {
+    name: "GitHub",
+    description: "Contribute to open-source projects, share code, and collaborate on initiatives.",
+    icon: Github,
+    href: "https://github.com/Prarambha369",
+    color: "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800",
+    buttonColor: "bg-gray-800 hover:bg-gray-900 text-white",
+    available: true,
+  },
+]
 
+export default function CommunityPage() {
   return (
     <main className="min-h-screen bg-background">
       <SiteHeader />
@@ -116,7 +118,7 @@ export default function CommunityPage() {
         <section className="mt-12 p-6 rounded-xl border border-border bg-card">
           <h2 className="text-xl font-semibold font-heading text-foreground mb-3">Want to Get Involved?</h2>
           <p className="text-muted-foreground mb-4">
-            Whether you&apos;re a student, developer, designer, or just curious about technology, 
+            Whether you&apos;re a student, developer, designer, or just curious about technology,
             there&apos;s a place for you in the Butwal Hacks community.
           </p>
           <a
@@ -127,7 +129,9 @@ export default function CommunityPage() {
           </a>
         </section>
       </div>
-      
+
+      <MemberDirectory />
+      <TestimonialsSection />
       <Footer />
     </main>
   )
