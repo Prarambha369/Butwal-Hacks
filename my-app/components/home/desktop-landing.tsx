@@ -94,29 +94,48 @@ function CountUp({
   suffix?: string
 }) {
   const { ref, isVisible } = useInViewOnce<HTMLDivElement>()
-  const [count, setCount] = useState(0)
+  const [animatedCount, setAnimatedCount] = useState(0)
+  const displayRef = useRef(value)
+  const rafRef = useRef<number | null>(null)
+  const hasAnimatedRef = useRef(false)
 
+  /* eslint-disable react-hooks/set-state-in-effect -- Animation requires state updates in effect */
   useEffect(() => {
-    if (!isVisible) return
+    if (!isVisible || hasAnimatedRef.current) return
 
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
     if (prefersReduced) {
-      setCount(value)
+      displayRef.current = value
+      setAnimatedCount(value)
+      hasAnimatedRef.current = true
       return
     }
 
     const duration = 1100
     const start = performance.now()
+    hasAnimatedRef.current = true
 
     const step = (now: number) => {
       const progress = Math.min((now - start) / duration, 1)
       const eased = 1 - Math.pow(1 - progress, 3) // easeOutCubic
-      setCount(Math.round(value * eased))
-      if (progress < 1) requestAnimationFrame(step)
+      const nextCount = Math.round(value * eased)
+      displayRef.current = nextCount
+      setAnimatedCount(nextCount)
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(step)
+      }
     }
 
-    requestAnimationFrame(step)
+    rafRef.current = requestAnimationFrame(step)
+
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current)
+      }
+    }
   }, [isVisible, value])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <div
@@ -124,7 +143,7 @@ function CountUp({
       className="flex flex-col items-center rounded-2xl border border-white/10 bg-white/5 px-8 py-8 text-center backdrop-blur-sm"
     >
       <p className="text-5xl font-extrabold tracking-tight text-white">
-        {count.toLocaleString()}{suffix}
+        {animatedCount.toLocaleString()}{suffix}
       </p>
       <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-white/50">{label}</p>
     </div>
@@ -237,62 +256,74 @@ export default function DesktopLanding() {
 
   return (
     <>
-      {/* ══════════════════════════════════════════════════════════════════════
-          1. HERO — movement energy
-          Deep red → near-black gradient + animated dot-grid texture.
-          animejs orchestrates entrance of badge, h1, subtext, CTAs.
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section
-        className="hero-bg relative overflow-hidden px-6 pb-32 pt-28"
-        aria-labelledby="hero-heading"
-      >
-        <div className="relative z-10 mx-auto w-full max-w-5xl" ref={heroRef}>
-          {/* Eyebrow */}
-          <p className="hero-animate inline-flex items-center gap-2 rounded-full border border-red-700/60 bg-red-900/30 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-red-300">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-red-400" aria-hidden="true" />
-            The Pulse of Innovation · Western Nepal
-          </p>
+       {/* ══════════════════════════════════════════════════════════════════════
+           1. HERO — movement energy
+           Deep red → near-black gradient + animated dot-grid texture.
+           animejs orchestrates entrance of badge, h1, subtext, CTAs.
 
-          {/* H1 */}
-          <h1
-            id="hero-heading"
-            className="hero-animate mt-8 max-w-4xl text-balance text-5xl font-extrabold leading-[1.08] tracking-tight text-white md:text-7xl"
-          >
-            Powering Western Nepal&apos;s Next Generation of Builders.
-          </h1>
+           Design improvements:
+           - Larger h1 for impact
+           - Better spacing and breathing room
+           - Improved CTA hierarchy and contrast
+           - Clearer subtext with better line-height
+       ══════════════════════════════════════════════════════════════════════ */}
+       <section
+         className="hero-bg relative overflow-hidden px-6 pb-40 pt-36"
+         aria-labelledby="hero-heading"
+       >
+         <div className="relative z-10 mx-auto w-full max-w-5xl" ref={heroRef}>
+           {/* Eyebrow — better contrast */}
+           <p className="hero-animate inline-flex items-center gap-2 rounded-full border border-red-600/50 bg-red-950/40 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.15em] text-red-200 dark:text-red-200 dark:bg-red-950/40 dark:border-red-600/50 light:text-red-700 light:bg-red-100/50 light:border-red-600/30">
+             <span className="h-2 w-2 animate-pulse rounded-full bg-red-400 dark:bg-red-400 light:bg-red-600" aria-hidden="true" />
+             The Pulse of Innovation · Western Nepal
+           </p>
 
-          {/* Subtext */}
-          <p className="hero-animate mt-7 max-w-2xl text-lg leading-relaxed text-white/65 md:text-xl">
-            Butwal Hacks is a youth-led nonprofit building structured pathways from learning
-            to building to launching real-world technology initiatives.
-          </p>
+           {/* H1 — larger, more impactful */}
+           <h1
+             id="hero-heading"
+             className="hero-animate mt-10 max-w-4xl text-balance text-6xl font-extrabold leading-[1.05] tracking-tight text-white dark:text-white light:text-foreground md:text-8xl"
+           >
+             Powering Nepal&apos;s Next Generation of Builders.
+           </h1>
 
-          {/* CTAs */}
-          <div className="hero-animate mt-10 flex flex-wrap items-center gap-4">
-            <Link
-              href="/community"
-              className="rounded-lg bg-red-700 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-red-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            >
-              Join the Movement
-            </Link>
-            <Link
-              href="/initiatives"
-              className="rounded-lg border border-white/20 px-8 py-3.5 text-sm font-bold text-white/90 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-red-500/60 hover:shadow-[0_0_20px_rgba(220,20,60,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            >
-              Explore Programs
-            </Link>
-          </div>
-        </div>
-      </section>
+           {/* Subtext — better hierarchy and spacing */}
+           <p className="hero-animate mt-8 max-w-2xl text-xl leading-relaxed text-white/70 dark:text-white/70 light:text-foreground/70 md:text-2xl">
+             A youth-led nonprofit building structured pathways from learning to building to launching real-world technology initiatives in Western Nepal.
+           </p>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          2. MOMENTUM STRIP — social proof
-          4 count-up metrics, starts animation on scroll into view.
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section
-        className="border-y border-white/8 bg-[#0a0a0a] px-6 py-12"
-        aria-label="Community statistics"
-      >
+           {/* CTAs — improved hierarchy and spacing */}
+           <div className="hero-animate mt-12 flex flex-col sm:flex-row items-stretch sm:items-center gap-5">
+             <Link
+               href="/community"
+               className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-10 py-4 text-base font-bold text-white shadow-xl shadow-red-950/50 transition-all duration-300 hover:bg-red-500 hover:shadow-red-900/70 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black dark:ring-offset-black light:ring-offset-white light:shadow-red-200/50 light:hover:shadow-red-300/70"
+             >
+               <Sparkles className="h-5 w-5" aria-hidden="true" />
+               Join the Movement
+             </Link>
+             <Link
+               href="/initiatives"
+               className="group inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/5 px-10 py-4 text-base font-semibold text-white/90 backdrop-blur-md transition-all duration-300 hover:border-red-500/50 hover:bg-white/8 hover:text-white hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(220,20,60,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black dark:ring-offset-black light:border-red-600/30 light:bg-red-50/30 light:text-foreground light:hover:text-foreground light:hover:border-red-600/50 light:hover:bg-red-100/30 light:ring-offset-white"
+             >
+               Explore Programs
+               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+             </Link>
+           </div>
+
+           {/* Social proof line */}
+           <p className="hero-animate mt-10 text-sm text-white/50 font-medium">
+             ✓ 500+ members  •  ✓ 20+ events  •  ✓ 5 active programs
+           </p>
+         </div>
+       </section>
+
+       {/* ══════════════════════════════════════════════════════════════════════
+           2. MOMENTUM STRIP — social proof
+           4 count-up metrics, starts animation on scroll into view.
+       ══════════════════════════════════════════════════════════════════════ */}
+       <section
+         className="border-y border-border bg-muted px-6 py-12 dark:bg-[#1a1a1a] light:bg-secondary"
+         aria-label="Community statistics"
+       >
         <div className="mx-auto grid w-full max-w-5xl gap-4 sm:grid-cols-2 md:grid-cols-4">
           <CountUp value={500} suffix="+" label="Members" />
           <CountUp value={20} suffix="+" label="Events Hosted" />
@@ -301,123 +332,125 @@ export default function DesktopLanding() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          3. WHO WE ARE — mission + 3 pillars
-          Crimson left-border accent on intro. Scannable in under 5 seconds.
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section
-        className="border-b border-white/8 bg-[#0f0f0f] px-6 py-24"
-        aria-labelledby="who-heading"
-      >
-        <div className="mx-auto w-full max-w-6xl">
-          <FadeIn>
-            <div className="border-l-2 border-red-700 pl-5">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-500">Who We Are</p>
-              <h2
-                id="who-heading"
-                className="mt-4 max-w-3xl text-4xl font-extrabold leading-tight text-white md:text-5xl"
-              >
-                Building a disciplined and inclusive technology movement from Western Nepal.
-              </h2>
-            </div>
-            <p className="mt-6 max-w-[68ch] text-lg font-semibold leading-relaxed text-white/70">
-              Butwal Hacks exists to turn curiosity into contribution — through practical systems,
-              community accountability, and long-term execution.
-            </p>
-          </FadeIn>
+        {/* ══════════════════════════════════════════════════════════════════════
+            3. WHO WE ARE — mission + 3 pillars
+            Improved spacing, better typography hierarchy, clearer values.
+        ══════════════════════════════════════════════════════════════════════ */}
+        <section
+          className="border-b border-border bg-background px-6 py-32 dark:bg-[#0f0f0f]"
+          aria-labelledby="who-heading"
+        >
+         <div className="mx-auto w-full max-w-6xl">
+           <FadeIn>
+             <div className="border-l-4 border-red-600 pl-6">
+               <p className="text-xs font-bold uppercase tracking-[0.15em] text-red-400">Our Mission</p>
+               <h2
+                 id="who-heading"
+                 className="mt-4 max-w-3xl text-5xl font-black leading-tight text-white"
+               >
+                 Building a disciplined and inclusive technology movement.
+               </h2>
+             </div>
+             <p className="mt-8 max-w-2xl text-xl leading-relaxed text-white/75 font-medium">
+               Butwal Hacks exists to turn curiosity into contribution — through practical systems, community accountability, and long-term execution in Western Nepal.
+             </p>
+           </FadeIn>
 
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {[
-              {
-                icon: ShieldCheck,
-                title: "Integrity",
-                description:
-                  "We operate with clear governance, public documentation, and consistent standards that build lasting trust.",
-              },
-              {
-                icon: Users,
-                title: "Community",
-                description:
-                  "We grow by creating supportive pathways where every person can learn, contribute, and belong.",
-              },
-              {
-                icon: Target,
-                title: "Practical Learning",
-                description:
-                  "We prioritise real projects, mentorship, and build-first experiences over theory alone.",
-              },
-            ].map((pillar, i) => (
-              <FadeIn
-                key={pillar.title}
-                delay={i * 110}
-                className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 transition-all duration-300 hover:border-red-700/40"
-              >
-                <pillar.icon className="h-8 w-8 text-red-500" aria-hidden="true" />
-                <h3 className="mt-5 text-xl font-bold text-white">{pillar.title}</h3>
-                <p className="mt-3 max-w-[58ch] text-sm leading-relaxed text-white/55">
-                  {pillar.description}
-                </p>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
+           <div className="mt-20 grid gap-8 md:grid-cols-3">
+             {[
+               {
+                 icon: ShieldCheck,
+                 title: "Integrity",
+                 description:
+                   "Clear governance, public documentation, and consistent standards that build lasting trust.",
+               },
+               {
+                 icon: Users,
+                 title: "Community",
+                 description:
+                   "Supportive pathways where every person can learn, contribute, and belong.",
+               },
+               {
+                 icon: Target,
+                 title: "Action-First",
+                 description:
+                   "Real projects, hands-on mentorship, and build-first experiences over theory.",
+               },
+             ].map((pillar, i) => (
+               <FadeIn
+                 key={pillar.title}
+                 delay={i * 110}
+                 className="group rounded-2xl border border-white/12 bg-gradient-to-b from-white/6 to-white/2 p-10 transition-all duration-300 hover:border-red-600/40 hover:bg-gradient-to-b hover:from-white/10 hover:to-white/4 hover:shadow-[0_8px_32px_rgba(220,20,60,0.1)]"
+               >
+                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-red-600/20 group-hover:bg-red-600/30 transition-colors">
+                   <pillar.icon className="h-7 w-7 text-red-500" aria-hidden="true" />
+                 </div>
+                 <h3 className="mt-6 text-2xl font-bold text-white">{pillar.title}</h3>
+                 <p className="mt-4 text-sm leading-relaxed text-white/65">
+                   {pillar.description}
+                 </p>
+               </FadeIn>
+             ))}
+           </div>
+         </div>
+       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          4. WHAT WE DO — 4 ecosystem capability cards
-          Subtle bg variation (#0d) separates from §3 (#0f).
-          Hover: scale(1.02) + soft glow border.
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section
-        className="border-b border-white/8 bg-[#0d0d0d] px-6 py-24"
-        aria-labelledby="what-heading"
-      >
-        <div className="mx-auto w-full max-w-6xl">
-          <FadeIn>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-500">What We Do</p>
-            <h2
-              id="what-heading"
-              className="mt-4 text-4xl font-extrabold leading-tight text-white md:text-5xl"
-            >
-              Execution-Focused Ecosystem
-            </h2>
-            <p className="mt-4 max-w-xl text-lg text-white/50">
-              We create structured pathways from curiosity to contribution.
-            </p>
-          </FadeIn>
+       {/* ══════════════════════════════════════════════════════════════════════
+           4. WHAT WE DO — 4 ecosystem capability cards
+           Improved card design, better hierarchy, clearer CTAs.
+       ══════════════════════════════════════════════════════════════════════ */}
+       <section
+         className="border-b border-border bg-card px-6 py-32 dark:bg-[#0d0d0d]"
+         aria-labelledby="what-heading"
+       >
+         <div className="mx-auto w-full max-w-6xl">
+           <FadeIn>
+             <p className="text-xs font-bold uppercase tracking-[0.15em] text-red-400">What We Do</p>
+             <h2
+               id="what-heading"
+               className="mt-4 text-5xl font-black leading-tight text-white"
+             >
+               Execution-Focused Ecosystem
+             </h2>
+             <p className="mt-6 max-w-2xl text-lg text-white/60">
+               Structured pathways from curiosity to contribution, with clear roles and real outcomes.
+             </p>
+           </FadeIn>
 
-          <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {capabilityCards.map((card, i) => (
-              <FadeIn
-                key={card.title}
-                delay={i * 100}
-                className="group rounded-2xl border border-white/10 bg-white/[0.03] p-8 transition-all duration-300 hover:scale-[1.02] hover:border-red-700/50 hover:shadow-[0_0_28px_rgba(139,0,0,0.2)]"
-              >
-                <card.icon className="h-9 w-9 text-red-500" aria-hidden="true" />
-                <h3 className="mt-6 text-xl font-bold text-white">{card.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-white/55">{card.description}</p>
-                <Link
-                  href={card.href}
-                  className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-red-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0d0d]"
-                >
-                  {card.cta}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
+           <div className="mt-16 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+             {capabilityCards.map((card, i) => (
+               <FadeIn
+                 key={card.title}
+                 delay={i * 100}
+                 className="group relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-b from-white/6 to-white/2 p-8 transition-all duration-300 hover:border-red-600/50 hover:bg-gradient-to-b hover:from-white/10 hover:to-white/4 hover:shadow-[0_12px_40px_rgba(220,20,60,0.15)]"
+               >
+                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-600/20 group-hover:bg-red-600/30 transition-colors">
+                   <card.icon className="h-6 w-6 text-red-500" aria-hidden="true" />
+                 </div>
+                 <h3 className="mt-6 text-xl font-bold text-white">{card.title}</h3>
+                 <p className="mt-3 text-sm leading-relaxed text-white/65">{card.description}</p>
+                 <Link
+                   href={card.href}
+                   className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-red-400 transition-all hover:text-red-300 group-hover:gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0d0d]"
+                 >
+                   {card.cta}
+                   <ArrowRight className="h-4 w-4 transition-transform" aria-hidden="true" />
+                 </Link>
+               </FadeIn>
+             ))}
+           </div>
+         </div>
+       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          5. ACTIVE INITIATIVES — most important section
-          LIVE pulse badge, next date, status chip, hover shimmer.
-          Green accent = "this org is active right now."
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section
-        className="border-b border-white/8 bg-[#0f0f0f] px-6 py-24"
-        aria-labelledby="initiatives-heading"
-      >
+       {/* ══════════════════════════════════════════════════════════════════════
+           5. ACTIVE INITIATIVES — most important section
+           LIVE pulse badge, next date, status chip, hover shimmer.
+           Green accent = "this org is active right now."
+       ══════════════════════════════════════════════════════════════════════ */}
+       <section
+         className="border-b border-border bg-background px-6 py-24 dark:bg-[#0f0f0f]"
+         aria-labelledby="initiatives-heading"
+       >
         <div className="mx-auto w-full max-w-6xl">
           <FadeIn className="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -481,14 +514,14 @@ export default function DesktopLanding() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          6. ROADMAP — planned initiatives timeline
-          Vertical left-line + dot markers. Feels strategic, not empty.
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section
-        className="border-b border-white/8 bg-[#0a0a0a] px-6 py-24"
-        aria-labelledby="roadmap-heading"
-      >
+       {/* ══════════════════════════════════════════════════════════════════════
+           6. ROADMAP — planned initiatives timeline
+           Vertical left-line + dot markers. Feels strategic, not empty.
+       ══════════════════════════════════════════════════════════════════════ */}
+       <section
+         className="border-b border-border bg-muted px-6 py-24 dark:bg-[#0a0a0a]"
+         aria-labelledby="roadmap-heading"
+       >
         <div className="mx-auto w-full max-w-6xl">
           <FadeIn>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-500">Roadmap</p>
@@ -538,63 +571,66 @@ export default function DesktopLanding() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          7. COMMUNITY INVITATION — emotional core
-          Slightly warmer bg (#130808). Maximum breathing space.
-          Social proof line beneath CTAs.
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section
-        className="border-b border-white/8 bg-[#130808] px-6 py-32"
-        aria-labelledby="community-heading"
-      >
-        <FadeIn className="mx-auto w-full max-w-4xl text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-500">
-            Community Invitation
-          </p>
-          <h2
-            id="community-heading"
-            className="mt-6 text-5xl font-extrabold leading-tight text-white md:text-6xl"
-          >
-            Don&apos;t Just Attend.<br />Belong.
-          </h2>
-          <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-white/58">
-            Build with people who care about impact, integrity, and long-term progress.
-            This is where learners, mentors, and builders create meaningful technology
-            together — rooted in Western Nepal.
-          </p>
+       {/* ══════════════════════════════════════════════════════════════════════
+           7. COMMUNITY INVITATION — emotional core + clear CTA hierarchy
+           Improved spacing, better typography, stronger call-to-action.
+       ══════════════════════════════════════════════════════════════════════ */}
+       <section
+         className="border-b border-border bg-red-50/50 px-6 py-40 dark:bg-[#130808]"
+         aria-labelledby="community-heading"
+       >
+         <FadeIn className="mx-auto w-full max-w-3xl text-center">
+           <p className="text-xs font-bold uppercase tracking-[0.15em] text-red-400">
+             Join Us
+           </p>
+           <h2
+             id="community-heading"
+             className="mt-6 text-6xl font-black leading-tight text-white md:text-7xl"
+           >
+             Don&apos;t Just Attend.<br className="hidden md:block" />
+             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">Belong.</span>
+           </h2>
+           <p className="mx-auto mt-8 max-w-2xl text-xl leading-relaxed text-white/70">
+             Build with people who care about impact, integrity, and long-term progress.
+             This is where learners, mentors, and builders create meaningful technology together.
+           </p>
 
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/community"
-              className="rounded-lg bg-red-700 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#130808]"
-            >
-              Join Community
-            </Link>
-            <a
-              href="https://github.com/Prarambha369/Butwal-Hacks"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-8 py-4 text-sm font-bold text-white/80 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#130808]"
-            >
-              <Github className="h-4 w-4" aria-hidden="true" />
-              Contribute on GitHub
-            </a>
-          </div>
+           {/* CTA Buttons — improved hierarchy */}
+           <div className="mt-14 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-6">
+             <Link
+               href="/community"
+               className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 px-12 py-5 text-lg font-bold text-white shadow-xl shadow-red-950/60 transition-all duration-300 hover:shadow-red-900/80 hover:-translate-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#130808]"
+             >
+               <Users className="h-5 w-5" aria-hidden="true" />
+               Join Community
+               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+             </Link>
+             <a
+               href="https://github.com/Prarambha369/Butwal-Hacks"
+               target="_blank"
+               rel="noopener noreferrer"
+               className="group inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/30 bg-white/8 px-12 py-5 text-lg font-bold text-white/90 backdrop-blur-sm transition-all duration-300 hover:border-red-500/50 hover:bg-white/12 hover:text-white hover:-translate-y-2 hover:shadow-[0_0_30px_rgba(220,20,60,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#130808]"
+             >
+               <Github className="h-5 w-5" aria-hidden="true" />
+               Contribute on GitHub
+             </a>
+           </div>
 
-          <p className="mt-8 text-sm font-semibold text-white/30">
-            200+ builders already part of the network.
-          </p>
-        </FadeIn>
-      </section>
+           {/* Social proof with better prominence */}
+           <p className="mt-12 text-base font-semibold text-white/50">
+             <span className="text-white">500+</span> builders  •  <span className="text-white">20+</span> events  •  <span className="text-white">5</span> active programs
+           </p>
+         </FadeIn>
+       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          8. LATEST UPDATES — editorial 3-card grid
-          Crimson accent line below each card title. Minimal borders.
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section
-        className="border-b border-white/8 bg-[#0f0f0f] px-6 py-24"
-        aria-labelledby="updates-heading"
-      >
+       {/* ══════════════════════════════════════════════════════════════════════
+           8. LATEST UPDATES — editorial 3-card grid
+           Crimson accent line below each card title. Minimal borders.
+       ══════════════════════════════════════════════════════════════════════ */}
+       <section
+         className="border-b border-border bg-background px-6 py-24 dark:bg-[#0f0f0f]"
+         aria-labelledby="updates-heading"
+       >
         <div className="mx-auto w-full max-w-6xl">
           <FadeIn className="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -640,15 +676,15 @@ export default function DesktopLanding() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          9. GOVERNANCE & TRANSPARENCY — trust teaser
-          Nonprofit governance, public docs, transparency reports.
-          Three quick-access links + scale icon for institutional feel.
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section
-        className="border-b border-white/8 bg-[#0d0d0d] px-6 py-20"
-        aria-labelledby="governance-heading"
-      >
+       {/* ══════════════════════════════════════════════════════════════════════
+           9. GOVERNANCE & TRANSPARENCY — trust teaser
+           Nonprofit governance, public docs, transparency reports.
+           Three quick-access links + scale icon for institutional feel.
+       ══════════════════════════════════════════════════════════════════════ */}
+       <section
+         className="border-b border-border bg-card px-6 py-20 dark:bg-[#0d0d0d]"
+         aria-labelledby="governance-heading"
+       >
         <FadeIn className="mx-auto w-full max-w-6xl">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 md:p-12">
             <div className="flex items-center gap-3">
@@ -689,11 +725,11 @@ export default function DesktopLanding() {
         </FadeIn>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          10. FOOTER — clean & structured
-          Gradient top divider. 4 nav columns. Attribution line.
-      ══════════════════════════════════════════════════════════════════════ */}
-      <footer className="bg-[#080808] px-6 pb-10 pt-16" role="contentinfo">
+       {/* ══════════════════════════════════════════════════════════════════════
+           10. FOOTER — clean & structured
+           Gradient top divider. 4 nav columns. Attribution line.
+       ══════════════════════════════════════════════════════════════════════ */}
+       <footer className="bg-muted px-6 pb-10 pt-16 dark:bg-[#080808]" role="contentinfo">
         {/* Gradient divider */}
         <div
           className="mx-auto h-px w-full max-w-6xl"

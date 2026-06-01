@@ -5,6 +5,8 @@ import { Inter } from "next/font/google"
 
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
+import { ToastProvider } from "@/components/toast-provider"
+import { DevelopmentBanner } from "@/components/development-banner"
 import { siteKeywords } from "@/lib/seo"
 import "./globals.css"
 
@@ -75,11 +77,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
-        {/* Default dark theme — matches the movement's visual identity */}
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+       <body className={`${inter.variable} font-sans antialiased`}>
+         {/* Theme sync with system preference — respects user's OS theme setting */}
+         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <DevelopmentBanner />
           {children}
           <Analytics />
+          <ToastProvider />
         </ThemeProvider>
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-NKE935H259" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
