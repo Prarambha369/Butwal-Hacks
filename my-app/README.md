@@ -26,7 +26,7 @@ my-app/
 ├── app/                  # Next.js App Router pages
 │   ├── layout.tsx        # Root layout (font, theme, analytics, metadata)
 │   ├── page.tsx          # Home page (JSON-LD + <DesktopLanding />)
-│   ├── globals.css       # Design tokens, animations, reduced-motion
+│   ├── main.css       # Design tokens, animations, reduced-motion
 │   ├── sitemap.ts        # Auto-generated XML sitemap
 │   ├── robots.ts         # robots.txt rules
 │   ├── about/            # Static pages (about, community, contact…)
@@ -135,7 +135,7 @@ Edit **`lib/nav-config.ts`** to add, remove, or reorder nav items. Items with a 
 
 **Spacing scale:** `8 / 16 / 24 / 32 / 48 / 64 / 96px`
 
-### CSS Classes (globals.css)
+### CSS Classes (main.css)
 
 | Class | Purpose |
 |---|---|

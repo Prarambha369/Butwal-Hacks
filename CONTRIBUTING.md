@@ -1,163 +1,62 @@
 # Contributing to Butwal Hacks
 
-Thank you for helping build Butwal Hacks.
-This guide is for volunteers, students, mentors, and maintainers contributing to the website.
+Thank you for your interest in building the future of technology education in Nepal! We welcome contributions from students, mentors, and engineers of all skill levels.
 
-## Who This Is For
+## 🛠 Our Philosophy: The "Ponytail" Approach
+We follow the **Lazy Senior Developer** mindset. This means:
+- **Avoid Over-Engineering**: Don't build a complex system if a simple one works.
+- **Prefer Standard Libraries**: Use native platform features before adding dependencies.
+- **Deletion > Addition**: The best code is the code that isn't written.
+- **Boring is Better**: Prefer predictable, readable code over "clever" abstractions.
 
-- Student contributors making first OSS contributions
-- Design and content volunteers improving pages and messaging
-- Technical mentors reviewing architecture, UX, SEO, and accessibility
+---
 
-## Project Stack (Do Not Change Without Maintainer Approval)
+## 🚀 Getting Started
 
-- Next.js App Router + TypeScript
-- Tailwind CSS + shadcn-style primitives
-- Lucide icons
-- Existing metadata + JSON-LD SEO approach
+### 1. Environment Setup
+Detailed setup instructions can be found in `docs/engineering/environment-setup.md`. Ensure you have:
+- Node.js 20+
+- A local instance of the project cloned and dependencies installed (`npm install`).
 
-## Local Setup
+### 2. Development Workflow
+We use a strict **Spec-Driven Development** process:
+1. **Define the Spec**: Before coding, answer *What, Where, Why,* and *How to Test*.
+2. **Small PRs**: One feature per Pull Request.
+3. **Verification**: Every PR must pass the following checks from `my-app/`:
+   ```bash
+   npm run lint
+   npm run build
+   ```
 
-```bash
-cd my-app
-npm install
-npm run dev
-```
+### 3. Branching Strategy
+Please use the following naming conventions:
+- `feat/`: New features or enhancements (e.g., `feat/mentor-dashboard`)
+- `fix/`: Bug fixes (e.g., `fix/mobile-menu-overlap`)
+- `docs/`: Documentation changes (e.g., `docs/update-setup-guide`)
+- `refactor/`: Code improvements without behavior changes (e.g., `refactor/auth-hooks`)
 
-Open `http://localhost:3000`.
+### 4. Commit Messages
+We follow **Conventional Commits**:
+- `feat: add X feature`
+- `fix: resolve Y bug`
+- `docs: update Z documentation`
+- `chore: update dependencies`
 
-## Production Readiness Check (Required Before PR)
+---
 
-Run from `my-app/`:
+## 📋 Contribution Checklist
+Before submitting a Pull Request, ensure you have checked:
+- [ ] **Accessibility**: Is the UI keyboard-navigable and contrast-compliant?
+- [ ] **Mobile First**: Does it look great on a 375px viewport?
+- [ ] **Performance**: Are images optimized? Is there unnecessary client-side JS?
+- [ ] **SEO**: Does the new route have `generateMetadata` and a valid JSON-LD schema?
+- [ ] **Tests**: If the logic is non-trivial, did you leave a runnable check behind?
 
-```bash
-npm run lint
-npm run build
-```
+## 🆘 Need Help?
+If you're stuck, don't struggle in silence. Reach out via:
+- **GitHub Issues**: Open an issue or comment on an existing one.
+- **Discord/Community Channels**: Join the Butwal Hacks community.
+- **Email**: `hello@butwalhacks.com`
 
-A PR is only ready for review when both commands pass.
-
-## Branch Naming
-
-Use one of these patterns:
-
-- `feat/<short-feature-name>`
-- `fix/<short-bug-name>`
-- `docs/<short-doc-change>`
-- `refactor/<short-scope>`
-
-Examples:
-
-- `feat/support-page-cta-improvements`
-- `fix/mobile-nav-focus-ring`
-- `docs/update-volunteer-playbook`
-
-## Commit Message Style
-
-Use conventional prefixes:
-
-- `feat:` new feature or enhancement
-- `fix:` bug fix
-- `docs:` documentation only
-- `refactor:` no behavior change
-- `chore:` maintenance change
-
-Examples:
-
-- `feat: add governance metrics block`
-- `fix: escape apostrophes causing lint failures`
-- `docs: add feature-wise repository map`
-
-## Suggested Issue Labels
-
-Use these labels for triage and volunteer matching:
-
-- `good-first-issue`
-- `help-wanted`
-- `frontend`
-- `content`
-- `seo`
-- `accessibility`
-- `performance`
-- `documentation`
-- `priority:high`
-- `priority:medium`
-- `priority:low`
-
-## Stepwise Workstreams (Phase-Aligned)
-
-### 1. Research and Strategy
-
-- Audience clarity: students, mentors, sponsors
-- Benchmark high-quality nonprofit tech websites
-- Improve hero messaging and CTA clarity
-- Define keyword clusters and sitemap priorities
-
-### 2. Architecture and Structure
-
-- Keep App Router clean and modular
-- Prefer reusable components over page-specific duplication
-- Server Components by default unless client state is required
-- Keep feature concerns separated (`app`, `components`, `lib`)
-
-### 3. UX and Conversion
-
-- Keep flow clear: Hero -> Value -> Programs -> Proof -> Governance -> CTA
-- Maintain one H1 per page
-- Use short paragraphs and scannable headings
-- Ensure key actions are obvious: join, apply, contribute
-
-### 4. Animation and Interaction
-
-- Keep motion subtle and meaningful
-- Avoid animation that blocks rendering or causes layout shifts
-- Ensure keyboard and reduced-motion safe behavior
-
-### 5. SEO and Performance
-
-- Add route-level metadata with canonical paths
-- Keep structured data valid and relevant
-- Optimize images and avoid unnecessary client JS
-- Preserve fast load on mobile networks
-
-### 6. Validation and Maintainability
-
-- Use semantic HTML and accessible components
-- Keep naming predictable for new volunteers
-- Add concise comments only where logic is non-obvious
-
-### 7. Deployment and Monitoring
-
-- Verify route indexability through sitemap/robots
-- Keep analytics events meaningful and privacy-aware
-- Track CTA clicks and page engagement patterns
-
-## Pull Request Checklist
-
-- [ ] Scope is focused and easy to review
-- [ ] `npm run lint` passes
-- [ ] `npm run build` passes
-- [ ] No accessibility regression (keyboard/focus/contrast)
-- [ ] Mobile and desktop layout both verified
-- [ ] Copy updates match nonprofit institutional tone
-- [ ] Screenshots included for visible UI changes
-
-## Review Expectations
-
-Maintainers prioritize:
-
-- correctness and stability,
-- accessibility and semantic quality,
-- clear UX flow,
-- readability for future volunteers.
-
-## Code of Collaboration
-
-- Be respectful and constructive in comments
-- Explain decisions briefly in PR descriptions
-- Ask for help early if blocked
-
-## Need Help?
-
-- Website: `https://butwalhacks.com`
-- Contact: `hello@butwalhacks.com`
+## ⚖️ Code of Conduct
+Be respectful, constructive, and inclusive. We are here to learn and build together for the community.
