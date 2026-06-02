@@ -2,9 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Commands
-
-All dev commands run from `my-app/`:
+## Quick Start
 
 ```bash
 cd my-app
@@ -17,84 +15,36 @@ npm run start     # Serve production build locally
 
 Run `npm run lint && npm run build` before every PR. Neither may fail.
 
-## Architecture
+## Governing Document
 
-### Project layout
+**Read `AGENTS.md` first** — it is the authoritative governing spec for this project.
+It contains:
+- The **Agentic Loop Protocol** (CHECK → VERIFY → TEST → BUILD → CLEANUP)
+- The **Official Brand Color Palette** with exact hex codes
+- The **Liquid Glass CSS** design system
+- The **Continuouse Cleanup Protocol** (Ponytail Audit)
+- The **Execution Roadmap** (Days 1-500)
 
-The Next.js app lives in `my-app/` — the repo root holds only deployment config (`vercel.json`), logos, and docs. Vercel builds from `my-app/.next`.
+When instructions here conflict with `AGENTS.md`, `AGENTS.md` wins.
 
-### Content layer (no CMS)
+## Project Layout
 
-All site content is static TypeScript — never reach for an external API:
+The Next.js app lives in `my-app/`. The repo root holds deployment config, logos, and docs.
 
-| File | What it holds |
-|------|--------------|
-| `lib/content.ts` | `initiatives`, `events`, `blogPosts` arrays + lookup helpers |
-| `lib/members.ts` | Community member directory |
-| `lib/hacker-id.ts` | `hackerProfiles` record + `HackerProfile` types (certificates, projects, event history) |
+## Key Architecture
 
-To add or edit an initiative, event, or blog post, edit the arrays in `lib/content.ts` directly.
+| Area | Detail |
+|------|--------|
+| **Auth** | Clerk authentication with Supabase backend |
+| **Styling** | Tailwind v4 with Liquid Glass aesthetic (`lg-surface` classes) |
+| **Database** | Supabase via `@supabase/supabase-js` |
+| **API Routes** | Serverless functions in `my-app/src/app/api/` |
+| **Server Actions** | `"use server"` functions in `my-app/src/lib/actions/` |
 
-### Routing conventions
+## Security Headers
 
-- **RSC by default** — add `"use client"` only when using hooks or browser APIs.
-- **Dynamic slug pages** (`app/initiatives/[slug]`, `app/events/[slug]`, `app/blog/[slug]`, `app/programs/[slug]`, `app/p/[uniqueId]`) must export `generateStaticParams()` driven by the relevant `lib/` array, and call `notFound()` on a slug miss.
-- **Hacker ID profiles** are served at `/p/[uniqueId]` (e.g. `/p/BH-2024-001`) from `lib/hacker-id.ts`.
-- **API routes**: `app/api/contact/route.ts` and `app/api/sponsor/route.ts`.
+Defined in `my-app/next.config.ts` (lines 14-53). CSP allows GA4, Vercel Analytics, and Axiom. HSTS preload on. `X-Frame-Options: DENY`.
 
-### SEO — required on every route
+## Deployment
 
-```ts
-import { buildPageMetadata } from "@/lib/seo"
-export const generateMetadata = () =>
-  buildPageMetadata({ title, description, path: "/your-path" })
-```
-
-`buildPageMetadata` sets canonical URL, Open Graph, Twitter Card, and robots directives in one call. No page ships without it.
-
-### Navigation config
-
-`lib/nav-config.ts` exports `navConfig`, `secondaryNavItems`, and `legalNavItems`. Both `TopNav` and `BottomNav` consume these arrays — add or rename nav entries here, not inside the component files.
-
-### Shared utilities and hooks
-
-| Symbol | Location | Purpose |
-|--------|----------|---------|
-| `cn()` | `lib/utils.ts` | `clsx` + `tailwind-merge` for conditional classes |
-| `useInViewOnce<T>(threshold?)` | `hooks/useInViewOnce.ts` | One-shot IntersectionObserver; pair with `.section-fade` CSS class |
-| `useSmoothScroll` | `hooks/useSmoothScroll.ts` | Lenis smooth scroll wrapper |
-
-### Animation rules
-
-- Heavy animations: `dynamic import("animejs")` inside `useEffect` only.
-- Always guard with `prefers-reduced-motion` before running any animation.
-
-### App shell
-
-`app/layout.tsx` composes: `MaintenanceBanner → TopNav → {children} → Footer → BottomNav`. The `BottomNav` is mobile-only; `main` has `pb-24 md:pb-0` to avoid content being hidden behind it.
-
-### Theming and styling
-
-- Tailwind v4 setup (PostCSS-based, no `tailwind.config.js`).
-- `next-themes` via `<ThemeProvider>` in `app/layout.tsx`; tokens defined in `app/globals.css`.
-- Design accent colors: `--color-accent-yellow: #F5A623`, `--color-accent-teal: #00B4A6`, `--color-accent-orange: #E8622A`.
-
-### Security headers
-
-Defined in `next.config.ts` (lines 14–53). CSP allows GA4 and Vercel Analytics. Review the full directive list before loosening any rule — HSTS preload is on and `X-Frame-Options` is `DENY`.
-
-### Analytics
-
-Vercel `<Analytics />` + GA4 `next/script` (`G-NKE935H259`) in `app/layout.tsx`. Both are deferred.
-
-### Deployment
-
-Vercel auto-deploys `main`. Config in `vercel.json`. Pre-merge: validate JSON-LD at [validator.schema.org](https://validator.schema.org) and check Core Web Vitals on [PageSpeed Insights](https://pagespeed.web.dev).
-
-## Key constraints
-
-- No `dangerouslySetInnerHTML` except for JSON-LD injection in `app/page.tsx`.
-- No page without `generateMetadata()`.
-- No image without `alt` text; hero images use `next/image` with `priority`; below-fold images use `loading="lazy"`.
-- One `<h1>` per page; never skip heading levels.
-- `dangerouslySetInnerHTML` for JSON-LD belongs only in `app/page.tsx`, not in component files.
+Vercel auto-deploys `main`. Config in `vercel.json`.
