@@ -1,7 +1,14 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import 'animate.css';
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant light (&:not(.dark *));
+
+/* Smooth Scroll */
+html {
+  scroll-behavior: smooth;
+}
 
 :root {
   /* Primary Colors - Complementary Palette */

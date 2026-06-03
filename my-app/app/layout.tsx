@@ -7,6 +7,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ToastProvider } from "@/components/toast-provider"
 import { DevelopmentBanner } from "@/components/development-banner"
+import { SmoothScrollWrapper } from "@/components/smooth-scroll-wrapper"
 import { siteKeywords } from "@/lib/seo"
 import "./globals.css"
 
@@ -80,8 +81,10 @@ export default function RootLayout({
        <body className={`${inter.variable} font-sans antialiased`}>
          {/* Theme sync with system preference — respects user's OS theme setting */}
          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <DevelopmentBanner />
-          {children}
+          <SmoothScrollWrapper>
+            <DevelopmentBanner />
+            {children}
+          </SmoothScrollWrapper>
           <Analytics />
           <ToastProvider />
         </ThemeProvider>
