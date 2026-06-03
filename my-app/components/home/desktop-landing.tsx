@@ -279,15 +279,15 @@ export default function DesktopLanding() {
            </p>
 
            {/* H1 — larger, more impactful */}
-           <h1
-             id="hero-heading"
-             className="hero-animate mt-10 max-w-4xl text-balance text-6xl font-extrabold leading-[1.05] tracking-tight text-white dark:text-white light:text-foreground md:text-8xl"
-           >
+            <h1
+              id="hero-heading"
+              className="hero-animate mt-10 max-w-4xl text-balance text-6xl font-extrabold leading-[1.05] tracking-tight text-foreground dark:text-white md:text-8xl"
+            >
              Powering Nepal&apos;s Next Generation of Builders.
            </h1>
 
            {/* Subtext — better hierarchy and spacing */}
-           <p className="hero-animate mt-8 max-w-2xl text-xl leading-relaxed text-white/70 dark:text-white/70 light:text-foreground/70 md:text-2xl">
+            <p className="hero-animate mt-8 max-w-2xl text-xl leading-relaxed text-muted-foreground dark:text-white/70 md:text-2xl">
              A youth-led nonprofit building structured pathways from learning to building to launching real-world technology initiatives in Western Nepal.
            </p>
 
@@ -310,7 +310,7 @@ export default function DesktopLanding() {
            </div>
 
            {/* Social proof line */}
-           <p className="hero-animate mt-10 text-sm text-white/50 font-medium">
+            <p className="hero-animate mt-10 text-sm font-medium text-muted-foreground">
              ✓ 500+ members  •  ✓ 20+ events  •  ✓ 5 active programs
            </p>
          </div>
@@ -346,12 +346,12 @@ export default function DesktopLanding() {
                <p className="text-xs font-bold uppercase tracking-[0.15em] text-red-400">Our Mission</p>
                <h2
                  id="who-heading"
-                 className="mt-4 max-w-3xl text-5xl font-black leading-tight text-white"
+                  className="mt-4 max-w-3xl text-5xl font-black leading-tight text-foreground dark:text-white"
                >
                  Building a disciplined and inclusive technology movement.
                </h2>
              </div>
-             <p className="mt-8 max-w-2xl text-xl leading-relaxed text-white/75 font-medium">
+              <p className="mt-8 max-w-2xl text-xl leading-relaxed font-medium text-muted-foreground dark:text-white/75">
                Butwal Hacks exists to turn curiosity into contribution — through practical systems, community accountability, and long-term execution in Western Nepal.
              </p>
            </FadeIn>
@@ -385,8 +385,8 @@ export default function DesktopLanding() {
                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-red-600/20 group-hover:bg-red-600/30 transition-colors">
                    <pillar.icon className="h-7 w-7 text-red-500" aria-hidden="true" />
                  </div>
-                 <h3 className="mt-6 text-2xl font-bold text-white">{pillar.title}</h3>
-                 <p className="mt-4 text-sm leading-relaxed text-white/65">
+                  <h3 className="mt-6 text-2xl font-bold text-foreground dark:text-white">{pillar.title}</h3>
+                  <p className="mt-4 text-sm leading-relaxed text-muted-foreground dark:text-white/65">
                    {pillar.description}
                  </p>
                </FadeIn>
@@ -408,11 +408,11 @@ export default function DesktopLanding() {
              <p className="text-xs font-bold uppercase tracking-[0.15em] text-red-400">What We Do</p>
              <h2
                id="what-heading"
-               className="mt-4 text-5xl font-black leading-tight text-white"
+                className="mt-4 text-5xl font-black leading-tight text-foreground dark:text-white"
              >
                Execution-Focused Ecosystem
              </h2>
-             <p className="mt-6 max-w-2xl text-lg text-white/60">
+              <p className="mt-6 max-w-2xl text-lg text-muted-foreground dark:text-white/60">
                Structured pathways from curiosity to contribution, with clear roles and real outcomes.
              </p>
            </FadeIn>
@@ -427,8 +427,8 @@ export default function DesktopLanding() {
                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-600/20 group-hover:bg-red-600/30 transition-colors">
                    <card.icon className="h-6 w-6 text-red-500" aria-hidden="true" />
                  </div>
-                 <h3 className="mt-6 text-xl font-bold text-white">{card.title}</h3>
-                 <p className="mt-3 text-sm leading-relaxed text-white/65">{card.description}</p>
+                  <h3 className="mt-6 text-xl font-bold text-foreground dark:text-white">{card.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground dark:text-white/65">{card.description}</p>
                  <Link
                    href={card.href}
                    className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-red-400 transition-all hover:text-red-300 group-hover:gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0d0d]"
