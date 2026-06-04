@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { EnhancedContactForm } from "@/components/enhanced-contact-form"
 import { buildPageMetadata } from "@/lib/seo"
 
@@ -15,7 +15,7 @@ export const metadata: Metadata = buildPageMetadata({
 export default function ContactPage() {
   return (
     <main className="min-h-screen bg-background">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Contact" }]} />
         <h1 className="text-5xl sm:text-6xl font-black font-heading tracking-tight text-foreground animate__animated animate__fadeInUp">
@@ -31,18 +31,17 @@ export default function ContactPage() {
         <EnhancedContactForm />
       </section>
 
-      {/* Map Section (Placeholder) */}
+      {/* Map placeholder — replace with an actual embed when address is confirmed */}
       <section className="relative my-20 h-96 w-full bg-gradient-to-r from-red-600/20 to-red-500/20 overflow-hidden rounded-2xl">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <h3 className="text-2xl font-bold text-foreground">📍 Visit Us in Butwal</h3>
             <p className="mt-2 text-muted-foreground">Rupandehi District, Nepal</p>
-            <p className="mt-1 text-sm text-muted-foreground">Placeholder for embedded map</p>
           </div>
         </div>
       </section>
 
-      <Footer />
+      
     </main>
   )
 }

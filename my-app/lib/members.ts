@@ -26,7 +26,7 @@ export const members: Member[] = [
     bio: "Passionate about building tech communities and empowering youth through technology education.",
     skills: ["React", "TypeScript", "Node.js", "Community Building"],
     github: "https://github.com/Prarambha369",
-    linkedin: "https://linkedin.com",
+    
     joinDate: "2023-01-15",
     projects: 12,
     contributions: 156,
@@ -38,8 +38,8 @@ export const members: Member[] = [
     title: "Event Coordinator",
     bio: "Full-stack developer focused on creating inclusive tech events and workshops.",
     skills: ["Python", "Django", "React", "Event Management"],
-    github: "https://github.com",
-    linkedin: "https://linkedin.com",
+    
+    
     joinDate: "2023-03-20",
     projects: 8,
     contributions: 89,
@@ -51,9 +51,9 @@ export const members: Member[] = [
     title: "Frontend Mentor",
     bio: "Frontend specialist helping newcomers master modern web development.",
     skills: ["React", "Vue.js", "CSS", "UI/UX Design"],
-    github: "https://github.com",
-    linkedin: "https://linkedin.com",
-    twitter: "https://twitter.com",
+    
+    
+    
     joinDate: "2023-05-10",
     projects: 6,
     contributions: 67,
@@ -65,7 +65,7 @@ export const members: Member[] = [
     title: "Student Developer",
     bio: "CS student exploring open source and building practical projects.",
     skills: ["Java", "Android", "Git", "Algorithms"],
-    github: "https://github.com",
+    
     joinDate: "2024-01-05",
     projects: 3,
     contributions: 23,
@@ -77,7 +77,7 @@ export const members: Member[] = [
     title: "Aspiring Developer",
     bio: "Learning programming through community mentorship and hackathons.",
     skills: ["JavaScript", "HTML", "CSS", "Python"],
-    github: "https://github.com",
+    
     joinDate: "2024-02-15",
     projects: 2,
     contributions: 15,
@@ -89,7 +89,7 @@ export const members: Member[] = [
     title: "Community Volunteer",
     bio: "Helping organize events and supporting new community members.",
     skills: ["Communication", "Project Management", "Documentation"],
-    linkedin: "https://linkedin.com",
+    
     joinDate: "2023-08-12",
     projects: 4,
     contributions: 45,

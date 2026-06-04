@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { buildPageMetadata } from "@/lib/seo"
-import SiteHeader from "@/components/site-header"
-import Footer from "@/components/footer"
+
+
 import { Book, FileText, Code, Video, ExternalLink } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -60,7 +60,7 @@ export default function ResourcesPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <SiteHeader />
+      
       
       <div className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
         <div className="text-center mb-12">
@@ -167,7 +167,7 @@ export default function ResourcesPage() {
         </section>
       </div>
       
-      <Footer />
+      
     </main>
   )
 }

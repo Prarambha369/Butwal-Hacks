@@ -6,7 +6,7 @@ import { X, AlertCircle } from "lucide-react"
 export function DevelopmentBanner() {
   const [isVisible, setIsVisible] = useState(true)
 
-  if (!isVisible) {
+  if (process.env.NODE_ENV === "production" || !isVisible) {
     return null
   }
 

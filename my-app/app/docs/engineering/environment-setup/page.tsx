@@ -3,8 +3,8 @@ import Link from "next/link"
 import { AlertCircle } from "lucide-react"
 
 import CodeBlock from "@/components/code-block"
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -27,7 +27,7 @@ const toc = [
 export default function EnvironmentSetupDocPage() {
   return (
     <main className="dark min-h-screen bg-background text-foreground">
-      <SiteHeader />
+      
 
       <section className="border-b border-border px-4 py-8">
         <div className="mx-auto max-w-6xl">
@@ -149,7 +149,7 @@ export default function EnvironmentSetupDocPage() {
         </div>
       </section>
 
-      <Footer />
+      
     </main>
   )
 }

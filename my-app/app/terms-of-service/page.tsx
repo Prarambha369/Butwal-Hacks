@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { buildPageMetadata } from "@/lib/seo"
-import SiteHeader from "@/components/site-header"
-import Footer from "@/components/footer"
+
+
 import LegalDocumentLayout from "@/components/legal-document-layout"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -75,7 +75,7 @@ export default function TermsOfServicePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SiteHeader />
+      
       <LegalDocumentLayout
         title="Terms of Service"
         summary="These terms define fair and respectful use of the Butwal Hacks website and related services."
@@ -84,7 +84,7 @@ export default function TermsOfServicePage() {
         activePolicy="terms"
         sections={sections}
       />
-      <Footer />
+      
     </div>
   )
 }

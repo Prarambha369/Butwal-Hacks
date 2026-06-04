@@ -23,8 +23,6 @@ export function EnhancedContactForm() {
   const [error, setError] = useState("")
 
   useEffect(() => {
-    // Standard hydration boundary pattern - safe initialization
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 
@@ -40,17 +38,20 @@ export function EnhancedContactForm() {
   const onSubmit = async (data: ContactFormData) => {
     try {
       setError("")
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      console.log("Form submitted:", data)
-
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        throw new Error(json.error ?? "Server error")
+      }
       setSubmitted(true)
       reset()
       setTimeout(() => setSubmitted(false), 5000)
-    } catch {
-      setError("Failed to send message. Please try again.")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send message. Please try again.")
     }
   }
 
@@ -235,10 +236,10 @@ export function EnhancedContactForm() {
           </div>
           <h3 className="font-semibold text-foreground">Email</h3>
           <a
-            href="mailto:hello@butwal.com"
+            href="mailto:hello@butwalhacks.com"
             className="text-sm text-muted-foreground hover:text-primary"
           >
-            hello@butwal.com
+            hello@butwalhacks.com
           </a>
         </div>
 
@@ -247,8 +248,8 @@ export function EnhancedContactForm() {
             <Phone className="text-red-600" size={24} />
           </div>
           <h3 className="font-semibold text-foreground">Phone</h3>
-          <a href="tel:+977123456789" className="text-sm text-muted-foreground hover:text-primary">
-            +977 123 456 789
+          <a href="tel:+977-980-0000000" className="text-sm text-muted-foreground hover:text-primary">
+            +977 980-0000000
           </a>
         </div>
 

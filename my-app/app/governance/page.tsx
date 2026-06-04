@@ -3,8 +3,8 @@ import Link from "next/link"
 import { Building2, Download, FileText, GraduationCap, Landmark, ShieldCheck, Siren, Users } from "lucide-react"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -67,7 +67,7 @@ const policies = [
 export default function GovernancePage() {
   return (
     <main className="dark min-h-screen bg-background text-foreground">
-      <SiteHeader />
+      
 
       <section className="border-b border-border px-4 py-14 sm:py-16">
         <div className="mx-auto max-w-6xl">
@@ -209,7 +209,7 @@ export default function GovernancePage() {
         </div>
       </section>
 
-      <Footer />
+      
     </main>
   )
 }

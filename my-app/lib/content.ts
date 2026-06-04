@@ -4,7 +4,6 @@ export type Initiative = {
   slug: string
   name: string
   status: InitiativeStatus
-  tier: 1 | 2 | 3 | 4
   summary: string
   details: string[]
 }
@@ -33,7 +32,7 @@ export const initiatives: Initiative[] = [
     slug: "hackathon",
     name: "Hackathon",
     status: "active",
-    tier: 2,
+    
     summary: "A long-term community hackathon initiative focused on practical building, teamwork, and problem-solving.",
     details: [
       "Hackathon is an active mission-layer initiative and can host multiple execution events over time.",
@@ -45,7 +44,7 @@ export const initiatives: Initiative[] = [
     slug: "mini-hackathon",
     name: "MiniHackathon",
     status: "active",
-    tier: 2,
+    
     summary: "A focused HackDay track under the Hackathon initiative for compact, beginner-friendly hack sessions.",
     details: [
       "MiniHackathon falls under the HackDay operating format and is part of the broader Hackathon direction.",
@@ -57,7 +56,7 @@ export const initiatives: Initiative[] = [
     slug: "gamejam",
     name: "GameJam",
     status: "active",
-    tier: 2,
+    
     summary: "A recurring initiative centered on game development, creativity, and collaborative design challenges.",
     details: [
       "GameJam is an active initiative designed for creative, hands-on project execution.",

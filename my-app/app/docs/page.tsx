@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -14,7 +14,7 @@ export const metadata: Metadata = buildPageMetadata({
 export default function DocsIndexPage() {
   return (
     <main className="dark min-h-screen bg-background text-foreground">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
         <h1 className="text-4xl font-bold font-heading tracking-tight sm:text-5xl">Technical Documentation</h1>
         <p className="mt-4 max-w-3xl text-base text-muted-foreground sm:text-lg">
@@ -43,7 +43,7 @@ export default function DocsIndexPage() {
           </article>
         </div>
       </section>
-      <Footer />
+      
     </main>
   )
 }
