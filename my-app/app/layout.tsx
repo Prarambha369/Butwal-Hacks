@@ -52,6 +52,14 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  appleWebApp: {
+    title: "BtlHcks",
+    icon: "/favicon/apple-icon.png",
+  },
+  icons: {
+    icon: "/favicon/favicon.ico",
+    apple: "/favicon/apple-icon.png"
+  },
   openGraph: {
     title: "Butwal Hacks",
     description: "A nonprofit tech community focused on learning, mentorship, and collaborative innovation in Butwal and Rupandehi.",
