@@ -28,7 +28,6 @@ export default function InitiativesPage() {
           {initiatives.map((initiative) => (
             <article key={initiative.slug} className="rounded-xl border border-border bg-card p-6">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Status: {initiative.status}</p>
-              <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">Tier {initiative.tier}</p>
               <h2 className="mt-2 text-2xl font-semibold text-foreground">{initiative.name}</h2>
               <p className="mt-3 text-sm text-muted-foreground">{initiative.summary}</p>
               <Link href={`/initiatives/${initiative.slug}`} className="mt-5 inline-block text-sm font-semibold text-primary hover:underline">
