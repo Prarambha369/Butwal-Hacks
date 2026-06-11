@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -15,7 +15,7 @@ export const metadata: Metadata = buildPageMetadata({
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-background">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-4xl px-4 py-14 sm:py-16">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "About" }]} />
         <h1 className="text-4xl sm:text-5xl font-bold font-heading tracking-tight text-foreground">About Butwal Hacks</h1>
@@ -31,7 +31,7 @@ export default function AboutPage() {
           This website clearly labels active, planned, and proposed initiatives so the community can track progress without overstating delivery status.
         </p>
       </section>
-      <Footer />
+      
     </main>
   )
 }

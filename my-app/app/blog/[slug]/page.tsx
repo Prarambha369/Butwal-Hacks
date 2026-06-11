@@ -4,8 +4,8 @@ import Link from "next/link"
 import { Clock3 } from "lucide-react"
 
 import CodeBlock from "@/components/code-block"
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { blogPosts, getBlogPostBySlug } from "@/lib/content"
 import { buildPageMetadata } from "@/lib/seo"
 
@@ -54,7 +54,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
   return (
     <main className="dark min-h-screen bg-background text-foreground">
-      <SiteHeader />
+      
 
       <section className="px-4 py-10">
         <div className="mx-auto grid max-w-7xl gap-8 xl:grid-cols-[220px_1fr_260px]">
@@ -166,7 +166,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           </aside>
         </div>
       </section>
-      <Footer />
+      
     </main>
   )
 }

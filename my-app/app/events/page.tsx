@@ -3,8 +3,8 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { events } from "@/lib/content"
 import { buildPageMetadata } from "@/lib/seo"
 
@@ -17,7 +17,7 @@ export const metadata: Metadata = buildPageMetadata({
 export default function EventsPage() {
    return (
      <main className="min-h-screen bg-background">
-       <SiteHeader />
+       
        <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
          <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Events" }]} />
          <h1 className="text-5xl font-black tracking-tight text-foreground sm:text-6xl">Events</h1>
@@ -45,7 +45,7 @@ export default function EventsPage() {
            ))}
          </div>
        </section>
-       <Footer />
+       
      </main>
    )
  }

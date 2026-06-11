@@ -11,18 +11,19 @@ import type { NextConfig } from "next";
  */
 
 // Content Security Policy directives
+const isDev = process.env.NODE_ENV === 'development';
 const ContentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com;
+  script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""}
   style-src 'self' 'unsafe-inline';
-  img-src 'self' blob: data:;
+  img-src 'self' blob: data: https://www.google-analytics.com;
   font-src 'self';
   object-src 'none';
   base-uri 'self';
   form-action 'self';
   frame-ancestors 'none';
   upgrade-insecure-requests;
-  connect-src 'self' https://vitals.vercel-insights.com;
+  connect-src 'self' https://vitals.vercel-insights.com https://www.google-analytics.com https://analytics.google.com
 `
 
 const securityHeaders = [

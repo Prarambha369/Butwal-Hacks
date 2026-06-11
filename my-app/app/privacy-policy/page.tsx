@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { buildPageMetadata } from "@/lib/seo"
-import SiteHeader from "@/components/site-header"
-import Footer from "@/components/footer"
+
+
 import LegalDocumentLayout from "@/components/legal-document-layout"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -92,7 +92,7 @@ export default function PrivacyPolicyPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SiteHeader />
+      
       <LegalDocumentLayout
         title="Privacy Policy"
         summary="This page explains how we handle personal data in clear language, with transparent limits and no dark patterns."
@@ -101,7 +101,7 @@ export default function PrivacyPolicyPage() {
         activePolicy="privacy"
         sections={sections}
       />
-      <Footer />
+      
     </div>
   )
 }

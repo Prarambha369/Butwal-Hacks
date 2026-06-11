@@ -1,9 +1,11 @@
 "use client"
 
-import { Instagram, Linkedin, Link2, Mail, Moon, ShieldCheck } from "lucide-react"
+import { Instagram, Linkedin, Mail, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 
-export default function Footer() {
+import { useShell } from "@/components/shell-provider"
+
+export default function Footer({ forceRender = false }: { forceRender?: boolean }) {
   const currentYear = new Date().getFullYear()
 
   return (
@@ -24,71 +26,66 @@ export default function Footer() {
             <p className="mt-5 text-sm font-medium text-primary">⚡ Built with volunteers. Powered by community.</p>
           </section>
 
-           <nav aria-label="Organization links">
-             <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Organization</h4>
-             <ul className="space-y-2.5 text-sm">
-               <li><Link href="/about" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">About Us</Link></li>
-               <li><Link href="/governance" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Governance</Link></li>
-               <li><Link href="/philosophy" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Our Mission</Link></li>
-               <li><Link href="/community" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Our Team</Link></li>
-               <li><Link href="/support" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Partners</Link></li>
-               <li><Link href="/donors" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Impact Report</Link></li>
-             </ul>
-           </nav>
+        <nav aria-label="Organization links">
+              <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Organization</h4>
+              <ul className="space-y-2.5 text-sm">
+                <li><Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">About Us</Link></li>
+                <li><Link href="/governance" className="text-muted-foreground hover:text-foreground transition-colors">Governance</Link></li>
+                <li><Link href="/philosophy" className="text-muted-foreground hover:text-foreground transition-colors">Our Mission</Link></li>
+                <li><Link href="/community" className="text-muted-foreground hover:text-foreground transition-colors">Our Team</Link></li>
+                <li><Link href="/support" className="text-muted-foreground hover:text-foreground transition-colors">Partners</Link></li>
+                <li><Link href="/donors" className="text-muted-foreground hover:text-foreground transition-colors">Impact Report</Link></li>
+              </ul>
+            </nav>
 
-           <nav aria-label="Programs links">
-             <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Programs</h4>
-             <ul className="space-y-2.5 text-sm">
-               <li><Link href="/initiatives/hackathon" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Annual Hackathon</Link></li>
-               <li><Link href="/events/daydream-butwal-september-2024" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Daydream Butwal</Link></li>
-               <li><Link href="/events" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Community Events</Link></li>
-               <li><Link href="/initiatives/gamejam" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Workshops & Jams</Link></li>
-               <li><Link href="/support" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Volunteer With Us</Link></li>
-             </ul>
-           </nav>
+            <nav aria-label="Programs links">
+              <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Programs</h4>
+              <ul className="space-y-2.5 text-sm">
+                <li><Link href="/initiatives/hackathon" className="text-muted-foreground hover:text-foreground transition-colors">Annual Hackathon</Link></li>
+                <li><Link href="/events/daydream-butwal-september-2024" className="text-muted-foreground hover:text-foreground transition-colors">Daydream Butwal</Link></li>
+                <li><Link href="/events" className="text-muted-foreground hover:text-foreground transition-colors">Community Events</Link></li>
+                <li><Link href="/initiatives/gamejam" className="text-muted-foreground hover:text-foreground transition-colors">Workshops & Jams</Link></li>
+                <li><Link href="/support" className="text-muted-foreground hover:text-foreground transition-colors">Volunteer With Us</Link></li>
+              </ul>
+            </nav>
 
-           <nav aria-label="Resource links">
-             <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Resources</h4>
-             <ul className="space-y-2.5 text-sm">
-               <li><Link href="/resources" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Media Kit</Link></li>
-               <li><Link href="/docs" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Brand Guide</Link></li>
-               <li><Link href="/explore" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">FAQs</Link></li>
-               <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Privacy Policy</Link></li>
-               <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Terms & Conditions</Link></li>
-               <li><Link href="/cookie-policy" className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">Cookie Policy</Link></li>
-             </ul>
-           </nav>
+            <nav aria-label="Resource links">
+              <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Resources</h4>
+              <ul className="space-y-2.5 text-sm">
+                <li><Link href="/resources" className="text-muted-foreground hover:text-foreground transition-colors">Media Kit</Link></li>
+                <li><Link href="/docs" className="text-muted-foreground hover:text-foreground transition-colors">Brand Guide</Link></li>
+                <li><Link href="/explore" className="text-muted-foreground hover:text-foreground transition-colors">FAQs</Link></li>
+                <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-foreground transition-colors">Terms & Conditions</Link></li>
+                <li><Link href="/cookie-policy" className="text-muted-foreground hover:text-foreground transition-colors">Cookie Policy</Link></li>
+              </ul>
+            </nav>
 
-           <section>
-             <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Connect</h4>
-             <ul className="space-y-3 text-sm">
-               <li>
-                 <a href="https://linktr.ee" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
-                   <Link2 className="h-4 w-4" /> Linktree
-                 </a>
-               </li>
-               <li>
-                 <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
-                   <Instagram className="h-4 w-4" /> Instagram
-                 </a>
-               </li>
-               <li>
-                 <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
-                   <Linkedin className="h-4 w-4" /> LinkedIn
-                 </a>
-               </li>
-               <li>
-                 <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
-                   <span className="text-xs font-semibold">X</span> Twitter / X
-                 </a>
-               </li>
-               <li>
-                 <a href="mailto:hello@butwalhacks.com" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
-                   <Mail className="h-4 w-4" /> hello@butwalhacks.com
-                 </a>
-               </li>
-             </ul>
-           </section>
+            <section>
+              <h4 className="mb-4 text-base font-bold uppercase tracking-wide text-foreground">Connect</h4>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <a href="https://instagram.com/butwalhacks" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Instagram className="h-4 w-4" /> Instagram
+                  </a>
+                </li>
+                <li>
+                  <a href="https://linkedin.com/company/butwalhacks" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Linkedin className="h-4 w-4" /> LinkedIn
+                  </a>
+                </li>
+                <li>
+                  <a href="https://github.com/Prarambha369/Butwal-Hacks" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                    <span className="text-xs font-semibold">GH</span> GitHub
+                  </a>
+                </li>
+                <li>
+                  <a href="mailto:hello@butwalhacks.com" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Mail className="h-4 w-4" /> hello@butwalhacks.com
+                  </a>
+                </li>
+              </ul>
+            </section>
         </div>
 
         <div className="mt-10 border-t border-border pt-5">
@@ -104,7 +101,6 @@ export default function Footer() {
                 <ShieldCheck className="h-3.5 w-3.5 text-primary" />
                 System Status: Operational
               </span>
-              <Moon className="h-4 w-4 text-muted-foreground" />
             </div>
           </div>
         </div>

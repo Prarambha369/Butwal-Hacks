@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <main className="min-h-screen bg-background">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-4xl px-4 py-14 sm:py-16">
         <h1 className="text-4xl sm:text-5xl font-bold font-heading tracking-tight text-foreground">Page Not Found</h1>
         <p className="mt-4 text-base sm:text-lg text-muted-foreground">The requested page is unavailable or may have moved.</p>
@@ -28,7 +28,7 @@ export default function NotFound() {
           Return Home
         </Link>
       </section>
-      <Footer />
+      
     </main>
   )
 }

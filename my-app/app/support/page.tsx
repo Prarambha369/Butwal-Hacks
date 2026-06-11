@@ -1,10 +1,11 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { BarChart3, FileDown, Mail, MapPin, Phone, Rocket, ShieldCheck, Users } from "lucide-react"
+import { BarChart3, Mail, MapPin, Phone, Rocket, ShieldCheck, Users } from "lucide-react"
 
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { buildPageMetadata } from "@/lib/seo"
+import { SponsorForm } from "./sponsor-form"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Sponsor Prospectus",
@@ -13,33 +14,32 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/support",
 })
 
+const metrics = [
+  {
+    icon: Users,
+    value: "500+",
+    label: "Active Students & Builders",
+    note: "Verified participants from colleges and engineering schools in the region.",
+  },
+  {
+    icon: Rocket,
+    value: "20+",
+    label: "Projects Shipped Yearly",
+    note: "Real-world MVPs addressing local challenges in education, tourism, and civic life.",
+  },
+  {
+    icon: MapPin,
+    value: "80%",
+    label: "Local Participation",
+    note: "Deep engagement across Butwal, Bhairahawa, and surrounding Lumbini corridor communities.",
+  },
+]
+
 export default function SupportPage() {
-  const metrics = [
-    {
-      icon: Users,
-      value: "500+",
-      label: "Active Students & Builders",
-      note: "Verified participants from colleges and engineering schools in the region.",
-    },
-    {
-      icon: Rocket,
-      value: "20+",
-      label: "Projects Shipped Yearly",
-      note: "Real-world MVPs addressing local challenges in education, tourism, and civic life.",
-    },
-    {
-      icon: MapPin,
-      value: "80%",
-      label: "Local Participation",
-      note: "Deep engagement across Butwal, Bhairahawa, and surrounding Lumbini corridor communities.",
-    },
-  ]
-
-  const partnerLogos = ["LOCAL_TECH", "FIN-QUEST", "CONNECT_NP", "DEV_STUDIO", "EDU_FOUND"]
-
   return (
-    <main className="dark min-h-screen bg-background text-foreground">
-      <SiteHeader />
+    <main className="min-h-screen bg-background text-foreground">
+      
+
       <section className="border-b border-border px-4 py-14 sm:py-16">
         <div className="mx-auto grid max-w-6xl items-center gap-8 lg:grid-cols-[1.05fr_1fr]">
           <div>
@@ -54,10 +54,13 @@ export default function SupportPage() {
               district-led tech initiative and reach bright minds building practical solutions for real-world problems.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <button className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
-                <FileDown className="h-4 w-4" />
-                Download Prospectus (PDF)
-              </button>
+              <a
+                href="mailto:hello@butwalhacks.com?subject=Sponsor%20Prospectus%20Request"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                <Mail className="h-4 w-4" />
+                Request Prospectus
+              </a>
               <Link
                 href="#tiers"
                 className="rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
@@ -104,7 +107,7 @@ export default function SupportPage() {
         <div className="mx-auto max-w-6xl">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-4xl font-bold font-heading tracking-tight text-foreground">Audience & Impact</h2>
+              <h2 className="text-4xl font-bold font-heading tracking-tight text-foreground">Audience &amp; Impact</h2>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                 Our reach across Lumbini directly connects sponsors with high-intent technical talent.
               </p>
@@ -113,7 +116,6 @@ export default function SupportPage() {
               <BarChart3 className="h-3.5 w-3.5" /> Live impact tracker
             </p>
           </div>
-
           <div className="grid gap-4 md:grid-cols-3">
             {metrics.map((metric) => {
               const Icon = metric.icon
@@ -136,7 +138,6 @@ export default function SupportPage() {
           <p className="mx-auto mt-2 max-w-3xl text-center text-sm text-muted-foreground">
             Scalable involvement options designed for organizations of all sizes.
           </p>
-
           <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-card">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="border-b border-border bg-muted/50 text-muted-foreground">
@@ -180,15 +181,6 @@ export default function SupportPage() {
               </tbody>
             </table>
           </div>
-
-          <div className="mt-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Trusted by Visionary Organizations</p>
-            <div className="mt-6 flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm font-semibold text-muted-foreground">
-              {partnerLogos.map((partner) => (
-                <span key={partner}>{partner}</span>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
@@ -205,70 +197,21 @@ export default function SupportPage() {
                 annual documentation.
               </p>
             </div>
-            <button className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted">
+            <Link
+              href="/resources"
+              className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+            >
               View Reports
-            </button>
+            </Link>
           </div>
         </div>
       </section>
 
       <section className="px-4 py-14 sm:py-16">
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_1fr]">
-          <div>
-            <h2 className="text-4xl font-bold font-heading tracking-tight text-foreground">Let&apos;s Build the Future Together</h2>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-              Interested in more than one tier? We are open to custom partnerships, scholarships, and specialized
-              hackathon tracks aligned with your goals.
-            </p>
-
-            <ul className="mt-7 space-y-4 text-sm text-muted-foreground">
-              <li className="inline-flex items-center gap-3"><Mail className="h-4 w-4 text-primary" /> team@butwalhacks.com</li>
-              <li className="inline-flex items-center gap-3"><Phone className="h-4 w-4 text-primary" /> +977 980-0000000</li>
-              <li className="inline-flex items-center gap-3"><MapPin className="h-4 w-4 text-primary" /> Butwal, Rupandehi, Nepal</li>
-            </ul>
-          </div>
-
-          <form className="rounded-xl border border-border bg-card p-6" aria-label="Sponsor inquiry form">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="text-sm text-muted-foreground">
-                Full Name
-                <input type="text" placeholder="John Doe" className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground" />
-              </label>
-              <label className="text-sm text-muted-foreground">
-                Company Email
-                <input type="email" placeholder="john@company.com" className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground" />
-              </label>
-            </div>
-
-            <label className="mt-4 block text-sm text-muted-foreground">
-              Company Name
-              <input type="text" placeholder="Tech Innovations Inc." className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground" />
-            </label>
-
-            <label className="mt-4 block text-sm text-muted-foreground">
-              Interested Tier
-              <select className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground">
-                <option>Select a tier...</option>
-                <option>Community</option>
-                <option>Silver</option>
-                <option>Gold</option>
-                <option>Platinum</option>
-                <option>Custom Partnership</option>
-              </select>
-            </label>
-
-            <label className="mt-4 block text-sm text-muted-foreground">
-              Message
-              <textarea rows={4} placeholder="How can we help?" className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground" />
-            </label>
-
-            <button type="submit" className="mt-5 w-full rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
-              Send Inquiry
-            </button>
-          </form>
-        </div>
+        <SponsorForm />
       </section>
-      <Footer />
+
+      
     </main>
   )
 }

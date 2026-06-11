@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -15,7 +15,7 @@ export const metadata: Metadata = buildPageMetadata({
 export default function SevenSevenHacksPage() {
   return (
     <main className="min-h-screen bg-background">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-4xl px-4 py-14 sm:py-16">
         <Breadcrumbs
           items={[
@@ -37,7 +37,7 @@ export default function SevenSevenHacksPage() {
           <li>Future documentation updates as planning progresses</li>
         </ul>
       </section>
-      <Footer />
+      
     </main>
   )
 }
