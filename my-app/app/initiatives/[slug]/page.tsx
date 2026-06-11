@@ -4,8 +4,8 @@ import Link from "next/link"
 import { Calendar, ArrowRight } from "lucide-react"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { getInitiativeBySlug, initiatives, events } from "@/lib/content"
 import { buildPageMetadata } from "@/lib/seo"
 
@@ -48,7 +48,7 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
 
   return (
     <main className="min-h-screen bg-background">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-4xl px-4 py-14 sm:py-16">
         <Breadcrumbs
           items={[
@@ -106,7 +106,7 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
           </section>
         )}
       </section>
-      <Footer />
+      
     </main>
   )
 }

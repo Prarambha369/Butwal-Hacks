@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -64,7 +64,7 @@ const groups = [
 export default function ExplorePage() {
   return (
     <main className="min-h-screen bg-background">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Explore" }]} />
         <h1 className="text-4xl sm:text-5xl font-bold font-heading tracking-tight text-foreground">Explore</h1>
@@ -92,7 +92,7 @@ export default function ExplorePage() {
           ))}
         </div>
       </section>
-      <Footer />
+      
     </main>
   )
 }

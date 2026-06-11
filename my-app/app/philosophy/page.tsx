@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -60,7 +60,7 @@ function HandDrawnArrow() {
 export default function PhilosophyPage() {
   return (
     <main className="min-h-screen bg-background">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-3xl px-4 py-14 sm:py-16">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Philosophy" }]} />
 
@@ -134,7 +134,7 @@ export default function PhilosophyPage() {
           </section>
         </article>
       </section>
-      <Footer />
+      
     </main>
   )
 }

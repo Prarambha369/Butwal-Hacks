@@ -4,8 +4,8 @@ import Link from "next/link"
 import Breadcrumbs from "@/components/breadcrumbs"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import Footer from "@/components/footer"
-import SiteHeader from "@/components/site-header"
+
+
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -92,7 +92,7 @@ const donorOfMonth = {
 export default function DonorsPage() {
   return (
     <main className="min-h-screen bg-background">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Donors" }]} />
         <div className="text-center">
@@ -332,7 +332,7 @@ export default function DonorsPage() {
           </p>
         </div>
       </section>
-      <Footer />
+      
     </main>
   )
 }

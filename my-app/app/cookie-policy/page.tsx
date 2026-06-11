@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { buildPageMetadata } from "@/lib/seo"
-import SiteHeader from "@/components/site-header"
-import Footer from "@/components/footer"
+
+
 import LegalDocumentLayout from "@/components/legal-document-layout"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -66,7 +66,7 @@ export default function CookiePolicyPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SiteHeader />
+      
       <LegalDocumentLayout
         title="Cookie Policy"
         summary="This page explains what cookies are, why we use them, and how you can manage them."
@@ -75,7 +75,7 @@ export default function CookiePolicyPage() {
         activePolicy="cookie"
         sections={sections}
       />
-      <Footer />
+      
     </div>
   )
 }

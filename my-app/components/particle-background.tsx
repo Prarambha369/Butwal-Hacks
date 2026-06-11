@@ -1,125 +1,93 @@
-"use client"
-
 import { useEffect, useRef } from "react"
-import * as THREE from "three"
 
 export function ParticleBackground() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const sceneRef = useRef<THREE.Scene | null>(null)
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
-  const particlesRef = useRef<THREE.Points | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const animationFrameRef = useRef<number | null>(null)
 
   useEffect(() => {
-    const container = containerRef.current
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    if (prefersReduced) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // Resize canvas to fill container with DPR scaling
+    const container = canvas.parentElement
     if (!container) return
 
-    // Scene setup
-    const scene = new THREE.Scene()
-    sceneRef.current = scene
+    const resizeCanvas = () => {
+      const dpr = window.devicePixelRatio || 1
+      canvas.width = container.clientWidth * dpr
+      canvas.height = container.clientHeight * dpr
+      canvas.style.width = container.clientWidth + 'px'
+      canvas.style.height = container.clientHeight + 'px'
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    }
 
-    // Camera setup
-    const width = container.clientWidth
-    const height = container.clientHeight
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
-    camera.position.z = 50
-    cameraRef.current = camera
-
-    // Renderer setup
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-    renderer.setSize(width, height)
-    renderer.setClearColor(0x000000, 0.1)
-    container.appendChild(renderer.domElement)
-    rendererRef.current = renderer
+    resizeCanvas()
+    window.addEventListener('resize', resizeCanvas)
 
     // Create particles
     const particleCount = 500
-    const geometry = new THREE.BufferGeometry()
-    const positions = new Float32Array(particleCount * 3)
-    const velocities = new Float32Array(particleCount * 3)
-
-    for (let i = 0; i < particleCount * 3; i += 3) {
-      positions[i] = (Math.random() - 0.5) * 200
-      positions[i + 1] = (Math.random() - 0.5) * 200
-      positions[i + 2] = (Math.random() - 0.5) * 200
-
-      velocities[i] = (Math.random() - 0.5) * 0.5
-      velocities[i + 1] = (Math.random() - 0.5) * 0.5
-      velocities[i + 2] = (Math.random() - 0.5) * 0.5
-    }
-
-    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3))
-    geometry.setAttribute("velocity", new THREE.BufferAttribute(velocities, 3))
-
-    const material = new THREE.PointsMaterial({
-      color: 0xff6b5b,
-      size: 0.7,
-      sizeAttenuation: true,
-      transparent: true,
-      opacity: 0.8,
-    })
-
-    const particles = new THREE.Points(geometry, material)
-    scene.add(particles)
-    particlesRef.current = particles
-
-    // Handle window resize
-    const handleResize = () => {
-      const newWidth = container?.clientWidth || width
-      const newHeight = container?.clientHeight || height
-
-      camera.aspect = newWidth / newHeight
-      camera.updateProjectionMatrix()
-      renderer.setSize(newWidth, newHeight)
-    }
-
-    window.addEventListener("resize", handleResize)
+    const particles = Array.from({ length: particleCount }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      radius: Math.random() * 1.5 + 0.3,
+      alpha: Math.random() * 0.5 + 0.3
+    }))
 
     // Animation loop
     const animate = () => {
-      requestAnimationFrame(animate)
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      if (particlesRef.current) {
-        particlesRef.current.rotation.x += 0.0001
-        particlesRef.current.rotation.y += 0.0002
+      // Draw particles
+      ctx.fillStyle = 'rgba(255, 107, 91, 0.5)'
+      
+      for (const particle of particles) {
+        // Update position
+        particle.x += particle.vx
+        particle.y += particle.vy
 
-        const positionAttribute = geometry.getAttribute("position")
-        const velocityAttribute = geometry.getAttribute("velocity")
-        const positions = positionAttribute.array as Float32Array
-        const velocities = velocityAttribute.array as Float32Array
+        // Wrap around edges
+        if (particle.x < 0) particle.x = canvas.width
+        if (particle.x > canvas.width) particle.x = 0
+        if (particle.y < 0) particle.y = canvas.height
+        if (particle.y > canvas.height) particle.y = 0
 
-        for (let i = 0; i < positions.length; i += 3) {
-          positions[i] += velocities[i]
-          positions[i + 1] += velocities[i + 1]
-          positions[i + 2] += velocities[i + 2]
-
-          // Wrap around
-          if (positions[i] > 100) positions[i] = -100
-          if (positions[i] < -100) positions[i] = 100
-          if (positions[i + 1] > 100) positions[i + 1] = -100
-          if (positions[i + 1] < -100) positions[i + 1] = 100
-        }
-
-        positionAttribute.needsUpdate = true
+        // Draw particle
+        ctx.beginPath()
+        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
+        ctx.globalAlpha = particle.alpha
+        ctx.fill()
+        ctx.globalAlpha = 1
       }
 
-      renderer.render(scene, camera)
+      // Schedule next frame
+      animationFrameRef.current = requestAnimationFrame(animate)
     }
 
     animate()
 
     // Cleanup
     return () => {
-      window.removeEventListener("resize", handleResize)
-      renderer.dispose()
-      geometry.dispose()
-      material.dispose()
-      container.removeChild(renderer.domElement)
+      window.removeEventListener('resize', resizeCanvas)
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
     }
   }, [])
 
   return (
-    <div ref={containerRef} className="absolute inset-0 z-0" style={{ pointerEvents: "none" }} />
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 z-0"
+      style={{ pointerEvents: "none" }}
+    />
   )
 }
-

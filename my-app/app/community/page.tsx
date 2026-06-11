@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { buildPageMetadata } from "@/lib/seo"
-import SiteHeader from "@/components/site-header"
-import Footer from "@/components/footer"
+
+
 import { TestimonialsSection } from "@/components/testimonials"
 import { MemberDirectory } from "@/components/member-directory"
 import { MessageSquare, Users, Github, Send } from "lucide-react"
@@ -45,7 +45,7 @@ const communityLinks = [
 export default function CommunityPage() {
   return (
     <main className="min-h-screen bg-background">
-      <SiteHeader />
+      
       
       <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
         <div className="text-center mb-12">
@@ -132,7 +132,7 @@ export default function CommunityPage() {
 
       <MemberDirectory />
       <TestimonialsSection />
-      <Footer />
+      
     </main>
   )
 }
