@@ -35,7 +35,7 @@ The Next.js app lives in `my-app/`. The repo root holds deployment config, logos
 
 | Area | Detail |
 |------|--------|
-| **Auth** | Clerk authentication with Supabase backend |
+| **Auth** | Auth0 authentication with Supabase backend |
 | **Styling** | Tailwind v4 with Liquid Glass aesthetic (`lg-surface` classes) |
 | **Database** | Supabase via `@supabase/supabase-js` |
 | **API Routes** | Serverless functions in `my-app/src/app/api/` |

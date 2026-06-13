@@ -73,3 +73,21 @@ coverage/
 .junie/
 .audit.json
 
+
+# Playwright browsers (locally downloaded)
+/chrome/
+
+# Git rewrite artifacts
+/.git-rewrite/
+
+# Local logs and audit
+*.log
+lint_output.txt
+dev_log.txt
+q
+
+# Temporary scripts
+tmp/
+
+# Turbopack cache (not currently used, but guard against it)
+.turbo/
