@@ -1,68 +1,253 @@
 @import "tailwindcss";
 
 :root {
-  /* Optimistic Palette */
-  --color-bg-primary: #FFFFFF;
-  --color-bg-secondary: #F5F5F7;
-  --color-text-primary: #1D1D1F;
-  --color-text-secondary: #86868B;
-  --color-accent: #007AFF;
-  --color-accent-hover: #0062CC;
+  /* Core Brand (Constant) */
+  --color-heritage-red: #E63946;
+  --color-temple-black: #1C1C1E;
+  --color-builder-white: #F5F5F7;
+
+  /* Light Mode Tokens */
+  --bg-primary: #F5F5F7;
+  --bg-secondary: #FFFFFF;
+  --text-primary: #1D1D1F;
+  --text-secondary: #6E6E73;
+  --surface-grey: #E5E5EA;
   
-  /* Liquid Glass Material */
+  /* Liquid Glass Light */
   --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.3);
-  --glass-blur: blur(20px);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-shadow: rgba(0, 0, 0, 0.05);
+  --blueprint-color: rgba(0, 0, 0, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.05);
   
-  /* Concentric Geometry */
-  --radius-fixed: 12px;
+  /* Spacing & Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
   --radius-capsule: 9999px;
-  --spacing-unit: 8px;
+  
+  /* Typography */
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Apple-style Easing */
+  --ease-apple: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .dark {
-  --color-bg-primary: #000000;
-  --color-bg-secondary: #1C1C1E;
-  --color-text-primary: #F5F5F7;
-  --color-text-secondary: #A1A1A6;
-  --color-accent: #0A84FF;
-  --color-accent-hover: #409CFF;
+  /* Dark Mode Tokens - SOFTENED for Visual Comfort */
+  --bg-primary: #0A0E1A;
+  --bg-secondary: #121625;
+  --text-primary: #E1E1E6;
+  --text-secondary: #9BA1B0;
+  --surface-grey: #1C2133;
   
-  --glass-bg: rgba(28, 28, 30, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  /* Liquid Glass Dark */
+  --glass-bg: rgba(20, 24, 36, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.4);
+  --blueprint-color: rgba(255, 255, 255, 0.12);
 }
 
-@layer components {
-  .liquid-glass {
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border);
-    background-color: var(--glass-bg);
-  }
-
-  .concentric-card {
-    border-radius: var(--radius-fixed);
-    padding: var(--spacing-unit);
-  }
-
-  .concentric-child {
-    /* Parent Radius - Padding = Child Radius */
-    border-radius: calc(var(--radius-fixed) - var(--spacing-unit));
-  }
-
-  .capsule {
-    border-radius: var(--radius-capsule);
-  }
-
-  .text-apple-bold {
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    text-align: left;
-  }
+:root, .dark {
+  --glass-red: rgba(230, 57, 70, 0.80);
+  --glass-red-shadow: rgba(230, 57, 70, 0.3);
 }
 
 body {
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  transition: background-color 0.3s ease;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.5s var(--ease-apple), color 0.5s var(--ease-apple);
+}
+
+@layer components {
+  /* The "Apple Glass" Surface */
+  .bh-glass-surface {
+    background: var(--glass-bg);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    transition: all 0.4s var(--ease-apple);
+  }
+
+  .bh-glass-red {
+    background: var(--glass-red);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px var(--glass-red-shadow);
+  }
+
+  .capsule {
+    border-radius: var(--radius-capsule) !important;
+  }
+
+  /* Interactive Buttons with Apple-like Press Effect */
+  .bh-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    border-radius: var(--radius-capsule);
+    font-weight: 600;
+    color: var(--color-temple-black);
+    cursor: pointer;
+    transition: all 0.3s var(--ease-apple);
+    background: var(--color-builder-white);
+    border: 1px solid var(--color-builder-white);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  .bh-btn-primary:hover {
+    background: var(--color-heritage-red);
+    border-color: var(--color-heritage-red);
+    color: white;
+    transform: scale(1.02);
+    box-shadow: 0 0 20px var(--glass-red-shadow);
+    animation: pulse-red 2s infinite;
+  }
+
+  .bh-btn-primary:active {
+    transform: scale(0.96);
+  }
+
+  .bh-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-radius: var(--radius-capsule);
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s var(--ease-apple);
+    border: 1px solid var(--glass-border);
+    background: transparent;
+  }
+
+  .bh-btn-secondary:hover {
+    background: rgba(128, 128, 128, 0.1);
+    border-color: var(--text-secondary);
+    transform: scale(1.02);
+  }
+
+  .bh-btn-secondary:active {
+    transform: scale(0.96);
+  }
+
+  .bh-badge {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 4px 12px;
+    border-radius: var(--radius-capsule);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    display: inline-block;
+    transition: all 0.3s var(--ease-apple);
+  }
+
+  .bh-badge-live {
+    border-color: var(--color-heritage-red);
+    color: var(--color-heritage-red);
+  }
+
+  .bh-card {
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    transition: all 0.5s var(--ease-spring);
+  }
+
+  .bh-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 12px 40px var(--glass-shadow);
+  }
+
+  .bh-card-inner {
+    border-radius: 12px; 
+    overflow: hidden;
+  }
+
+  .bh-h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.05;
+    text-align: left;
+    color: var(--text-primary);
+    letter-spacing: -0.04em;
+    transition: color 0.5s var(--ease-apple);
+  }
+
+  .bh-h2 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: left;
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+    transition: color 0.5s var(--ease-apple);
+  }
+
+  .bh-h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: left;
+    color: var(--text-primary);
+    transition: color 0.5s var(--ease-apple);
+  }
+
+  .bh-text-mono {
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+  }
+
+  .bh-scroll-container {
+    mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+  }
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-organizer {
+  0% { box-shadow: 0 0 10px rgba(230, 57, 70, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(230, 57, 70, 0.4); }
+  100% { box-shadow: 0 0 10px rgba(230, 57, 70, 0.2); }
+}
+
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(230, 57, 70, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(230, 57, 70, 0); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.bh-organizer-glow {
+  animation: pulse-organizer 3s infinite;
+}
+
+* {
+  box-sizing: border-box;
 }
