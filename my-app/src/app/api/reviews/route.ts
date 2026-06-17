@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { auth0 } from '@/lib/auth0';
 import { createServiceClient } from '@/utils/supabase/service';
 import { z } from 'zod';
-import { sanitizeUuid, rejectOversized } from '@/lib/validation';
+import { sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
-import { withRateLimit } from '@/lib/rate-limiter';
+import { withRateLimit, withPayloadLimit } from '@/lib/rate-limiter';
 import { captureServerEvent } from '@/lib/analytics/server';
 
 const reviewSchema = z.object({
@@ -12,14 +12,12 @@ const reviewSchema = z.object({
   rating: z.number().int().min(1).max(5),
 }).refine(d => d.event_id.length > 0, { message: 'Invalid event ID' });
 
-export const POST = withRateLimit(async (request: Request) => {
+export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
   try {
     const session = await auth0.getSession();
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const supabase = createServiceClient();
-    // ponytail: reject oversized payloads before parsing — 1 MB limit
-    const oversized = rejectOversized(request); if (oversized) return oversized
     const raw = await request.json();
     const parsed = reviewSchema.safeParse(raw);
     if (!parsed.success) {
@@ -37,4 +35,4 @@ export const POST = withRateLimit(async (request: Request) => {
     logger.error('[api/reviews]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-})
+}), "sensitive")

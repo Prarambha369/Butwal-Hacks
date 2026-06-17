@@ -5,15 +5,16 @@ import { withRateLimit } from "@/lib/rate-limiter"
 import { captureServerEvent, identifyServerUser } from "@/lib/analytics/server"
 import { posthogLog } from "@/lib/posthog-logger"
 
+const AUTH0_WEBHOOK_SECRET = process.env.AUTH0_WEBHOOK_SECRET ?? "";
+
 /**
  * POST /api/webhooks/auth0
  *
  * Called by Auth0 Action (Post-Login) to sync user to Supabase profiles.
  * Auth0 Actions send a POST with the user's sub (Auth0 User ID), email, and name.
  *
- * ponytail: No webhook signature verification since this is called from Auth0's
- * trusted Actions environment. In production, add a shared secret header check
- * (AUTH0_WEBHOOK_SECRET) to prevent unauthorized access.
+ * If AUTH0_WEBHOOK_SECRET is set (production), verifies the X-Webhook-Secret
+ * header matches. In dev, the secret is usually unset so the check is skipped.
  */
 export const POST = withRateLimit(async (req: NextRequest) => {
   try {
@@ -22,6 +23,17 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     const contentLength = parseInt(rawLength ?? "0", 10)
     if (!isNaN(contentLength) && contentLength > 1_048_576) {
       return new NextResponse("Payload too large", { status: 413 })
+    }
+
+    // ── Webhook secret verification ──────────────────────────────
+    // Only enforced when AUTH0_WEBHOOK_SECRET is set (production).
+    // Dev/staging environments can leave it unset to skip the check.
+    if (AUTH0_WEBHOOK_SECRET) {
+      const headerSecret = req.headers.get("x-webhook-secret");
+      if (!headerSecret || headerSecret !== AUTH0_WEBHOOK_SECRET) {
+        logger.warn("[auth0-webhook] Rejected request — invalid or missing webhook secret");
+        return NextResponse.json({ error: "Invalid webhook secret" }, { status: 401 });
+      }
     }
 
     const { sub, email, name } = await req.json() as {
@@ -61,35 +73,22 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         has_name: !!name,
       });
     } else {
-      // Generate a sequential BH-ID: BH-YY-NNN
-      const yearSuffix = new Date().getFullYear().toString().slice(-2)
-      const { data: maxRow } = await db
-        .from("profiles")
-        .select("slug_id")
-        .like("slug_id", `BH-${yearSuffix}-%`)
-        .order("slug_id", { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      let nextNum = 1
-      if (maxRow?.slug_id) {
-        const parts = maxRow.slug_id.split("-")
-        const lastNum = parseInt(parts[2], 10)
-        if (!isNaN(lastNum)) nextNum = lastNum + 1
-      }
-      const bhId = `BH-${yearSuffix}-${String(nextNum).padStart(3, "0")}`
-      profileDbId = crypto.randomUUID()
-
-      await db.from("profiles").insert({
-        id: profileDbId,
-        auth0_user_id: sub,
-        slug_id: bhId,
-        bh_id: bhId,
-        email,
-        full_name: name?.trim() || "New Hacker",
-        role: "hacker",
-        is_claimed: true,
+      // Atomic BH-ID generation via Postgres RPC — prevents race conditions
+      // on concurrent signups (migration 086_atomic_bh_id_generation).
+      const { data: result, error: rpcError } = await db.rpc('create_profile_with_bh_id', {
+        p_auth0_user_id: sub,
+        p_email: email,
+        p_full_name: name?.trim() || 'New Hacker',
+        p_role: 'hacker',
       })
+
+      if (rpcError || !result) {
+        logger.error("[auth0-webhook] RPC insert failed:", rpcError)
+        return NextResponse.json({ error: "Failed to create profile" }, { status: 500 })
+      }
+
+      profileDbId = (result as { id: string }).id
+      const bhId = (result as { bh_id: string }).bh_id
 
       await identifyServerUser(sub, { bh_id: bhId, role: "hacker" })
       await captureServerEvent('user_signed_up', sub, { bh_id: bhId })
@@ -112,4 +111,4 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     logger.error("[auth0-webhook] Error:", err)
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
-})
+}, "bulk")
