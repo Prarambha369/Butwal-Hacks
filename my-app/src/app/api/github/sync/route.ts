@@ -10,7 +10,7 @@ import { captureServerEvent } from "@/lib/analytics/server"
 // GitHub token in the profiles table. Users must connect GitHub through the
 // dashboard settings, which stores the token directly in Supabase.
 
-export const POST = withRateLimit(async (req: NextRequest) => {
+export const POST = withRateLimit(async (_req: NextRequest) => {
   try {
     const session = await auth0.getSession()
     if (!session?.user) {
@@ -133,4 +133,4 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     logger.error("[github-sync] unexpected error:", err)
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
-})
+}, "sensitive")

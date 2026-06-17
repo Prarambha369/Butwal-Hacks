@@ -35,11 +35,11 @@ export async function GET(
 <title>Invalid BH-ID</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#242424;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
-  .card{background:#434343;border:1px solid #656565;border-radius:16px;padding:24px;text-align:center;width:100%;max-width:360px}
-  .label{color:#898989;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#121212;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
+  .card{background:#1E1E1E;border:1px solid #333333;border-radius:16px;padding:24px;text-align:center;width:100%;max-width:360px}
+  .label{color:#A3A3A3;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
   .id{color:#FE0000;font-size:18px;font-weight:800;margin-top:8px}
-  .msg{color:#d6d6d6;font-size:13px;margin-top:8px;line-height:1.5}
+  .msg{color:#D4D4D4;font-size:13px;margin-top:8px;line-height:1.5}
 </style>
 </head>
 <body><div class="card">
@@ -74,13 +74,13 @@ export async function GET(
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:transparent;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:12px}
-  .card{background:#434343;border:1px solid #656565;border-radius:16px;padding:20px;width:100%;max-width:360px;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+  .card{background:#1E1E1E;border:1px solid #333333;border-radius:16px;padding:20px;width:100%;max-width:360px;box-shadow:0 4px 24px rgba(0,0,0,.3)}
   .header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
   .logo{width:32px;height:32px;background:#FE0000;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:900}
   .brand{color:#898989;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
   .name{color:#fff;font-size:20px;font-weight:800}
   .row{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
-  .id-badge{background:#242424;border:1px solid #656565;border-radius:8px;padding:4px 10px;font-family:monospace;font-size:12px;color:#d6d6d6}
+  .id-badge{background:#121212;border:1px solid #333333;border-radius:8px;padding:4px 10px;font-family:monospace;font-size:12px;color:#D4D4D4}
   .role-badge{background:${roleColor}20;color:${roleColor};border:1px solid ${roleColor}40;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
   .xp{color:#898989;font-size:11px;margin-left:auto}
   .footer{margin-top:12px;padding-top:10px;border-top:1px solid #65656530;display:flex;align-items:center;gap:6px}

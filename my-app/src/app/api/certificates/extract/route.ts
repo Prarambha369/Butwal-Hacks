@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase/service"
 import { logger } from "@/lib/logger"
-import { withRateLimit } from "@/lib/rate-limiter"
-import { rejectOversized } from "@/lib/validation"
+import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter"
 
 /**
  * POST /api/certificates/extract
@@ -14,7 +13,7 @@ import { rejectOversized } from "@/lib/validation"
  * Request body: { cloudinaryUrl: string }
  * Response: { success: true, marker: { id, title, description, type } }
  */
-export const POST = withRateLimit(async (req: NextRequest) => {
+export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
   try {
     const session = await auth0.getSession()
     if (!session?.user) {
@@ -22,8 +21,6 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     }
     const userId = session.user.sub
 
-    // ponytail: reject oversized payloads before parsing — 1 MB limit
-    const oversized = rejectOversized(req); if (oversized) return oversized
     const { cloudinaryUrl } = await req.json()
     if (!cloudinaryUrl || typeof cloudinaryUrl !== "string") {
       return NextResponse.json({ error: "cloudinaryUrl is required" }, { status: 400 })
@@ -161,4 +158,4 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     logger.error("[certificates/extract] Unexpected error:", err)
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
-})
+}), "sensitive")
