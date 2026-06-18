@@ -58,8 +58,14 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     remotePatterns: [
-      // Add external image hostnames here as needed, e.g.:
-      // { protocol: "https", hostname: "avatars.githubusercontent.com" },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
+      },
+      {
+        protocol: "https",
+        hostname: "api.dicebear.com",
+      },
     ],
   },
   async headers() {
