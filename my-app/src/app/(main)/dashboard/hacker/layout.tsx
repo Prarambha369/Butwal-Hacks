@@ -11,8 +11,10 @@ import {
   User,
   Code2,
   Users,
-  UserPlus,
-  Calendar,
+  Key,
+  UsersRound,
+  FileText,
+  KanbanSquare,
 } from "lucide-react";
 
 const hackerLinks = [
@@ -27,9 +29,9 @@ const hackerLinks = [
     icon: <User className="w-4 h-4" />,
   },
   {
-    href: "/dashboard/hacker/events",
-    label: "Events",
-    icon: <Calendar className="w-4 h-4" />,
+    href: "/dashboard/hacker/work",
+    label: "Work",
+    icon: <KanbanSquare className="w-4 h-4" />,
   },
   {
     href: "/dashboard/hacker/projects",
@@ -37,14 +39,24 @@ const hackerLinks = [
     icon: <Code2 className="w-4 h-4" />,
   },
   {
-    href: "/dashboard/hacker/teams",
+    href: "/dashboard/hacker/certificates",
+    label: "Certificates",
+    icon: <FileText className="w-4 h-4" />,
+  },
+  {
+    href: "/teams",
     label: "Teams",
     icon: <Users className="w-4 h-4" />,
   },
   {
-    href: "/dashboard/hacker/teammates",
-    label: "Find Teammates",
-    icon: <UserPlus className="w-4 h-4" />,
+    href: "/dashboard/hacker/team-matching",
+    label: "AI Team Match",
+    icon: <UsersRound className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/hacker/api-keys",
+    label: "API Keys",
+    icon: <Key className="w-4 h-4" />,
   },
 ];
 
@@ -57,7 +69,7 @@ export default async function HackerDashboardLayout({
   const userId = session?.user?.sub;
 
   if (!userId) {
-    redirect("/sign-in");
+    redirect("/auth/login");
   }
 
   const supabase = await createClient();
@@ -74,9 +86,9 @@ export default async function HackerDashboardLayout({
   const slugId = profile?.slug_id ?? userId.slice(0, 8).toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-dvh bg-background">
       <DashboardSidebar role="hacker" slugId={slugId} links={hackerLinks} />
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 p-8 max-w-6xl">{children}</main>
     </div>
   );
-} // ponytail: Switched to Clerk user validation and aligned `profiles` role check.
+} // ponytail: Uses Auth0 session for user validation and profile role check.
