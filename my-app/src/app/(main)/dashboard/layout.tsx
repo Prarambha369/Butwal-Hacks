@@ -1,7 +1,8 @@
 import { auth0 } from "@/lib/auth0"
 import { redirect } from "next/navigation"
 import { createServiceClient } from "@/utils/supabase/service"
-import { logger } from "@/lib/logger"
+
+export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({
   children,
@@ -11,7 +12,7 @@ export default async function DashboardLayout({
   const session = await auth0.getSession()
 
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth/login")
   }
 
   const userId = session.user.sub
@@ -25,36 +26,30 @@ export default async function DashboardLayout({
     .single()
 
   if (!profile) {
-    // Generate a sequential BH-ID: BH-YY-NNN
-    const yearSuffix = new Date().getFullYear().toString().slice(-2)
-    const { data: maxRow } = await db
-      .from('profiles')
-      .select('slug_id')
-      .like('slug_id', `BH-${yearSuffix}-%`)
-      .order('slug_id', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    let nextNum = 1
-    if (maxRow?.slug_id) {
-      const parts = maxRow.slug_id.split('-')
-      const lastNum = parseInt(parts[2], 10)
-      if (!isNaN(lastNum)) {
-        nextNum = lastNum + 1
-      }
-    }
-    const bhId = `BH-${yearSuffix}-${String(nextNum).padStart(3, '0')}`
-
-    await db.from('profiles').insert({
-      id: crypto.randomUUID(),
-      auth0_user_id: userId,
-      slug_id: bhId,
-      bh_id: bhId,
-      email: session.user.email || `${userId}@placeholder.butwalhacks.com`,
-      full_name: session.user.name || 'New Hacker',
-      role: 'hacker',
-      is_claimed: true,
+    // Atomic BH-ID generation via Postgres RPC — prevents race conditions
+    // on concurrent signups (migration 086_atomic_bh_id_generation).
+    const { data: result, error: rpcError } = await db.rpc('create_profile_with_bh_id', {
+      p_auth0_user_id: userId,
+      p_email: session.user.email || `${userId}@placeholder.butwalhacks.com`,
+      p_full_name: session.user.name || 'New Hacker',
+      p_role: 'hacker',
     })
+
+    if (rpcError) {
+      // Fallback: generate a unique BH-ID client-side to avoid crashing the dashboard
+      const fallbackSuffix = crypto.randomUUID().slice(0, 8).toUpperCase();
+      const bhId = `BH-${new Date().getFullYear().toString().slice(2)}-${fallbackSuffix}`;
+      await db.from('profiles').insert({
+        id: crypto.randomUUID(),
+        auth0_user_id: userId,
+        slug_id: bhId,
+        bh_id: bhId,
+        email: session.user.email || `${userId}@placeholder.butwalhacks.com`,
+        full_name: session.user.name || 'New Hacker',
+        role: 'hacker',
+        is_claimed: true,
+      })
+    }
   }
 
   return <>{children}</>
