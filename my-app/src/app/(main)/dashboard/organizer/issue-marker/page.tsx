@@ -2,6 +2,7 @@ import React from "react";
 import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 import { AlertCircle } from "lucide-react";
+import { SectionHeading } from "@/components/ui/section-heading";
 import { IssueMarkerForm } from "@/components/dashboard/organizer/issue-marker-form";
 
 export default async function IssueMarkerPage() {
@@ -13,8 +14,8 @@ export default async function IssueMarkerPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Issue Trust Marker</h1>
-          <p className="text-secondary opacity-60">
+          <h1 className="text-3xl font-bold tracking-tight text-primary">Issue Trust Marker</h1>
+          <p className="text-muted-foreground">
             Grant verified achievements to community members — even if they haven&apos;t signed up yet.
           </p>
         </div>
@@ -22,18 +23,17 @@ export default async function IssueMarkerPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <div className="lg-surface p-8 rounded-3xl border border-glass space-y-6">
+          <div className="bh-card p-8 space-y-6">
             <IssueMarkerForm />
           </div>
         </div>
 
         <div className="space-y-6">
-          <div className="lg-surface p-6 rounded-3xl border border-glass space-y-4">
-            <div className="flex items-center gap-3 text-status-yellow">
-              <AlertCircle size={20} />
-              <h3 className="font-bold">Marker Guidelines</h3>
-            </div>
-            <ul className="text-xs text-secondary opacity-60 space-y-3">
+          <div className="bh-card p-6 space-y-4">
+            <SectionHeading variant="icon" icon={<AlertCircle size={20} />} color="yellow" as="h3">
+              Marker Guidelines
+            </SectionHeading>
+            <ul className="text-xs text-muted-foreground space-y-3">
               <li className="flex gap-2">
                 <span className="text-yellow-500">•</span>
                 Markers should be tied to verifiable outcomes.

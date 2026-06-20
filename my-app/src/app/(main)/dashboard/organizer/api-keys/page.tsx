@@ -1,9 +1,8 @@
-import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
-import { KeyRound, ShieldCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ShieldCheck } from 'lucide-react';
+import { SectionHeading } from '@/components/ui/section-heading';
 import { ApiKeyList } from './api-key-list';
 import { GenerateKeyForm } from './generate-key-form';
 
@@ -32,8 +31,8 @@ export default async function ApiKeysPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">API Management</h1>
-          <p className="text-secondary opacity-60">Generate and manage keys for programmatic access to the Trust Network.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">API Management</h1>
+          <p className="text-sm text-muted-foreground">Generate and manage keys for programmatic access to the Trust Network.</p>
         </div>
         <GenerateKeyForm />
       </div>
@@ -44,12 +43,11 @@ export default async function ApiKeysPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="lg-surface p-6 rounded-3xl border border-glass space-y-4">
-            <div className="flex items-center gap-3 text-status-blue">
-              <ShieldCheck size={20} />
-              <h3 className="font-bold">Security Notice</h3>
-            </div>
-            <p className="text-xs text-secondary opacity-60 leading-relaxed">
+          <div className="bh-card p-6 space-y-4">
+            <SectionHeading variant="icon" icon={<ShieldCheck size={20} />} color="blue" as="h3">
+              Security Notice
+            </SectionHeading>
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Keys are shown only once at creation. Store them securely. If a key is compromised, revoke it immediately. API keys are hashed with SHA-256 and cannot be recovered.
             </p>
           </div>
