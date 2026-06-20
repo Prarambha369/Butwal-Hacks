@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -10,6 +10,8 @@ import { Save, Github, ExternalLink, Image as ImageIcon, Tags } from 'lucide-rea
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { updateProject } from '@/lib/actions/projects';
 import { toast } from 'sonner';
+import { useUser } from '@auth0/nextjs-auth0/client';
+import { createClient } from '@/utils/supabase/client';
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
 
 const projectSchema = z.object({
@@ -34,10 +36,27 @@ interface ProjectData {
 }
 
 export default function EditProjectForm({ project }: { project: ProjectData }) {
+  const { user } = useUser();
   const router = useRouter();
   const [techTags, setTechTags] = useState<string[]>(project.tech_stack || []);
   const [coverImage, setCoverImage] = useState(project.cover_image || '');
   const [category, setCategory] = useState(project.category || '');
+  const [bhId, setBhId] = useState<string | undefined>();
+
+  // Fetch user's bh_id for Cloudinary metadata
+  useEffect(() => {
+    const userId = user?.sub;
+    if (!userId) return;
+    const supabase = createClient();
+    supabase
+      .from('profiles')
+      .select('bh_id')
+      .eq('auth0_user_id', userId)
+      .single()
+      .then(({ data }) => {
+        if (data?.bh_id) setBhId(data.bh_id);
+      });
+  }, [user?.sub]);
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(projectSchema),
@@ -86,16 +105,16 @@ export default function EditProjectForm({ project }: { project: ProjectData }) {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="lg-surface p-8 rounded-3xl border border-glass shadow-2xl">
+      <div className="bh-card p-8 shadow-2xl">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium text-secondary ml-1">Project Title</label>
             <input 
               {...register('title')}
-              className="w-full bg-surface/10 border border-glass rounded-xl px-4 py-3 text-primary focus:ring-2 focus:ring-red-600 outline-none transition-all"
+              className="w-full bg-surface/10 border border-border rounded-xl px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
               placeholder="e.g. AgriTech Smart Monitor"
             />
-            {errors.title && <p className="text-xs text-bh-red-500 ml-1">{errors.title.message as string}</p>}
+            {errors.title && <p className="text-xs text-primary-red ml-1">{errors.title.message as string}</p>}
           </div>
 
           <div className="space-y-2">
@@ -103,10 +122,10 @@ export default function EditProjectForm({ project }: { project: ProjectData }) {
             <textarea 
               {...register('description')}
               rows={4}
-              className="w-full bg-surface/10 border border-glass rounded-xl px-4 py-3 text-primary focus:ring-2 focus:ring-red-600 outline-none transition-all"
+              className="w-full bg-surface/10 border border-border rounded-xl px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
               placeholder="What does your project do? What problem does it solve?"
             />
-            {errors.description && <p className="text-xs text-bh-red-500 ml-1">{errors.description.message as string}</p>}
+            {errors.description && <p className="text-xs text-primary-red ml-1">{errors.description.message as string}</p>}
           </div>
 
           {/* Category selector */}
@@ -117,7 +136,7 @@ export default function EditProjectForm({ project }: { project: ProjectData }) {
             <select
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="w-full bg-surface/10 border border-glass rounded-xl px-4 py-3 text-primary focus:ring-2 focus:ring-red-600 outline-none transition-all"
+              className="w-full bg-surface/10 border border-border rounded-xl px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
             >
               <option value="">Select a category...</option>
               <option value="Web App">Web App</option>
@@ -143,6 +162,10 @@ export default function EditProjectForm({ project }: { project: ProjectData }) {
               onError={(msg) => toast.error(msg)}
               label="Upload Cover Image"
               currentImage={coverImage}
+              entityType="project_cover"
+              projectId={project.id}
+              bhId={bhId}
+              uploaderAuth0Id={user?.sub}
             />
           </div>
 
@@ -153,10 +176,10 @@ export default function EditProjectForm({ project }: { project: ProjectData }) {
               </label>
               <input 
                 {...register('demoUrl')}
-                className="w-full bg-surface/10 border border-glass rounded-xl px-4 py-3 text-primary focus:ring-2 focus:ring-red-600 outline-none transition-all"
+                className="w-full bg-surface/10 border border-border rounded-xl px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
                 placeholder="https://demo.myapp.com"
               />
-              {errors.demoUrl && <p className="text-xs text-bh-red-500 ml-1">{errors.demoUrl.message as string}</p>}
+              {errors.demoUrl && <p className="text-xs text-primary-red ml-1">{errors.demoUrl.message as string}</p>}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-secondary ml-1 flex items-center gap-2">
@@ -164,18 +187,18 @@ export default function EditProjectForm({ project }: { project: ProjectData }) {
               </label>
               <input 
                 {...register('githubUrl')}
-                className="w-full bg-surface/10 border border-glass rounded-xl px-4 py-3 text-primary focus:ring-2 focus:ring-red-600 outline-none transition-all"
+                className="w-full bg-surface/10 border border-border rounded-xl px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
                 placeholder="https://github.com/user/repo"
               />
-              {errors.githubUrl && <p className="text-xs text-bh-red-500 ml-1">{errors.githubUrl.message as string}</p>}
+              {errors.githubUrl && <p className="text-xs text-primary-red ml-1">{errors.githubUrl.message as string}</p>}
             </div>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-secondary ml-1">Tech Stack (Press Enter to add)</label>
-            <div className="flex flex-wrap gap-2 p-2 bg-surface/10 border border-glass rounded-xl focus-within:ring-2 focus-within:ring-red-600 transition-all">
+            <div className="flex flex-wrap gap-2 p-2 bg-surface/10 border border-border rounded-xl focus-within:ring-2 focus-within:ring-[#FE0000] focus-within:outline-none transition-all">
               {techTags.map((tag, i) => (
-                <span key={i} className="px-2 py-1 bg-bh-red-600/20 text-bh-red-500 text-xs rounded-lg border border-red-600/30 flex items-center gap-1">
+                <span key={i} className="px-2 py-1 bg-deep-red/20 text-primary-red text-xs rounded-lg border border-red-600/30 flex items-center gap-1">
                   {tag}
                   <button 
                     type="button" 
@@ -196,14 +219,14 @@ export default function EditProjectForm({ project }: { project: ProjectData }) {
                 placeholder="React, TypeScript, Supabase..."
               />
             </div>
-            {errors.techStack && <p className="text-xs text-bh-red-500 ml-1">{errors.techStack.message as string}</p>}
+            {errors.techStack && <p className="text-xs text-primary-red ml-1">{errors.techStack.message as string}</p>}
           </div>
 
           <div className="flex items-center gap-4 pt-2">
             <button 
               disabled={isSubmitting}
               type="submit" 
-              className="flex-1 py-4 bg-bh-red-600 hover:bg-bh-red-500 text-primary rounded-2xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-bh-red-500/20 disabled:opacity-50"
+              className="flex-1 py-4 bg-bh-red-600 hover:bg-primary-red text-primary rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-red/20 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <RoseSpinner size="sm" />
@@ -215,7 +238,7 @@ export default function EditProjectForm({ project }: { project: ProjectData }) {
             </button>
             <Link
               href="/dashboard/hacker/projects"
-              className="py-4 px-6 bg-surface/10 hover:bg-surface/20 text-secondary rounded-2xl font-medium transition-all text-sm"
+              className="py-4 px-6 bg-surface/10 hover:bg-surface/20 text-secondary rounded-xl font-medium transition-all text-sm"
             >
               Cancel
             </Link>
