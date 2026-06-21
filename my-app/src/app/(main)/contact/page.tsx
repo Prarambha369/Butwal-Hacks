@@ -1,8 +1,8 @@
+export const dynamic = "force-static";
+
 import type { Metadata } from "next"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-
-
 import { EnhancedContactForm } from "@/components/enhanced-contact-form"
 import { buildPageMetadata } from "@/lib/seo"
 
@@ -14,7 +14,7 @@ export const metadata: Metadata = buildPageMetadata({
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-dvh bg-background">
       
       <section className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Contact" }]} />
@@ -32,7 +32,7 @@ export default function ContactPage() {
       </section>
 
       {/* Map placeholder — replace with an actual embed when address is confirmed */}
-      <section className="relative my-20 h-96 w-full bg-gradient-to-r from-bh-red-600/20 to-bh-red-500/20 overflow-hidden rounded-2xl">
+      <section className="relative my-20 h-96 w-full bg-gradient-to-r from-bh-red-600/20 to-bh-red-500/20 overflow-hidden rounded-xl">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <h3 className="text-2xl font-bold text-primary">📍 Visit Us in Butwal</h3>

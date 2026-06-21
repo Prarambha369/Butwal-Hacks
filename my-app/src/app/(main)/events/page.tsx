@@ -1,12 +1,10 @@
 import type { Metadata } from "next"
-import Link from "next/link"
-import { ArrowRight } from "lucide-react"
-
-import Breadcrumbs from "@/components/breadcrumbs"
-
-
-import { events } from "@/lib/content"
+import { createClient } from "@/utils/supabase/server"
 import { buildPageMetadata } from "@/lib/seo"
+import Breadcrumbs from "@/components/breadcrumbs"
+import EventsFilter from "@/components/events/events-filter"
+import type { EventItem } from "@/components/events/events-filter"
+import { CalendarDays } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Events",
@@ -14,38 +12,47 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/events",
 })
 
-export default function EventsPage() {
-   return (
-     <main className="min-h-screen bg-background">
-       
-       <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
-         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Events" }]} />
-         <h1 className="text-5xl font-black tracking-tight text-primary sm:text-6xl">Events</h1>
-         <p className="mt-6 max-w-3xl text-lg text-secondary leading-relaxed">
-           Explore our events and programs. All events are maintained on stable URLs with clear status indicators.
-           Join us for workshops, hackathons, and community gatherings throughout the year.
-         </p>
+export default async function EventsPage() {
+  const supabase = createClient()
 
-         <div className="mt-14 grid gap-6 md:grid-cols-2">
-           {events.map((event) => (
-             <article key={event.slug} className="group rounded-xl border border-glass bg-surface p-7 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
-               <div className="flex items-start justify-between gap-4">
-                 <div>
-                   <p className="text-xs font-bold uppercase tracking-wide text-primary/70">Status: {event.status}</p>
-                   <h2 className="mt-3 text-2xl font-bold text-primary group-hover:text-primary transition-colors">{event.title}</h2>
-                   <p className="mt-2 text-sm font-medium text-secondary/80">{event.dateLabel}</p>
-                 </div>
-               </div>
-               <p className="mt-5 text-base text-secondary leading-relaxed">{event.summary}</p>
-               <Link href={`/events/${event.slug}`} className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors group-hover:gap-3">
-                 View details
-                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
-               </Link>
-             </article>
-           ))}
-         </div>
-       </section>
-       
-     </main>
-   )
- }
+  const { data: dbEvents } = await supabase
+    .from("events")
+    .select("id, title, slug, description, start_date, end_date, location, banner_url, is_published")
+    .order("start_date", { ascending: false })
+
+  const events: EventItem[] = (dbEvents || []).map((e) => ({
+    id: e.id,
+    title: e.title,
+    slug: e.slug || "",
+    description: e.description,
+    start_date: e.start_date,
+    end_date: e.end_date,
+    location: e.location,
+    banner_url: e.banner_url,
+    is_published: e.is_published,
+  }))
+
+  return (
+    <main className="min-h-dvh bg-background">
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Events" }]} />
+
+        <div className="flex items-center gap-4 mb-2">
+          <div className="p-3 rounded-lg bg-primary-red/10">
+            <CalendarDays className="w-6 h-6 text-primary-red" />
+          </div>
+          <div>
+            <h1 className="text-5xl font-black tracking-tight text-primary sm:text-6xl">Events</h1>
+            <p className="mt-2 text-muted-foreground">
+              Explore our events and programs. Join us for workshops, hackathons, and community gatherings.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-10">
+          <EventsFilter events={events} />
+        </div>
+      </section>
+    </main>
+  )
+}
