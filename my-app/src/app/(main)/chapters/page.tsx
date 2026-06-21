@@ -1,30 +1,25 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import {
-  MapPin,
-  Users,
-  Calendar,
-  ArrowUpRight,
-  ExternalLink,
-  Sparkles,
-  MessageSquare,
-} from "lucide-react"
+import { MapPin, Users, Calendar, ArrowUpRight, ExternalLink, Sparkles, MessageSquare, GraduationCap, User } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"
 import { chapters, type Chapter } from "@/lib/content"
 import Breadcrumbs from "@/components/breadcrumbs"
+import SafeJsonLd from "@/lib/json-ld"
 import { FadeIn } from "@/components/home/shared-primitives"
+
+export const dynamic = "force-static";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Chapters — Butwal Hacks",
   description:
-    "Discover Butwal Hacks chapters across Nepal — Pokhara, Kathmandu, and Chitwan. Join your local community of builders, mentors, and innovators.",
+    "Discover Butwal Hacks school chapters across Lumbini Province — partnered with school tech clubs to bring coding, hackathons, and mentorship to students.",
   path: "/chapters",
   keywords: [
-    "Butwal Hacks chapters",
-    "Pokhara tech community",
-    "Kathmandu hackathons",
-    "Chitwan youth tech",
-    "Nepal coding clubs",
+    "Butwal Hacks school chapters",
+    "school coding clubs Nepal",
+    "student tech clubs Lumbini",
+    "Bhawani Secondary School tech",
+    "Adarsha coding club",
   ],
 })
 
@@ -35,18 +30,18 @@ const statusConfig: Record<string, { label: string; dot: string }> = {
 }
 
 const gradientPairs: Record<string, string> = {
-  pokhara: "from-sky-500/20 to-blue-600/10 border-sky-500/30",
-  kathmandu: "from-bh-red-500/15 to-red-700/10 border-bh-red-500/25",
-  chitwan: "from-emerald-500/20 to-teal-600/10 border-emerald-500/30",
+  "bhawani-secondary-school": "from-sky-500/20 to-blue-600/10 border-sky-500/30",
+  "adarsha-secondary-school": "from-emerald-500/20 to-teal-600/10 border-emerald-500/30",
+  "butwal-multiple-campus": "from-primary-red/15 to-red-700/10 border-primary-red/25",
 }
 
 function ChapterCard({ chapter, index }: { chapter: Chapter; index: number }) {
   const status = statusConfig[chapter.status] ?? statusConfig.inactive
-  const gradient = gradientPairs[chapter.slug] ?? "from-surface to-surface/50 border-glass"
+  const gradient = gradientPairs[chapter.slug] ?? "from-surface to-surface/50 border-border"
 
   return (
     <FadeIn delay={index * 100}>
-      <article className="lg-surface rounded-2xl border border-glass overflow-hidden hover:shadow-md transition-all group">
+      <article className="bh-card overflow-hidden hover:shadow-md transition-all group">
         {/* Card header with gradient accent */}
         <div className={`h-2 bg-gradient-to-r ${gradient.split(" ")[0]} ${gradient.split(" ")[1]}`} />
 
@@ -57,67 +52,70 @@ function ChapterCard({ chapter, index }: { chapter: Chapter; index: number }) {
               <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
               {status.label}
             </span>
-            <span className="text-[10px] font-medium text-secondary/50">
+            <span className="text-[10px] font-medium text-muted-foreground/50">
               Est. {chapter.established}
             </span>
           </div>
 
-          {/* Name + Location */}
-          <h2 className="text-2xl font-black tracking-tight text-primary group-hover:text-bh-red-500 transition-colors">
+          {/* School Name + Location */}
+          <h2 className="text-2xl font-black tracking-tight text-primary group-hover:text-primary-red transition-colors">
             {chapter.name}
           </h2>
-          <p className="mt-1.5 flex items-center gap-1.5 text-sm text-secondary/70">
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <GraduationCap className="w-3.5 h-3.5 text-primary-red shrink-0" />
+            {chapter.school}
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
             <MapPin className="w-3.5 h-3.5" />
             {chapter.city}, {chapter.district} — {chapter.province}
           </p>
 
           {/* Description */}
-          <p className="mt-4 text-sm text-secondary/80 leading-relaxed">
+          <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
             {chapter.description}
           </p>
 
           {/* Stats row */}
           <div className="mt-5 flex items-center gap-5">
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-bh-red-500" />
+              <Users className="w-4 h-4 text-primary-red" />
               <span className="text-sm font-bold text-primary">{chapter.memberCount}</span>
-              <span className="text-xs text-secondary/50">members</span>
+              <span className="text-xs text-muted-foreground">members</span>
             </div>
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-bh-red-500" />
-              <span className="text-xs text-secondary/50">{chapter.established}</span>
+              <Calendar className="w-4 h-4 text-primary-red" />
+              <span className="text-xs text-muted-foreground/50">{chapter.established}</span>
             </div>
           </div>
 
           {/* Highlights */}
           <ul className="mt-5 space-y-2">
             {chapter.highlights.map((h, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs text-secondary/70">
+              <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
                 <span className="mt-0.5 w-1 h-1 rounded-full bg-status-green shrink-0" />
                 {h}
               </li>
             ))}
           </ul>
 
-          {/* Join CTA */}
+          {/* Chapter Lead + Join */}
           <div className="mt-6 pt-5 border-t border-border/20 flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <User className="w-3 h-3 text-primary-red" />
+              Lead: <span className="font-semibold text-primary">{chapter.leadName}</span>
+            </div>
+            <span className="text-muted-foreground/30">|</span>
             {chapter.socialLinks?.whatsapp && (
               <a
                 href={chapter.socialLinks.whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-xs font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary-red hover:underline"
               >
-                <MessageSquare className="w-3.5 h-3.5" />
-                Join Chapter <ExternalLink className="w-3 h-3" />
+                <MessageSquare className="w-3 h-3" />
+                Join <ExternalLink className="w-2.5 h-2.5" />
               </a>
             )}
-            <Link
-              href={`/orgs/${chapter.slug}/dashboard`}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-secondary hover:text-primary transition-colors"
-            >
-              Chapter dashboard <ArrowUpRight className="w-3 h-3" />
-            </Link>
           </div>
         </div>
       </article>
@@ -131,38 +129,32 @@ export default function ChaptersPage() {
 
   return (
     <>
-      {/* JSON-LD Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ItemList",
-            name: "Butwal Hacks Chapters",
-            description: "Active local chapters of Butwal Hacks across Nepal",
-            itemListElement: chapters.map((c, i) => ({
-              "@type": "ListItem",
-              position: i + 1,
-              item: {
-                "@type": "Organization",
-                name: c.name,
-                url: `https://butwalhacks.com/chapters#${c.slug}`,
-                description: c.description,
-                areaServed: {
-                  "@type": "City",
-                  name: c.city,
-                },
-              },
-            })),
-          }),
-        }}
-      />
+      <SafeJsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        name: "Butwal Hacks Chapters",
+        description: "Active local chapters of Butwal Hacks across Nepal",
+        itemListElement: chapters.map((c, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          item: {
+            "@type": "Organization",
+            name: c.name,
+            url: `https://butwalhacks.com/chapters#${c.slug}`,
+            description: c.description,
+            areaServed: {
+              "@type": "City",
+              name: c.city,
+            },
+          },
+        })),
+      }} />
 
-      <main className="min-h-screen bg-background">
+      <main className="min-h-dvh bg-background">
         {/* ── HERO ───────────────────────────────────────────── */}
         <section className="relative overflow-hidden border-b border-border/20" aria-label="Chapters Hero">
           {/* Decorative blobs */}
-          <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-bh-red-500/10 blur-[120px] pointer-events-none" />
+          <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary-red/10 blur-[120px] pointer-events-none" />
           <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-emerald-500/10 blur-[100px] pointer-events-none" />
           <div className="absolute top-1/2 left-1/3 w-60 h-60 rounded-full bg-sky-500/10 blur-[80px] pointer-events-none" />
 
@@ -176,33 +168,33 @@ export default function ChaptersPage() {
             />
 
             <div className="mt-8 max-w-3xl">
-              <p className="text-xs font-bold uppercase tracking-[0.15em] text-bh-red-500 mb-4 flex items-center gap-2">
+              <p className="text-xs font-bold uppercase tracking-[0.15em] text-primary-red mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-bh-red-500" />
                 Chapters
               </p>
               <h1 className="text-5xl md:text-7xl font-black tracking-tight text-primary leading-[1.05]">
-                Find Your
+                School
                 <br />
-                <span className="text-bh-red-500">Local Chapter</span>
+                <span className="text-primary-red">Chapters</span>
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-secondary leading-relaxed max-w-2xl">
-                Butwal Hacks chapters bring together builders, mentors, and organizers in cities across Nepal.
-                Join the chapter nearest to you and start building with your local community.
+              <p className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl">
+                Butwal Hacks school chapters bring coding, hackathons, and mentorship directly into partner schools across Lumbini Province.
+                Each chapter is led by a student lead and coordinated with the school&apos;s existing tech club.
               </p>
 
               {/* Stats row */}
               <div className="mt-8 flex flex-wrap gap-8">
                 <div>
-                  <p className="text-3xl font-black text-bh-red-500">{activeChapters.length}</p>
-                  <p className="text-xs text-secondary/60 mt-0.5">Active Chapters</p>
+                  <p className="text-3xl font-black text-primary-red">{activeChapters.length}</p>
+                  <p className="text-xs text-muted-foreground/60 mt-0.5">Active Chapters</p>
                 </div>
                 <div>
-                  <p className="text-3xl font-black text-bh-red-500">{totalMembers}+</p>
-                  <p className="text-xs text-secondary/60 mt-0.5">Community Members</p>
+                  <p className="text-3xl font-black text-primary-red">{totalMembers}+</p>
+                  <p className="text-xs text-muted-foreground/60 mt-0.5">Community Members</p>
                 </div>
                 <div>
-                  <p className="text-3xl font-black text-bh-red-500">12+</p>
-                  <p className="text-xs text-secondary/60 mt-0.5">Events Hosted</p>
+                  <p className="text-3xl font-black text-primary-red">12+</p>
+                  <p className="text-xs text-muted-foreground/60 mt-0.5">Events Hosted</p>
                 </div>
               </div>
             </div>
@@ -229,43 +221,56 @@ export default function ChaptersPage() {
         <section className="py-20 md:py-28" aria-label="Why Join a Chapter">
           <FadeIn className="mx-auto max-w-6xl px-4">
             <div className="text-center mb-14">
-              <p className="text-xs font-bold uppercase tracking-[0.15em] text-bh-red-500 mb-4">
-                Why Join
-              </p>
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <div className="w-1.5 h-1.5 rounded-full bg-bh-red-500 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-primary-red/60" />
+                <div className="w-1.5 h-1.5 rounded-full bg-primary-red/30" />
+              </div>
               <h2 className="text-3xl md:text-4xl font-black tracking-tight text-primary">
-                What You Get as a Chapter Member
+                What Your School Chapter Gets
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 auto-rows-[minmax(200px,auto)] max-w-4xl mx-auto">
               {[
                 {
                   icon: Users,
-                  title: "Local Community",
-                  desc: "Connect with builders and mentors in your city. Attend in-person meetups, hackathons, and workshops.",
+                  title: "School-Level Community",
+                  desc: "Build alongside classmates with a dedicated student lead and faculty support. Monthly meetups and coding circles right at your school.",
                 },
                 {
                   icon: Sparkles,
-                  title: "Hands-on Experience",
-                  desc: "Ship real projects, earn verifiable trust markers, and build a portfolio that stands out.",
+                  title: "Club Partnership",
+                  desc: "Partner with your school's existing tech or coding club. Get resources, mentorship, and a direct pipeline to Butwal Hacks events.",
                 },
                 {
                   icon: MessageSquare,
-                  title: "Direct Mentorship",
-                  desc: "Get guidance from experienced developers and industry professionals in your chapter.",
+                  title: "Student Leadership",
+                  desc: "Each chapter is led by a student lead who organizes activities, communicates with Butwal Hacks, and grows the local community.",
                 },
-              ].map((item) => (
-                <div
-                  key={item.title}
-                  className="lg-surface rounded-2xl border border-glass p-6 text-center hover:shadow-md transition-all"
-                >
-                  <div className="inline-flex p-3 rounded-xl bg-bh-red-500/10 border border-bh-red-500/20 mb-4">
-                    <item.icon className="w-5 h-5 text-bh-red-500" />
+              ].map((item, i) => {
+                const isHero = i === 0
+                return (
+                  <div
+                    key={item.title}
+                    className={`bh-card p-6 hover:shadow-md transition-all ${
+                      isHero ? "md:col-span-2 md:row-span-2 bg-gradient-to-br from-primary-red/[0.03] to-transparent border-primary-red/10 text-left flex flex-col justify-center" : "text-center"
+                    }`}
+                  >
+                    <div className={`inline-flex p-3 rounded-xl bg-primary-red/10 border border-primary-red/20 mb-4 ${
+                      isHero ? "" : "mx-auto"
+                    }`}>
+                      <item.icon className="w-5 h-5 text-primary-red" />
+                    </div>
+                    <h3 className={`font-bold text-primary ${
+                      isHero ? "text-2xl md:text-3xl" : "text-lg"
+                    }`}>{item.title}</h3>
+                    <p className={`mt-2 text-muted-foreground leading-relaxed ${
+                      isHero ? "text-base max-w-lg" : "text-sm"
+                    }`}>{item.desc}</p>
                   </div>
-                  <h3 className="text-lg font-bold text-primary">{item.title}</h3>
-                  <p className="mt-2 text-sm text-secondary/80 leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </FadeIn>
         </section>
@@ -277,17 +282,16 @@ export default function ChaptersPage() {
 
         {/* ── START A CHAPTER ─────────────────────────────────── */}
         <section className="relative py-24 md:py-32 overflow-hidden" aria-label="Start a Chapter">
-          <div className="absolute inset-0 bg-gradient-to-b from-bh-red-500/5 to-transparent pointer-events-none" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-bh-red-500/10 blur-[120px] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-primary-red/5 to-transparent pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-primary-red/10 blur-[120px] pointer-events-none" />
 
           <FadeIn className="relative mx-auto max-w-3xl px-4 text-center">
-            <Sparkles className="w-10 h-10 text-bh-red-500 mx-auto mb-6" />
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">
-              Don&apos;t See Your City?
+            <Sparkles className="w-10 h-10 text-primary-red mx-auto mb-6" />              <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">
+              Don&apos;t See Your School?
             </h2>
-            <p className="mt-4 text-lg text-secondary max-w-xl mx-auto leading-relaxed">
-              We&apos;re expanding across Nepal. If you&apos;d like to start a Butwal Hacks chapter in
-              your city, reach out — we&apos;ll help you set it up.
+            <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              We&apos;re expanding to more schools across Lumbini Province. If you&apos;d like to start a Butwal Hacks chapter
+              at your school, reach out — we&apos;ll help you set it up with a student lead and club partnership.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4">
               <Link
@@ -298,7 +302,7 @@ export default function ChaptersPage() {
               </Link>
               <Link
                 href="/community"
-                className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-surface/30 px-8 py-3.5 text-sm font-bold text-primary hover:bg-surface/50 transition-all"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-hover px-8 py-3.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all"
               >
                 Explore Community <Users className="w-4 h-4" />
               </Link>

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Search, Filter, Code2, Github, ExternalLink, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface ExpoProject {
+export interface ExpoProject {
   id: string;
   title: string;
   description: string | null;
@@ -25,10 +25,8 @@ interface ExpoProject {
 
 export default function ExpoProjectGrid({
   projects,
-  eventTitle,
 }: {
   projects: ExpoProject[];
-  eventTitle: string;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTech, setSelectedTech] = useState<string | null>(null);
@@ -61,7 +59,7 @@ export default function ExpoProjectGrid({
     <div className="space-y-8">
       {/* Results count */}
       {projects.length > 0 && (
-        <div className="flex items-center gap-2 text-xs text-secondary font-mono">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
           <div className="w-1.5 h-1.5 rounded-full bg-bh-red-500" />
           {filtered.length === projects.length
             ? `${projects.length} project${projects.length === 1 ? "" : "s"}`
@@ -69,7 +67,7 @@ export default function ExpoProjectGrid({
           {(searchQuery || selectedTech) && (
             <button
               onClick={() => { setSearchQuery(""); setSelectedTech(null); }}
-              className="ml-2 px-2 py-0.5 rounded-full bg-surface/10 hover:bg-surface/20 text-secondary hover:text-primary transition-colors text-[10px]"
+              className="ml-2 px-2 py-0.5 rounded-full bg-surface-hover hover:bg-surface-hover text-muted-foreground hover:text-primary transition-colors text-[10px]"
             >
               Clear filters
             </button>
@@ -79,25 +77,25 @@ export default function ExpoProjectGrid({
 
       {/* Filters */}
       {projects.length > 0 && (
-        <div className="flex flex-col md:flex-row gap-4 bg-surface/10 p-4 rounded-2xl border border-glass">
+        <div className="flex flex-col md:flex-row gap-4 bg-surface-hover p-4 rounded-lg border border-border">
           <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
-              className="w-full pl-10 pr-4 py-2 rounded-xl bg-background border border-glass focus:border-bh-red-500 outline-none transition-all text-sm"
+              className="w-full pl-10 pr-4 py-2 rounded-lg bg-background border border-border focus:border-bh-red-500 outline-none transition-all text-sm"
               placeholder="Search projects..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-            <Filter className="w-4 h-4 text-secondary shrink-0" />
+            <Filter className="w-4 h-4 text-muted-foreground shrink-0" />
             <button
               onClick={() => setSelectedTech(null)}
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
                 !selectedTech
-                  ? "bg-bh-red-500 text-primary"
-                  : "bg-surface/10 text-secondary hover:bg-background/20",
+                  ? "bg-bh-red-500 text-white"
+                  : "bg-surface-hover text-muted-foreground hover:bg-surface-hover",
               )}
             >
               All
@@ -109,8 +107,8 @@ export default function ExpoProjectGrid({
                 className={cn(
                   "px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
                   selectedTech === tech
-                    ? "bg-bh-red-500 text-primary"
-                    : "bg-surface/10 text-secondary hover:bg-background/20",
+                    ? "bg-bh-red-500 text-white"
+                    : "bg-surface-hover text-muted-foreground hover:bg-surface-hover",
                 )}
               >
                 {tech}
@@ -128,10 +126,10 @@ export default function ExpoProjectGrid({
           ))}
         </div>
       ) : (
-        <div className="lg-surface rounded-3xl p-16 text-center border border-glass space-y-4">
+        <div className="bh-card p-16 text-center space-y-4">
           <Search size={48} className="mx-auto opacity-20" />
           <p className="text-xl font-bold text-primary">No projects match</p>
-          <p className="text-secondary max-w-md mx-auto">
+          <p className="text-muted-foreground max-w-md mx-auto">
             Try adjusting your search or filter to find what you&apos;re looking for.
           </p>
         </div>
@@ -145,9 +143,9 @@ function ProjectCard({ project }: { project: ExpoProject }) {
   const techStack: string[] = project.tech_stack || [];
 
   return (
-    <article className="group lg-surface rounded-3xl border border-glass overflow-hidden transition-all hover:border-bh-red-500/30 hover:-translate-y-1">
+    <article className="group bh-card overflow-hidden transition-all hover:border-primary-red/30 hover:-translate-y-1">
       {/* Cover image */}
-      <Link href={`/projects/${project.id}`} className="block relative h-48 overflow-hidden bg-surface/10">
+      <Link href={`/projects/${project.id}`} className="block relative h-48 overflow-hidden bg-surface-hover">
         {project.cover_image ? (
           <Image
             src={project.cover_image}
@@ -165,10 +163,10 @@ function ProjectCard({ project }: { project: ExpoProject }) {
       <div className="p-6 space-y-4">
         {/* Title + description */}
         <Link href={`/projects/${project.id}`} className="block space-y-2">
-          <h2 className="text-xl font-bold text-primary group-hover:text-bh-red-500 transition-colors">
+          <h2 className="text-xl font-bold text-primary group-hover:text-primary-red transition-colors">
             {project.title}
           </h2>
-          <p className="text-sm text-secondary leading-relaxed line-clamp-2">
+          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
             {project.description}
           </p>
         </Link>
@@ -179,30 +177,30 @@ function ProjectCard({ project }: { project: ExpoProject }) {
             {techStack.slice(0, 4).map((tech: string) => (
               <span
                 key={tech}
-                className="px-2 py-0.5 rounded-md bg-surface/10 border border-glass text-[10px] font-mono text-secondary"
+                className="px-2 py-0.5 rounded-md bg-surface-hover border border-border text-[10px] font-mono text-muted-foreground"
               >
                 {tech}
               </span>
             ))}
             {techStack.length > 4 && (
-              <span className="text-[10px] text-secondary font-mono">+{techStack.length - 4}</span>
+              <span className="text-[10px] text-muted-foreground font-mono">+{techStack.length - 4}</span>
             )}
           </div>
         )}
 
         {/* Creator + links */}
-        <div className="flex items-center justify-between pt-4 border-t border-glass">
+        <div className="flex items-center justify-between pt-4 border-t border-border">
           <div className="flex items-center gap-2">
-            <div className="relative w-7 h-7 rounded-full overflow-hidden bg-surface/10">
+            <div className="relative w-7 h-7 rounded-full overflow-hidden bg-surface-hover">
               {p?.avatar_url ? (
                 <Image src={p.avatar_url} alt={p.full_name || ""} fill className="object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-secondary">
+                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                   {(p?.full_name || "?")[0]}
                 </div>
               )}
             </div>
-            <span className="text-xs font-medium text-secondary">{p?.full_name || "Unknown"}</span>
+            <span className="text-xs font-medium text-muted-foreground">{p?.full_name || "Unknown"}</span>
           </div>
 
           <div className="flex gap-2">
@@ -211,7 +209,7 @@ function ProjectCard({ project }: { project: ExpoProject }) {
                 href={project.github_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-1.5 rounded-lg hover:bg-surface/10 text-secondary hover:text-primary transition-all"
+                className="p-1.5 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-all"
               >
                 <Github className="w-4 h-4" />
               </a>
@@ -221,14 +219,14 @@ function ProjectCard({ project }: { project: ExpoProject }) {
                 href={project.demo_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-1.5 rounded-lg hover:bg-surface/10 text-secondary hover:text-primary transition-all"
+                className="p-1.5 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-all"
               >
                 <ExternalLink className="w-4 h-4" />
               </a>
             )}
             <Link
               href={`/projects/${project.id}`}
-              className="p-1.5 rounded-lg hover:bg-surface/10 text-secondary hover:text-primary transition-all"
+              className="p-1.5 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-all"
             >
               <Users className="w-4 h-4" />
             </Link>
