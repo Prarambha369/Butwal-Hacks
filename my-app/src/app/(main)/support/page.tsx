@@ -1,9 +1,8 @@
+export const dynamic = "force-static";
+
 import type { Metadata } from "next"
 import Link from "next/link"
 import { BarChart3, Mail, MapPin, Rocket, ShieldCheck, Users } from "lucide-react"
-
-
-
 import { buildPageMetadata } from "@/lib/seo"
 import { SponsorForm } from "./sponsor-form"
 
@@ -37,10 +36,10 @@ const metrics = [
 
 export default function SupportPage() {
   return (
-    <main className="min-h-screen bg-background text-primary">
+    <main className="min-h-dvh bg-background text-primary">
       
 
-      <section className="border-b border-glass px-4 py-14 sm:py-16">
+      <section className="border-b border-border px-4 py-14 sm:py-16">
         <div className="mx-auto grid max-w-6xl items-center gap-8 lg:grid-cols-[1.05fr_1fr]">
           <div>
             <p className="inline-flex rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
@@ -63,23 +62,23 @@ export default function SupportPage() {
               </a>
               <Link
                 href="#tiers"
-                className="rounded-lg border border-glass bg-surface px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-surface/50"
+                className="rounded-lg border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-surface/50"
               >
                 Learn More
               </Link>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-glass bg-surface p-4">
-            <div className="rounded-xl border border-glass bg-surface/50 p-6">
+          <div className="rounded-xl border border-border bg-surface p-4">
+            <div className="rounded-xl border border-border bg-surface/50 p-6">
               <p className="text-sm font-semibold text-secondary">Institutional Sponsorship</p>
               <p className="mt-2 text-sm text-secondary">Aligned with the 77 Hacks vision and district-wide youth enablement.</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-glass bg-background p-3">
+                <div className="rounded-lg border border-border bg-background p-3">
                   <p className="text-xs uppercase tracking-wide text-secondary">Annual Reach</p>
                   <p className="mt-1 text-xl font-bold text-primary">500+ builders</p>
                 </div>
-                <div className="rounded-lg border border-glass bg-background p-3">
+                <div className="rounded-lg border border-border bg-background p-3">
                   <p className="text-xs uppercase tracking-wide text-secondary">Active Programs</p>
                   <p className="mt-1 text-xl font-bold text-primary">Hackathon · GameJam</p>
                 </div>
@@ -89,7 +88,7 @@ export default function SupportPage() {
         </div>
       </section>
 
-      <section className="border-b border-glass px-4 py-14 sm:py-16">
+      <section className="border-b border-border px-4 py-14 sm:py-16">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-4xl font-bold font-heading tracking-tight text-primary">The Mission</h2>
           <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-secondary sm:text-lg">
@@ -103,7 +102,7 @@ export default function SupportPage() {
         </div>
       </section>
 
-      <section className="border-b border-glass px-4 py-14 sm:py-16">
+      <section className="border-b border-border px-4 py-14 sm:py-16">
         <div className="mx-auto max-w-6xl">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -120,7 +119,7 @@ export default function SupportPage() {
             {metrics.map((metric) => {
               const Icon = metric.icon
               return (
-                <article key={metric.label} className="rounded-xl border border-glass bg-surface p-6">
+                <article key={metric.label} className="rounded-xl border border-border bg-surface p-6">
                   <Icon className="h-5 w-5 text-primary" />
                   <p className="mt-3 text-5xl font-bold font-heading leading-none text-primary">{metric.value}</p>
                   <h3 className="mt-2 text-base font-semibold text-primary">{metric.label}</h3>
@@ -132,15 +131,15 @@ export default function SupportPage() {
         </div>
       </section>
 
-      <section id="tiers" className="border-b border-glass px-4 py-14 sm:py-16">
+      <section id="tiers" className="border-b border-border px-4 py-14 sm:py-16">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-4xl font-bold font-heading tracking-tight text-primary">Partnership Tiers</h2>
           <p className="mx-auto mt-2 max-w-3xl text-center text-sm text-secondary">
             Scalable involvement options designed for organizations of all sizes.
           </p>
-          <div className="mt-8 overflow-x-auto rounded-xl border border-glass bg-surface">
+          <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface">
             <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="border-b border-glass bg-surface/50/50 text-secondary">
+              <thead className="border-b border-border bg-surface/50/50 text-secondary">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Benefit</th>
                   <th className="px-4 py-3 font-semibold">Community</th>
@@ -184,8 +183,8 @@ export default function SupportPage() {
         </div>
       </section>
 
-      <section className="border-b border-glass px-4 py-10">
-        <div className="mx-auto max-w-4xl rounded-xl border border-glass bg-surface p-6">
+      <section className="border-b border-border px-4 py-10">
+        <div className="mx-auto max-w-4xl rounded-xl border border-border bg-surface p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
@@ -199,7 +198,7 @@ export default function SupportPage() {
             </div>
             <Link
               href="/resources"
-              className="rounded-lg border border-glass bg-background px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-surface/50"
+              className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-surface/50"
             >
               View Reports
             </Link>

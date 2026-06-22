@@ -75,7 +75,7 @@ export default async function OrgDashboardPage({ params }: PageProps) {
         {isAdmin && (
           <a
             href={`/orgs/${slug}/events/new`}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-bh-red-500/20 text-bh-red-500 border border-bh-red-500/30 hover:bg-bh-red-500/30 transition-all text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-red/20 text-primary-red border border-primary-red/30 hover:bg-primary-red/30 transition-all text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
             Create Event
@@ -83,20 +83,20 @@ export default async function OrgDashboardPage({ params }: PageProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Members" value={memberCount ?? 0} icon={<Users className="text-blue-500" />} description="Chapter members" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(160px,auto)]">
+        <StatCard title="Members" value={memberCount ?? 0} icon={<Users className="text-blue-500" />} description="Chapter members" variant="hero" />
         <StatCard title="Events" value={eventCount ?? 0} icon={<CalendarDays className="text-emerald-500" />} description="Chapter events" />
         <StatCard title="Role" value={isAdmin ? "Admin" : "Member"} icon={<Trophy className="text-yellow-500" />} description={isAdmin ? "Full chapter access" : "Participant access"} />
       </div>
 
-      <div className="lg-surface p-8 rounded-3xl border border-glass space-y-6">
+      <div className="bh-card p-8 space-y-6">
         <h3 className="text-lg font-bold text-primary">Quick Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <a href={`/orgs/${slug}/events`} className="p-4 rounded-2xl bg-surface/10 border border-glass hover:bg-surface/10 transition-all flex items-center gap-3 text-sm font-medium text-primary/80">
+          <a href={`/orgs/${slug}/events`} className="p-4 rounded-xl bg-surface/10 border border-border hover:bg-surface/10 transition-all flex items-center gap-3 text-sm font-medium text-primary/80">
             <CalendarDays className="w-5 h-5 text-emerald-500" />
             Browse Events
           </a>
-          <a href={`/orgs/${slug}/members`} className="p-4 rounded-2xl bg-surface/10 border border-glass hover:bg-surface/10 transition-all flex items-center gap-3 text-sm font-medium text-primary/80">
+          <a href={`/orgs/${slug}/members`} className="p-4 rounded-xl bg-surface/10 border border-border hover:bg-surface/10 transition-all flex items-center gap-3 text-sm font-medium text-primary/80">
             <Users className="w-5 h-5 text-blue-500" />
             View Members
           </a>
@@ -106,15 +106,16 @@ export default async function OrgDashboardPage({ params }: PageProps) {
   );
 }
 
-function StatCard({ title, value, icon, description }: { title: string; value: string | number; icon: React.ReactNode; description: string }) {
+function StatCard({ title, value, icon, description, variant }: { title: string; value: string | number; icon: React.ReactNode; description: string; variant?: 'hero' | 'compact' }) {
+  const isHero = variant === 'hero';
   return (
-    <div className="lg-surface p-6 rounded-3xl border border-glass space-y-4">
+    <div className={`bh-card ${isHero ? 'md:col-span-2 md:row-span-2 p-8' : 'p-6'} space-y-${isHero ? '5' : '4'} ${isHero ? 'md:flex md:flex-col md:justify-center' : ''}`}>
       <div className="flex items-center justify-between">
-        <div className="p-2 rounded-xl bg-surface/10">{icon}</div>
+        <div className={`p-2 ${isHero ? 'p-3' : ''} rounded-xl bg-surface/10`}>{icon}</div>
       </div>
       <div>
         <p className="text-sm text-primary/50">{title}</p>
-        <p className="text-3xl font-bold text-primary">{value}</p>
+        <p className={`font-bold text-primary ${isHero ? 'text-5xl' : 'text-3xl'}`}>{value}</p>
       </div>
       <p className="text-[10px] font-medium text-primary/30 uppercase tracking-tighter">{description}</p>
     </div>

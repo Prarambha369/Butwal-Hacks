@@ -63,7 +63,7 @@ export default async function OrgMembersPage({ params }: PageProps) {
             const profile = (Array.isArray(member.profiles) ? member.profiles[0] : member.profiles) as unknown as { id: string; full_name: string; avatar_url: string | null; bh_id: string | null; role: string };
             const isMemberAdmin = member.org_role === "admin";
             return (
-              <div key={profile.id} className="lg-surface p-4 rounded-2xl border border-glass flex items-center gap-4">
+              <div key={profile.id} className="bh-card p-4 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-surface/10 overflow-hidden flex-shrink-0 relative">
                   {profile.avatar_url ? (
                     <Image loading="lazy" src={profile.avatar_url} alt={profile.full_name ?? "Member"} fill className="object-cover" />
@@ -92,7 +92,7 @@ export default async function OrgMembersPage({ params }: PageProps) {
           })}
         </div>
       ) : (
-        <div className="lg-surface p-12 rounded-3xl border border-glass text-center">
+        <div className="bh-card p-12 text-center">
           <Users className="w-12 h-12 text-primary/20 mx-auto mb-4" />
           <h3 className="text-lg font-bold text-primary/60 mb-2">No members yet</h3>
           <p className="text-sm text-primary/40">Members will appear here once they join the chapter.</p>
