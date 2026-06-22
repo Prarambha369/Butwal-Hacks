@@ -60,10 +60,10 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
   const isAdmin = membership.org_role === "admin";
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-dvh bg-background">
       {/* Sidebar */}
-      <aside className="w-56 flex-shrink-0 flex flex-col lg-surface border-r border-glass">
-        <div className="px-4 py-5 border-b border-glass space-y-3">
+      <aside className="w-56 flex-shrink-0 flex flex-col bh-card border-r border-border">
+        <div className="px-4 py-5 border-b border-border space-y-3">
           {/* Back to main dashboard */}
           <Link
             href="/dashboard"
@@ -110,7 +110,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
         </nav>
 
         {/* Bottom: OrgSwitcher */}
-        <div className="px-3 py-4 border-t border-glass">
+        <div className="px-3 py-4 border-t border-border">
           <OrgSwitcher />
         </div>
       </aside>

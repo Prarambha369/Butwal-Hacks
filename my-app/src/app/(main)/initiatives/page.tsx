@@ -1,9 +1,9 @@
+export const dynamic = "force-static";
+
 import type { Metadata } from "next"
 import Link from "next/link"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-
-
 import { initiatives } from "@/lib/content"
 import { buildPageMetadata } from "@/lib/seo"
 
@@ -15,7 +15,7 @@ export const metadata: Metadata = buildPageMetadata({
 
 export default function InitiativesPage() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-dvh bg-background">
       
       <section className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Initiatives" }]} />
@@ -26,7 +26,7 @@ export default function InitiativesPage() {
 
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           {initiatives.map((initiative) => (
-            <article key={initiative.slug} className="rounded-xl border border-glass bg-surface p-6">
+            <article key={initiative.slug} className="rounded-xl border border-border bg-surface p-6">
               <p className="text-xs uppercase tracking-wide text-secondary">Status: {initiative.status}</p>
               <h2 className="mt-2 text-2xl font-semibold text-primary">{initiative.name}</h2>
               <p className="mt-3 text-sm text-secondary">{initiative.summary}</p>
