@@ -12,6 +12,8 @@ export interface ExplorerMember {
   xp: number
   projects: number
   joined: string
+  /** Auth0 user ID for live presence matching. Undefined for static sample data. */
+  auth0_user_id?: string
 }
 
 // ─── Sample Member Profiles ───────────────────────────────────────
