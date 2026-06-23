@@ -181,8 +181,8 @@ export interface HackerProfile {
   photos: DisplayPhoto[]
   trustMarkers?: TrustMarker[]
   id?: string
-  /** Clerk user ID (user_2abc...) — used for live presence matching */
-  clerk_user_id?: string
+  /** Auth0 user ID (auth0|abc...) — used for live presence matching */
+  auth0_user_id?: string
 }
 
 export interface DisplayProject {
