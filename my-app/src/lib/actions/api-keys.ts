@@ -1,10 +1,10 @@
 "use server";
 
-import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase/service";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/lib/logger";
 import { createHash, randomBytes } from "crypto";
+import { resolveProfileId } from "@/lib/profile-resolver";
 
 // ponytail: SHA-256 key hashing. Keys are shown once at creation, then only
 // the hash is stored. If key rotation becomes frequent, add a last_rotated_at
@@ -22,26 +22,13 @@ function generateApiKeyValue(): string {
 
 export async function generateApiKey(name: string) {
   try {
-    const session = await auth0.getSession();
-    if (!session?.user) throw new Error("Unauthorized");
-    const userId = session.user.sub;
-
     const supabase = createServiceClient();
-
-    // Resolve profile UUID
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth0_user_id", userId)
-      .single();
-
-    if (!profile) throw new Error("Profile not found");
-
+    const profileId = await resolveProfileId();
     const rawKey = generateApiKeyValue();
     const keyHash = hashKey(rawKey);
 
     const { error } = await supabase.from("api_keys").insert({
-      profile_id: profile.id,
+      profile_id: profileId,
       key_hash: keyHash,
       name: name.trim().slice(0, 100),
       is_active: true,
@@ -62,26 +49,14 @@ export async function generateApiKey(name: string) {
 
 export async function revokeApiKey(keyId: string) {
   try {
-    const session = await auth0.getSession();
-    if (!session?.user) throw new Error("Unauthorized");
-    const userId = session.user.sub;
-
     const supabase = createServiceClient();
-
-    // Resolve profile UUID to verify ownership
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth0_user_id", userId)
-      .single();
-
-    if (!profile) throw new Error("Profile not found");
+    const profileId = await resolveProfileId();
 
     const { error } = await supabase
       .from("api_keys")
       .update({ is_active: false })
       .eq("id", keyId)
-      .eq("profile_id", profile.id);
+      .eq("profile_id", profileId);
 
     if (error) throw error;
 
