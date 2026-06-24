@@ -36,23 +36,23 @@ export default function LinkProjectModal({ teamId, onClose, onSuccess }: LinkPro
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm">
-      <div className="bg-background border border-glass p-8 rounded-3xl max-w-md w-full space-y-6 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/60 ">
+      <div className="bg-background border border-border p-8 rounded-xl max-w-md w-full space-y-6 shadow-2xl">
         <div className="space-y-2">
           <h3 className="text-2xl font-bold font-heading">Link Project</h3>
-          <p className="text-sm text-secondary">
+          <p className="text-sm text-muted-foreground">
             Enter the Project ID to attribute this work to your team.
           </p>
         </div>
 
         <form onSubmit={handleLink} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-xs font-mono text-secondary uppercase tracking-widest">Project ID</label>
+            <label className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Project ID</label>
             <div className="relative">
-              <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
+              <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
                 required
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface/10 border border-glass focus:border-bh-red-500 outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-lg bg-surface-hover border border-border focus:border-bh-red-500 outline-none transition-all"
                 placeholder="uuid-of-the-project"
                 value={projectId}
                 onChange={e => setProjectId(e.target.value)}
@@ -64,7 +64,7 @@ export default function LinkProjectModal({ teamId, onClose, onSuccess }: LinkPro
             <button 
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 rounded-xl bg-surface/10 border border-glass hover:bg-surface/10 transition-all text-sm font-bold"
+              className="flex-1 px-4 py-3 rounded-lg bg-surface-hover border border-border hover:bg-surface-hover transition-all text-sm font-bold"
             >
               Cancel
             </button>
@@ -72,7 +72,7 @@ export default function LinkProjectModal({ teamId, onClose, onSuccess }: LinkPro
               type="submit"
               disabled={submitting}
               className={cn(
-                "flex-1 px-4 py-3 rounded-xl bg-bh-red-500 text-primary hover:bg-bh-red-500/90 transition-all text-sm font-bold flex items-center justify-center gap-2",
+                "flex-1 px-4 py-3 rounded-lg bg-bh-red-500 text-primary hover:bg-primary-red/90 transition-all text-sm font-bold flex items-center justify-center gap-2",
                 submitting && "opacity-70 cursor-not-allowed"
               )}
             >

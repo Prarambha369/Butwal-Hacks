@@ -5,10 +5,10 @@ import { ShoppingBag, CheckCircle2, Zap } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { cn } from '@/lib/utils';
-import { RoseSpinner } from '@/components/ui/rose-loader';
+import { CardSkeleton } from '@/components/ui/skeleton';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
-import { AVAILABLE_REWARDS } from '@/lib/actions/rewards';
+import { AVAILABLE_REWARDS } from '@/lib/data/rewards';
 
 export default function RewardsStore() {
   const [userXP, setUserXP] = useState(0);
@@ -23,21 +23,24 @@ export default function RewardsStore() {
     try {
       if (!user) return;
 
+      // Auth0 uses user.sub (not user.id) — query profiles by auth0_user_id
       const { data: profile } = await supabase
         .from('profiles')
-        .select('xp')
-        .eq('id', user.id)
+        .select('id, xp')
+        .eq('auth0_user_id', user.sub)
         .single();
 
       setUserXP(profile?.xp || 0);
 
-      const { data: redemptions } = await supabase
-        .from('audit_logs')
-        .select('target_id')
-        .eq('actor_id', user.id)
-        .eq('action', 'REWARD_REDEEMED');
-
-      setRedeemed(redemptions?.map(r => r.target_id) || []);
+      // audit_logs.actor_id references profiles(id) (UUID), not Auth0 sub string
+      if (profile?.id) {
+        const { data: redemptions } = await supabase
+          .from('audit_logs')
+          .select('target_id')
+          .eq('actor_id', profile.id)
+          .eq('action', 'REWARD_REDEEMED');
+        setRedeemed(redemptions?.map(r => r.target_id) || []);
+      }
     } catch (error) {
       logger.error('Error fetching rewards data:', error);
     } finally {
@@ -47,7 +50,6 @@ export default function RewardsStore() {
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRedeem = async (rewardId: string) => {
@@ -67,27 +69,33 @@ export default function RewardsStore() {
     }
   };
 
-  if (loading) return <div className="flex justify-center p-12"><RoseSpinner size="md" /></div>;
+  if (loading) return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <CardSkeleton key={i} />
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h3 className="text-2xl font-bold flex items-center gap-2">
-            <ShoppingBag className="w-6 h-6 text-bh-red-500" /> Rewards Store
+            <ShoppingBag className="w-6 h-6 text-primary-red" /> Rewards Store
           </h3>
-          <p className="text-sm text-secondary">Spend your hard-earned XP on exclusive perks.</p>
+          <p className="text-sm text-muted-foreground">Spend your hard-earned XP on exclusive perks.</p>
         </div>
         <div className="text-right">
-          <p className="text-xs font-mono text-secondary uppercase tracking-widest">Your Balance</p>
-          <p className="text-2xl font-black text-bh-red-500">{userXP} XP</p>
+          <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Your Balance</p>
+          <p className="text-2xl font-black text-primary-red">{userXP} XP</p>
         </div>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-bh-red-500/10 border border-bh-red-500/30 text-bh-red-500 text-sm">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-primary-red/10 border border-primary-red/30 text-primary-red text-sm">
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto text-bh-red-500/60 hover:text-bh-red-500 text-xs">Dismiss</button>
+          <button onClick={() => setError(null)} className="ml-auto text-primary-red/60 hover:text-primary-red text-xs">Dismiss</button>
         </div>
       )}
 
@@ -98,8 +106,8 @@ export default function RewardsStore() {
 
           return (
             <div key={reward.id} className={cn(
-              "lg-surface p-6 rounded-3xl border transition-all duration-300",
-              isRedeemed ? "border-green-500/50 bg-green-500/5" : "border-glass hover:border-glass"
+              "bh-card p-6 border transition-all duration-300",
+              isRedeemed ? "border-green-500/50 bg-green-500/5" : "border-border hover:border-border"
             )}>
               <div className="flex justify-between items-start mb-4">
                 <div className="text-3xl">{reward.icon}</div>
@@ -110,7 +118,7 @@ export default function RewardsStore() {
                 ) : (
                   <div className={cn(
                     "px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter",
-                    canAfford ? "bg-bh-red-500/20 text-bh-red-500" : "bg-surface/10 text-secondary"
+                    canAfford ? "bg-primary-red/20 text-primary-red" : "bg-surface-hover text-muted-foreground"
                   )}>
                     {reward.category}
                   </div>
@@ -118,12 +126,12 @@ export default function RewardsStore() {
               </div>
 
               <h4 className="text-lg font-bold mb-2">{reward.name}</h4>
-              <p className="text-sm text-secondary mb-6 line-clamp-2 leading-relaxed">
+              <p className="text-sm text-muted-foreground mb-6 line-clamp-2 leading-relaxed">
                 {reward.description}
               </p>
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1 text-xs font-mono text-secondary">
+                <div className="flex items-center gap-1 text-xs font-mono text-muted-foreground">
                   <Zap className="w-3 h-3 text-yellow-400" />
                   {reward.cost} XP
                 </div>
@@ -131,12 +139,12 @@ export default function RewardsStore() {
                   onClick={() => handleRedeem(reward.id)}
                   disabled={isRedeemed || !canAfford}
                   className={cn(
-                    "px-4 py-2 rounded-xl text-xs font-bold transition-all",
+                    "px-4 py-2 rounded-lg text-xs font-bold transition-all",
                     isRedeemed 
                       ? "bg-green-500/20 text-green-500 cursor-default" 
                       : canAfford 
-                        ? "bg-bh-red-500 text-primary hover:bg-bh-red-500/90" 
-                        : "bg-surface/10 text-secondary cursor-not-allowed"
+                        ? "bg-bh-red-500 text-primary hover:bg-primary-red/90" 
+                        : "bg-surface-hover text-muted-foreground cursor-not-allowed"
                   )}
                 >
                   {isRedeemed ? 'Owned' : 'Redeem'}
