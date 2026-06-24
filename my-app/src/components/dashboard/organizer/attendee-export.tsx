@@ -1,8 +1,6 @@
 "use client";
 
-import React from 'react';
 import { Download } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 export interface Attendee {
   full_name?: string | null;
@@ -45,11 +43,11 @@ export default function AttendeeExport({ attendees, eventName }: AttendeeExportP
   };
 
   return (
-    <Button 
-      variant="default"
+    <button
       onClick={handleExport}
+      className="inline-flex items-center gap-2 rounded-lg bg-bh-red-500 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-deep-red"
     >
-      <Download className="w-5 h-5" /> Export CSV
-    </Button>
+      <Download className="w-4 h-4" /> Export CSV
+    </button>
   );
 }
