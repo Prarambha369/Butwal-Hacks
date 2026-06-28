@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Copy, Check, Github, Linkedin, Twitter, Globe, Trophy } from 'lucide-react';
 import { logger } from '@/lib/logger';
-import { cloudinaryUrl } from '@/lib/utils';
+import { cloudinaryUrl, cn } from '@/lib/utils';
 import { HackerProfile } from '@/lib/supabase-types';
 import { usePresence } from '@/hooks/use-presence';
 import { LiveDot } from '@/components/hacker-id/live-dot';
@@ -34,8 +34,8 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
     }
   };
 
-  if (!mounted) return <div className="h-80 w-full lg-surface rounded-3xl animate-pulse" />;
-  const isOnline = !!(profile.clerk_user_id && onlineIds.has(profile.clerk_user_id))
+  if (!mounted) return <div className="h-80 w-full bh-card animate-pulse" />;
+  const isOnline = !!(profile.auth0_user_id && onlineIds.has(profile.auth0_user_id))
 
   const isOrganizer = profile.role === 'Organizer';
   const hasGoldBorder = profile.trustMarkers?.some(tm => tm.title === 'Golden Profile Border');
@@ -52,7 +52,7 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
             className="object-cover" 
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-bh-red-500/20 via-background to-status-blue-500/20 relative overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-r from-primary-red/20 via-background to-status-blue-500/20 relative overflow-hidden">
             <div className="absolute inset-0 opacity-10 [backgroundImage:radial-gradient(circle,var(--text-primary)_1px,transparent_1px)] [backgroundSize:20px_20px]" />
           </div>
         )}
@@ -60,14 +60,14 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
       </div>
 
       {/* Identity Content */}
-      <div className="lg-surface rounded-b-3xl p-6 md:p-10 border-x border-b border-glass shadow-2xl relative">
+      <div className="bh-card rounded-b-3xl p-6 md:p-10 border-x border-b border-border shadow-2xl relative">
         <div className="flex flex-col md:flex-row gap-8 items-start md:items-end -mt-16 md:-mt-20 relative z-10">
           
           {/* Avatar with Concentric Ring */}
           <div className="relative mx-auto md:mx-0">
             <div className={`
               p-1 rounded-full transition-all duration-500
-              ${isOrganizer || hasGoldBorder ? 'bg-bh-red-500 ring-4 ring-bh-red-500/20 shadow-[0_0_20px_var(--glow-bh-red)]' : 'bg-background/20 ring-4 ring-glass'}
+              ${isOrganizer || hasGoldBorder ? 'bg-primary-red ring-4 ring-primary-red/20 shadow-[0_0_20px_rgba(254,0,0,0.2)]' : 'bg-background/20 ring-4 ring-glass'}
             `}>
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-background shadow-inner bg-background">
                 <Image 
@@ -79,9 +79,9 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
                 />
               </div>
             </div>
-            {/* Live presence dot */}
+            {/* Live presence dot — visible on the avatar rim */}
             <div className="absolute -bottom-0.5 -right-0.5 z-20">
-              <LiveDot online={isOnline} />
+              <LiveDot online={isOnline} size="lg" />
             </div>
           </div>
 
@@ -92,14 +92,25 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
                 <h1 className="text-3xl md:text-5xl font-black tracking-tight text-primary">
                   {profile.name}
                 </h1>
-                <div className={`
-                  px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest
-                  ${isOrganizer ? 'bg-bh-red-500 text-primary border-bh-red-600' : 'bg-surface/10 text-secondary border-glass'}
-                `}>
-                  {profile.role}
+                <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
+                  <div className={`
+                    px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest
+                    ${isOrganizer ? 'bg-primary-red text-white border-deep-red' : 'bg-surface-hover text-muted-foreground border-border'}
+                  `}>
+                    {profile.role}
+                  </div>
+                  {/* Online / Offline badge */}
+                  <div className={cn(
+                    "px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all",
+                    isOnline
+                      ? 'bg-status-green/10 border-status-green/30 text-status-green shadow-[0_0_10px_var(--glow-status-green)]'
+                      : 'bg-surface/5 border-border/30 text-muted-foreground/50',
+                  )}>
+                    <LiveDot online={isOnline} size="sm" showLabel />
+                  </div>
                 </div>
               </div>
-              <p className="text-secondary text-sm md:text-base max-w-2xl leading-relaxed opacity-80">
+              <p className="text-muted-foreground text-sm md:text-base max-w-2xl leading-relaxed opacity-80">
                 {profile.bio}
               </p>
             </div>
@@ -112,12 +123,12 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
               </div>
 
               {/* Unique ID Capsule */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface/10 border border-glass font-mono text-xs text-secondary group/id">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-hover border border-border font-mono text-xs text-muted-foreground group/id">
                 <span className="opacity-50">ID:</span>
                 <span className="font-bold">{profile.uniqueId}</span>
                 <button 
                   onClick={copyId}
-                  className="p-1 hover:text-bh-red-500 transition-colors"
+                  className="p-1 hover:text-primary-red transition-colors"
                 >
                   {copied ? <Check size={14} className="text-status-green" /> : <Copy size={14} />}
                 </button>
@@ -126,22 +137,22 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
               {/* Socials */}
               <div className="flex items-center gap-2">
                 {profile.socials.github && (
-                  <a href={profile.socials.github} target="_blank" className="p-2 rounded-full bg-surface/10 border border-glass hover:text-bh-red-500 hover:border-bh-red-500/50 transition-all">
+                  <a href={profile.socials.github} target="_blank" className="p-2 rounded-full bg-surface-hover border border-border hover:text-primary-red hover:border-primary-red/50 transition-all">
                     <Github size={16} />
                   </a>
                 )}
                 {profile.socials.linkedin && (
-                  <a href={profile.socials.linkedin} target="_blank" className="p-2 rounded-full bg-surface/10 border border-glass hover:text-bh-red-500 hover:border-bh-red-500/50 transition-all">
+                  <a href={profile.socials.linkedin} target="_blank" className="p-2 rounded-full bg-surface-hover border border-border hover:text-primary-red hover:border-primary-red/50 transition-all">
                     <Linkedin size={16} />
                   </a>
                 )}
                 {profile.socials.twitter && (
-                  <a href={profile.socials.twitter} target="_blank" className="p-2 rounded-full bg-surface/10 border border-glass hover:text-bh-red-500 hover:border-bh-red-500/50 transition-all">
+                  <a href={profile.socials.twitter} target="_blank" className="p-2 rounded-full bg-surface-hover border border-border hover:text-primary-red hover:border-primary-red/50 transition-all">
                     <Twitter size={16} />
                   </a>
                 )}
                 {profile.socials.website && (
-                  <a href={profile.socials.website} target="_blank" className="p-2 rounded-full bg-surface/10 border border-glass hover:text-bh-red-500 hover:border-bh-red-500/50 transition-all">
+                  <a href={profile.socials.website} target="_blank" className="p-2 rounded-full bg-surface-hover border border-border hover:text-primary-red hover:border-primary-red/50 transition-all">
                     <Globe size={16} />
                   </a>
                 )}

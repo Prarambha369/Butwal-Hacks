@@ -31,14 +31,14 @@ export default function ProfileClient({ profile, projects }: { profile: ProfileC
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-background pt-24 pb-12 px-6 md:px-20">
+      <div className="min-h-dvh bg-background pt-24 pb-12 px-6 md:px-20">
         <div className="max-w-5xl mx-auto space-y-12">
-          <div className="lg-surface rounded-3xl p-10 h-64 animate-pulse border border-glass" />
+          <div className="bh-card p-10 h-64 animate-pulse" />
           <div className="space-y-4">
-            <div className="h-6 w-32 bg-surface/10 rounded-full animate-pulse" />
+            <div className="h-6 w-32 bg-surface-hover rounded-full animate-pulse" />
             <div className="grid grid-cols-1 gap-4">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-24 lg-surface rounded-2xl animate-pulse border border-glass" />
+                <div key={i} className="h-24 bh-card animate-pulse" />
               ))}
             </div>
           </div>
@@ -48,7 +48,7 @@ export default function ProfileClient({ profile, projects }: { profile: ProfileC
   }
 
   return (
-    <main className="min-h-screen bg-background pt-24 pb-12 px-6 md:px-20">
+    <main className="min-h-dvh bg-background pt-24 pb-12 px-6 md:px-20">
       <div className="max-w-5xl mx-auto space-y-12">
         <IdentityCard profile={profile} />
         <CertificateList certificates={profile.certificates} />
@@ -63,15 +63,15 @@ export default function ProfileClient({ profile, projects }: { profile: ProfileC
         <PhotoGallery photos={profile.photos} />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="lg-surface rounded-2xl p-6 border border-glass">
+          <div className="bh-card p-6">
             <h3 className="text-xs font-black uppercase tracking-widest opacity-40 mb-4">Certificates</h3>
             <p className="text-2xl font-bold">{profile.certificates?.length || 0}</p>
           </div>
-          <div className="lg-surface rounded-2xl p-6 border border-glass">
+          <div className="bh-card p-6">
             <h3 className="text-xs font-black uppercase tracking-widest opacity-40 mb-4">Projects</h3>
             <p className="text-2xl font-bold">{projects.length}</p>
           </div>
-          <div className="lg-surface rounded-2xl p-6 border border-glass">
+          <div className="bh-card p-6">
             <h3 className="text-xs font-black uppercase tracking-widest opacity-40 mb-4">Events</h3>
             <p className="text-2xl font-bold">{profile.events?.length || 0}</p>
           </div>
@@ -80,11 +80,11 @@ export default function ProfileClient({ profile, projects }: { profile: ProfileC
         {/* Verify Anywhere — Embed Widget */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
-            <Code className="h-4 w-4 text-bh-red-500" />
-            <h2 className="text-sm font-bold uppercase tracking-widest text-secondary">Verify Anywhere</h2>
+            <Code className="h-4 w-4 text-primary-red" />
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Verify Anywhere</h2>
           </div>
-          <div className="lg-surface rounded-2xl border border-glass p-6">
-            <p className="text-xs leading-relaxed text-secondary mb-3">
+          <div className="bh-card p-6">
+            <p className="text-xs leading-relaxed text-muted-foreground mb-3">
               External organizations can embed a live verification badge on their website.
               Visitors see the BH-ID holder&apos;s name, role, and XP in real-time.
             </p>
@@ -95,14 +95,14 @@ export default function ProfileClient({ profile, projects }: { profile: ProfileC
         {/* AI Profile Summary */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-bh-red-500" />
-            <h2 className="text-sm font-bold uppercase tracking-widest text-secondary">AI Summary</h2>
+            <Sparkles className="h-4 w-4 text-primary-red" />
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">AI Summary</h2>
           </div>
-          <div className="lg-surface rounded-2xl border border-glass p-6">
+          <div className="bh-card p-6">
             {profile.ai_summary ? (
               <p className="text-sm leading-relaxed text-primary/80">{profile.ai_summary}</p>
             ) : (
-              <p className="text-sm italic text-secondary/60">
+              <p className="text-sm italic text-muted-foreground/60">
                 No AI summary yet. Generate one to give visitors a quick overview of your profile.
               </p>
             )}
@@ -121,45 +121,85 @@ export default function ProfileClient({ profile, projects }: { profile: ProfileC
   );
 }
 
+type EmbedVariant = "card" | "compact" | "badge";
+
+const VARIANT_META: Record<EmbedVariant, { label: string; desc: string; width: number; height: number }> = {
+  card:    { label: "Card",    desc: "Full identity card with stats & trust markers", width: 360, height: 300 },
+  compact: { label: "Compact", desc: "Horizontal profile bar for sidebars",          width: 320, height: 64 },
+  badge:   { label: "Badge",   desc: "Tiny verified badge for inline embedding",     width: 140, height: 28 },
+};
+
 function CopyEmbedCode({ bhId }: { bhId: string }) {
-  const [copied, setCopied] = useState(false)
-  const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://butwalhacks.com"
+  const [variant, setVariant] = useState<EmbedVariant>("card");
+  const [copied, setCopied] = useState(false);
+  const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://butwalhacks.com";
+
+  const meta = VARIANT_META[variant];
+  const srcSuffix = variant === "card" ? "" : `?variant=${variant}`;
 
   const embedCode = [
     `<iframe`,
-    `  src="${siteUrl}/api/verify/${bhId}/embed"`,
-    `  width="360"`,
-    `  height="180"`,
-    `  style="border:none;border-radius:16px;overflow:hidden"`,
+    `  src="${siteUrl}/widget/${bhId}${srcSuffix}"`,
+    `  width="${meta.width}"`,
+    `  height="${meta.height}"`,
+    `  style="border:none;border-radius:${variant === "badge" ? 6 : variant === "compact" ? 12 : 16}px;overflow:hidden"`,
     `  title="Verify BH-ID"`,
     `></iframe>`,
-  ].join("\n")
+  ].join("\n");
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(embedCode)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(embedCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch { /* fallback */ }
-  }
+  };
 
   return (
-    <div className="space-y-3">
-      <pre className="overflow-x-auto rounded-xl border border-glass bg-background p-3 text-[10px] font-mono leading-relaxed text-secondary">
+    <div className="space-y-4">
+      {/* Variant selector */}
+      <div className="flex flex-wrap gap-2">
+        {(Object.entries(VARIANT_META) as [EmbedVariant, typeof meta][]).map(([key, v]) => (
+          <button
+            key={key}
+            onClick={() => { setVariant(key); setCopied(false); }}
+            className={`relative rounded-lg border px-3.5 py-2 text-left transition-all ${
+              variant === key
+                ? "border-bh-red-500/40 bg-primary-red/10 shadow-[0_0_12px_rgba(254,0,0,.15)]"
+                : "border-border bg-surface/20 hover:border-[#656565]"
+            }`}
+          >
+            <div className={`text-xs font-bold tracking-wider ${variant === key ? "text-primary-red" : "text-muted-foreground"}`}>
+              {v.label}
+            </div>
+            <div className="mt-0.5 text-[10px] leading-tight text-muted-foreground/60">
+              {v.desc}
+            </div>
+            <div className="mt-1 font-mono text-[9px] text-muted-foreground/40">
+              {v.width}×{v.height}px
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Code preview */}
+      <pre className="overflow-x-auto rounded-lg border border-border bg-background p-3 text-[10px] font-mono leading-relaxed text-muted-foreground select-all">
         {embedCode}
       </pre>
+
+      {/* Copy button */}
       <button
         onClick={copy}
-        className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-bh-red-600 active:scale-95"
+        className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-xs font-bold text-white transition-all hover:bg-deep-red active:scale-95"
       >
         {copied ? (
           <><Check className="h-3.5 w-3.5" /> Copied!</>
         ) : (
-          <><Copy className="h-3.5 w-3.5" /> Copy Embed Code</>
+          <><Copy className="h-3.5 w-3.5" /> Copy {VARIANT_META[variant].label} Embed Code</>
         )}
       </button>
     </div>
-  )
+  );
 }
 
 function GenerateSummaryForm({ profileId }: { profileId: string }) {
@@ -173,7 +213,7 @@ function GenerateSummaryForm({ profileId }: { profileId: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-bh-red-600 active:scale-95 disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-deep-red active:scale-95 disabled:opacity-50"
       >
         {isPending ? (
           <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating…</>

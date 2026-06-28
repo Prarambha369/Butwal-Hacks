@@ -1,6 +1,5 @@
 "use client";
 
-import React from 'react';
 import { Project } from '@/lib/supabase-types';
 import ContributionCard from './contribution-card';
 
@@ -12,13 +11,13 @@ interface ProjectShowcaseProps {
 export default function ProjectShowcase({ projects, isProfileView = false }: ProjectShowcaseProps) {
   if (projects.length === 0) {
     return (
-      <div className="lg-surface rounded-3xl p-12 border border-glass text-center space-y-4">
-        <div className="w-16 h-16 bg-surface/10 rounded-full flex items-center justify-center mx-auto">
-          <svg className="w-8 h-8 text-secondary opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="bh-card p-12 text-center space-y-4">
+        <div className="w-16 h-16 bg-surface-hover rounded-full flex items-center justify-center mx-auto">
+          <svg className="w-8 h-8 text-muted-foreground opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
           </svg>
         </div>
-        <p className="text-secondary font-mono text-sm opacity-60">
+        <p className="text-muted-foreground font-mono text-sm opacity-60">
           No projects shipped yet. The compiler awaits.
         </p>
       </div>
@@ -31,7 +30,7 @@ export default function ProjectShowcase({ projects, isProfileView = false }: Pro
         <h3 className="text-xs font-black uppercase tracking-widest text-primary opacity-40">
           {isProfileView ? 'Project Contributions' : 'Shipped Projects'}
         </h3>
-        <span className="text-[10px] font-mono text-secondary opacity-60">
+        <span className="text-[10px] font-mono text-muted-foreground opacity-60">
           {projects.length} Projects
         </span>
       </div>
