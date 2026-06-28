@@ -14,13 +14,13 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
 
   if (photos.length === 0) {
     return (
-      <div className="lg-surface rounded-3xl p-12 border border-glass text-center space-y-4">
-        <div className="w-16 h-16 bg-surface/10 rounded-full flex items-center justify-center mx-auto">
-          <svg className="w-8 h-8 text-secondary opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="bh-card p-12 text-center space-y-4">
+        <div className="w-16 h-16 bg-surface-hover rounded-full flex items-center justify-center mx-auto">
+          <svg className="w-8 h-8 text-muted-foreground opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         </div>
-        <p className="text-secondary font-mono text-sm opacity-60">
+        <p className="text-muted-foreground font-mono text-sm opacity-60">
           No memories captured yet. The lens awaits.
         </p>
       </div>
@@ -33,7 +33,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
         <h3 className="text-xs font-black uppercase tracking-widest text-primary opacity-40">
           Hackathon Memories
         </h3>
-        <span className="text-[10px] font-mono text-secondary opacity-60">
+        <span className="text-[10px] font-mono text-muted-foreground opacity-60">
           {photos.length} Captures
         </span>
       </div>
@@ -43,7 +43,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
         {photos.map((photo) => (
           <div 
             key={photo.id} 
-            className={`relative group cursor-pointer overflow-hidden rounded-2xl transition-all duration-500 ${
+            className={`relative group cursor-pointer overflow-hidden rounded-lg transition-all duration-500 ${
               photo.span === 2 ? 'col-span-2 row-span-2' : 'col-span-1 row-span-1'
             }`}
             onClick={() => setSelectedPhoto(photo)}
@@ -73,19 +73,19 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
       {selectedPhoto && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300">
           <div 
-            className="absolute inset-0 bg-background/90 backdrop-blur-2xl" 
+            className="absolute inset-0 bg-background/90" 
             onClick={() => setSelectedPhoto(null)}
           />
           
           <div className="relative max-w-5xl w-full h-full max-h-[80vh] flex flex-col justify-center items-center animate-in zoom-in-95 duration-300">
             <button 
               onClick={() => setSelectedPhoto(null)}
-              className="absolute -top-12 right-0 p-2 text-primary hover:text-bh-red-500 transition-colors"
+              className="absolute -top-12 right-0 p-2 text-primary hover:text-primary-red transition-colors"
             >
               <X size={32} />
             </button>
 
-            <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-glass bg-background">
+            <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl border border-border bg-background">
               <Image 
                 src={selectedPhoto.url} 
                 alt={selectedPhoto.event} 
@@ -103,7 +103,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                     <h4 className="text-xl font-bold">{selectedPhoto.event}</h4>
                     <p className="text-primary/60 font-mono text-sm">{selectedPhoto.date}</p>
                   </div>
-                  <div className="px-3 py-1 rounded-full bg-surface/10 backdrop-blur-md border border-glass text-[10px] font-black uppercase tracking-widest">
+                  <div className="px-3 py-1 rounded-full bg-surface-hover border border-border text-[10px] font-black uppercase tracking-widest">
                     Hacker ID Memory
                   </div>
                 </div>
