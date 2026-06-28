@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { Calendar, MapPin, FileText, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { createEvent } from '@/lib/actions/events';
+import { useUser } from '@auth0/nextjs-auth0/client';
 
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { Button } from '@/components/ui/button';
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
 
 export default function EventCreationForm() {
+  const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -46,7 +48,7 @@ export default function EventCreationForm() {
   };
 
   return (
-    <div className="lg-surface p-8 rounded-3xl border border-glass space-y-8">
+    <div className="bh-card p-8 space-y-8">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-accent-teal/10 text-accent-teal">
           <Calendar className="w-6 h-6" />
@@ -61,7 +63,7 @@ export default function EventCreationForm() {
           </label>
           <input 
             required
-            className="w-full px-4 py-3 rounded-xl bg-surface/10 border border-glass focus:border-bh-red-500 outline-none transition-all"
+            className="w-full px-4 py-3 rounded-lg bg-surface-hover border border-border focus:border-bh-red-500 outline-none transition-all"
             value={formData.title}
             onChange={e => setFormData({ ...formData, title: e.target.value })}
             placeholder="e.g. Butwal Winter Hack 2026"
@@ -73,7 +75,7 @@ export default function EventCreationForm() {
           <textarea 
             required
             rows={4}
-            className="w-full px-4 py-3 rounded-xl bg-surface/10 border border-glass focus:border-bh-red-500 outline-none transition-all resize-none"
+            className="w-full px-4 py-3 rounded-lg bg-surface-hover border border-border focus:border-bh-red-500 outline-none transition-all resize-none"
             value={formData.description}
             onChange={e => setFormData({ ...formData, description: e.target.value })}
             placeholder="What is this event about? Who is it for?"
@@ -87,7 +89,7 @@ export default function EventCreationForm() {
           <input 
             required
             type="datetime-local"
-            className="w-full px-4 py-3 rounded-xl bg-surface/10 border border-glass focus:border-bh-red-500 outline-none transition-all"
+            className="w-full px-4 py-3 rounded-lg bg-surface-hover border border-border focus:border-bh-red-500 outline-none transition-all"
             value={formData.start_date}
             onChange={e => setFormData({ ...formData, start_date: e.target.value })}
           />
@@ -100,7 +102,7 @@ export default function EventCreationForm() {
           <input 
             required
             type="datetime-local"
-            className="w-full px-4 py-3 rounded-xl bg-surface/10 border border-glass focus:border-bh-red-500 outline-none transition-all"
+            className="w-full px-4 py-3 rounded-lg bg-surface-hover border border-border focus:border-bh-red-500 outline-none transition-all"
             value={formData.end_date}
             onChange={e => setFormData({ ...formData, end_date: e.target.value })}
           />
@@ -111,7 +113,7 @@ export default function EventCreationForm() {
             <MapPin className="w-4 h-4" /> Location
           </label>
           <input 
-            className="w-full px-4 py-3 rounded-xl bg-surface/10 border border-glass focus:border-bh-red-500 outline-none transition-all"
+            className="w-full px-4 py-3 rounded-lg bg-surface-hover border border-border focus:border-bh-red-500 outline-none transition-all"
             value={formData.location}
             onChange={e => setFormData({ ...formData, location: e.target.value })}
             placeholder="Physical address or 'Virtual'"
@@ -126,10 +128,12 @@ export default function EventCreationForm() {
             onUpload={(url) => setFormData({ ...formData, banner_url: url })}
             label="Upload Banner Image"
             currentImage={formData.banner_url}
+            entityType="event_banner"
+            uploaderAuth0Id={user?.sub}
           />
         </div>
 
-        <div className="flex items-center gap-3 p-4 rounded-2xl bg-surface/10 border border-glass">
+        <div className="flex items-center gap-3 p-4 rounded-lg bg-surface-hover border border-border">
           <input 
             type="checkbox"
             id="is_published"
