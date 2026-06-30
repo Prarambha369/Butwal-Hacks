@@ -6,7 +6,7 @@ test.describe("Butwal Hacks — Smoke Tests", () => {
 
     // Key content sections exist
     await expect(page.locator("h1")).toBeVisible()
-    await expect(page.locator("nav")).toBeVisible()
+    await expect(page.locator("nav").first()).toBeVisible()
     await expect(page.locator("footer")).toBeVisible()
 
     // Title contains the org name
@@ -27,7 +27,7 @@ test.describe("Butwal Hacks — Smoke Tests", () => {
   test("404 page renders for unknown routes", async ({ page }) => {
     const response = await page.goto("/this-page-does-not-exist")
     expect(response?.status()).toBe(404)
-    await expect(page.locator("text=404").or(page.locator("text=Page Not Found"))).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Page Not Found" })).toBeVisible()
   })
 
   test("offline page is accessible", async ({ page }) => {

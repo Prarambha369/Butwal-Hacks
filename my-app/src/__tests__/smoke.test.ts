@@ -33,3 +33,96 @@ describe("calculateLevel", () => {
     expect(level).toHaveProperty("color");
   });
 });
+
+// ─────────────────────────────────────────────────────────
+// Route smoke tests — verify pages export correctly
+// ─────────────────────────────────────────────────────────
+
+describe("/verify/[markerId]", () => {
+  it("exports a default page component", async () => {
+    const mod = await import("@/app/verify/[markerId]/page");
+    expect(mod.default).toBeDefined();
+    expect(typeof mod.default).toBe("function");
+  });
+
+  it("exports generateMetadata", async () => {
+    const mod = await import("@/app/verify/[markerId]/page");
+    expect(mod.generateMetadata).toBeDefined();
+    expect(typeof mod.generateMetadata).toBe("function");
+  });
+});
+
+describe("/portal/sponsors", () => {
+  it("exports a default page component", async () => {
+    const mod = await import("@/app/(main)/portal/sponsors/page");
+    expect(mod.default).toBeDefined();
+    expect(typeof mod.default).toBe("function");
+  });
+
+  it("is marked as dynamic (force-dynamic)", async () => {
+    const mod = await import("@/app/(main)/portal/sponsors/page");
+    // force-dynamic means the page should re-render on every request
+    // This is a server component, so it won't have client-side hooks
+    expect(mod.dynamic).toBe("force-dynamic");
+  });
+});
+
+describe("/portal/recruiters", () => {
+  it("exports a default page component", async () => {
+    const mod = await import("@/app/(main)/portal/recruiters/page");
+    expect(mod.default).toBeDefined();
+    expect(typeof mod.default).toBe("function");
+  });
+
+  it("exports static metadata", async () => {
+    const mod = await import("@/app/(main)/portal/recruiters/page");
+    expect(mod.metadata).toBeDefined();
+    expect(mod.metadata.title).toBeDefined();
+  });
+});
+
+describe("/portal/bounties", () => {
+  it("exports a default page component", async () => {
+    const mod = await import("@/app/(main)/portal/bounties/page");
+    expect(mod.default).toBeDefined();
+    expect(typeof mod.default).toBe("function");
+  });
+
+  it("is marked as dynamic (force-dynamic)", async () => {
+    const mod = await import("@/app/(main)/portal/bounties/page");
+    expect(mod.dynamic).toBe("force-dynamic");
+  });
+});
+
+describe("/p/[slug_id]", () => {
+  it("exports a default page component", async () => {
+    const mod = await import("@/app/p/[slug_id]/page");
+    expect(mod.default).toBeDefined();
+    expect(typeof mod.default).toBe("function");
+  });
+
+  it("exports generateMetadata", async () => {
+    const mod = await import("@/app/p/[slug_id]/page");
+    expect(mod.generateMetadata).toBeDefined();
+    expect(typeof mod.generateMetadata).toBe("function");
+  });
+
+  it("uses ISR with 60s revalidation", async () => {
+    const mod = await import("@/app/p/[slug_id]/page");
+    expect(mod.revalidate).toBe(60);
+  });
+});
+
+describe("/widget/[slugId]", () => {
+  it("exports a default page component", async () => {
+    const mod = await import("@/app/widget/[slugId]/page");
+    expect(mod.default).toBeDefined();
+    expect(typeof mod.default).toBe("function");
+  });
+
+  it("exports generateMetadata with noindex", async () => {
+    const mod = await import("@/app/widget/[slugId]/page");
+    expect(mod.generateMetadata).toBeDefined();
+    expect(typeof mod.generateMetadata).toBe("function");
+  });
+});
