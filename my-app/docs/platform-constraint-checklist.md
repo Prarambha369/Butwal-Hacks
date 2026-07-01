@@ -13,7 +13,7 @@
 1. [Vercel (Serverless Functions)](#1-vercel-serverless-functions)
 2. [Supabase (PostgreSQL + API)](#2-supabase-postgresql--api)
 3. [Upstash Redis (Rate Limiting)](#3-upstash-redis-rate-limiting)
-4. [Clerk (Authentication)](#4-clerk-authentication)
+4. [Auth0 (Authentication)](#4-auth0-authentication)
 5. [External API Ceilings](#5-external-api-ceilings)
 6. [API Route Audit (27 Routes)](#6-api-route-audit)
 7. [Server Action Audit (21 Actions)](#7-server-action-audit)
@@ -44,7 +44,7 @@ This project deploys serverless functions via Vercel's Fluid Compute runtime.
 | Execution timeout set explicitly | ❌ Not set | Vercel defaults to 300s. Routes that call external APIs (Resend, Groq, GitHub, Cloudinary) could hang. |
 | Body size validated before parsing | ✅ All 16 POST routes | `rejectOversized(req)` helper in `validation.ts` rejects > 1 MB payloads with 413 before body parsing. Webhook already had its own check. |
 | Response size management | ⚠️ Partial | Badges endpoints set cache headers; others return unbounded arrays. `event_registrations` could exceed 4.5 MB. |
-| Memory-sensitive operations | ⚠️ Partial | AI extraction (`/certificates/extract`) sends image URLs to Groq — OK. But Clerk webhook reads entire body into memory. |
+| Memory-sensitive operations | ⚠️ Partial | AI extraction (`/certificates/extract`) sends image URLs to Groq — OK. But Auth0 webhook reads entire body into memory. |
 
 ---
 
@@ -111,24 +111,24 @@ Worst case: 1,000 IPs × 5 requests each = 5,000 checks per 60s window
 
 ---
 
-## 4. Clerk (Authentication)
+## 4. Auth0 (Authentication)
 
 | Ceiling | Free (Developer) | Pro | Notes |
 |---------|-----------------|-----|-------|
-| **Monthly active users** | 10,000 | 100,000+ | Current: < 1,000 |
-| **OAuth providers** | Unlimited | Unlimited | Google, GitHub configured |
-| **Webhook rate limit** | Not documented | Not documented | Clerk retries failed webhooks for 24h |
-| **JWT token size** | 4 KB | 4 KB | Including `supabase` JWT template claims |
-| **API rate limit** | 10 req/s | 100 req/s | For Server API calls (not user-facing) |
+| **Monthly active users** | 7,000 (free) | Unlimited | Current: < 1,000 |
+| **OAuth providers** | 2 social connections (free) | Unlimited | Google configured |
+| **Webhook rate limit** | Not documented | Not documented | Auth0 retries failed webhooks |
+| **JWT token size** | 4 KB | 4 KB | Standard claims |
+| **API rate limit** | 5 req/s (free) | 10 req/s | For Management API calls |
 
 ### Current posture
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Webhook secret configured | ⚠️ Required | Must be set in `CLERK_WEBHOOK_SECRET`. Missing = route returns 500. |
-| JWT template for Supabase | ⚠️ Required | `createAuthenticatedClient()` calls `getToken({ template: 'supabase' })`. Missing template = warns but continues — RLS blocks writes. |
-| Webhook body not size-limited | ❌ Vulnerable | Body fully loaded before Svix verification. Large payload → OOM. |
-| OAuth token storage | ⚠️ Via Clerk | GitHub sync uses Clerk's stored OAuth tokens — correct pattern. |
+| Webhook secret configured | ✅ Auth0 Action | Post-Login Action sends user data to `/api/webhooks/auth0` |
+| Auth0 Action configured | ⚠️ Required | Without it, new users won't get a Supabase profile |
+| Webhook body size-limited | ✅ `rejectOversized` | All webhook routes check content-length before parsing |
+| OAuth token storage | ⚠️ Via session | Auth0 session provides user identity, GitHub tokens stored in Supabase |
 
 ---
 
@@ -180,31 +180,32 @@ Legend: ✅ = Implemented | ⚠️ = Partial / Conditional | ❌ = Not implement
 |-------|--------|------|-----------|---------|-----------|-------------|-------|-----------------|-------------|
 | `/contact` | POST | None | ✅ 1 MB | ✅ 5s | ✅ (5/60s) | — | — | ✅ Zod | 200, 400, 413, 429, 500 |
 | `/sponsor` | POST | None | ✅ 1 MB | ✅ 5s | ✅ (5/60s) | — | — | ✅ Zod | 200, 400, 413, 429, 500 |
-| `/events/register` | POST | Clerk | ✅ 1 MB | ❌ | ✅ (5/60s) | ✅ header | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
-| `/events/checkin` | POST | Clerk | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 404, 413, 429, 500 |
-| `/events/[eventId]/registrations` | GET | Clerk | — | ❌ | ❌ | — | ❌ | ❌ | 200, 400, 401, 500 |
-| `/events` | GET | Clerk | — | ❌ | ❌ | — | ❌ | ❌ | 200, 401, 500 |
-| `/profile/complete` | POST | Clerk | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
-| `/profile/update` | POST | Clerk | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
-| `/badges/check` | GET | Clerk | — | ❌ | ❌ | — | ❌ | ❌ | 200, 401, 500 |
+| `/events/register` | POST | Auth0 | ✅ 1 MB | ❌ | ✅ (5/60s) | ✅ header | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
+| `/events/checkin` | POST | Auth0 | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 404, 413, 429, 500 |
+| `/events/[eventId]/registrations` | GET | Auth0 | — | ❌ | ❌ | — | ❌ | ❌ | 200, 400, 401, 500 |
+| `/events` | GET | Auth0 | — | ❌ | ❌ | — | ❌ | ❌ | 200, 401, 500 |
+| `/profile/complete` | POST | Auth0 | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
+| `/profile/update` | POST | Auth0 | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
+| `/badges/check` | GET | Auth0 | — | ❌ | ❌ | — | ❌ | ❌ | 200, 401, 500 |
 | `/badges/issuer` | GET | None | — | ❌ | ❌ | — | ✅ 86400s | ✅ Static | 200 |
 | `/badges/assertions/[markerId]` | GET | None | — | ❌ | ❌ | — | ✅ 3600s | ❌ (param only) | 200, 404 |
-| `/projects/like` | POST | Clerk | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
-| `/projects` | POST | Clerk | ✅ 1 MB | ❌ | ✅ (5/60s) | ✅ header | — | ✅ Zod | 201, 200, 400, 401, 413, 429, 500 |
-| `/notifications` | GET | Clerk | — | ❌ | ❌ | — | ❌ | ❌ | 200, 401, 500 |
-| `/reviews` | POST | Clerk | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
-| `/organizer/metrics` | GET | Clerk | — | ❌ | ❌ | — | ❌ | ❌ | 200, 401, 500 |
-| `/certificates` | GET | Clerk | — | ❌ | ❌ | — | ❌ | ❌ | 200, 401, 500 |
-| `/certificates/extract` | POST | Clerk | ✅ 1 MB | ✅ 30s | ✅ (5/60s) | ❌ | — | ❌ (manual check) | 200, 400, 401, 413, 422, 429, 500, 502 |
-| `/resources/complete` | POST | Clerk | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
-| `/teams` | POST | Clerk | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
-| `/verify/[bhId]` | GET | None | — | ❌ | ❌ | — | ❌ | ❌ (param only) | 200, 404 |
-| `/verify/[bhId]/embed` | GET | None | — | ❌ | ❌ | — | ✅ 300s | ❌ (param only) | 200, 404 (HTML) |
-| `/impact/report/[projectId]` | GET | Clerk | — | ❌ | ❌ | — | ❌ | ❌ (param only) | 200, 401, 404, 500 |
-| `/webhooks/clerk` | POST | Svix | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Svix check | 200, 400, 413, 429, 500 |
-| `/sign-cloudinary` | POST | Clerk | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ❌ | 200, 401, 413, 429, 500 |
-| `/issue-marker` | POST | Clerk | ✅ 1 MB | ✅ 10s | ✅ (5/60s) | ❌ | — | ❌ (manual check) | 200, 400, 401, 413, 429, 500 |
-| `/github/sync` | POST | Clerk | ✅ 1 MB | ✅ 15s | ✅ (5/60s) | ❌ | — | ❌ | 200, 400, 401, 413, 429, 500, 502 |
+| `/projects/like` | POST | Auth0 | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
+| `/projects` | POST | Auth0 | ✅ 1 MB | ❌ | ✅ (5/60s) | ✅ header | — | ✅ Zod | 201, 200, 400, 401, 413, 429, 500 |
+| `/notifications` | GET | Auth0 | — | ❌ | ❌ | — | ❌ | ❌ | 200, 401, 500 |
+| `/reviews` | POST | Auth0 | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
+| `/organizer/metrics` | GET | Auth0 | — | ❌ | ❌ | — | ❌ | ❌ | 200, 401, 500 |
+| `/certificates` | GET | Auth0 | — | ❌ | ❌ | — | ❌ | ❌ | 200, 401, 500 |
+| `/certificates/extract` | POST | Auth0 | ✅ 1 MB | ✅ 30s | ✅ (5/60s) | ❌ | — | ❌ (manual check) | 200, 400, 401, 413, 422, 429, 500, 502 |
+| `/resources/complete` | POST | Auth0 | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
+| `/teams` | POST | Auth0 | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 401, 413, 429, 500 |
+| `/widget/[slugId]` | GET | None | — | ❌ | ❌ | — | ❌ | ❌ (param only) | 200, 404 (HTML) |
+| `/widget/[slugId]?variant=` | GET | None | — | ❌ | ❌ | — | ❌ | ❌ (param only) | 200, 404 (HTML) |
+| `/verify/[markerId]` | GET | None | — | ❌ | ❌ | — | ❌ | ❌ (param only) | 200, 404 |
+| `/impact/report/[projectId]` | GET | Auth0 | — | ❌ | ❌ | — | ❌ | ❌ (param only) | 200, 401, 404, 500 |
+| `/webhooks/auth0` | POST | None (internal) | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ✅ Zod | 200, 400, 413, 429, 500 |
+| `/sign-cloudinary` | POST | Auth0 | ✅ 1 MB | ❌ | ✅ (5/60s) | ❌ | — | ❌ | 200, 401, 413, 429, 500 |
+| `/issue-marker` | POST | Auth0 | ✅ 1 MB | ✅ 10s | ✅ (5/60s) | ❌ | — | ❌ (manual check) | 200, 400, 401, 413, 429, 500 |
+| `/github/sync` | POST | Auth0 | ✅ 1 MB | ✅ 15s | ✅ (5/60s) | ❌ | — | ❌ | 200, 400, 401, 413, 429, 500, 502 |
 
 ### Summary
 
@@ -214,7 +215,7 @@ Legend: ✅ = Implemented | ⚠️ = Partial / Conditional | ❌ = Not implement
 | Timeout set on external calls | **7 / 27** (26%) | Resend (contact, sponsor, issue-marker), Groq (certificates/extract), GitHub (github/sync) |
 | Rate limiting applied | **16 / 27** (59%) | All 16 mutation routes via `withRateLimit` wrapper |
 | Idempotency keys | **2 / 17 mutation routes** (12%) | events/register, projects |
-| Cache headers on GET | **3 / 10 GET routes** (30%) | badges/issuer, badges/assertions, verify/embed |
+| Cache headers on GET | **3 / 10 GET routes** (30%) | badges/issuer, badges/assertions, widget/[slugId] |
 | Input validation (Zod/schema) | **15 / 17 mutation routes** (88%) | ✅ Strong |
 | Status code 201 (created) | **1 / 27** | projects POST |
 
@@ -227,27 +228,27 @@ with the same constraints as API routes, but follow different patterns.
 
 | Action File | Auth | Body Limit | Timeout | Error Handling | External API Calls |
 |------------|------|-----------|---------|---------------|-------------------|
-| `actions/projects.ts` | Clerk | ❌ | ❌ | Throws Error | None |
-| `actions/events.ts` | Clerk | ❌ | ❌ | Throws Error | None |
-| `actions/activity.ts` | Clerk | ❌ | ❌ | Throws Error | None |
-| `actions/rewards.ts` | Clerk | ❌ | ❌ | Throws Error | None |
-| `actions/admin.ts` | Clerk | ❌ | ❌ | Throws Error | None |
+| `actions/projects.ts` | Auth0 | ❌ | ❌ | Throws Error | None |
+| `actions/events.ts` | Auth0 | ❌ | ❌ | Throws Error | None |
+| `actions/activity.ts` | Auth0 | ❌ | ❌ | Throws Error | None |
+| `actions/rewards.ts` | Auth0 | ❌ | ❌ | Throws Error | None |
+| `actions/admin.ts` | Auth0 | ❌ | ❌ | Throws Error | None |
 | `actions/analytics-admin.ts` | None | ❌ | ❌ | Returns null | None |
-| `actions/profile.ts` | Clerk | ❌ | ❌ | Throws Error | None |
+| `actions/profile.ts` | Auth0 | ❌ | ❌ | Throws Error | None |
 | `actions/project-details.ts` | None | ❌ | ❌ | Throws Error | None |
-| `actions/feedback.ts` | Clerk | ❌ | ❌ | Throws Error | None |
-| `actions/sponsor-profile.ts` | Clerk | ❌ | ❌ | Throws Error | None |
-| `actions/issue-marker.ts` | Clerk | ❌ | ❌ | Throws Error | Resend |
-| `actions/moderation.ts` | Clerk | ❌ | ❌ | Throws Error | None |
+| `actions/feedback.ts` | Auth0 | ❌ | ❌ | Throws Error | None |
+| `actions/sponsor-profile.ts` | Auth0 | ❌ | ❌ | Throws Error | None |
+| `actions/issue-marker.ts` | Auth0 | ❌ | ❌ | Throws Error | Resend |
+| `actions/moderation.ts` | Auth0 | ❌ | ❌ | Throws Error | None |
 | `actions/impact.ts` | None | ❌ | ❌ | Throws Error | None |
-| `actions/teams.ts` | Clerk | ❌ | ❌ | Throws Error | None |
+| `actions/teams.ts` | Auth0 | ❌ | ❌ | Throws Error | None |
 | `actions/xp.ts` | Service Role | ❌ | ❌ | Returns void | None |
 | `actions/comments.ts` | None | ❌ | ❌ | Throws Error | None |
 | `actions/contributions.ts` | None | ❌ | ❌ | Throws Error | None |
 | `actions/curation.ts` | None | ❌ | ❌ | Throws Error | None |
-| `actions/generate-profile-summary.ts` | Clerk | ❌ | ❌ | Throws Error | Groq (AI) |
-| `actions/ai-team-match.ts` | Clerk | ❌ | ❌ | Throws Error | Groq (AI) |
-| `actions/micro-credentials.ts` | Clerk | ❌ | ❌ | Throws Error | None |
+| `actions/generate-profile-summary.ts` | Auth0 | ❌ | ❌ | Throws Error | Groq (AI) |
+| `actions/ai-team-match.ts` | Auth0 | ❌ | ❌ | Throws Error | Groq (AI) |
+| `actions/micro-credentials.ts` | Auth0 | ❌ | ❌ | Throws Error | None |
 
 ### Critical finding — error handling pattern
 
@@ -298,7 +299,7 @@ Under 100 concurrent users hitting different routes:
 | Public GET routes (verify, badges/issuer) | 1 | ~60 concurrent users |
 | Authenticated GET routes (notifications, certificates) | 2 | ~30 concurrent users |
 | Authenticated POST routes (register, checkin, like) | 2–3 | ~20–30 concurrent users |
-| Webhook (clerk) | 1 | ~60 concurrent calls |
+| Webhook (auth0) | 1 | ~60 concurrent calls |
 | Server actions with auth | 2 | ~30 concurrent calls |
 
 ---
@@ -329,7 +330,7 @@ Under 100 concurrent users hitting different routes:
 
 | Gap | Impact | Fix |
 |-----|--------|-----|
-| **Clerk Supabase JWT template not verified** | RLS blocks writes silently | Add startup check for JWT template |
+| **Auth0 session verification** | Unauthenticated requests get 401 | Add startup health check for Auth0 |
 | **Upstash free tier headroom unknown** | Rate limiting could be silently disabled | Add monitoring on Upstash command count |
 | **vercel.json missing** | Functions use default 300s timeout everywhere | Explicitly set timeout per route group |
 | **Webhook body loaded before Svix check** | OOM risk from large Svix-signed payloads | Add content-length check before `req.json()` |
@@ -374,7 +375,7 @@ Attach this checklist to every deployment.
 This checklist must be updated when:
 - A new API route or server action is added
 - A new external dependency (API, service, SDK) is integrated
-- The platform (Vercel, Supabase, Upstash, Clerk) publishes updated limits
+- The platform (Vercel, Supabase, Upstash, Auth0) publishes updated limits
 - The project migrates to a higher tier on any platform
 - A deployment fails due to a limit violation not documented here
 

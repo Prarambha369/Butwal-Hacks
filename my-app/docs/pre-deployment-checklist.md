@@ -21,6 +21,7 @@
   - Cloudinary, Resend, Upstash, PostHog, Axiom, Groq
 
 ## Auth0 Dashboard Configuration
+### Application (Regular Web App)
 - [ ] **Auth0 Action (Post-Login)**: Create a Post-Login Action that fires `POST` to
       `https://butwalhacks.com/api/webhooks/auth0` with `{ sub, email, name }` payload.
       Without this, new users won't get a Supabase profile and login will redirect in a loop.
@@ -29,6 +30,34 @@
 - [ ] Allowed Web Origins: `https://butwalhacks.com`
 - [ ] Application Type: Regular Web Application
 - [ ] Token Endpoint Auth Method: `client_secret_post`
+
+### Machine-to-Machine (M2M) App for CI Pipeline
+- [x] **Create M2M App**: In Auth0 Dashboard → Applications → Create Application →
+      "Machine to Machine Applications". Name: `Butwal Hacks CI`.
+- [x] **Authorize for Management API**: In the M2M app settings, authorize the
+      "Auth0 Management API" with the following scopes:
+      - `read:clients`
+      - `update:clients`
+      - `read:connections`
+      - `read:users`
+      - `update:users`
+- [x] **Add to GitHub Secrets**: Copy the M2M app's Client ID and Client Secret to
+      GitHub → Settings → Secrets and variables → Actions as:
+      - `AUTH0_M2M_CLIENT_ID`
+      - `AUTH0_M2M_CLIENT_SECRET`
+- [x] **Verify Management API access**: Run the following command locally to confirm:
+      ```bash
+      curl -s --request POST \
+        --url 'https://butwal.jp.auth0.com/oauth/token' \
+        --header 'content-type: application/json' \
+        --data '{
+          "client_id":"$AUTH0_M2M_CLIENT_ID",
+          "client_secret":"$AUTH0_M2M_CLIENT_SECRET",
+          "audience":"https://butwal.jp.auth0.com/api/v2/",
+          "grant_type":"client_credentials"
+        }' | jq .access_token
+      ```
+      Returns a non-null `access_token` ✅
 
 ## Supabase
 - [ ] All migrations applied (001–075)
@@ -53,11 +82,15 @@
 - [ ] Animations respect `prefers-reduced-motion`
 
 ## Security
-- [ ] CSP headers set (Clerk domains removed, Auth0 domains added)
+- [ ] CSP headers set with Auth0 domains (`butwal.jp.auth0.com`, `*.auth0.com`, `*.posthog.com`)
 - [ ] HSTS preload enabled (`max-age=63072000; includeSubDomains; preload`)
 - [ ] `X-Frame-Options: DENY`
 - [ ] `X-Content-Type-Options: nosniff`
 - [ ] Auth0 webhook has shared secret check (if applicable)
+- [ ] Firewall allow list includes Auth0 Japan region IPs if applicable (verify at `https://cdn.auth0.com/ip-ranges.json`):
+      `13.208.85.227`, `15.152.185.222`, `15.152.2.46`, `15.152.28.221`,
+      `15.152.56.146`, `15.152.95.63`, `176.34.22.106`, `35.74.30.168`,
+      `43.206.201.6`, `46.51.243.250`, `54.150.87.80`, `54.248.192.141`
 
 ## Monitoring
 - [ ] Vercel Analytics enabled
