@@ -40,7 +40,7 @@ AI defaults to assuming the world cooperates. The threat is in what doesn't happ
 | Failed dependency fallback | ✅ **FIXED** — `lib/logger.ts` now sends structured JSON logs to Axiom in production. Console fallback in dev. See T-001. |
 | Partial failure state | A webhook call to Resend fails — the contact route returns 500 but no compensating action is taken |
 | Auth edge cases | `auth-guard.ts` calls `redirect()` instead of returning a `401` — the client gets an unexpected navigation, not an error response |
-| Transactional consistency | The BH-ID generation (`webhooks/clerk/route.ts`, line 112) has a documented race condition: "read-then-increment has a race condition window. Two simultaneous webhook calls could generate the same BH-ID" |
+| Transactional consistency | The BH-ID generation (webhook handler) has a documented race condition: "read-then-increment has a race condition window. Two simultaneous webhook calls could generate the same BH-ID" |
 
 ### 1.3 Deep — The erosion of foundational engineering rigor
 
@@ -61,14 +61,14 @@ AI defaults to assuming the world cooperates. The threat is in what doesn't happ
 > that only triggers during a specific, rare condition at scale.
 
 **Concrete example in this project:**
-The Clerk webhook handler (`webhooks/clerk/route.ts`) processes `user.created` events by:
+The Auth0 webhook handler processes `user.created` events by:
 1. Reading the highest existing `slug_id` → computing `nextNum`
 2. Inserting a new profile with `BH-YY-NNN`
 
 If two users sign up simultaneously (e.g. during an event registration wave), both webhook calls read the
 same `maxRow`, compute the same `nextNum`, and one hits a `UNIQUE` constraint violation on `slug_id`.
 
-**Impact:** User profile creation fails silently (the `500` is returned to Clerk, which retries, but the
+**Impact:** User profile creation fails silently (the `500` is returned to Auth0, which retries, but the
 retry may also fail if the second call succeeded in the meantime — the BH-ID sequence is now corrupt).
 
 **Mitigation:** Use `pg_try_advisory_xact_lock` or a database sequence for BH-ID generation.
@@ -80,7 +80,7 @@ Already noted as a `ponytail:` comment in the codebase.
 > but the Auditor-in-Chief. The primary skill is the ability to envision and prompt for the "unhappy path."*
 
 **Checklist for every AI-generated feature:**
-- [ ] What happens when every external dependency (Supabase, Clerk, Resend, Upstash) is unreachable?
+- [ ] What happens when every external dependency (Supabase, Auth0, Resend, Upstash) is unreachable?
 - [ ] What happens when two users perform the same action at the same microsecond?
 - [ ] Is there a compensating action for every partial failure?
 - [ ] Can the error be observed in production? (Is the logger actually active?)
@@ -106,7 +106,7 @@ that AI-generated code rarely respects.
 | Ceiling | Limit | Where it bites |
 |---------|-------|----------------|
 | **Vercel body size** | 4.5 MB (free), 5 MB (pro) on serverless functions | File uploads via Cloudinary must pre-sign, not proxy through the API. Current `/api/sign-cloudinary` handles this correctly. |
-| **Vercel execution timeout** | 10s (hobby), 60s (pro), 900s (enterprise) | Webhook handlers processing many users (e.g. bulk import) could timeout. Current `clerk/webhooks` is per-event, which is safe. |
+| **Vercel execution timeout** | 10s (hobby), 60s (pro), 900s (enterprise) | Webhook handlers processing many users (e.g. bulk import) could timeout. Current auth0 webhook is per-event, which is safe. |
 | **Supabase connection pool** | 15 connections (free), 30+ (pro) | Every `createClient()` call creates a new pool. The `createServiceClient()` pattern is correct, but each API route doing `await createAuthenticatedClient()` could exhaust the pool under load. |
 | **Upstash rate limiter** | 10,000 commands/day (free) | At 5 req/60s per IP with the `contact` route, a DDoS from 1000 IPs would exhaust daily quota in ~3 minutes. Rate limit is per-IP; no global circuit breaker. |
 | **Vercel edge function count** | 12 (hobby), 50 (pro) | Current: 0 edge functions. All 27 API routes run as serverless functions. If we migrate any to Edge, we must respect the 1 MB code size limit. |
@@ -118,7 +118,7 @@ A "graceful degradation" strategy answers: *If dependency X is down, what can th
 | Dependency | If down | Current behavior | Ideal behavior |
 |-----------|---------|-----------------|----------------|
 | **Supabase** | All DB-dependent pages crash | `error.tsx` shows a generic error page | Read from a stale cache (ISR'd pages, local SWR) |
-| **Clerk auth** | Sign-in/sign-up fail | Clerk SDK throws, page shows 500 | Show a "Sign-in temporarily unavailable — try again in a few minutes" banner |
+| **Auth0** | Sign-in/sign-up fail | Auth0 SDK throws, page shows 500 | Show a "Sign-in temporarily unavailable — try again in a few minutes" banner |
 | **Resend (email)** | Contact form fails to send | Route returns 500 | Queue the message and retry (or fall back to stored log) |
 | **Upstash Redis** | Rate limiter disabled | `limiter` is `null`, rate limiting skipped silently | Log a warning that rate limiting is disabled |
 
@@ -131,7 +131,7 @@ A "graceful degradation" strategy answers: *If dependency X is down, what can th
 > A payload that bypasses the application layer and crashes the infrastructure at the platform level.
 
 **Zip bomb / massive payload attack vector:**
-The Clerk webhook endpoint accepts POST with Svix-signed payloads. However, the webhook handler reads
+The Auth0 webhook endpoint accepts POST with Auth0 token verification. However, the webhook handler reads
 `req.json()` before verifying — a 100 MB request body would:
 1. Force the serverless function to allocate memory
 2. Hit Vercel's 50 MB response limit (if the route tried to return the body)
@@ -176,7 +176,7 @@ The project's CSP (`next.config.ts`, lines 14–53) is the primary browser-level
 | Directive | Current value | Risk if wrong |
 |-----------|--------------|---------------|
 | `default-src` | `'self'` | Blocks all unexpected origins — good baseline |
-| `script-src` | `'self'` + GA4 + Clerk + `'unsafe-inline'` | `'unsafe-inline'` weakens XSS protection — required for Next.js hydration |
+| `script-src` | `'self'` + GA4 + Auth0 + `'unsafe-inline'` | `'unsafe-inline'` weakens XSS protection — required for Next.js hydration |
 | `connect-src` | `'self'` + Vercel + GA | Missing Supabase Realtime or Cloudinary upload endpoints could silently fail |
 | `frame-ancestors` | `'none'` | Prevents clickjacking — correct |
 | `upgrade-insecure-requests` | present | Forces HTTPS — good |
@@ -199,7 +199,7 @@ The project uses:
 
 | Vector | Scenario | Impact |
 |--------|----------|--------|
-| **Skill injection** | A community skill (`npx skills add`) contains a postinstall script that exfiltrates `.env` | Full credential theft (Clerk secret key, Supabase service role key) |
+| **Skill injection** | A community skill (`npx skills add`) contains a postinstall script that exfiltrates `.env` | Full credential theft (Auth0 secret key, Supabase service role key) |
 | **Dependency confusion** | A malicious npm package with a similar name to an internal one | Code execution during build |
 | **Migration poisoning** | A third-party PR introduces a migration that enables `cron` or `extension` without review | Unauthorized DB access |
 | **Webhook hijacking** | If the Svix signing secret leaks, an attacker can forge webhook events | Create fake users, modify organizations |
@@ -322,7 +322,7 @@ This section catalogs known threats specific to the Butwal Hacks codebase, organ
 | ID | Threat | Location | Current status |
 |----|--------|----------|---------------|
 | T-001 | Production logging is disabled | `lib/logger.ts` | ✅ **FIXED** — Sends structured JSON to Axiom via HTTP ingest (`queueMicrotask` flush). `withAxiom` wrapper in `next.config.ts` captures Vercel platform logs. |
-| T-002 | BH-ID generation race condition | `webhooks/clerk/route.ts` | Documented as `ponytail:` — two concurrent signups produce duplicate IDs |
+| T-002 | BH-ID generation race condition | Auth0 webhook handler | Documented as `ponytail:` — two concurrent signups produce duplicate IDs |
 | T-003 | No rate limiting on 26/27 API routes | `lib/rate-limiter.ts` | ✅ **FIXED** — All 16 mutation endpoints (13 auth+POST + 2 public POST + webhook) now call `checkRateLimit()` before body parsing. Only GET routes exempt. |
 | T-004 | No input validation on several GET routes | Various `route.ts` files | Query params go directly to Supabase queries without Zod validation |
 
@@ -334,7 +334,7 @@ This section catalogs known threats specific to the Butwal Hacks codebase, organ
 | T-006 | No cache headers on GET responses | All GET routes | Browser/proxy caching of event listings, projects, profiles is suboptimal |
 | T-007 | No production alerting | Entire project | Failures are invisible until a user reports them |
 | T-008 | Supply chain scanning disabled | `.github/workflows/` | No `npm audit`, no Dependabot, no SBOM generation |
-| T-009 | Content-Length not checked on webhook endpoint | `webhooks/clerk/route.ts` | ✅ **FIXED** — `content-length` checked before `req.json()`. Rejects > 1 MB with 413. NaN-guarded. `ponytail:` comment notes chunked encoding bypass ceiling. |
+| T-009 | Content-Length not checked on webhook endpoint | Auth0 webhook handler | ✅ **FIXED** — `content-length` checked before `req.json()`. Rejects > 1 MB with 413. NaN-guarded. `ponytail:` comment notes chunked encoding bypass ceiling. |
 
 ### 🟡 Medium — Worth tracking
 
