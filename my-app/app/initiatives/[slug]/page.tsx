@@ -58,7 +58,6 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
           ]}
         />
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Status: {initiative.status}</p>
-        <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">Tier {initiative.tier}</p>
         <h1 className="mt-3 text-4xl sm:text-5xl font-bold font-heading tracking-tight text-foreground">{initiative.name}</h1>
         <p className="mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed">{initiative.summary}</p>
 
