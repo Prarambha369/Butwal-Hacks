@@ -22,6 +22,11 @@ COMMENT ON COLUMN feedback.message IS 'The feedback/bug report body';
 COMMENT ON COLUMN feedback.page_url IS 'Page URL where the feedback was submitted from';
 COMMENT ON COLUMN feedback.user_agent IS 'Browser user-agent for debugging';
 
+-- Ensure auth0_user_id column exists on profiles (created here for RLS policies;
+-- fully set up in migration 072 — this is safe because ADD COLUMN IF NOT EXISTS
+-- is a no-op if the column already exists)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS auth0_user_id TEXT;
+
 -- Enable RLS (allows anonymous inserts, restricts reads)
 ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
 
@@ -31,12 +36,13 @@ CREATE POLICY "Anyone can insert feedback" ON feedback
   WITH CHECK (true);
 
 -- Only maintainers can read feedback entries
+-- Auth0 user ID is available via JWT 'sub' claim, matched against profiles.auth0_user_id
 CREATE POLICY "Maintainers can read feedback" ON feedback
   FOR SELECT
   USING (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.clerk_user_id = current_clerk_user_id()
+      WHERE profiles.auth0_user_id = (auth.jwt() ->> 'sub')
         AND profiles.role = 'maintainer'
     )
   );
