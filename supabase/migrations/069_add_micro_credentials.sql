@@ -55,7 +55,7 @@ INSERT INTO micro_credentials (id, name, description, icon, category, rules, xp_
    '{"type": "project_count", "min_count": 3}', 100, 8)
 ON CONFLICT (id) DO NOTHING;
 
--- RLS disabled: auth handled at application layer via Clerk (matching migration 053 pattern)
+-- RLS disabled: auth handled at application layer via legacy auth (matching migration 053 pattern)
 -- Server Action `createAuthenticatedClient()` enforces auth before inserts
 ALTER TABLE micro_credentials DISABLE ROW LEVEL SECURITY;
 ALTER TABLE profile_micro_credentials DISABLE ROW LEVEL SECURITY;

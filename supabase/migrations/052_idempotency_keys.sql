@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS idempotency_keys (
   key TEXT PRIMARY KEY,
-  created_at TIMESTAMZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Auto-expire keys after 24 hours to bound table growth
