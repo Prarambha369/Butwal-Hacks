@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import TopNav from "@/components/top-nav";
 import BottomNav from "@/components/bottom-nav";
 import Footer from "@/components/footer";
+import MaintenanceBanner from "@/components/maintenance-banner";
 
 export const metadata: Metadata = {
   title: "Butwal Hacks | Redesign",
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body className="bg-bg-primary text-text-primary transition-colors duration-300 antialiased">
         <ThemeProvider>
           <div className="flex flex-col min-h-screen relative overflow-x-hidden">
+            <MaintenanceBanner />
             <TopNav />
             {/* Main content wrapper with padding for BottomNav accessibility */}
             <main className="flex-1 relative pb-24 md:pb-0">
