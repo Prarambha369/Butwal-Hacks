@@ -27,27 +27,27 @@ const roleConfig: Record<
 > = {
   hacker: {
     dot: "bg-status-green",
-    badge: "bg-status-green/20 text-status-green border border-status-green/30",
+    badge: "bg-status-green/10 text-status-green border border-status-green/20",
     badgeText: "hacker",
-    activeClass: "bg-surface/10 text-primary",
+    activeClass: "bg-surface-hover text-primary font-semibold",
   },
   sponsor: {
     dot: "bg-status-blue",
-    badge: "bg-status-blue/20 text-status-blue border border-status-blue/30",
+    badge: "bg-status-blue/10 text-status-blue border border-status-blue/20",
     badgeText: "sponsor",
-    activeClass: "bg-status-blue/20 text-primary",
+    activeClass: "bg-status-blue/8 text-primary font-semibold",
   },
   organizer: {
     dot: "bg-status-yellow",
-    badge: "bg-status-yellow/20 text-status-yellow border border-status-yellow/30",
+    badge: "bg-status-yellow/10 text-status-yellow border border-status-yellow/20",
     badgeText: "organizer",
-    activeClass: "bg-surface/10 text-primary",
+    activeClass: "bg-surface-hover text-primary font-semibold",
   },
   maintainer: {
-    dot: "bg-bh-red-500",
-    badge: "bg-bh-red-500/20 text-bh-red-500 border border-bh-red-500/30",
+    dot: "bg-primary-red",
+    badge: "bg-primary-red/10 text-primary-red border border-primary-red/20",
     badgeText: "maintainer",
-    activeClass: "bg-bh-red-600/80 backdrop-blur-xl saturate-150 border border-bh-red-500/50 shadow-[0_4px_20px_var(--glow-bh-red)] text-primary",
+    activeClass: "bg-primary-red/8 text-primary-red font-semibold border border-primary-red/20",
   },
 }
 
@@ -63,7 +63,7 @@ export default function DashboardSidebar({
   const renderSidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Identity block */}
-      <div className="px-4 py-5 border-b border-glass">
+      <div className="px-4 py-5 border-b border-border">
         <div className="flex items-center gap-2 mb-2">
           <span
             className={cn("w-2 h-2 rounded-full flex-shrink-0", config.dot)}
@@ -76,13 +76,12 @@ export default function DashboardSidebar({
           >
             {config.badgeText}
           </span>
-        </div>
-        <p className="text-xs text-primary/50 mb-0.5 font-mono">
-          ID
-        </p>
-        <p className="text-sm text-primary/90 font-semibold tracking-wide truncate font-mono">
-          {slugId}
-        </p>
+        </div>          <p className="text-xs text-muted-foreground mb-0.5 font-mono">
+            ID
+          </p>
+          <p className="text-sm text-primary font-semibold tracking-wide truncate font-mono">
+            {slugId}
+          </p>
       </div>
 
       {/* Nav links */}
@@ -104,7 +103,7 @@ export default function DashboardSidebar({
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
                 isActive
                   ? cn(config.activeClass, "font-medium")
-                  : "text-primary/60 hover:text-primary/90 hover:bg-surface/10"
+                  : "text-text-secondary hover:text-primary hover:bg-surface-hover"
               )}
             >
               <span className="flex-shrink-0 w-4 h-4">{link.icon}</span>
@@ -115,7 +114,7 @@ export default function DashboardSidebar({
       </nav>
 
       {/* OrgSwitcher — chapter switching */}
-      <div className="px-3 py-4 border-t border-glass">
+      <div className="px-3 py-4 border-t border-border">
         <OrgSwitcher />
       </div>
     </div>
@@ -125,7 +124,7 @@ export default function DashboardSidebar({
     <>
       {/* Mobile hamburger button — visible only on small screens */}
       <button
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg lg-surface text-primary/80 hover:text-primary"
+        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bh-card text-text-secondary hover:text-primary"
         onClick={() => setMobileOpen((prev) => !prev)}
         aria-label="Toggle sidebar"
       >
@@ -135,7 +134,7 @@ export default function DashboardSidebar({
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-background/60 z-30"
+          className="md:hidden fixed inset-0 bg-black/20 z-30"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -144,12 +143,12 @@ export default function DashboardSidebar({
       <aside
         className={cn(
           "w-56 flex-shrink-0 flex flex-col",
-          "lg-surface border-r border-glass",
+          "bh-card rounded-none border-r border-border border-t-0 border-l-0 border-b-0",
           // Desktop: always visible, part of flex layout
           "hidden md:flex",
           // Mobile: fixed slide-in when open
           mobileOpen &&
-            "!flex fixed inset-y-0 left-0 z-40 shadow-2xl"
+            "!flex fixed inset-y-0 left-0 z-40 shadow-xl"
         )}
       >
         {renderSidebarContent()}
@@ -158,7 +157,7 @@ export default function DashboardSidebar({
       {/* Mobile sidebar rendered separately to avoid display conflicts */}
       {mobileOpen && (
         <aside
-          className="md:hidden fixed inset-y-0 left-0 z-40 w-56 flex flex-col lg-surface border-r border-glass shadow-2xl"
+          className="md:hidden fixed inset-y-0 left-0 z-40 w-56 flex flex-col bh-card rounded-none border-r border-border shadow-xl"
         >
           {renderSidebarContent()}
         </aside>
