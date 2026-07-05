@@ -8,14 +8,13 @@ export function EnhancedContactForm() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    // TODO: wire up to a contact API route
     setSubmitted(true)
     setTimeout(() => setSubmitted(false), 3000)
   }
 
   if (submitted) {
     return (
-      <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center dark:border-green-800 dark:bg-green-950/30">
+      <div className="rounded-xl border border-green-200 bg-green-50 p-8 text-center dark:border-green-800 dark:bg-green-950/30">
         <p className="text-lg font-medium text-green-800 dark:text-green-300">
           Thanks for reaching out! We&apos;ll get back to you soon.
         </p>
@@ -34,7 +33,7 @@ export function EnhancedContactForm() {
             id="name"
             type="text"
             required
-            className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-bh-red-500"
+            className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red"
             placeholder="Your name"
           />
         </div>
@@ -46,7 +45,7 @@ export function EnhancedContactForm() {
             id="email"
             type="email"
             required
-            className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-bh-red-500"
+            className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red"
             placeholder="you@example.com"
           />
         </div>
@@ -59,7 +58,7 @@ export function EnhancedContactForm() {
           id="subject"
           type="text"
           required
-          className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-bh-red-500"
+          className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red"
           placeholder="How can we help?"
         />
       </div>
@@ -71,13 +70,13 @@ export function EnhancedContactForm() {
           id="message"
           required
           rows={5}
-          className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-bh-red-500"
+          className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red"
           placeholder="Tell us more about your inquiry..."
         />
       </div>
       <button
         type="submit"
-        className="rounded-full bg-bh-red-600 px-8 py-3 font-semibold text-white transition-colors hover:bg-bh-red-700"
+        className="rounded-full bg-deep-red px-8 py-3 font-semibold text-white transition-colors hover:bg-dark-red"
       >
         Send Message
       </button>

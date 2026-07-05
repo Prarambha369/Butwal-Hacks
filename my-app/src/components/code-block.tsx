@@ -18,8 +18,8 @@ export default function CodeBlock({ code, language = "bash" }: CodeBlockProps) {
   };
 
   return (
-    <div className="relative rounded-xl bg-[var(--color-bg-base)] border border-glass overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-glass">
+    <div className="relative rounded-xl bg-[var(--color-bg-base)] border border-border overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border">
         <span className="text-xs font-mono text-secondary">{language}</span>
         <button onClick={handleCopy} className="text-xs text-secondary hover:text-primary transition-colors">
           {copied ? <Check className="w-4 h-4 text-status-green" /> : <Copy className="w-4 h-4" />}
