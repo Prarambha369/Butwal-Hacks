@@ -2,14 +2,21 @@
 
 import React, { useState } from 'react';
 import { Calendar, MapPin, Trophy, Clock, HelpCircle, ArrowRight, ExternalLink, Code, Users, Award, Mail, FileText, ShieldCheck, Globe, Star, Zap, Download } from 'lucide-react';
+import type { EventItem } from '@/lib/content';
+import type { EventItem } from '@/lib/content';
+import type { EventItem } from '@/lib/content';
+import type { EventItem } from '@/lib/content';
 
 export default function ProgramDetail() {
   const [activeTab, setActiveTab] = useState('overview');
 
-  const eventData = {
+  const eventData: EventItem = {
+    slug: "annual-hackathon",
     title: "Annual Hackathon",
     tagline: "Building the future of Western Nepal, one commit at a time.",
-    date: "Sept 15-17, 2024",
+    dateLabel: "Sept 15-17, 2024",
+    initiativeSlug: "hackathon",
+    status: "completed",
     location: "Butwal, Rupandehi",
     type: "Hybrid (In-person & Online)",
     price: "Free",
@@ -19,7 +26,8 @@ export default function ProgramDetail() {
     hostedBy: "Butwal Hacks Foundation",
     managerEmail: "manager@butwalhacks.com",
     requirements: ["A valid ID", "A passion for building", "Laptop & Charger"],
-    whoCanParticipate: "Open to all students and builders aged 15-30 residing in Nepal.",
+    whoCanParticipate: "Open to all students and builders aged 15-30 residing in Nepal",
+    submissions: 127,
   };
 
   const projects = [
