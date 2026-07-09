@@ -1,0 +1,21 @@
+# Supabase Edge Functions configuration
+# Docs: https://supabase.com/docs/guides/functions
+# Deploy: supabase functions deploy <name> --project-ref <ref>
+
+[functions.hello]
+verify_jwt = false
+
+[functions.trust]
+verify_jwt = false
+
+[functions.slack-bot]
+verify_jwt = false
+
+[functions.discord-bot]
+verify_jwt = false
+
+[functions.github-webhook]
+verify_jwt = false
+
+[functions.resend-email]
+verify_jwt = false
