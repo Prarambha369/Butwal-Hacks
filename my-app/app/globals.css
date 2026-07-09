@@ -1,10 +1,15 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap");
 
 :root {
   /* Core Brand (Constant) */
   --color-heritage-red: #E63946;
   --color-temple-black: #1C1C1E;
   --color-builder-white: #F5F5F7;
+  --color-surface-grey: #2C2C2E;
+
+  /* Liquid Glass Dark Surfaces */
+  --glass-dark: rgba(28, 28, 30, 0.72);
 
   /* Light Mode Tokens */
   --bg-primary: #F5F5F7;
@@ -55,9 +60,14 @@
   --glass-red-shadow: rgba(230, 57, 70, 0.3);
 }
 
+.dark {
+  /* Override glass-border for dark mode to match design system */
+  --glass-border: rgba(255, 255, 255, 0.12);
+}
+
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  background-color: var(--color-temple-black, #1C1C1E);
+  color: var(--color-builder-white, #F5F5F7);
   font-family: var(--font-heading);
   margin: 0;
   padding: 0;
@@ -219,6 +229,67 @@ body {
   .bh-scroll-container {
     mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+  }
+
+  /* Liquid Glass Design System — Day 2-3 additions */
+  .bh-glass-dark {
+    background: var(--glass-dark);
+    backdrop-filter: blur(20px);
+  }
+
+  .bh-capsule {
+    border-radius: var(--radius-capsule) !important;
+  }
+
+  .bh-badge-red {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 3px 10px;
+    border-radius: var(--radius-capsule);
+    border: 1px solid rgba(230, 57, 70, 0.5);
+    background: rgba(230, 57, 70, 0.15);
+    color: #E63946;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: inline-block;
+  }
+
+  .bh-badge-yellow {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 3px 10px;
+    border-radius: var(--radius-capsule);
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: inline-block;
+  }
+
+  .bh-mono {
+    font-family: var(--font-mono);
+  }
+
+  .section-fade {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .section-fade.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .scroll-fade-both {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+  }
+
+  .bh-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-surface-grey) transparent;
   }
 }
 
