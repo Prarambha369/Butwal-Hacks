@@ -5,6 +5,7 @@ import TopNav from "@/components/top-nav";
 import BottomNav from "@/components/bottom-nav";
 import Footer from "@/components/footer";
 import MaintenanceBanner from "@/components/maintenance-banner";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Butwal Hacks | Redesign",
@@ -31,6 +32,7 @@ export default function RootLayout({
             <BottomNav />
           </div>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
