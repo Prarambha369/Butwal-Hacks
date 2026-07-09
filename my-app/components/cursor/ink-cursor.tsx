@@ -37,14 +37,14 @@ export default function InkCursor({ enabled = true }: InkCursorProps) {
     let lastMouseX = 0;
     let lastMouseY = 0;
 
-    const handleMouseMove = (e: Comedy a) => {
+    const handleMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
     };
 
     window.addEventListener('mousemove', handleMouseMove);
 
-    const dots = [];
+    const dots: { x: number; y: number; scale: number; offsetX: number; offsetY: number }[] = [];
     const amount = 20;
     const dotSize = 4;
     

@@ -2,19 +2,15 @@
 
 import React, { useState } from 'react';
 import { Calendar, MapPin, Trophy, Clock, HelpCircle, ArrowRight, ExternalLink, Code, Users, Award, Mail, FileText, ShieldCheck, Globe, Star, Zap, Download } from 'lucide-react';
-import type { EventItem } from '@/lib/content';
-import type { EventItem } from '@/lib/content';
-import type { EventItem } from '@/lib/content';
-import type { EventItem } from '@/lib/content';
-
 export default function ProgramDetail() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'logistics' | 'rewards' | 'gallery' | 'resources'>('overview');
 
-  const eventData: EventItem = {
+  const eventData = {
     slug: "annual-hackathon",
     title: "Annual Hackathon",
     tagline: "Building the future of Western Nepal, one commit at a time.",
     dateLabel: "Sept 15-17, 2024",
+    date: "Sept 15-17, 2024",
     initiativeSlug: "hackathon",
     status: "completed",
     location: "Butwal, Rupandehi",
@@ -357,7 +353,7 @@ export default function ProgramDetail() {
             {Object.entries(tabs).map(([key, { label }]) => (
               <button 
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => setActiveTab(key as 'overview' | 'logistics' | 'rewards' | 'gallery' | 'resources')}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                   activeTab === key 
                   ? 'bg-white text-black shadow-sm' 

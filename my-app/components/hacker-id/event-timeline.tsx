@@ -5,7 +5,7 @@ import { Calendar, Clock, CheckCircle2, Trophy, Mic, UserCheck, Award, Star, Use
 import { EventHistory } from '@/lib/hacker-id';
 
 interface EventNodeProps {
-  event: EventHistry;
+  event: EventHistory;
 }
 
 function EventNode({ event }: EventNodeProps) {
