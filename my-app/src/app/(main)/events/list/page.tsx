@@ -1,0 +1,94 @@
+import { createClient } from "@/utils/supabase/server";
+
+import Link from "next/link";
+import { CalendarDays, ArrowRight, MapPin } from "lucide-react";
+import Breadcrumbs from "@/components/breadcrumbs";
+import { buildPageMetadata } from "@/lib/seo";
+import { Metadata } from "next";
+import { logger } from "@/lib/logger";
+
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Events",
+  description: "Browse and manage all Butwal Hacks events.",
+  path: "/events/list",
+});
+
+export default async function EventsListPage() {
+  const supabase = await createClient();
+  
+  const { data: events, error } = await supabase
+    .from("events")
+    .select("*")
+    .order("start_date", { ascending: false });
+
+  if (error) {
+    logger.error("Error fetching events:", error);
+  }
+
+  return (
+    <main className="min-h-screen bg-background py-12 px-6 md:px-20">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Events" }]} />
+        
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-black tracking-tight text-primary">All Events</h1>
+            <p className="text-secondary mt-2">Explore the history and future of Butwal Hacks.</p>
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {events && events.length > 0 ? (
+            events.map((event) => (
+              <div 
+                key={event.id} 
+                className="lg-surface rounded-3xl border border-glass p-6 transition-all hover:border-bh-red-500/30 group"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-2 bg-bh-red-500/10 rounded-lg text-bh-red-500">
+                    <CalendarDays size={20} />
+                  </div>
+                  <span className={`text-[10px] font-mono px-2 py-1 rounded-full border ${
+                    event.is_published ? "border-status-green/30 text-status-green bg-status-green/10" : "border-status-yellow/30 text-status-yellow bg-status-yellow/10"
+                  }`}>
+                    {event.is_published ? "PUBLISHED" : "DRAFT"}
+                  </span>
+                </div>
+                
+                <h3 className="text-xl font-bold text-primary mb-2 group-hover:text-bh-red-500 transition-colors">
+                  {event.title}
+                </h3>
+                
+                <div className="space-y-2 mb-6">
+                  <div className="flex items-center gap-2 text-sm text-secondary">
+                    <MapPin size={14} />
+                    <span>{event.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-secondary font-mono">
+                    <CalendarDays size={14} />
+                    <span>{new Date(event.start_date).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Link 
+                    href={`/events/${event.id}`} 
+                    className="text-xs font-bold flex items-center gap-1 text-bh-red-500 hover:underline"
+                  >
+                    View Details <ArrowRight size={12} />
+                  </Link>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full py-20 text-center space-y-4">
+              <p className="text-secondary font-mono">No events found in the database.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
