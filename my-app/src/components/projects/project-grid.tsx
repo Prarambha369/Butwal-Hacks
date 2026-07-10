@@ -85,7 +85,7 @@ export default function ProjectGrid() {
       const { data, error } = await query;
       if (error) throw error;
 
-      let results = (data || []) as ProjectWithLikes[];
+      const results = (data || []) as ProjectWithLikes[];
 
       // Client-side sort for trending/top (needs likes count)
       if (sortBy === 'trending') {

@@ -6,7 +6,7 @@ export async function requireAuth() {
   const session = await auth0.getSession();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/auth/login");
   }
 
   return session.user.sub;
@@ -16,7 +16,7 @@ export async function requireRole(role: "hacker" | "sponsor" | "organizer" | "ma
   const session = await auth0.getSession();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/auth/login");
   }
 
   const supabase = createServiceClient();

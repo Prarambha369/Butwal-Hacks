@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-// Auth0 mounts logout at /api/auth/logout via the [auth0] catch-all route
+// Auth0 v4 mounts logout at /auth/logout via the proxy middleware
 export default function SignOutPage() {
-  redirect("/api/auth/logout")
+  redirect("/auth/logout")
 }

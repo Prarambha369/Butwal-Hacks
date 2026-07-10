@@ -24,7 +24,7 @@
 - [ ] **Auth0 Action (Post-Login)**: Create a Post-Login Action that fires `POST` to
       `https://butwalhacks.com/api/webhooks/auth0` with `{ sub, email, name }` payload.
       Without this, new users won't get a Supabase profile and login will redirect in a loop.
-- [ ] Allowed Callback URLs: `https://butwalhacks.com/api/auth/callback`
+- [ ] Allowed Callback URLs: `https://butwalhacks.com/auth/callback`
 - [ ] Allowed Logout URLs: `https://butwalhacks.com`
 - [ ] Allowed Web Origins: `https://butwalhacks.com`
 - [ ] Application Type: Regular Web Application

@@ -33,7 +33,7 @@ export default function ProfilePage() {
           <Button
             variant="default"
             className="rounded-full px-8"
-            onClick={() => (window.location.href = "/api/auth/login")}
+            onClick={() => (window.location.href = "/auth/login")}
           >
             Sign In
           </Button>
@@ -84,7 +84,7 @@ export default function ProfilePage() {
             <div className="pt-4">
               <Button
                 variant="default"
-                onClick={() => (window.location.href = "/api/auth/logout")}
+                onClick={() => (window.location.href = "/auth/logout")}
               >
                 Sign Out
               </Button>
