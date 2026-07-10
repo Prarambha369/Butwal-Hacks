@@ -50,7 +50,8 @@ function sendToAxiom(entries: { level: string; message: string; timestamp: strin
  *  worst case mixes log entries from concurrent requests, losing request correlation.
  *  Upgrade path: instantiate a per-request Logger via next-axiom's Logger class and
  *  pass it along instead of using a global singleton. */
-let batch: { level: string; message: string; timestamp: string }[] = [];
+// ponytail: const is safe — splice/push mutate the array without reassigning
+const batch: { level: string; message: string; timestamp: string }[] = [];
 
 /** Flush buffered log entries to Axiom synchronously (fire-and-forget). */
 function flush() {

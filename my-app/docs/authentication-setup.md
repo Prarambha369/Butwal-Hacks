@@ -49,8 +49,8 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
    - `http://localhost:3000` (development)
    - `https://yourdomain.com` (production)
 6. Add redirect URIs:
-   - `http://localhost:3000/api/auth/callback/google`
-   - `https://yourdomain.com/api/auth/callback/google`
+   - `http://localhost:3000/auth/callback/google`
+   - `https://yourdomain.com/auth/callback/google`
 7. Copy the Client ID and Secret
 
 ### 2. GitHub OAuth Setup
@@ -59,8 +59,8 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 2. Create a new OAuth App
 3. Set Homepage URL to your domain
 4. Set Authorization callback URL to:
-   - `http://localhost:3000/api/auth/callback/github` (development)
-   - `https://yourdomain.com/api/auth/callback/github` (production)
+   - `http://localhost:3000/auth/callback/github` (development)
+   - `https://yourdomain.com/auth/callback/github` (production)
 5. Copy the Client ID and Secret
 
 ### 3. Configure in Clerk Dashboard

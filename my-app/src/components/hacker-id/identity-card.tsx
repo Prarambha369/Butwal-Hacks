@@ -21,6 +21,9 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
     setMounted(true);
   }, []);
 
+  // ponytail: hooks must be called before early return — moved usePresence here
+  const onlineIds = usePresence();
+
   const copyId = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -32,8 +35,6 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
   };
 
   if (!mounted) return <div className="h-80 w-full lg-surface rounded-3xl animate-pulse" />;
-
-  const onlineIds = usePresence();
   const isOnline = !!(profile.clerk_user_id && onlineIds.has(profile.clerk_user_id))
 
   const isOrganizer = profile.role === 'Organizer';

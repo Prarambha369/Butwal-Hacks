@@ -1,4 +1,3 @@
-import { withAxiom } from "next-axiom"
 import type { NextConfig } from "next";
 
 /**
@@ -9,7 +8,6 @@ import type { NextConfig } from "next";
  *  - reactStrictMode: enabled (catches common React pitfalls early)
  *  - images.remotePatterns: whitelist for future external images (CDN, avatars)
  *  - Security headers: CSP, HSTS, X-Frame-Options, X-Content-Type-Options
- *  - Axiom logging: via withAxiom() wrapper for Vercel log drain integration
  */
 
 // Content Security Policy directives
@@ -86,4 +84,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withAxiom(nextConfig);
+export default nextConfig;
