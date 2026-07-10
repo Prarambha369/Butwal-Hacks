@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+@theme {
+  /* 🔴 OFFICIAL BRAND PALETTE — Heritage Red Scale */
+  --color-primary-red: #FE0000;
+  --color-deep-red: #B10000;
+  --color-dark-red: #7b0000;
+  --color-dark-red-deeper: #420000;
+  --color-light-red: #ff7c7c;
+  --color-light-red-soft: #ffb9b9;
+
+  /* ✨ Component-Specific Red Tokens (used across 122+ components) */
+  --color-bh-red-500: #FE0000;
+  --color-bh-red-600: #FE0000;
+  --color-bh-red-700: #B10000;
+  --color-bh-red-900: #420000;
+
+  /* ⚫ Neutral Scale — Temple Black */
+  --color-bg-base: #242424;
+  --color-surface: #434343;
+  --color-border: #656565;
+  --color-text-muted: #898989;
+  --color-text-body: #d6d6d6;
+  --color-text-primary: #FFFFFF;
+
+  /* 🔁 Compatibility mappings with existing Tailwind class references */
+  --color-red-300: var(--color-primary-red);
+  --color-red-400: var(--color-deep-red);
+  --color-bg: var(--color-bg-base);
+  --color-neutral-600: var(--color-bg-base);
+  --color-neutral-500: var(--color-surface);
+  --color-neutral-400: var(--color-border);
+  --color-neutral-300: var(--color-text-muted);
+  --color-neutral-200: var(--color-text-body);
+  --color-neutral-50: var(--color-text-primary);
+  --color-border-border: var(--color-border);
+
+  /* 🌟 Glow Tokens (used in radial backgrounds and box-shadows) */
+  --color-glow-bh-red: rgba(254, 0, 0, 0.35);
+  --color-glow-bh-red-soft: rgba(254, 0, 0, 0.15);
+
+  /* 🎨 Status colors (shared tokens for badges, alerts) */
+  --color-status-green: #4CAF50;
+  --color-status-blue: #2196F3;
+  --color-status-teal: #00BCD4;
+  --color-status-yellow: #FFC107;
+  --color-status-orange: #FF9800;
+}
+
+@layer base {
+  /* Focus-visible ring for keyboard navigation */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-red/50 ring-offset-2 ring-offset-bg-base rounded-lg;
+  }
+
+  body {
+    @apply bg-bg-base text-text-body;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* 💎 LIQUID GLASS UTILITIES */
+@layer utilities {
+  /* Standard glass surface — the primary card/container pattern */
+  .lg-surface {
+    @apply bg-surface/70 backdrop-blur-[30px] saturate-[180%] border border-border/30 rounded-[20px];
+  }
+  .glass-card {
+    @apply bg-surface/70 backdrop-blur-[30px] saturate-[180%] border border-border/30 rounded-[20px];
+  }
+
+  /* 🔴 Red-tinted glass surface — for Trust Markers, premium CTAs */
+  .lg-surface-red {
+    @apply bg-bh-red-600/80 backdrop-blur-[30px] saturate-[180%] border border-bh-red-500/50 rounded-[20px] shadow-[0_4px_24px_-4px_var(--color-glow-bh-red)];
+  }
+
+  /* Primary action button */
+  .btn-primary {
+    @apply bg-primary-red hover:bg-deep-red text-white rounded-full font-bold transition-all duration-300;
+  }
+
+  /* 🔴 Verified Trust Marker glow */
+  .trust-glow {
+    @apply border-primary-red shadow-[0_0_15px_rgba(254,0,0,0.3)];
+  }
+
+  /* Muted strikethrough for revoked Trust Markers */
+  .trust-revoked {
+    @apply text-text-muted line-through;
+  }
+
+  /* 📐 Concentric Math: Inner Radius = Outer Radius - Padding
+     Usage: Outer card is rounded-[20px] with p-4 (16px padding).
+            Inner element uses this class = rounded-[4px] (20-16=4). */
+  .lg-concentric-inner {
+    @apply rounded-[4px] overflow-hidden;
+  }
+
+  /* 🌟 Ambient radial glow for hero sections and auth pages */
+  .glow-red {
+    @apply rounded-full bg-primary-red/5 blur-[120px] pointer-events-none;
+  }
+  .glow-red-soft {
+    @apply rounded-full bg-primary-red/[0.08] blur-[100px] pointer-events-none;
+  }
+
+  /* Custom scrollbar for dashboard modals and lists */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 9999px;
+  }
+
+  /* ── Secondary Button (Glass Outline) ────────────────────────────
+     Usage: Secondary action, outlined variant.
+     Classes: bg-transparent border border-border/50 hover:bg-surface/50 */
+  .btn-secondary {
+    @apply bg-transparent hover:bg-surface/50 text-text-primary font-medium rounded-full px-6 py-2.5 border border-border/50 transition-all duration-300;
+  }
+
+  /* ── Icon Button (40x40 Glass Square) ────────────────────────────
+     Usage: Settings, close, menu toggles.
+     Classes: h-10 w-10 rounded-[12px] */
+  .btn-icon {
+    @apply bg-surface/70 backdrop-blur-[30px] text-text-primary h-10 w-10 rounded-[12px] border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-surface;
+  }
+
+  /* ── Text Input Field ───────────────────────────────────────────
+     Usage: All form text inputs, textareas.
+     Classes: rounded-[12px] border-border/30 focus:border-primary-red */
+  .input-field {
+    @apply bg-bg-base/50 text-text-primary text-base font-normal px-4 py-3 rounded-[12px] border border-border/30 placeholder-text-muted transition-all duration-300 focus:outline-none focus:border-primary-red focus:ring-2 focus:ring-primary-red/20;
+  }
+}
+
+

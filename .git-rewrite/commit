@@ -1,0 +1,30 @@
+tree 1183538bf73704c3e74aedadb39c0060f8e78f13
+parent 4a145da1facad639145c1a4070c8766007343c1b
+author Copilot <198982749+Copilot@users.noreply.github.com> 1766522457 +0545
+committer GitHub <noreply@github.com> 1766522457 +0545
+
+Add coming soon landing page for Butwal Hacks (#1)
+
+* Initial plan
+
+* Create vibrant coming soon website for Butwal Hacks
+
+Co-authored-by: Prarambha369 <98906077+Prarambha369@users.noreply.github.com>
+
+* Optimize CSS performance with backdrop-filter fallbacks and responsive circles
+
+Co-authored-by: Prarambha369 <98906077+Prarambha369@users.noreply.github.com>
+
+* feat: initialize Next.js project with essential configurations and dependencies
+
+- Added package.json with scripts for development, build, and linting.
+- Included essential dependencies such as React, Next.js, Tailwind CSS, and Radix UI components.
+- Created postcss.config.mjs for Tailwind CSS integration.
+- Added SVG assets for icons and logos in the public directory.
+- Configured TypeScript with strict settings and Next.js support in tsconfig.json.
+
+---------
+
+Co-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>
+Co-authored-by: Prarambha369 <98906077+Prarambha369@users.noreply.github.com>
+Co-authored-by: MrBashyal <prarambhabashyal@gmail.com>

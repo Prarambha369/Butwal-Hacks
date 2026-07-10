@@ -18,7 +18,7 @@ my-app/
 ├── app/                  # Next.js App Router pages
 │   ├── layout.tsx        # Root layout: fonts, analytics, providers, SEO
 │   ├── page.tsx          # Home page
-│   ├── globals.css       # Global styles and CSS tokens
+│   ├── main.css       # Global styles and CSS tokens
 │   ├── sitemap.ts        # Auto-generated sitemap
 │   ├── robots.ts         # robots.txt generation
 │   ├── not-found.tsx     # 404 page
