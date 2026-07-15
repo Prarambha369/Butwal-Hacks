@@ -4,7 +4,7 @@ import { createServiceClient } from "@/utils/supabase/service";
 import { sanitizeString, sanitizeUrl, sanitizeName } from "@/lib/validation";
 import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
-import { auth0 } from "@/lib/auth0";
+import { resolveProfileId } from "@/lib/profile-resolver";
 
 interface SponsorProfileData {
   companyName: string;
@@ -17,25 +17,18 @@ interface SponsorProfileData {
 
 export async function getSponsorProfile() {
   try {
-    const session = await auth0.getSession();
-    if (!session?.user) return null;
-    const userId = session.user.sub;
-
     const supabase = createServiceClient();
-
-    // Get the profile id for this user
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth0_user_id", userId)
-      .single();
-
-    if (!profile) return null;
+    let profileId: string | undefined;
+    try {
+      profileId = await resolveProfileId();
+    } catch {
+      return null; // not signed in or no profile
+    }
 
     const { data: sponsor } = await supabase
       .from("sponsor_profiles")
       .select("*")
-      .eq("profile_id", profile.id)
+      .eq("profile_id", profileId)
       .maybeSingle();
 
     return sponsor;
@@ -47,16 +40,14 @@ export async function getSponsorProfile() {
 
 export async function upsertSponsorProfile(data: SponsorProfileData) {
   try {
-    const session = await auth0.getSession();
-    if (!session?.user) throw new Error("Not authenticated");
-    const userId = session.user.sub;
-
     const supabase = createServiceClient();
+    const profileId = await resolveProfileId();
 
+    // Verify sponsor role
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id, role")
-      .eq("auth0_user_id", userId)
+      .select("role")
+      .eq("id", profileId)
       .single();
 
     if (!profile) throw new Error("Profile not found");
@@ -74,14 +65,14 @@ export async function upsertSponsorProfile(data: SponsorProfileData) {
     const { error } = await supabase
       .from("sponsor_profiles")
       .upsert({
-        profile_id: profile.id,
+        profile_id: profileId,
         ...sanitized,
         updated_at: new Date().toISOString(),
       }, { onConflict: "profile_id" });
 
     if (error) throw error;
 
-    revalidatePath("/dashboard/sponsor/company");
+    revalidatePath("/portal/sponsors/company");
     return { success: true, message: "Company profile saved!" };
   } catch (error) {
     logger.error("[sponsor-profile] Error upserting:", error);

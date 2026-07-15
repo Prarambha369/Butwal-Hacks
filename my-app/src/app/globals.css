@@ -1,113 +1,605 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   🧱 KLONER.APP DESIGN SYSTEM — Flat, crisp, block-based aesthetic
+   ═══════════════════════════════════════════════════════════════════════════
+   Pure White (#FFFFFF) or light gray (#F7F7F8) backgrounds.
+   Deep Charcoal (#1F1F1F) text. Crisp 1px borders (#E5E5E5).
+   Solid white cards. NO backdrop-blur. NO glass surfaces.
+   Selective red glow (--bh-glow-red) on primary CTAs only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Light mode (default) ────────────────────────────────────────── */
+:root {
+  /* 🔴 Brand red — same in both modes */
+  --bh-primary-red: #FE0000;
+  --bh-deep-red: #B10000;
+  --bh-dark-red: #7b0000;
+  --bh-light-red: #ff7c7c;
+  --bh-light-red-soft: #ffb9b9;
+
+  /* ☀️ Light surface — clean white / light gray */
+  --bh-bg-base: #F7F7F8;
+  --bh-surface: #FFFFFF;
+  --bh-surface-hover: #F0F0F2;
+  --bh-border: #E5E5E5;
+  --bh-border-light: #EBEBEB;
+  --bh-text-muted: #888888;
+  --bh-text-secondary: #666666;
+  --bh-text-body: #333333;
+  --bh-text-primary: #1F1F1F;
+
+  /* 🎨 Status colors */
+  --bh-status-green: #16A34A;
+  --bh-status-blue: #2563EB;
+  --bh-status-teal: #0D9488;
+  --bh-status-yellow: #CA8A04;
+  --bh-status-orange: #EA580C;
+  --bh-status-red: #DC2626;
+
+  /* 🌟 Shadows — subtle on light backgrounds */
+  --bh-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --bh-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --bh-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --bh-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+
+  /* 🔥 Accent glow — primary CTAs only */
+  --bh-glow-red: 0 0 20px rgba(254, 0, 0, 0.2);
+  --bh-glow-red-soft: 0 0 12px rgba(254, 0, 0, 0.12);
+
+  /* 🌑 Inverse surface — dark background for CTAs and code blocks */
+  --bh-surface-inverse: #1F1F1F;
+
+  /* 🧱 Surface tokens — solid, no blur */
+  --bh-glass-bg: #FFFFFF;
+  --bh-glass-border: #E5E5E5;
+  --bh-glass-blur: 0px;
+  --bh-glass-saturate: 100%;
+}
+
+/* ── Dark mode ───────────────────────────────────────────────────── */
+.dark {
+  --bh-bg-base: #1a1a1a;
+  --bh-surface: #2a2a2a;
+  --bh-surface-hover: #3a3a3a;
+  --bh-border: #4a4a4a;
+  --bh-border-light: #3a3a3a;
+  --bh-text-muted: #7a7a7a;
+  --bh-text-secondary: #909090;
+  --bh-text-body: #cccccc;
+  --bh-text-primary: #f0f0f0;
+
+  /* 🎨 Status colors — slightly more vibrant */
+  --bh-status-green: #4ADE80;
+  --bh-status-blue: #60A5FA;
+  --bh-status-teal: #2DD4BF;
+  --bh-status-yellow: #FACC15;
+  --bh-status-orange: #FB923C;
+  --bh-status-red: #F87171;
+
+  /* 🔥 Accent glow — slightly brighter on dark */
+  --bh-glow-red: 0 0 30px rgba(254, 0, 0, 0.45);
+  --bh-glow-red-soft: 0 0 16px rgba(254, 0, 0, 0.25);
+
+  /* 🌑 Dark shadows — deeper on dark backgrounds */
+  --bh-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --bh-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --bh-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --bh-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+
+  /* 🌑 Inverse surface — lighter panel in dark mode to contrast against bg-base */
+  --bh-surface-inverse: #333333;
+
+  /* 🧱 Surface tokens — solid dark, no blur */
+  --bh-glass-bg: #2a2a2a;
+  --bh-glass-border: #4a4a4a;
+  --bh-glass-blur: 0px;
+  --bh-glass-saturate: 100%;
+}
+
+/* Fix focus ring offset for dark backgrounds */
+.dark *:focus-visible {
+  @apply ring-offset-[#2a2a2a];
+}
+
+/* Fix focus ring offset for light backgrounds */
+*:focus-visible {
+  @apply ring-offset-white;
+}
 
 @theme {
-  /* 🔴 OFFICIAL BRAND PALETTE — Heritage Red Scale */
-  --color-primary-red: #FE0000;
-  --color-deep-red: #B10000;
-  --color-dark-red: #7b0000;
-  --color-dark-red-deeper: #420000;
-  --color-light-red: #ff7c7c;
-  --color-light-red-soft: #ffb9b9;
+  /* 🔴 Brand */
+  --color-primary-red: var(--bh-primary-red);
+  --color-deep-red: var(--bh-deep-red);
+  --color-dark-red: var(--bh-dark-red);
+  --color-light-red: var(--bh-light-red);
+  --color-light-red-soft: var(--bh-light-red-soft);
+  --color-bh-red-500: var(--bh-primary-red);
+  --color-bh-red-600: var(--bh-deep-red);
+  --color-bh-red-700: var(--bh-dark-red);
 
-  /* ✨ Component-Specific Red Tokens (used across 122+ components) */
-  --color-bh-red-500: #FE0000;
-  --color-bh-red-600: #FE0000;
-  --color-bh-red-700: #B10000;
-  --color-bh-red-900: #420000;
+  /* 🌑 Neutral Scale */
+  --color-bg-base: var(--bh-bg-base);
+  --color-surface: var(--bh-surface);
+  --color-border: var(--bh-border);
+  --color-border-light: var(--bh-border-light);
+  --color-text-muted: var(--bh-text-muted);
+  --color-secondary: var(--bh-text-secondary);
+  --color-text-body: var(--bh-text-body);
+  --color-text-primary: var(--bh-text-primary);
 
-  /* ⚫ Neutral Scale — Temple Black */
-  --color-bg-base: #242424;
-  --color-surface: #434343;
-  --color-border: #656565;
-  --color-text-muted: #898989;
-  --color-text-body: #d6d6d6;
-  --color-text-primary: #FFFFFF;
+  /* ── Aliases ── */
+  --color-primary: var(--bh-text-primary);
+  --color-primary-foreground: white;
+  --color-surface-hover: var(--bh-surface-hover);
 
-  /* 🔁 Compatibility mappings with existing Tailwind class references */
-  --color-red-300: var(--color-primary-red);
-  --color-red-400: var(--color-deep-red);
-  --color-bg: var(--color-bg-base);
-  --color-neutral-600: var(--color-bg-base);
-  --color-neutral-500: var(--color-surface);
-  --color-neutral-400: var(--color-border);
-  --color-neutral-300: var(--color-text-muted);
-  --color-neutral-200: var(--color-text-body);
-  --color-neutral-50: var(--color-text-primary);
-  --color-border-border: var(--color-border);
+  /* 🌑 Inverse surface */
+  --color-surface-inverse: var(--bh-surface-inverse);
 
-  /* 🌟 Glow Tokens (used in radial backgrounds and box-shadows) */
-  --color-glow-bh-red: rgba(254, 0, 0, 0.35);
-  --color-glow-bh-red-soft: rgba(254, 0, 0, 0.15);
+  /* 🎨 Status colors */
+  --color-status-green: var(--bh-status-green);
+  --color-status-blue: var(--bh-status-blue);
+  --color-status-teal: var(--bh-status-teal);
+  --color-status-yellow: var(--bh-status-yellow);
+  --color-status-orange: var(--bh-status-orange);
+  --color-status-red: var(--bh-status-red);
 
-  /* 🎨 Status colors (shared tokens for badges, alerts) */
-  --color-status-green: #4CAF50;
-  --color-status-blue: #2196F3;
-  --color-status-teal: #00BCD4;
-  --color-status-yellow: #FFC107;
-  --color-status-orange: #FF9800;
+  /* ✍️ Font families */
+  --font-sans: var(--font-dm-sans), "DM Sans", "Inter", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
+
+  /* 🏛️ Shadcn compatibility */
+  --color-background: var(--bh-bg-base);
+  --color-foreground: var(--bh-text-body);
+  --color-muted: var(--bh-surface-hover);
+  --color-muted-foreground: var(--bh-text-muted);
+  --color-card: var(--bh-surface);
+  --color-card-foreground: var(--bh-text-primary);
+  --color-ring: var(--bh-primary-red);
+  --color-border: var(--bh-border);
 }
 
 @layer base {
-  /* Focus-visible ring for keyboard navigation */
   *:focus-visible {
-    @apply outline-none ring-2 ring-primary-red/50 ring-offset-2 ring-offset-bg-base rounded-lg;
+    @apply outline-none ring-2 ring-primary-red/60 ring-offset-2 ring-offset-[#242424] rounded-lg;
   }
 
   body {
-    @apply bg-bg-base text-text-body;
+    @apply bg-bg-base text-text-body font-sans antialiased overflow-x-hidden;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-primary font-bold;
+  }
+
+  ::selection {
+    @apply bg-primary-red/20 text-primary-red;
   }
 }
 
-/* 💎 LIQUID GLASS UTILITIES */
 @layer utilities {
-  /* Standard glass surface — the primary card/container pattern */
+  /* 🧱 Solid surface — flat white/gray card, 1px border, no blur */
+  .bh-surface-solid {
+    background: var(--bh-surface);
+    border: 1px solid var(--bh-border);
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  /* 💎 Legacy glass surface — kept for compat, but blur is 0 */
   .lg-surface {
-    @apply bg-surface/70 backdrop-blur-[30px] saturate-[180%] border border-border/30 rounded-[20px];
-  }
-  .glass-card {
-    @apply bg-surface/70 backdrop-blur-[30px] saturate-[180%] border border-border/30 rounded-[20px];
+    background: var(--bh-glass-bg);
+    backdrop-filter: blur(var(--bh-glass-blur)) saturate(var(--bh-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--bh-glass-blur)) saturate(var(--bh-glass-saturate));
+    border: 1px solid var(--bh-glass-border);
   }
 
-  /* 🔴 Red-tinted glass surface — for Trust Markers, premium CTAs */
   .lg-surface-red {
-    @apply bg-bh-red-600/80 backdrop-blur-[30px] saturate-[180%] border border-bh-red-500/50 rounded-[20px] shadow-[0_4px_24px_-4px_var(--color-glow-bh-red)];
+    background: var(--bh-primary-red);
+    border: 1px solid rgba(254, 0, 0, 0.4);
   }
 
-  /* Primary action button */
-  .btn-primary {
-    @apply bg-primary-red hover:bg-deep-red text-white rounded-full font-bold transition-all duration-300;
+  /* 🃏 Card — solid white, 1px border, no blur */
+  .bh-card {
+    background: var(--bh-glass-bg);
+    border: 1px solid var(--bh-glass-border);
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
   }
 
-  /* 🔴 Verified Trust Marker glow */
-  .trust-glow {
-    @apply border-primary-red shadow-[0_0_15px_rgba(254,0,0,0.3)];
+  .bh-card-hover {
+    background: var(--bh-glass-bg);
+    border: 1px solid var(--bh-glass-border);
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .bh-card-hover:hover {
+    box-shadow: var(--bh-shadow-md);
+    transform: translateY(-0.125rem);
+    border-color: rgba(254, 0, 0, 0.3);
   }
 
-  /* Muted strikethrough for revoked Trust Markers */
-  .trust-revoked {
-    @apply text-text-muted line-through;
+  .bh-card-interactive {
+    background: var(--bh-glass-bg);
+    border: 1px solid var(--bh-glass-border);
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .bh-card-interactive:hover {
+    box-shadow: var(--bh-shadow-md);
+    transform: translateY(-0.125rem);
+    border-color: rgba(254, 0, 0, 0.5);
   }
 
-  /* 📐 Concentric Math: Inner Radius = Outer Radius - Padding
-     Usage: Outer card is rounded-[20px] with p-4 (16px padding).
-            Inner element uses this class = rounded-[4px] (20-16=4). */
-  .lg-concentric-inner {
-    @apply rounded-[4px] overflow-hidden;
+  /* 🔘 Primary pill button (Kloner.app spec: pill-shaped, glow on hover) */
+  .bh-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    background-color: var(--bh-primary-red);
+    color: white;
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s;
+    outline: none;
+  }
+  .bh-btn-primary:hover {
+    background-color: var(--bh-deep-red);
+    box-shadow: var(--bh-glow-red);
+  }
+  .bh-btn-primary:focus-visible {
+    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-[#242424];
+  }
+  .bh-btn-primary:active {
+    transform: scale(0.97);
+  }
+  .bh-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
   }
 
-  /* 🌟 Ambient radial glow for hero sections and auth pages */
-  .glow-red {
-    @apply rounded-full bg-primary-red/5 blur-[120px] pointer-events-none;
+  /* 🔘 Secondary pill button — outline style */
+  .bh-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    background: var(--bh-surface);
+    color: var(--bh-text-primary);
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 0.625rem 1.5rem;
+    border: 1px solid var(--bh-border);
+    transition: all 0.2s;
+    outline: none;
   }
-  .glow-red-soft {
-    @apply rounded-full bg-primary-red/[0.08] blur-[100px] pointer-events-none;
+  .bh-btn-secondary:hover {
+    background-color: var(--bh-surface-hover);
+    border-color: var(--bh-border);
+  }
+  .bh-btn-secondary:focus-visible {
+    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-[#242424];
+  }
+  .bh-btn-secondary:active {
+    transform: scale(0.97);
   }
 
-  /* Custom scrollbar for dashboard modals and lists */
+  /* 🔘 Ghost button */
+  .bh-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    color: var(--bh-text-secondary);
+    font-weight: 500;
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s;
+    outline: none;
+  }
+  .bh-btn-ghost:hover {
+    background-color: var(--bh-surface-hover);
+    color: var(--bh-text-primary);
+  }
+  .bh-btn-ghost:focus-visible {
+    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-[#242424];
+  }
+  .bh-btn-ghost:active {
+    transform: scale(0.97);
+  }
+
+  /* 🔘 Pill variants (kept for backward compat, aliased to primary/secondary) */
+  .bh-btn-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    background-color: var(--bh-primary-red);
+    color: white;
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s;
+    outline: none;
+  }
+  .bh-btn-pill:hover {
+    background-color: var(--bh-deep-red);
+    box-shadow: var(--bh-glow-red);
+  }
+  .bh-btn-pill:focus-visible {
+    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-[#242424];
+  }
+  .bh-btn-pill:active {
+    transform: scale(0.97);
+  }
+
+  .bh-btn-outline-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    background: var(--bh-surface);
+    color: var(--bh-text-primary);
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 0.625rem 1.5rem;
+    border: 1px solid var(--bh-border);
+    transition: all 0.2s;
+    outline: none;
+  }
+  .bh-btn-outline-pill:hover {
+    background-color: var(--bh-surface-hover);
+  }
+  .bh-btn-outline-pill:focus-visible {
+    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-[#242424];
+  }
+  .bh-btn-outline-pill:active {
+    transform: scale(0.97);
+  }
+
+  /* 🔘 Icon-only buttons — ensure 44x44 touch targets */
+  .bh-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 9999px;
+    transition: all 0.2s;
+    outline: none;
+    color: var(--bh-text-secondary);
+  }
+  .bh-icon-btn:hover {
+    background-color: var(--bh-surface-hover);
+    color: var(--bh-text-primary);
+  }
+  .bh-icon-btn:focus-visible {
+    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-[#242424];
+  }
+
+  /* 📝 Inputs — flat, no blur */
+  .bh-input {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    min-height: 44px;
+    background: var(--bh-surface);
+    color: var(--bh-text-primary);
+    border-radius: 0.5rem;
+    border: 1px solid var(--bh-border);
+    transition: all 0.2s;
+    outline: none;
+  }
+  .bh-input::placeholder {
+    color: var(--bh-text-muted);
+  }
+  .bh-input:focus {
+    border-color: var(--bh-primary-red);
+    box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.2);
+  }
+
+  .bh-input-sm {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    min-height: 36px;
+    font-size: 0.875rem;
+    background: var(--bh-surface);
+    color: var(--bh-text-primary);
+    border-radius: 0.5rem;
+    border: 1px solid var(--bh-border);
+    transition: all 0.2s;
+    outline: none;
+  }
+  .bh-input-sm:focus {
+    border-color: var(--bh-primary-red);
+    box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.2);
+  }
+
+  .bh-select {
+    width: 100%;
+    padding: 0.625rem 2.25rem 0.625rem 1rem;
+    min-height: 44px;
+    background: var(--bh-surface);
+    color: var(--bh-text-primary);
+    border-radius: 0.5rem;
+    border: 1px solid var(--bh-border);
+    transition: all 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A0A0A0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+  .bh-select:focus {
+    border-color: var(--bh-primary-red);
+    box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.2);
+  }
+
+  .bh-textarea {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    background: var(--bh-surface);
+    color: var(--bh-text-primary);
+    border-radius: 0.5rem;
+    border: 1px solid var(--bh-border);
+    transition: all 0.2s;
+    resize: vertical;
+    min-height: 100px;
+    outline: none;
+  }
+  .bh-textarea:focus {
+    border-color: var(--bh-primary-red);
+    box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.2);
+  }
+
+  /* 🏷️ Badges */
+  .bh-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-height: 24px;
+  }
+
+  .bh-badge-red {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-height: 24px;
+    background-color: rgba(254, 0, 0, 0.15);
+    color: var(--bh-primary-red);
+  }
+
+  .bh-badge-green {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-height: 24px;
+    background-color: rgba(34, 197, 94, 0.15);
+    color: var(--bh-status-green);
+  }
+
+  .bh-badge-blue {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-height: 24px;
+    background-color: rgba(59, 130, 246, 0.15);
+    color: var(--bh-status-blue);
+  }
+
+  .bh-badge-yellow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-height: 24px;
+    background-color: rgba(234, 179, 8, 0.18);
+    color: var(--bh-status-yellow);
+  }
+
+  .bh-badge-gray {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-height: 24px;
+    background-color: var(--bh-surface-hover);
+    color: var(--bh-text-secondary);
+  }
+
+  /* 🪟 Dividers */
+  .bh-divider {
+    border-top: 1px solid var(--bh-border);
+  }
+
+  /* 🔗 Section spacing */
+  .bh-section {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+  @media (min-width: 768px) {
+    .bh-section {
+      padding-top: 6rem;
+      padding-bottom: 6rem;
+    }
+  }
+
+  /* 🎯 Container */
+  .bh-container {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 80rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  @media (min-width: 640px) {
+    .bh-container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .bh-container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  /* 📊 Tag/Pill — flat surface, no blur */
+  .bh-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--bh-surface);
+    color: var(--bh-text-secondary);
+    border: 1px solid var(--bh-border);
+  }
+
+  /* Custom scrollbar */
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-border) transparent;
+    scrollbar-color: var(--bh-border) transparent;
   }
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
@@ -116,30 +608,87 @@
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: var(--color-border);
+    background: var(--bh-border);
     border-radius: 9999px;
   }
 
-  /* ── Secondary Button (Glass Outline) ────────────────────────────
-     Usage: Secondary action, outlined variant.
-     Classes: bg-transparent border border-border/50 hover:bg-surface/50 */
-  .btn-secondary {
-    @apply bg-transparent hover:bg-surface/50 text-text-primary font-medium rounded-full px-6 py-2.5 border border-border/50 transition-all duration-300;
+  /* 📱 Safe area padding for notched mobile devices */
+  .bh-pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  /* ── Icon Button (40x40 Glass Square) ────────────────────────────
-     Usage: Settings, close, menu toggles.
-     Classes: h-10 w-10 rounded-[12px] */
-  .btn-icon {
-    @apply bg-surface/70 backdrop-blur-[30px] text-text-primary h-10 w-10 rounded-[12px] border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-surface;
+  /* 🤖 BH Bot typing indicator animation */
+  @keyframes bh-typing {
+    0%, 60%, 100% {
+      opacity: 0.3;
+      transform: translateY(0);
+    }
+    30% {
+      opacity: 1;
+      transform: translateY(-4px);
+    }
   }
 
-  /* ── Text Input Field ───────────────────────────────────────────
-     Usage: All form text inputs, textareas.
-     Classes: rounded-[12px] border-border/30 focus:border-primary-red */
-  .input-field {
-    @apply bg-bg-base/50 text-text-primary text-base font-normal px-4 py-3 rounded-[12px] border border-border/30 placeholder-text-muted transition-all duration-300 focus:outline-none focus:border-primary-red focus:ring-2 focus:ring-primary-red/20;
+  .animate-bh-typing {
+    animation: bh-typing 1.4s ease-in-out infinite;
+  }
+
+  /* ✅ Verified trust marker — red border with subtle glow */
+  .bh-trust-marker-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem 0.125rem 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(254, 0, 0, 0.4);
+    background: rgba(254, 0, 0, 0.12);
+    color: var(--bh-primary-red);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    box-shadow: var(--bh-glow-red-soft);
+  }
+  .bh-trust-marker-verified:hover {
+    box-shadow: var(--bh-glow-red);
+    border-color: rgba(254, 0, 0, 0.6);
+  }
+
+  /* ⚪ Self-reported trust marker — standard border, no glow */
+  .bh-trust-marker-self-reported {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    border: 1px solid var(--bh-border);
+    background: var(--bh-surface);
+    color: var(--bh-text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  /* 🚫 Revoked trust marker — greyed out with strikethrough */
+  .bh-trust-marker-revoked {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(137, 137, 137, 0.3);
+    background: rgba(137, 137, 137, 0.08);
+    color: var(--bh-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: line-through;
   }
 }
-
-

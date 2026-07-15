@@ -20,9 +20,8 @@ export default function LegalDocumentLayout({
   title, summary, lastUpdated, effectiveDate, activePolicy, sections,
 }: LegalDocumentLayoutProps) {
   const policyLinks = [
-    { id: "privacy", label: "Privacy Policy", href: "/privacy-policy" },
-    { id: "terms", label: "Terms of Service", href: "/terms-of-service" },
-    { id: "cookie", label: "Cookie Policy", href: "/cookie-policy" },
+    { id: "privacy", label: "Privacy Policy", href: "/legal/privacy" },
+    { id: "terms", label: "Terms of Service", href: "/legal/terms" },
   ];
 
   return (
@@ -36,15 +35,15 @@ export default function LegalDocumentLayout({
         </div>
       </div>
 
-      <nav className="flex gap-2 mb-8 pb-4 border-b border-glass overflow-x-auto">
+      <nav className="flex gap-2 mb-8 pb-4 border-b border-border overflow-x-auto">
         {policyLinks.map((link) => (
           <Link
             key={link.id}
             href={link.href}
             className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors whitespace-nowrap ${
               activePolicy === link.id
-                ? "bg-bh-red-500/10 text-bh-red-500 border border-bh-red-500/30"
-                : "text-secondary border border-glass hover:text-primary"
+                ? "bg-primary-red/10 text-primary-red border border-primary-red/30"
+                : "text-secondary border border-border hover:text-primary"
             }`}
           >
             {link.label}

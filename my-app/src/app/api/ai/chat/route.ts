@@ -63,7 +63,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       "## How to Join",
       "- Visit /chapters to find your local chapter",
       "- Attend an event listed at /events",
-      "- Create a profile at /dashboard/onboarding to get your BH-ID",
+      "- Create a profile at /dashboard/hacker to get your BH-ID",
       "- For sponsorship inquiries: hello@butwalhacks.com",
       "",
       "## Financial Transparency",

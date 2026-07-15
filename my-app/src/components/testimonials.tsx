@@ -51,9 +51,9 @@ export function TestimonialsSection() {
   const t = testimonials[current]
 
   return (
-    <section className="border-b border-glass bg-background/30 px-6 py-28" aria-label="Testimonials">
+    <section className="border-b border-border bg-background/30 px-6 py-28" aria-label="Testimonials">
       <FadeIn className="mx-auto w-full max-w-4xl text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.15em] text-bh-red-500">
+        <p className="text-xs font-bold uppercase tracking-[0.15em] text-primary-red">
           Voices from the Community
         </p>
         <h2 className="mt-4 text-4xl font-extrabold leading-tight text-primary md:text-5xl">
@@ -63,13 +63,13 @@ export function TestimonialsSection() {
         <div className="mt-16 relative">
           {/* Quote */}
           <div className="mx-auto flex max-w-2xl flex-col items-center gap-6">
-            <Quote className="h-10 w-10 text-bh-red-500/30" aria-hidden="true" />
+            <Quote className="h-10 w-10 text-primary-red/30" aria-hidden="true" />
             <blockquote className="text-xl leading-relaxed text-primary/80 md:text-2xl">
               &ldquo;{t.quote}&rdquo;
             </blockquote>
 
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-bh-red-500/20 text-sm font-bold text-bh-red-500">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-red/20 text-sm font-bold text-primary-red">
                 {t.avatar}
               </div>
               <div className="text-left">
@@ -81,7 +81,7 @@ export function TestimonialsSection() {
             {/* Stars */}
             <div className="flex gap-1" aria-hidden="true">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Star key={i} className="h-4 w-4 fill-bh-red-500 text-bh-red-500" />
+                <Star key={i} className="h-4 w-4 fill-bh-red-500 text-primary-red" />
               ))}
             </div>
           </div>
@@ -90,7 +90,7 @@ export function TestimonialsSection() {
           <div className="mt-10 flex items-center justify-center gap-4">
             <button
               onClick={prev}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-glass bg-surface/50 text-secondary transition-all hover:bg-surface hover:text-primary"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface/50 text-secondary transition-all hover:bg-surface hover:text-primary"
               aria-label="Previous testimonial"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -113,7 +113,7 @@ export function TestimonialsSection() {
 
             <button
               onClick={next}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-glass bg-surface/50 text-secondary transition-all hover:bg-surface hover:text-primary"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface/50 text-secondary transition-all hover:bg-surface hover:text-primary"
               aria-label="Next testimonial"
             >
               <ChevronRight className="h-5 w-5" />

@@ -59,7 +59,6 @@ export default function LikeButton({ projectId, initialLikes = 0 }: LikeButtonPr
       }
     };
     checkLikeStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, profileUuid]);
 
   const handleToggle = async () => {
@@ -101,8 +100,8 @@ export default function LikeButton({ projectId, initialLikes = 0 }: LikeButtonPr
       className={cn(
         "group flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all duration-300 border",
         isLiked 
-          ? "bg-bh-red-500/10 border-bh-red-500/50 text-bh-red-500" 
-          : "bg-surface/10 border-glass text-secondary hover:bg-surface/10 hover:text-primary"
+          ? "bg-primary-red/10 border-primary-red/50 text-primary-red" 
+          : "bg-surface-hover border-border text-muted-foreground hover:bg-surface-hover hover:text-primary"
       )}
     >
       <Heart className={cn(

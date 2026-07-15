@@ -3,9 +3,8 @@
 import { logger } from "@/lib/logger"
 import { createServiceClient } from "@/utils/supabase/service";
 import { revalidatePath } from "next/cache";
-
-import { auth0 } from "@/lib/auth0";
 import type { ProjectCategory } from "@/lib/supabase-types";
+import { resolveProfileId } from "@/lib/profile-resolver";
 
 export async function submitProject(formData: {
   title: string;
@@ -19,18 +18,7 @@ export async function submitProject(formData: {
   category?: ProjectCategory | null;
 }) {
   const supabase = createServiceClient();
-  
-  const session = await auth0.getSession();
-  if (!session?.user) throw new Error("You must be signed in to submit a project");
-  const userId = session.user.sub;
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('auth0_user_id', userId)
-    .single();
-
-  if (!profile) throw new Error("Profile not found for this user");
+  const profileId = await resolveProfileId();
 
   const { data, error } = await supabase
     .from('projects')
@@ -45,7 +33,7 @@ export async function submitProject(formData: {
       team_id: formData.teamId,
       cover_image: formData.coverImage || null,
       github_verified: false,
-      profile_id: profile.id,
+      profile_id: profileId,
     })
     .select()
     .single();
@@ -130,25 +118,14 @@ export async function generateImpactReport(projectId: string) {
 
 export async function toggleProjectLike(projectId: string) {
   const supabase = createServiceClient();
-  
-  const session = await auth0.getSession();
-  if (!session?.user) throw new Error("You must be signed in to like a project");
-  const userId = session.user.sub;
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('auth0_user_id', userId)
-    .single();
-
-  if (!profile) throw new Error("Profile not found");
+  const profileId = await resolveProfileId();
 
   // Check if already liked
   const { data: existing } = await supabase
     .from('project_likes')
     .select('id')
     .eq('project_id', projectId)
-    .eq('profile_id', profile.id)
+    .eq('profile_id', profileId)
     .single();
 
   if (existing) {
@@ -163,7 +140,7 @@ export async function toggleProjectLike(projectId: string) {
     // Like
     const { error } = await supabase
       .from('project_likes')
-      .insert({ project_id: projectId, profile_id: profile.id });
+      .insert({ project_id: projectId, profile_id: profileId });
 
     if (error) throw error;
   }
@@ -183,10 +160,7 @@ export async function updateProject(projectId: string, formData: {
   category?: string | null;
 }) {
   const supabase = createServiceClient();
-  
-  const session = await auth0.getSession();
-  if (!session?.user) throw new Error("You must be signed in to update a project");
-  const userId = session.user.sub;
+  const profileId = await resolveProfileId();
 
   // Verify ownership
   const { data: project } = await supabase
@@ -197,13 +171,7 @@ export async function updateProject(projectId: string, formData: {
 
   if (!project) throw new Error("Project not found");
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('auth0_user_id', userId)
-    .single();
-
-  if (!profile || project.profile_id !== profile.id) {
+  if (project.profile_id !== profileId) {
     throw new Error("You can only edit your own projects");
   }
 
@@ -238,19 +206,7 @@ export async function updateProject(projectId: string, formData: {
 
 export async function deleteProject(projectId: string) {
   const supabase = createServiceClient();
-
-  const session = await auth0.getSession();
-  if (!session?.user) throw new Error("You must be signed in to delete a project");
-  const userId = session.user.sub;
-
-  // Resolve profile UUID
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('auth0_user_id', userId)
-    .single();
-
-  if (!profile) throw new Error("Profile not found");
+  const profileId = await resolveProfileId();
 
   // Verify ownership
   const { data: project } = await supabase
@@ -261,7 +217,7 @@ export async function deleteProject(projectId: string) {
 
   if (!project) throw new Error("Project not found");
 
-  if (project.profile_id !== profile.id) {
+  if (project.profile_id !== profileId) {
     throw new Error("You can only delete your own projects");
   }
 

@@ -25,12 +25,12 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "__session",
-        "description": "Clerk session cookie. Set automatically after login via `auth()` from `@clerk/nextjs/server`. Most endpoints extract the user ID from the active session."
+        "description": "Auth0 session cookie. Set automatically after login via `auth()` from `@auth0/nextjs-auth0`. Most endpoints extract the user ID from the active session."
       },
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Bearer token for development/testing. Not used in production — all auth is session-based via Clerk."
+        "description": "Bearer token for development/testing. All auth is session-based via Auth0."
       }
     },
     "schemas": {
@@ -187,10 +187,10 @@
         }
       }
     },
-    "/api/webhooks/clerk": {
+    "/api/webhooks/auth0": {
       "post": {
-        "summary": "Clerk webhook receiver",
-        "description": "Receives webhook events from Clerk for user, organization, and membership sync. Verifies using Svix signatures.\n\n**Events handled:** `user.created`, `user.updated`, `organization.*`, `organizationMembership.*`",
+        "summary": "Auth0 webhook receiver",
+        "description": "Receives webhook events from Auth0 for user, organization, and membership sync. Verifies using Svix signatures.\n\nprofile sync during login/signup** `user.created`, `user.updated`, `organization.*`, `organizationMembership.*`",
         "tags": ["Webhooks"],
         "security": [],
         "requestBody": {
@@ -200,7 +200,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "type": { "type": "string", "description": "Clerk event type" },
+                  "type": { "type": "string", "description": "Auth0 event type" },
                   "data": { "type": "object", "description": "Event payload (varies by type)" }
                 }
               }
@@ -210,7 +210,7 @@
         "responses": {
           "200": { "description": "Event processed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessResponse" } } } },
           "400": { "description": "Missing Svix headers or verification failed" },
-          "500": { "description": "Missing CLERK_WEBHOOK_SECRET or database error" }
+          "500": { "description": "Database error" }
         }
       }
     },
@@ -660,7 +660,7 @@
   },
   "tags": [
     { "name": "Public", "description": "No authentication required" },
-    { "name": "Webhooks", "description": "External service webhooks (Clerk)" },
+    { "name": "Webhooks", "description": "External service webhooks" },
     { "name": "Events", "description": "Event registration and check-in" },
     { "name": "Projects", "description": "Project CRUD and social features" },
     { "name": "Profile", "description": "User profile management" },

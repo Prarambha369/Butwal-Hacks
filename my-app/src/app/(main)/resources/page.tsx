@@ -1,7 +1,7 @@
+export const dynamic = "force-static";
+
 import type { Metadata } from "next"
 import { buildPageMetadata } from "@/lib/seo"
-
-
 import { Book, FileText, Code, Video, ExternalLink } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -21,7 +21,7 @@ export default function ResourcesPage() {
         { name: "Introduction to Git and GitHub", available: false },
         { name: "Building Your First Project", available: false },
       ],
-      color: "bg-surface border-glass",
+      color: "bg-surface border-border",
     },
     {
       title: "Documentation",
@@ -32,7 +32,7 @@ export default function ResourcesPage() {
         { name: "Community Contribution Guidelines", available: false },
         { name: "Mentor Handbook", available: false },
       ],
-      color: "bg-surface border-glass",
+      color: "bg-surface border-border",
     },
     {
       title: "Code Examples",
@@ -43,7 +43,7 @@ export default function ResourcesPage() {
         { name: "Past Project Showcases", available: false },
         { name: "Community Contributions", available: false },
       ],
-      color: "bg-surface border-glass",
+      color: "bg-surface border-border",
     },
     {
       title: "Recordings & Media",
@@ -54,12 +54,12 @@ export default function ResourcesPage() {
         { name: "Community Talks", available: false },
         { name: "Event Highlights", available: false },
       ],
-      color: "bg-surface border-glass",
+      color: "bg-surface border-border",
     },
   ]
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-dvh bg-background">
       
       
       <div className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
@@ -81,7 +81,7 @@ export default function ResourcesPage() {
                 className={`rounded-xl border p-6 ${category.color}`}
               >
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-background/50 border border-glass">
+                  <div className="p-2 rounded-lg bg-background/50 border border-border">
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
@@ -92,7 +92,7 @@ export default function ResourcesPage() {
                 
                 <ul className="space-y-2">
                   {category.items.map((item, index) => (
-                    <li key={index} className="flex items-center justify-between py-2 px-3 rounded-lg bg-background/50 border border-glass/50">
+                    <li key={index} className="flex items-center justify-between py-2 px-3 rounded-lg bg-background/50 border border-border/50">
                       <span className="text-sm text-primary">{item.name}</span>
                       {item.available && item.link ? (
                         <a 
@@ -117,7 +117,7 @@ export default function ResourcesPage() {
           })}
         </div>
 
-        <section className="border-t border-glass pt-12">
+        <section className="border-t border-border pt-12">
           <h2 className="text-2xl font-semibold font-heading text-primary mb-4">External Resources</h2>
           <p className="text-secondary mb-6">
             Curated learning resources from around the web to support your development journey.
@@ -128,7 +128,7 @@ export default function ResourcesPage() {
               href="https://developer.mozilla.org/"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-4 rounded-lg border border-glass bg-surface hover:bg-surface/50 transition-colors flex items-center justify-between group"
+              className="p-4 rounded-lg border border-border bg-surface hover:bg-surface/50 transition-colors flex items-center justify-between group"
             >
               <div>
                 <h3 className="font-semibold text-primary">MDN Web Docs</h3>
@@ -141,7 +141,7 @@ export default function ResourcesPage() {
               href="https://www.freecodecamp.org/"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-4 rounded-lg border border-glass bg-surface hover:bg-surface/50 transition-colors flex items-center justify-between group"
+              className="p-4 rounded-lg border border-border bg-surface hover:bg-surface/50 transition-colors flex items-center justify-between group"
             >
               <div>
                 <h3 className="font-semibold text-primary">freeCodeCamp</h3>
@@ -152,7 +152,7 @@ export default function ResourcesPage() {
           </div>
         </section>
 
-        <section className="mt-12 p-6 rounded-xl border border-glass bg-surface">
+        <section className="mt-12 p-6 rounded-xl border border-border bg-surface">
           <h2 className="text-xl font-semibold font-heading text-primary mb-3">Contributing Resources</h2>
           <p className="text-secondary mb-4">
             Have resources, guides, or materials to share with the community? We welcome contributions 

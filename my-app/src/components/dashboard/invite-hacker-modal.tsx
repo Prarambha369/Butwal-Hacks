@@ -48,7 +48,6 @@ export default function InviteHackerModal({ teamId, onClose, onSuccess }: Invite
   useEffect(() => {
     const timer = setTimeout(fetchProfiles, 300);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   const handleInvite = async (profileId: string, fullName: string) => {
@@ -70,20 +69,20 @@ export default function InviteHackerModal({ teamId, onClose, onSuccess }: Invite
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm">
-      <div className="bg-background border border-glass w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-        <div className="p-6 border-b border-glass flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/60 ">
+      <div className="bg-background border border-border w-full max-w-md rounded-xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="p-6 border-b border-border flex items-center justify-between">
           <h3 className="text-xl font-bold">Invite Hacker</h3>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-surface/10 transition-colors">
+          <button onClick={onClose} className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full hover:bg-surface-hover transition-colors focus:ring-2 focus:ring-[#FE0000] focus:outline-none" aria-label="Close modal">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input 
-              className="w-full pl-10 pr-4 py-3 rounded-2xl bg-surface/10 border border-glass focus:border-bh-red-500 outline-none transition-all"
+              className="w-full pl-10 pr-4 py-3 rounded-lg bg-surface-hover border border-border focus:border-bh-red-500 outline-none transition-all"
               placeholder="Search by name or BH-ID..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
@@ -99,9 +98,9 @@ export default function InviteHackerModal({ teamId, onClose, onSuccess }: Invite
           <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
             {profiles.length > 0 ? (
               profiles.map(profile => (
-                <div key={profile.id} className="flex items-center justify-between p-3 rounded-2xl bg-surface/10 border border-glass hover:border-bh-red-500/50 transition-all group">
+                <div key={profile.id} className="flex items-center justify-between p-3 rounded-lg bg-surface-hover border border-border hover:border-primary-red/50 transition-all group">
                   <div className="flex items-center gap-3">
-                    <div className="relative w-10 h-10 overflow-hidden rounded-full bg-surface/10">
+                    <div className="relative w-10 h-10 overflow-hidden rounded-full bg-surface-hover">
                       <Image 
                         src={profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.full_name}`} 
                         alt={profile.full_name}
@@ -111,13 +110,14 @@ export default function InviteHackerModal({ teamId, onClose, onSuccess }: Invite
                     </div>
                     <div>
                       <p className="text-sm font-bold">{profile.full_name}</p>
-                      <p className="text-[10px] font-mono text-secondary">{profile.bh_id}</p>
+                      <p className="text-[10px] font-mono text-muted-foreground">{profile.bh_id}</p>
                     </div>
                   </div>
                   <button 
                     onClick={() => handleInvite(profile.id, profile.full_name)}
                     disabled={invitingId === profile.id}
-                    className="p-2 rounded-xl bg-bh-red-500 text-primary hover:bg-bh-red-500/90 transition-colors disabled:opacity-50"
+                    className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg bg-bh-red-500 text-primary hover:bg-primary-red/90 transition-colors disabled:opacity-50"
+                    aria-label={`Invite ${profile.full_name}`}
                   >
                     {invitingId === profile.id ? (
                       <RoseSpinner size="sm" />
@@ -128,7 +128,7 @@ export default function InviteHackerModal({ teamId, onClose, onSuccess }: Invite
                 </div>
               ))
             ) : (
-              <div className="text-center py-8 text-secondary text-sm">
+              <div className="text-center py-8 text-muted-foreground text-sm">
                 {searchQuery.length < 2 
                   ? "Start typing to search for hackers..." 
                   : "No matching hackers found."}

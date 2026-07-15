@@ -1,8 +1,8 @@
+export const dynamic = "force-static";
+
 import type { Metadata } from "next"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-
-
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -59,7 +59,7 @@ function HandDrawnArrow() {
 
 export default function PhilosophyPage() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-dvh bg-background">
       
       <section className="mx-auto max-w-3xl px-4 py-14 sm:py-16">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Philosophy" }]} />

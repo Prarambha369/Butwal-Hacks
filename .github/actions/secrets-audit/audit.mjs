@@ -61,7 +61,7 @@ const SECRET_PATTERNS = [
     test: (match) => !match.includes("your") && !match.includes("YOUR"),
   },
   {
-    name: "Clerk secret key (real)",
+    name: "Auth0 secret key (real)",
     pattern: /sk_live_[A-Za-z0-9]{20,}/,
     severity: "CRITICAL",
   },

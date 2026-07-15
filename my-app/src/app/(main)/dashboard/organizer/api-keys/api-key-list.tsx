@@ -37,38 +37,38 @@ export function ApiKeyList({ keys }: { keys: ApiKey[] }) {
 
   if (keys.length === 0) {
     return (
-      <div className="lg-surface rounded-3xl p-12 text-center border border-glass">
-        <KeyRound className="w-12 h-12 mx-auto text-secondary/40 mb-4" />
-        <p className="text-secondary opacity-60">No API keys generated yet.</p>
-        <p className="text-xs text-secondary/40 mt-2">Generate your first key to start using the API.</p>
+      <div className="bh-card p-12 text-center">
+        <KeyRound className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+        <p className="text-sm text-muted-foreground">No API keys generated yet.</p>
+        <p className="text-xs text-muted-foreground mt-2">Generate your first key to start using the API.</p>
       </div>
     );
   }
 
   return (
-    <div className="lg-surface rounded-3xl overflow-hidden border border-glass">
+    <div className="bh-card overflow-hidden">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-surface/10 text-xs font-mono uppercase tracking-widest opacity-40 border-b border-glass">
-            <th className="px-6 py-4">Key Name</th>
-            <th className="px-6 py-4">Last Used</th>
-            <th className="px-6 py-4 text-center">Status</th>
-            <th className="px-6 py-4 text-right">Actions</th>
+          <tr className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border">
+            <th className="px-5 py-3.5">Key Name</th>
+            <th className="px-5 py-3.5">Last Used</th>
+            <th className="px-5 py-3.5 text-center">Status</th>
+            <th className="px-5 py-3.5 text-right">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody>
           {keys.map((key) => (
-            <tr key={key.id} className="hover:bg-surface/10 transition-colors group">
-              <td className="px-6 py-4">
+            <tr key={key.id} className="border-b border-border last:border-b-0 hover:bg-surface-hover transition-colors group">
+              <td className="px-5 py-3.5">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm">{key.name}</span>
+                  <span className="text-sm font-semibold text-primary">{key.name}</span>
                 </div>
               </td>
-              <td className="px-6 py-4 font-mono text-xs opacity-60">
+              <td className="px-5 py-3.5 font-mono text-xs text-muted-foreground">
                 {key.last_used_at ? new Date(key.last_used_at).toLocaleDateString() : "Never used"}
               </td>
               <td className="px-6 py-4 text-center">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${key.is_active ? "bg-green-500/20 text-green-400" : "bg-bh-red-500/20 text-bh-red-500"}`}>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${key.is_active ? "bg-status-green/10 border-status-green/30 text-status-green" : "bg-primary-red/10 border-primary-red/30 text-primary-red"}`}>
                   {key.is_active ? "Active" : "Revoked"}
                 </span>
               </td>
@@ -77,7 +77,7 @@ export function ApiKeyList({ keys }: { keys: ApiKey[] }) {
                   <button
                     onClick={() => handleRevoke(key.id)}
                     disabled={revokingId === key.id}
-                    className="p-2 rounded-lg hover:bg-surface/10 text-secondary hover:text-bh-red-500 transition-colors disabled:opacity-40"
+                    className="p-2 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary-red transition-colors disabled:opacity-40"
                     title="Revoke Key"
                   >
                     <Ban size={16} />

@@ -41,32 +41,4 @@ export function validateSearchInput(input: string): { valid: boolean; error?: st
 /** Legacy: sanitize and truncate search input */
 export const sanitizeInput = (s: string) => sanitizeString(s, 100);
 
-// ─── Body size guard ───────────────────────────────────────────────
 
-import { NextResponse } from "next/server";
-
-/**
- * Check the Content-Length header of a request and reject payloads over the limit.
- * Returns a 413 NextResponse if too large, or null if OK.
- *
- * ponytail: does NOT protect against chunked transfer encoding (no content-length header).
- * Vercel's edge infrastructure typically buffers and provides content-length in that case.
- * Upgrade path: read the first chunk of the stream and reject before full parse.
- *
- * Usage (single line):
- *   const oversized = rejectOversized(request); if (oversized) return oversized
- */
-export function rejectOversized(
-  request: Request,
-  maxBytes = 1_048_576 // 1 MB default
-): NextResponse | null {
-  const rawContentLength = request.headers.get("content-length");
-  const contentLength = parseInt(rawContentLength ?? "0", 10);
-  if (!isNaN(contentLength) && contentLength > maxBytes) {
-    return NextResponse.json(
-      { error: "Request body too large" },
-      { status: 413 }
-    );
-  }
-  return null;
-}

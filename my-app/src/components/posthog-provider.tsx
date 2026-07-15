@@ -1,15 +1,16 @@
 "use client"
 
 import posthog from "posthog-js"
-import { useEffect, Suspense } from "react"
+import { useEffect, Suspense, useState } from "react"
 import { useUser } from "@auth0/nextjs-auth0/client"
 import { usePathname, useSearchParams } from "next/navigation"
+import { hasCookieConsent } from "@/components/cookie-consent-banner"
 
 /**
  * PostHogProvider — enhanced client-side PostHog integration.
  *
  * Features:
- * - Initializes PostHog on mount (idempotent)
+ * - Waits for cookie consent before initializing PostHog
  * - Identifies users when Auth0 session changes
  * - Captures page views on route changes
  * - Supports feature flags
@@ -28,9 +29,27 @@ function PostHogInner({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useUser()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  // Track consent state — re-check when consent-granted event fires
+  const [consentGranted, setConsentGranted] = useState(false)
 
-  // Initialize PostHog once
+  // Listen for cookie consent and check initial state
   useEffect(() => {
+    // Check initial consent state (may already be stored)
+    if (hasCookieConsent()) {
+      setConsentGranted(true)
+      return
+    }
+
+    // Listen for consent from the banner
+    const handler = () => setConsentGranted(true)
+    window.addEventListener("bh:consent-granted", handler)
+    return () => window.removeEventListener("bh:consent-granted", handler)
+  }, [])
+
+  // Initialize PostHog once consent is granted
+  useEffect(() => {
+    if (!consentGranted) return
+
     const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
     if (!token) {
       if (process.env.NODE_ENV === "development") {
@@ -48,7 +67,7 @@ function PostHogInner({ children }: { children: React.ReactNode }) {
         },
       })
     }
-  }, [])
+  }, [consentGranted])
 
   // Identify user when Auth0 session changes
   useEffect(() => {
@@ -62,6 +81,7 @@ function PostHogInner({ children }: { children: React.ReactNode }) {
     } else {
       posthog.reset()
     }
+  // ponytail: user.email and user.name are stable alongside user.sub — omitting from deps avoids redundant re-identify
   }, [user?.sub, isLoading])
 
   // Capture page views on route changes

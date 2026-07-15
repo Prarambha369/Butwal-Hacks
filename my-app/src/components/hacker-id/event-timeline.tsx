@@ -1,6 +1,5 @@
 "use client";
 
-import React from 'react';
 import { Calendar, CheckCircle2, Trophy, Mic, UserCheck, Award, Star, User } from 'lucide-react';
 import { EventHistory } from '@/lib/supabase-types';
 
@@ -13,7 +12,7 @@ function EventNode({ event }: EventNodeProps) {
 
   const roleDesign = {
     Organizer: {
-      color: 'bg-bh-red-500 text-primary border-bh-red-600 shadow-[0_0_10px_var(--glow-bh-red)]',
+      color: 'bg-primary-red text-white border-deep-red shadow-[0_0_10px_rgba(254,0,0,0.2)]',
       icon: <Star size={12} fill="currentColor" />,
       label: 'Organizer',
       glow: 'group-hover:shadow-[0_0_15px_var(--glow-bh-red)]'
@@ -25,16 +24,16 @@ function EventNode({ event }: EventNodeProps) {
       glow: 'group-hover:shadow-[0_0_15px_var(--glow-status-yellow)]'
     },
     'Runner-up': {
-      color: 'bg-surface text-primary border-glass shadow-[0_0_10px_var(--glow-white-subtle)]',
+      color: 'bg-surface text-primary border-border shadow-[0_0_10px_var(--glow-white-subtle)]',
       icon: <Award size={12} />,
       label: 'Runner Up',
       glow: 'group-hover:shadow-[0_0_15px_var(--glow-white-subtle)]'
     },
     Speaker: {
-      color: 'bg-status-purple text-primary border-status-purple shadow-[0_0_10px_var(--glow-status-purple)]',
+      color: 'bg-status-orange text-primary border-status-orange shadow-[0_0_10px_var(--glow-status-orange)]',
       icon: <Mic size={12} />,
       label: 'Featured Speaker',
-      glow: 'group-hover:shadow-[0_0_15px_var(--glow-status-purple)]'
+      glow: 'group-hover:shadow-[0_0_15px_var(--glow-status-orange)]'
     },
     Judge: {
       color: 'bg-status-blue text-primary border-status-blue shadow-[0_0_10px_var(--glow-status-blue)]',
@@ -55,7 +54,7 @@ function EventNode({ event }: EventNodeProps) {
       glow: 'group-hover:shadow-[0_0_15px_var(--glow-status-orange)]'
     },
     Participant: {
-      color: 'bg-surface/10 text-secondary border-glass',
+      color: 'bg-surface-hover text-muted-foreground border-border',
       icon: <User size={12} />,
       label: 'Participant',
       glow: 'group-hover:shadow-[0_0_10px_var(--glow-white-subtle)]'
@@ -76,7 +75,7 @@ function EventNode({ event }: EventNodeProps) {
       />
 
       {/* Content Card */}
-      <div className="lg-surface rounded-2xl p-5 border border-glass transition-all duration-300 group-hover:translate-x-1 group-hover:border-bh-red-500/20">
+      <div className="bh-card p-5 transition-all duration-300 group-hover:translate-x-1 group-hover:border-primary-red/20">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -87,13 +86,13 @@ function EventNode({ event }: EventNodeProps) {
               <span className={`
                 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border
                 ${event.status === 'Upcoming' 
-                  ? 'bg-bh-red-500/10 border-bh-red-500/20 text-bh-red-500 animate-pulse' 
-                  : 'bg-surface/10 border-glass text-secondary'}
+                  ? 'bg-primary-red/10 border-primary-red/20 text-primary-red animate-pulse' 
+                  : 'bg-surface-hover border-border text-muted-foreground'}
               `}>
                 {event.status}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-secondary">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1 font-mono opacity-60 text-[11px]">
                 <Calendar size={12} />
                 {event.date}
@@ -110,7 +109,7 @@ function EventNode({ event }: EventNodeProps) {
           </div>
 
           {isCompleted && (
-            <div className="flex items-center gap-1 text-bh-red-500 text-[10px] font-bold uppercase tracking-widest opacity-60">
+            <div className="flex items-center gap-1 text-primary-red text-[10px] font-bold uppercase tracking-widest opacity-60">
               <CheckCircle2 size={12} />
               Attended
             </div>
@@ -124,11 +123,11 @@ function EventNode({ event }: EventNodeProps) {
 export default function EventTimeline({ events }: { events: EventHistory[] }) {
   if (events.length === 0) {
     return (
-      <div className="lg-surface rounded-3xl p-12 border border-glass text-center space-y-4">
-        <div className="w-16 h-16 bg-surface/10 rounded-full flex items-center justify-center mx-auto">
-          <Calendar size={32} className="text-secondary opacity-20" />
+      <div className="bh-card p-12 text-center space-y-4">
+        <div className="w-16 h-16 bg-surface-hover rounded-full flex items-center justify-center mx-auto">
+          <Calendar size={32} className="text-muted-foreground opacity-20" />
         </div>
-        <p className="text-secondary font-mono text-sm opacity-60">
+        <p className="text-muted-foreground font-mono text-sm opacity-60">
           No event history found. Start your journey.
         </p>
       </div>
@@ -141,7 +140,7 @@ export default function EventTimeline({ events }: { events: EventHistory[] }) {
         <h3 className="text-xs font-black uppercase tracking-widest text-primary opacity-40">
           Event Timeline
         </h3>
-        <span className="text-[10px] font-mono text-secondary opacity-60">
+        <span className="text-[10px] font-mono text-muted-foreground opacity-60">
           {events.length} Milestones
         </span>
       </div>
@@ -149,7 +148,7 @@ export default function EventTimeline({ events }: { events: EventHistory[] }) {
       {/* Timeline Container */}
       <div className="relative">
         {/* The Vertical Line */}
-        <div className="absolute left-0 top-2 bottom-2 w-[2px] bg-surface/10" />
+        <div className="absolute left-0 top-2 bottom-2 w-[2px] bg-surface-hover" />
         
         <div className="space-y-0">
           {events.map((event) => (

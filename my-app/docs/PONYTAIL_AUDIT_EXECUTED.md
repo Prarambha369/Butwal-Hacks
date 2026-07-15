@@ -51,7 +51,7 @@ Build Status: ✅ PASSED
 |---------|--------|
 | `tailwindcss-animate` | Tailwind v3 artifact, v4 uses `tw-animate-css` |
 | `@supabase/server` | Unused — `@supabase/ssr` used instead |
-| `@clerk/ui` | Unused — Clerk SDK built-in components used |
+| `@clerk/ui` | Unused — removed |
 | `animate.css` | One import in dead component — CSS classes unused |
 
 ## Net Summary

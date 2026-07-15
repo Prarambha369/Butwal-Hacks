@@ -1,0 +1,17 @@
+name: "Ponytail Audit"
+description: "Static analysis for dead code, unused dependencies, and empty directories — catches over-engineering before it merges."
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  ponytail-audit:
+    name: Ponytail Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run ponytail audit
+        run: node .github/actions/ponytail-audit/audit.mjs

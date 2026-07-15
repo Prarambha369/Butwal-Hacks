@@ -3,7 +3,7 @@ export const LEVEL_THRESHOLDS = [
   { level: 2, minXp: 100, name: "Contributor", color: "text-status-blue" },
   { level: 3, minXp: 500, name: "Builder", color: "text-status-green" },
   { level: 4, minXp: 1500, name: "Innovator", color: "text-status-yellow" },
-  { level: 5, minXp: 5000, name: "Visionary", color: "text-bh-red-500" },
+  { level: 5, minXp: 5000, name: "Visionary", color: "text-primary-red" },
 ];
 
 export function calculateLevel(xp: number) {

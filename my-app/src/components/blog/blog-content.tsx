@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect, memo } from "react"
+import { useState, useMemo, memo } from "react"
 import Link from "next/link"
-import { CalendarDays, Clock3, Search, X, ArrowRight } from "lucide-react"
-import { RoseSpinner } from "@/components/ui/rose-loader"
+import Image from "next/image"
+import { CalendarDays, Clock3, Search, X, ArrowRight, Mail } from "lucide-react"
 import { blogPosts, type BlogPost } from "@/lib/content"
 import { validateSearchInput, sanitizeInput } from "@/lib/validation"
-import { BlogCardSkeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton"
 import { NoResultsState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -17,39 +17,31 @@ const tags = ["#react", "#opensource", "#hackathon", "#backend", "#nepaltech"]
 // Animated blog post card with entrance animation
 const BlogPostCard = memo(function BlogPostCard({
   post,
-  index,
   showSponsored,
 }: {
   post: BlogPost
-  index: number
   showSponsored: boolean
+  index?: number
 }) {
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    if (prefersReducedMotion || !ref.current) return
-
-    // Set initial state
-    ref.current.style.opacity = "0"
-    ref.current.style.transform = "translateY(24px)"
-
-    import("animejs").then(({ animate }) => {
-      animate(ref.current!, {
-        opacity: [0, 1],
-        translateY: [24, 0],
-        duration: 600,
-        delay: index * 120,
-        ease: "outQuad",
-      })
-    })
-  }, [index])
-
   return (
-    <div ref={ref}>
-      <article className="group border-b border-glass pb-8 transition-colors">
+    <div>
+      <article className="group border-b border-border pb-8 transition-colors">
+        {/* Featured image */}
+        {post.cover_image && (
+          <div className="relative mb-5 aspect-video w-full overflow-hidden rounded-xl border border-border/30">
+            <Image
+              src={post.cover_image}
+              alt={post.title}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, 700px"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          </div>
+        )}
+
         {/* Meta row */}
-        <div className="flex flex-wrap items-center gap-4 text-sm text-secondary">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <CalendarDays className="h-4 w-4" />
             {post.publishedAt}
@@ -61,35 +53,35 @@ const BlogPostCard = memo(function BlogPostCard({
         </div>
 
         {/* Title with hover effect */}
-        <h2 className="mt-4 text-2xl sm:text-3xl font-bold font-heading leading-tight text-primary group-hover:text-primary transition-colors duration-300">
-          <Link href={`/blog/${post.slug}`} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm">
+        <h2 className="mt-4 text-2xl sm:text-3xl font-bold leading-tight text-primary group-hover:text-primary-red transition-colors duration-300">
+          <Link href={`/blog/${post.slug}`} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red/40 focus-visible:ring-offset-2 rounded-sm">
             {post.title}
           </Link>
         </h2>
 
         {/* Excerpt */}
-        <p className="mt-4 text-base sm:text-lg text-secondary leading-relaxed">
+        <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
           {post.excerpt}
         </p>
 
-        {/* Read more link with arrow animation */}
+        {/* Read more link */}
         <Link
           href={`/blog/${post.slug}`}
-          className="mt-5 inline-flex items-center gap-2 text-base font-semibold text-primary hover:text-primary/80 transition-colors duration-300 group/link"
+          className="mt-5 inline-flex items-center gap-2 text-base font-semibold text-primary hover:text-primary-red transition-colors duration-300 group/link"
         >
           Read More
           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/link:translate-x-1" />
         </Link>
       </article>
 
-      {/* Sponsored card after second post */}
+      {/* Sponsored card */}
       {showSponsored && (
-        <aside className="my-8 rounded-xl border border-glass bg-surface p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary">Sponsored</p>
-          <h3 className="mt-2 text-xl sm:text-2xl font-semibold font-heading text-primary">
+        <aside className="my-8 bh-card p-6">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Sponsored</p>
+          <h3 className="mt-2 text-xl sm:text-2xl font-bold text-primary">
             Support Community Infrastructure
           </h3>
-          <p className="mt-2 text-sm text-secondary">
+          <p className="mt-2 text-sm text-muted-foreground">
             Sponsored placements are clearly labeled and separated from editorial content. This
             supports nonprofit operations without dark patterns.
           </p>
@@ -103,48 +95,20 @@ export function BlogContent() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All Posts")
   const [isLoading, setIsLoading] = useState(false)
-  const headerRef = useRef<HTMLDivElement>(null)
-  const sidebarRef = useRef<HTMLDivElement>(null)
-
-  // Entrance animation for header and sidebar
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    if (prefersReducedMotion) return
-
-    const elements = [headerRef.current, sidebarRef.current].filter(Boolean)
-    if (elements.length === 0) return
-
-    import("animejs").then(({ animate, stagger }) => {
-      animate(elements, {
-        opacity: [0, 1],
-        translateY: [20, 0],
-        duration: 700,
-        delay: stagger(100),
-        ease: "outQuad",
-      })
-    })
-  }, [])
+  // ponytail: Entrance animation removed. Content renders immediately.
 
   // Debounced search with validation
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value
-
-    // Validate input
     const validation = validateSearchInput(rawValue)
     if (!validation.valid && rawValue.length > 0) {
       toast.error(validation.error, { duration: 2000 })
       return
     }
-
-    // Sanitize and set
     const sanitized = sanitizeInput(rawValue)
     setSearchQuery(sanitized)
     setIsLoading(true)
-
-    // Simulate loading for better UX
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 300)
+    setTimeout(() => { setIsLoading(false) }, 300)
   }
 
   const clearSearch = () => {
@@ -155,8 +119,6 @@ export function BlogContent() {
   // Filter posts based on search and category
   const filteredPosts = useMemo(() => {
     let posts = blogPosts
-
-    // Category filter
     if (selectedCategory !== "All Posts") {
       posts = posts.filter((post) => {
         if (selectedCategory === "Development") return post.slug.includes("tech")
@@ -164,8 +126,6 @@ export function BlogContent() {
         return true
       })
     }
-
-    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       posts = posts.filter(
@@ -175,7 +135,6 @@ export function BlogContent() {
           post.body.some((p) => p.toLowerCase().includes(query))
       )
     }
-
     return posts
   }, [searchQuery, selectedCategory])
 
@@ -184,95 +143,86 @@ export function BlogContent() {
 
   return (
     <div className="mx-auto grid max-w-7xl gap-8 xl:grid-cols-[240px_1fr_280px]">
-       {/* Left Sidebar — improved styling */}
-       <aside ref={sidebarRef} className="space-y-6 rounded-xl border border-glass bg-surface p-6 xl:sticky xl:top-24 xl:h-fit shadow-sm hover:shadow-md transition-shadow">
-         <div>
-           <h2 className="text-xs font-bold uppercase tracking-wider text-secondary/80">Categories</h2>
-           <ul className="mt-5 space-y-2">
-             {categories.map((category) => (
-               <li key={category}>
-                 <button
-                   type="button"
-                   onClick={() => {
-                     setSelectedCategory(category)
-                     if (category !== "All Posts") {
-                       toast.success(`Showing ${category} posts`)
-                     }
-                   }}
-                   className={cn(
-                     "w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-                     selectedCategory === category
-                       ? "bg-primary text-primary-foreground shadow-md"
-                       : "text-primary/70 hover:bg-surface/50 hover:text-primary"
-                   )}
-                 >
-                   {category}
-                 </button>
-               </li>
-             ))}
-           </ul>
-         </div>
+      {/* Left Sidebar */}
+      <aside className="bh-card p-6 xl:sticky xl:top-24 xl:h-fit">
+        <div>
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Categories</h2>
+          <ul className="mt-4 space-y-1">
+            {categories.map((category) => (
+              <li key={category}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory(category)}
+                  className={cn(
+                    "w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-all",
+                    selectedCategory === category
+                      ? "bg-primary-red/10 text-primary-red border border-primary-red/20"
+                      : "text-muted-foreground hover:text-primary hover:bg-surface-hover"
+                  )}
+                >
+                  {category}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-         <div className="pt-6 border-t border-glass">
-           <h2 className="text-xs font-bold uppercase tracking-wider text-secondary/80">Trending Tags</h2>
-           <div className="mt-5 flex flex-wrap gap-2">
-             {tags.map((tag) => (
-               <button
-                 key={tag}
-                 onClick={() => {
-                   setSearchQuery(tag.replace("#", ""))
-                   toast.success(`Searching for ${tag}`)
-                 }}
-                 className="rounded-full border border-glass bg-surface/50/40 px-3 py-1.5 text-xs font-medium text-secondary hover:border-primary hover:text-primary hover:bg-primary/5 transition-all"
-               >
-                 {tag}
-               </button>
-             ))}
-           </div>
-         </div>
-       </aside>
+        <div className="pt-5 mt-5 border-t border-border">
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Trending Tags</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setSearchQuery(tag.replace("#", ""))}
+                className="rounded-full border border-border bg-surface-hover px-3 py-1 text-[11px] font-medium text-muted-foreground hover:text-primary hover:border-primary-red/20 transition-all"
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      </aside>
 
-       {/* Main Content */}
-       <div className="min-w-0">
-         {/* Header — improved typography hierarchy */}
-         <div ref={headerRef}>
-           <h1 className="text-5xl font-black tracking-tight text-primary sm:text-6xl">Blog</h1>
-           <p className="mt-5 max-w-3xl text-lg sm:text-xl text-secondary leading-relaxed">
-             Technical insights, community spotlights, and updates from Butwal Hacks.
-             Discover how we&apos;re building a tech movement in Western Nepal.
-           </p>
-         </div>
+      {/* Main Content */}
+      <div className="min-w-0">
+        {/* Header */}
+        <div>
+          <h1 className="text-5xl font-black tracking-tight text-primary sm:text-6xl">Blog</h1>
+          <p className="mt-5 max-w-3xl text-lg sm:text-xl text-muted-foreground leading-relaxed">
+            Technical insights, community spotlights, and updates from Butwal Hacks.
+            Discover how we&apos;re building a tech movement in Western Nepal.
+          </p>
+        </div>
 
-         {/* Search Bar — improved UX */}
-         <div className="mt-10 relative group">
-           <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary transition-colors group-focus-within:text-primary" />
-           <input
-             type="text"
-             placeholder="Search by title, topic, or keyword..."
-             value={searchQuery}
-             onChange={handleSearchChange}
-             className="w-full rounded-xl border-2 border-glass bg-surface py-4 pl-12 pr-11 text-base text-primary placeholder:text-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary transition-all duration-200 shadow-sm hover:border-glass/80"
-             aria-label="Search blog posts"
-             maxLength={100}
-           />
-           {searchQuery ? (
-             <button
-               onClick={clearSearch}
-               className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-secondary hover:text-primary hover:bg-surface/50 transition-all"
-               aria-label="Clear search"
-               title="Clear search"
-             >
-               <X className="h-5 w-5" />
-             </button>
-           ) : null}
-         </div>
+        {/* Search Bar */}
+        <div className="mt-10 relative">
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search by title, topic, or keyword..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="bh-input pl-11 pr-11"
+            aria-label="Search blog posts"
+            maxLength={100}
+          />
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-surface-hover transition-all"
+              aria-label="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
 
         {/* Results bar */}
         <div className="mt-6 flex items-center justify-between">
-          <span className="text-sm text-secondary">
+          <span className="text-sm text-muted-foreground">
             {isLoading ? (
               <span className="inline-flex items-center gap-2">
-                <RoseSpinner size="sm" />
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-border border-t-bh-red-500" />
                 Loading...
               </span>
             ) : (
@@ -288,9 +238,8 @@ export function BlogContent() {
               onClick={() => {
                 setSearchQuery("")
                 setSelectedCategory("All Posts")
-                toast.success("Filters cleared")
               }}
-              className="text-sm text-secondary hover:text-primary underline-offset-4 hover:underline transition-colors"
+              className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline transition-colors"
             >
               Clear filters
             </button>
@@ -301,8 +250,32 @@ export function BlogContent() {
         <div className="mt-8 space-y-8" key={animationKey}>
           {isLoading ? (
             <div className="space-y-8">
-              <BlogCardSkeleton />
-              <BlogCardSkeleton />
+              <div className="border-b border-border pb-8 space-y-4">
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+                <Skeleton className="h-10 w-3/4" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-5/6" />
+                  <Skeleton className="h-5 w-4/6" />
+                </div>
+                <Skeleton className="h-6 w-28" />
+              </div>
+              <div className="border-b border-border pb-8 space-y-4">
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+                <Skeleton className="h-10 w-3/4" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-5/6" />
+                  <Skeleton className="h-5 w-4/6" />
+                </div>
+                <Skeleton className="h-6 w-28" />
+              </div>
             </div>
           ) : !hasResults ? (
             <NoResultsState
@@ -325,44 +298,45 @@ export function BlogContent() {
         </div>
       </div>
 
-       {/* Right Sidebar — newsletter form improved */}
-       <aside className="space-y-4 xl:sticky xl:top-24 xl:h-fit">
-         <div className="rounded-xl border border-glass bg-surface p-6 shadow-sm hover:shadow-md transition-shadow">
-           <h2 className="text-xs font-bold uppercase tracking-wider text-secondary/80">Newsletter</h2>
-           <p className="mt-3 text-sm text-secondary">Get technical updates and community news in your inbox.</p>
-           <form
-             onSubmit={(e) => {
-               e.preventDefault()
-               const email = (e.currentTarget.elements.namedItem("email") as HTMLInputElement).value
-               if (email) {
-                 toast.success("Subscribed!", {
-                   description: "Check your email to confirm subscription.",
-                 })
-                 ;(e.currentTarget.elements.namedItem("email") as HTMLInputElement).value = ""
-               }
-             }}
-             className="mt-5 space-y-3"
-           >
-             <div>
-               <input
-                 name="email"
-                 type="email"
-                 placeholder="your@email.com"
-                 aria-label="Email address"
-                 required
-                 className="w-full rounded-lg border-2 border-glass bg-background px-4 py-3 text-sm text-primary placeholder:text-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary transition-all hover:border-glass/80"
-               />
-             </div>
-             <button
-               type="submit"
-               className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 transition-all shadow-sm hover:shadow-md"
-             >
-               Subscribe
-             </button>
-           </form>
-           <p className="mt-3 text-xs text-secondary text-center">We respect your privacy.</p>
-         </div>
-       </aside>
+      {/* Right Sidebar — Newsletter */}
+      <aside className="space-y-4 xl:sticky xl:top-24 xl:h-fit">
+        <div className="bh-card p-6">
+          <div className="inline-flex p-2 rounded-lg bg-surface-hover text-muted-foreground mb-3">
+            <Mail className="w-4 h-4" />
+          </div>
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Newsletter</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Get technical updates and community news in your inbox.</p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              const email = (e.currentTarget.elements.namedItem("email") as HTMLInputElement).value
+              if (email) {
+                toast.success("Subscribed!", {
+                  description: "Check your email to confirm subscription.",
+                })
+                ;(e.currentTarget.elements.namedItem("email") as HTMLInputElement).value = ""
+              }
+            }}
+            className="mt-5 space-y-3"
+          >
+            <input
+              name="email"
+              type="email"
+              placeholder="your@email.com"
+              aria-label="Email address"
+              required
+              className="bh-input"
+            />
+            <button
+              type="submit"
+              className="w-full bh-btn-pill text-sm"
+            >
+              Subscribe
+            </button>
+          </form>
+          <p className="mt-3 text-[11px] text-muted-foreground text-center">We respect your privacy.</p>
+        </div>
+      </aside>
     </div>
   )
 }

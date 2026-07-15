@@ -1,6 +1,5 @@
 "use client";
 
-import React from 'react';
 import Image from 'next/image';
 import { Project } from '@/lib/supabase-types';
 import Link from 'next/link';
@@ -15,9 +14,9 @@ interface ContributionCardProps {
 
 export default function ContributionCard({ project, isOwner }: ContributionCardProps) {
   return (
-    <div className="group relative lg-surface rounded-2xl border border-glass overflow-hidden transition-all hover:border-bh-red-500/40 hover:bg-background/[0.07] duration-300">
+    <div className="group relative bh-card overflow-hidden transition-all hover:border-primary-red/40 hover:bg-background/[0.07] duration-300">
       <div className="flex items-center p-4 gap-4">
-        <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden border border-glass bg-surface/10">
+        <div className="relative w-20 h-20 shrink-0 rounded-lg overflow-hidden border border-border bg-surface-hover">
           {project.cover_image ? (
             <Image 
               src={cloudinaryUrl(project.cover_image, 400)} 
@@ -26,7 +25,7 @@ export default function ContributionCard({ project, isOwner }: ContributionCardP
               className="object-cover group-hover:scale-110 transition-transform duration-500"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-bh-red-500/20 to-transparent">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-red/20 to-transparent">
               <LayoutGrid className="w-6 h-6 text-primary/20" />
             </div>
           )}
@@ -34,7 +33,7 @@ export default function ContributionCard({ project, isOwner }: ContributionCardP
         
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-sm font-bold text-primary truncate group-hover:text-bh-red-500 transition-colors">
+            <h4 className="text-sm font-bold text-primary truncate group-hover:text-primary-red transition-colors">
               {project.title}
             </h4>
             {isOwner && (
@@ -43,7 +42,7 @@ export default function ContributionCard({ project, isOwner }: ContributionCardP
               </span>
             )}
           </div>
-          <p className="text-xs text-secondary line-clamp-1 opacity-70">
+          <p className="text-xs text-muted-foreground line-clamp-1 opacity-70">
             {project.description || 'No description provided.'}
           </p>
           <div className="flex items-center gap-3 pt-1">

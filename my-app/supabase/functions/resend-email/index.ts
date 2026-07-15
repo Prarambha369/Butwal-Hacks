@@ -33,8 +33,7 @@ const app = new Hono();
  */
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const DEFAULT_FROM = "Butwal Hacks <noreply@butwalhacks.com>";
-const CONTACT_EMAIL = Deno.env.get("CONTACT_EMAIL") ?? "hello@butwalhacks.com";
+const DEFAULT_FROM = "Butwal Hacks <noreply@mail.butwalhacks.com>";
 
 // ─── Template Builders ───────────────────────────────────────────────────────
 

@@ -4,7 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { events as staticEvents, getEventBySlug } from "@/lib/content";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
-import ExpoProjectGrid from "./expo-grid";
+import ExpoProjectGrid, { type ExpoProject } from "./expo-grid";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -36,7 +36,7 @@ export default async function EventExpoPage({ params }: Props) {
     .eq("slug", slug)
     .single();
 
-  let projects: any[] = [];
+  let projects: ExpoProject[] = [];
   let organizerName: string | null = null;
 
   if (dbEvent) {
@@ -67,7 +67,7 @@ export default async function EventExpoPage({ params }: Props) {
       .eq("event_id", dbEvent.id)
       .order("created_at", { ascending: false });
 
-    projects = projectData || [];
+    projects = (projectData ?? []) as unknown as ExpoProject[];
   }
 
   const eventTitle = dbEvent?.title || staticEvent?.title || "Event";
@@ -75,8 +75,8 @@ export default async function EventExpoPage({ params }: Props) {
   // Compute stats
   const uniqueTechs = new Set<string>();
   const uniqueParticipants = new Set<string>();
-  projects.forEach((p: any) => {
-    p.tech_stack?.forEach((t: string) => uniqueTechs.add(t));
+  projects.forEach((p) => {
+    p.tech_stack?.forEach((t) => uniqueTechs.add(t));
     if (p.profiles?.id) uniqueParticipants.add(p.profiles.id);
   });
 
@@ -88,12 +88,12 @@ export default async function EventExpoPage({ params }: Props) {
     });
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-dvh bg-background">
       <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
         {/* Back link */}
         <Link
           href={`/events/${slug}`}
-          className="inline-flex items-center gap-2 text-xs font-mono text-secondary hover:text-primary transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-primary transition-colors mb-8"
         >
           <ArrowLeft className="w-3 h-3" />
           Back to {eventTitle}
@@ -106,17 +106,17 @@ export default async function EventExpoPage({ params }: Props) {
               <h1 className="text-5xl font-black tracking-tight text-primary sm:text-5xl">
                 Project Expo
               </h1>
-              <p className="text-secondary text-sm leading-relaxed">
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 Browse projects submitted by participants at {eventTitle}.
               </p>
             </div>
 
             {/* Event metadata cards */}
-            <div className="lg-surface rounded-2xl border border-glass p-5 space-y-4">
+            <div className="bh-card p-5 space-y-4">
               {/* Date */}
               {dbEvent?.start_date && (
                 <div className="flex items-start gap-3">
-                  <Calendar className="w-4 h-4 text-bh-red-500 mt-0.5 shrink-0" />
+                  <Calendar className="w-4 h-4 text-primary-red mt-0.5 shrink-0" />
                   <div className="text-sm">
                     <span className="text-primary font-medium">
                       {formatDate(dbEvent.start_date)}
@@ -131,7 +131,7 @@ export default async function EventExpoPage({ params }: Props) {
               {/* Location */}
               {dbEvent?.location && (
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 text-bh-red-500 mt-0.5 shrink-0" />
+                  <MapPin className="w-4 h-4 text-primary-red mt-0.5 shrink-0" />
                   <span className="text-sm text-primary">{dbEvent.location}</span>
                 </div>
               )}
@@ -139,10 +139,10 @@ export default async function EventExpoPage({ params }: Props) {
               {/* Organizer */}
               {organizerName && (
                 <div className="flex items-start gap-3">
-                  <Users className="w-4 h-4 text-bh-red-500 mt-0.5 shrink-0" />
+                  <Users className="w-4 h-4 text-primary-red mt-0.5 shrink-0" />
                   <div className="text-sm">
                     <span className="text-primary font-medium">Organized by</span>
-                    <span className="text-secondary"> {organizerName}</span>
+                    <span className="text-muted-foreground"> {organizerName}</span>
                   </div>
                 </div>
               )}
@@ -150,30 +150,30 @@ export default async function EventExpoPage({ params }: Props) {
 
             {/* Stats */}
             {projects.length > 0 && (
-              <div className="lg-surface rounded-2xl border border-glass p-5 space-y-4">
-                <h2 className="text-xs font-mono font-bold text-secondary uppercase tracking-wider">
+              <div className="bh-card p-5 space-y-4">
+                <h2 className="text-xs font-mono font-bold text-muted-foreground uppercase tracking-wider">
                   Expo Stats
                 </h2>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="text-2xl font-bold text-primary">{projects.length}</div>
-                    <div className="text-[11px] text-secondary">Projects</div>
+                    <div className="text-[11px] text-muted-foreground">Projects</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-primary">{uniqueParticipants.size}</div>
-                    <div className="text-[11px] text-secondary">Participants</div>
+                    <div className="text-[11px] text-muted-foreground">Participants</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-primary">{uniqueTechs.size}</div>
-                    <div className="text-[11px] text-secondary">Technologies</div>
+                    <div className="text-[11px] text-muted-foreground">Technologies</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-bh-red-500">
+                    <div className="text-2xl font-bold text-primary-red">
                       {uniqueParticipants.size > 0
                         ? (projects.length / uniqueParticipants.size).toFixed(1)
                         : "—"}
                     </div>
-                    <div className="text-[11px] text-secondary">Avg. Projects/Person</div>
+                    <div className="text-[11px] text-muted-foreground">Avg. Projects/Person</div>
                   </div>
                 </div>
               </div>
@@ -183,12 +183,12 @@ export default async function EventExpoPage({ params }: Props) {
           {/* ─── Main Content ─── */}
           <div className="flex-1 min-w-0">
             {projects.length > 0 ? (
-              <ExpoProjectGrid projects={projects} eventTitle={eventTitle} />
+              <ExpoProjectGrid projects={projects} />
             ) : (
-              <div className="lg-surface rounded-3xl p-16 text-center border border-glass space-y-4">
+              <div className="bh-card p-16 text-center space-y-4">
                 <Code2 size={48} className="mx-auto opacity-20" />
                 <p className="text-xl font-bold text-primary">No projects yet</p>
-                <p className="text-secondary max-w-md mx-auto">
+                <p className="text-muted-foreground max-w-md mx-auto">
                   Projects will appear here once participants submit them through the hacker dashboard.
                 </p>
               </div>

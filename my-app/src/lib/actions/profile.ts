@@ -9,7 +9,7 @@ import { auth0 } from "@/lib/auth0";
 export async function updateProfile(userId: string, updates: { 
   full_name?: string; 
   bio?: string; 
-  avatar_url?: string; 
+  avatar_url?: string | null; 
   socials?: { 
     github?: string; 
     linkedin?: string; 

@@ -12,7 +12,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Team, TeamMember, Profile } from '@/lib/supabase-types';
 
-import { RoseSpinner } from '@/components/ui/rose-loader';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
 export default function TeamManagement() {
@@ -100,7 +100,6 @@ export default function TeamManagement() {
 
   useEffect(() => {
     fetchTeamData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRemoveMember = async (profileId: string) => {
@@ -136,57 +135,111 @@ export default function TeamManagement() {
       // ponytail: inline error so user sees it in context, not as a fleeting toast
       setError(err instanceof Error ? err.message : 'Failed to remove member. Try again.');
     }
-  };    if (loading) return <div className="flex justify-center p-20"><RoseSpinner size="lg" /></div>;
+  };
+  if (loading) return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="lg:col-span-1 space-y-6">
+        <div className="bh-card p-8 space-y-6">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-5 w-5 rounded" />
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-7 w-40" />
+            </div>
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-5 w-28" />
+            </div>
+          </div>
+          <div className="pt-6 border-t border-border space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+          </div>
+        </div>
+        <div className="bh-card p-8 space-y-4">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+        </div>
+      </div>
+      <div className="lg:col-span-2 space-y-6">
+        <div className="bh-card p-8 space-y-4">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-6 w-36" />
+            <Skeleton className="h-8 w-32 rounded-lg" />
+          </div>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 p-4 rounded-lg border border-border">
+              <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+              <div className="space-y-1.5 flex-1">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-8">
       {error && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-bh-red-500/10 border border-bh-red-500/30 text-bh-red-500 text-sm">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-primary-red/10 border border-primary-red/30 text-primary-red text-sm">
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto text-bh-red-500/60 hover:text-bh-red-500 text-xs">Dismiss</button>
+          <button onClick={() => setError(null)} className="ml-auto text-primary-red/60 hover:text-primary-red text-xs">Dismiss</button>
         </div>
       )}
       <TeamInviteList onUpdate={refresh} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Team Info Card */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="lg-surface p-8 rounded-3xl border border-glass space-y-6">
+          <div className="bh-card p-8 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold">Team Details</h3>
-              <Settings className="w-5 h-5 text-secondary" />
+              <Settings className="w-5 h-5 text-muted-foreground" />
             </div>
             <div className="space-y-4">
               <div className="space-y-1">
-                <p className="text-xs font-mono text-secondary uppercase tracking-widest">Team Name</p>
+                <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Team Name</p>
               <p className="text-2xl font-bold">{team?.name ?? 'Unnamed Team'}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-mono text-secondary uppercase tracking-widest">Team ID</p>
-              <p className="text-sm font-mono text-secondary">{team?.id ?? '—'}</p>
+              <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Team ID</p>
+              <p className="text-sm font-mono text-muted-foreground">{team?.id ?? '—'}</p>
               </div>
             </div>
-            <div className="pt-6 border-t border-glass space-y-4">
+            <div className="pt-6 border-t border-border space-y-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-secondary">Status</span>
+                <span className="text-muted-foreground">Status</span>
                 <span className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold uppercase">Active</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-secondary">Members</span>
+                <span className="text-muted-foreground">Members</span>
                 <span className="font-medium">{members.length} / 5</span>
               </div>
             </div>
           </div>
 
-          <div className="lg-surface p-8 rounded-3xl border border-glass space-y-6">
+          <div className="bh-card p-8 space-y-6">
             <h3 className="text-xl font-bold flex items-center gap-2">
-              <LinkIcon className="w-5 h-5 text-bh-red-500" /> Project Linkage
+              <LinkIcon className="w-5 h-5 text-primary-red" /> Project Linkage
             </h3>
-            <p className="text-sm text-secondary">
+            <p className="text-sm text-muted-foreground">
               Connect your team to a project submission to make it official.
             </p>
             <button
               onClick={() => setIsLinkModalOpen(true)}
-              className="w-full py-3 rounded-xl bg-surface/10 border border-glass hover:bg-surface/10 transition-all text-sm font-bold flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-lg bg-surface-hover border border-border hover:bg-surface-hover transition-all text-sm font-bold flex items-center justify-center gap-2"
             >
               <Trophy className="w-4 h-4" /> Link Project
             </button>
@@ -204,12 +257,12 @@ export default function TeamManagement() {
         {/* Members List */}
         <div className="lg:col-span-2 space-y-6">
           <TeamRequestList teamId={team?.id ?? ''} onUpdate={refresh} />
-          <div className="lg-surface p-8 rounded-3xl border border-glass space-y-6">
+          <div className="bh-card p-8 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold">Squad Members</h3>
               <button
                 onClick={() => setIsInviteModalOpen(true)}
-                className="p-2 rounded-xl bg-surface/10 border border-glass hover:bg-surface/10 transition-all text-xs font-bold flex items-center gap-2"
+                className="p-2 rounded-lg bg-surface-hover border border-border hover:bg-surface-hover transition-all text-xs font-bold flex items-center gap-2"
               >
                 <UserPlus className="w-4 h-4" /> Invite Hacker
               </button>
@@ -227,7 +280,7 @@ export default function TeamManagement() {
               {members.map((member) => {
                 const profile = profiles[member.profile_id];
                 return (
-                  <div key={member.id} className="flex items-center justify-between p-4 rounded-2xl bg-surface/10 border border-glass hover:bg-background/[0.07] transition-all">
+                  <div key={member.id} className="flex items-center justify-between p-4 rounded-lg bg-surface-hover border border-border hover:bg-background/[0.07] transition-all">
                     <div className="flex items-center gap-4">
                       <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/10">
                         <Image
@@ -239,18 +292,18 @@ export default function TeamManagement() {
                       </div>
                       <div>
                         <p className="font-bold text-sm">{profile?.full_name}</p>
-                        <p className="text-[10px] font-mono text-secondary">{profile?.bh_id}</p>
+                        <p className="text-[10px] font-mono text-muted-foreground">{profile?.bh_id}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       {member.is_captain && (
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-bh-red-500/10 text-bh-red-500 text-[10px] font-bold uppercase">
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary-red/10 text-primary-red text-[10px] font-bold uppercase">
                           <ShieldCheck className="w-3 h-3" /> Captain
                         </div>
                       )}
                       <button
                         onClick={() => handleRemoveMember(member.profile_id)}
-                        className="p-2 rounded-lg text-secondary hover:text-bh-red-500 transition-colors"
+                        className="p-2 rounded-lg text-muted-foreground hover:text-primary-red transition-colors"
                         title="Remove from Team"
                       >
                         <Trash2 className="w-4 h-4" />

@@ -1,92 +1,89 @@
-import React from 'react';
-import { createClient } from '@/utils/supabase/server';
-import {Filter, Download, Search} from 'lucide-react';
+import { redirect } from "next/navigation";
+import { auth0 } from "@/lib/auth0";
+import { createClient } from "@/utils/supabase/server";
+import { ScrollText } from "lucide-react";
+import AuditLogPanel from "@/components/dashboard/maintainer/audit-log-panel";
+import type { Metadata } from "next";
 
-export default async function AuditLogPage() {
+export const metadata: Metadata = {
+  title: "Audit Log — Maintainer",
+  description: "Full system audit trail of all actions across the platform.",
+};
+
+export default async function AuditLogPage(props: {
+  searchParams?: Promise<{ p?: string; action?: string }>;
+}) {
+  const session = await auth0.getSession();
+  if (!session?.user) redirect("/auth/login");
+
+  const searchParams = await props.searchParams;
+  const page = Math.max(1, parseInt(searchParams?.p ?? "1", 10) || 1);
+  const actionFilter = searchParams?.action ?? "all";
+  const pageSize = 25;
+
   const supabase = await createClient();
-  
-  const { data: logs, error } = await supabase
-    .from('audit_logs')
-    .select('*, profiles(full_name)')
-    .order('created_at', { ascending: false })
-    .limit(100);
 
-  if (error) return <div className="p-12 text-bh-red-500">Error loading audit logs: {error.message}</div>;
+  // Get total count (respect action filter)
+  let countQuery = supabase.from("audit_logs").select("*", { count: "exact", head: true });
+  if (actionFilter !== "all") {
+    countQuery = countQuery.eq("action", actionFilter);
+  }
+  const { count: total } = await countQuery;
+
+  // Fetch paginated entries with actor profiles
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let dataQuery = supabase
+    .from("audit_logs")
+    .select(`
+      *,
+      profiles!audit_logs_actor_id_fkey ( full_name, avatar_url, bh_id )
+    `)
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (actionFilter !== "all") {
+    dataQuery = dataQuery.eq("action", actionFilter);
+  }
+
+  const { data: rows } = await dataQuery;
+
+  // Flatten profile into actor fields
+  const entries = (rows || []).map((row) => {
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return {
+      id: row.id,
+      created_at: row.created_at,
+      action: row.action,
+      target_type: row.target_type,
+      target_id: row.target_id,
+      metadata: row.metadata as Record<string, unknown> | null,
+      actor_name: (profile as { full_name?: string } | null)?.full_name ?? null,
+      actor_avatar: (profile as { avatar_url?: string } | null)?.avatar_url ?? null,
+      actor_bh_id: (profile as { bh_id?: string } | null)?.bh_id ?? null,
+    };
+  });
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">System Audit Log</h1>
-          <p className="text-secondary opacity-60">Immutable record of all critical administrative and system actions.</p>
+    <div className="space-y-6">
+      <div className="space-y-1">
+        <div className="flex items-center gap-2.5 mb-1">
+          <ScrollText className="w-5 h-5 text-primary-red" />
+          <span className="text-[11px] font-bold uppercase tracking-widest text-primary-red">Audit</span>
         </div>
-        <div className="flex gap-3">
-          <button className="p-2 rounded-xl bg-surface/10 border border-glass hover:bg-surface/10 transition-all text-secondary">
-            <Download size={18} />
-          </button>
-          <button className="p-2 rounded-xl bg-surface/10 border border-glass hover:bg-surface/10 transition-all text-secondary">
-            <Filter size={18} />
-          </button>
-        </div>
+        <h1 className="text-3xl font-bold tracking-tight text-primary">Audit Log</h1>
+        <p className="text-sm text-muted-foreground">
+          Full system audit trail of all actions across the platform.
+        </p>
       </div>
 
-      <div className="lg-surface rounded-3xl overflow-hidden border border-glass">
-        <div className="p-4 border-b border-glass bg-surface/10 flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search logs by actor, action or target..." 
-              className="w-full bg-surface/10 border border-glass rounded-xl pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 ring-red-500/50 transition-all"
-            />
-          </div>
-        </div>
-
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-surface/10 text-xs font-mono uppercase tracking-widest opacity-40 border-b border-glass">
-              <th className="px-6 py-4 font-medium">Timestamp</th>
-              <th className="px-6 py-4 font-medium">Actor</th>
-              <th className="px-6 py-4 font-medium">Action</th>
-              <th className="px-6 py-4 font-medium">Target</th>
-              <th className="px-6 py-4 font-medium">Metadata</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {logs && logs.length > 0 ? (
-              logs.map((log) => (
-                <tr key={log.id} className="hover:bg-surface/10 transition-colors group">
-                  <td className="px-6 py-4 font-mono text-[10px] opacity-50">
-                    {new Date(log.created_at).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-bold text-sm">{log.profiles?.full_name || 'System'}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-0.5 rounded-full bg-surface/10 border border-glass text-[10px] font-bold uppercase">
-                      {log.action}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-mono text-xs opacity-60">
-                    {log.target_id}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[10px] font-mono opacity-40 max-w-xs truncate group-hover:opacity-100 transition-opacity">
-                      {JSON.stringify(log.metadata)}
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-secondary italic">
-                  No audit logs found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <AuditLogPanel
+        entries={entries}
+        total={total ?? 0}
+        page={page}
+        pageSize={pageSize}
+      />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Settings2,
   BookOpen,
+  GraduationCap,
 } from "lucide-react";
 
 const maintainerLinks = [
@@ -46,6 +47,11 @@ const maintainerLinks = [
     label: "API Docs",
     icon: <BookOpen className="w-4 h-4" />,
   },
+  {
+    href: "/dashboard/maintainer/dedicate-school",
+    label: "Dedicate School",
+    icon: <GraduationCap className="w-4 h-4" />,
+  },
 ];
 
 export default async function MaintainerDashboardLayout({
@@ -74,9 +80,9 @@ export default async function MaintainerDashboardLayout({
   const slugId = profile?.slug_id ?? userId.slice(0, 8).toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-dvh bg-background">
       <MaintainerSidebar slugId={slugId} links={maintainerLinks} />
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 p-8 max-w-6xl">{children}</main>
     </div>
   );
-} // ponytail: Replaced Supabase Auth; utilizes Clerk for authentication and role verification.
+} // ponytail: Auth0 session for authentication and role verification.

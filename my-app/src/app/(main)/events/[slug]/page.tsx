@@ -1,21 +1,26 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 
-import EventExperiencePage from "@/components/event-experience-page"
-import { events, getEventBySlug, getInitiativeBySlug } from "@/lib/content"
+import { createClient } from "@/utils/supabase/server"
 import { buildPageMetadata } from "@/lib/seo"
+import { initiatives, events as contentEvents, blogPosts, getRelatedByTags } from "@/lib/content"
+import RelatedLinks from "@/components/home/related-links"
+import EventDetailContent from "@/components/events/event-detail-content"
 
-type EventDetailPageProps = {
+type Props = {
   params: Promise<{ slug: string }>
 }
 
-export function generateStaticParams() {
-  return events.map((event) => ({ slug: event.slug }))
-}
-
-export async function generateMetadata({ params }: EventDetailPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const event = getEventBySlug(slug)
+  const supabase = createClient()
+  const { data: event } = await supabase
+    .from("events")
+    .select("title, description")
+    .eq("slug", slug)
+    .single()
 
   if (!event) {
     return buildPageMetadata({
@@ -27,62 +32,81 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
 
   return buildPageMetadata({
     title: event.title,
-    description: `${event.summary} Status: ${event.status}.`,
-    path: `/events/${event.slug}`,
+    description: event.description?.slice(0, 160) || "Event details and registration.",
+    path: `/events/${slug}`,
   })
 }
 
-export default async function EventDetailPage({ params }: EventDetailPageProps) {
+export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params
-  const event = getEventBySlug(slug)
+  const supabase = createClient()
+
+  const { data: event } = await supabase
+    .from("events")
+    .select("*")
+    .eq("slug", slug)
+    .single()
 
   if (!event) {
     notFound()
   }
 
-  const initiative = getInitiativeBySlug(event.initiativeSlug)
-  const initiativeName = initiative?.name ?? "Initiative"
-
-  const timeline = [
-    { time: "09:00 AM", title: "Check-in Opens", note: "Participants arrive, get badges, and settle in." },
-    { time: "10:00 AM", title: "Opening Session", note: "Kickoff, rules, and orientation for all teams." },
-    { time: "11:00 AM", title: "Build Session", note: "Hands-on collaboration, mentoring, and project execution." },
-    { time: "04:00 PM", title: "Demo Showcase", note: "Teams present outputs and reflect on learnings." },
-  ]
-
-  const team = [
-    { name: "Program Lead", role: "Coordination" },
-    { name: "Tech Mentor", role: "Engineering" },
-    { name: "Design Mentor", role: "Product & UX" },
-    { name: "Volunteer Crew", role: "Operations" },
-  ]
-
-  const faqs = [
-    { q: "Who can join this event?", a: "Students and youth participants are welcome unless otherwise stated on registration notes." },
-    { q: "Is prior experience required?", a: "No. Events are designed for mixed skill levels with mentoring support." },
-    { q: "What should I bring?", a: "Bring your laptop, charger, and basic essentials for a full-day build session." },
-  ]
+  const eventData = {
+    id: event.id,
+    title: event.title,
+    slug: event.slug || slug,
+    description: event.description,
+    start_date: event.start_date,
+    end_date: event.end_date,
+    location: event.location,
+    banner_url: event.banner_url,
+    is_published: event.is_published,
+  }
 
   return (
-    <EventExperiencePage
-      title={event.title}
-      status={event.status}
-      dateLabel={event.dateLabel}
-      summary={event.summary}
-      initiativeLabel={initiativeName}
-      initiativeHref={`/initiatives/${event.initiativeSlug}`}
-      venue="Community Venue"
-      locationLabel="Butwal, Nepal"
-      prizeLabel="Community awards and partner recognition"
-      heroTag={`${statusLabel(event.status)} · ${initiativeName}`}
-      timeline={timeline}
-      team={team}
-      faqs={faqs}
-      slug={slug}
-    />
-  )
-}
+    <>
+      {/* Back link */}
+      <div className="mx-auto max-w-6xl px-4 pt-6">
+        <Link
+          href="/events"
+          className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-primary transition-colors group"
+        >
+          <ArrowLeft className="w-3 h-3 transition-transform group-hover:-translate-x-0.5" />
+          All Events
+        </Link>
+      </div>
 
-function statusLabel(status: "completed" | "planned") {
-  return status === "completed" ? "Completed" : "Planned"
+      <EventDetailContent event={eventData} />
+
+      {/* Related links: initiatives + blog posts tagged to this event */}
+      <div className="mx-auto max-w-6xl px-4 pb-16">
+        <RelatedLinks
+          title="Related Initiatives"
+          links={getRelatedByTags(
+            initiatives.filter((i) => i.status === "active"),
+            // Derive source tags from content.ts event matching this DB event's slug
+            contentEvents.find((e) => e.slug === slug)?.tags ?? [slug],
+            { max: 2 },
+          ).map((i) => ({
+            title: i.name,
+            description: i.summary,
+            href: `/initiatives/${i.slug}`,
+            meta: "Active Initiative",
+          }))}
+        />
+
+        {/* Continue Reading: blog posts for deeper context */}
+        <RelatedLinks
+          title="Continue Reading"
+          links={getRelatedByTags(blogPosts, contentEvents.find((e) => e.slug === slug)?.tags ?? []).map((p) => ({
+            title: p.title,
+            description: p.excerpt,
+            href: `/blog/${p.slug}`,
+            image: p.cover_image,
+            meta: p.publishedAt,
+          }))}
+        />
+      </div>
+    </>
+  )
 }

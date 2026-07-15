@@ -1,4 +1,3 @@
-import React from 'react';
 import { redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
 
@@ -14,8 +13,8 @@ export default async function HackerTeamsPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">My Squad</h1>
-          <p className="text-secondary opacity-60">Coordinate roles and manage your team members.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">My Squad</h1>
+          <p className="text-sm text-muted-foreground">Coordinate roles and manage your team members.</p>
         </div>
       </div>
 

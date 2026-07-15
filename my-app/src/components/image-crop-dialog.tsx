@@ -2,7 +2,9 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { ZoomIn, ZoomOut, Check, X, Crop } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+// ponytail: Image optimization skipped for crop preview — img ref is required for canvas drawImage()
+/* eslint-disable @next/next/no-img-element */
 
 interface ImageCropDialogProps {
   file: File;
@@ -10,11 +12,11 @@ interface ImageCropDialogProps {
   onConfirm: (croppedBlob: Blob) => void;
   /** Called when user cancels */
   onCancel: () => void;
+  /** Aspect ratio for the crop box. Defaults to 16/9 for banners/covers. */
+  aspectRatio?: number;
 }
 
-const ASPECT = 16 / 9;
-
-export default function ImageCropDialog({ file, onConfirm, onCancel }: ImageCropDialogProps) {
+export default function ImageCropDialog({ file, onConfirm, onCancel, aspectRatio = 16 / 9 }: ImageCropDialogProps) {
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -33,6 +35,9 @@ export default function ImageCropDialog({ file, onConfirm, onCancel }: ImageCrop
   // Drag state
   const dragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+
+  // Derive the aspect ratio from the prop (defaults to 16/9 for banners)
+  const ASPECT = aspectRatio;
 
   // Compute the crop-box dimensions in the container
   const [boxPx, setBoxPx] = useState({ w: 480, h: 270 });
@@ -65,7 +70,6 @@ export default function ImageCropDialog({ file, onConfirm, onCancel }: ImageCrop
       setPanX(0);
       setPanY(0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [natW, natH, boxPx.w]);
 
   // --- Mouse/Touch pan handlers ---
@@ -150,16 +154,16 @@ export default function ImageCropDialog({ file, onConfirm, onCancel }: ImageCrop
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80">
       <div
-        className="lg-surface rounded-3xl border border-glass shadow-2xl w-full max-w-2xl overflow-hidden animate-[fadeInUp_0.2s_ease-out]"
+        className="bh-card shadow-2xl w-full max-w-2xl overflow-hidden animate-[fadeInUp_0.2s_ease-out]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-glass">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <Crop className="w-5 h-5 text-bh-red-500" />
-            <h3 className="text-lg font-bold">Adjust Cover Image</h3>
+            <Crop className="w-5 h-5 text-primary-red" />
+            <h3 className="text-lg font-bold">{ASPECT === 1 ? "Adjust Profile Photo" : "Adjust Cover Image"}</h3>
           </div>
           <span className="text-[10px] font-mono text-secondary uppercase tracking-wider">
             {natW}×{natH}px
@@ -169,8 +173,7 @@ export default function ImageCropDialog({ file, onConfirm, onCancel }: ImageCrop
         {/* Image preview area */}
         <div
           ref={containerRefCallback}
-          className="relative w-full overflow-hidden bg-black/40 select-none"
-          style={{ aspectRatio: "16/9", maxHeight: "50vh", minHeight: 240 }}
+          className="relative w-full overflow-hidden bg-black/40 select-none aspect-video max-h-[50vh] min-h-[240px]"
         >
           {src && (
             <img
@@ -233,14 +236,14 @@ export default function ImageCropDialog({ file, onConfirm, onCancel }: ImageCrop
               <line x1={0} y1={(boxPx.h * 2) / 3} x2={boxPx.w} y2={(boxPx.h * 2) / 3} stroke="white" strokeWidth={1} />
             </svg>
             {/* "16:9" label */}
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-background/60 backdrop-blur-md text-[10px] font-mono text-white/80 border border-white/20">
-              16:9
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-black/40 text-[10px] font-mono text-white/80 border border-white/20">
+              {ASPECT === 1 ? "1:1" : ASPECT >= 1.7 ? "16:9" : "4:3"}
             </div>
           </div>
         </div>
 
         {/* Controls */}
-        <div className="flex items-center justify-between gap-4 p-4 border-t border-glass">
+        <div className="flex items-center justify-between gap-4 p-4 border-t border-border">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -282,7 +285,7 @@ export default function ImageCropDialog({ file, onConfirm, onCancel }: ImageCrop
             <button
               type="button"
               onClick={handleConfirm}
-              className="px-4 py-2 rounded-xl bg-bh-red-600 hover:bg-bh-red-500 text-primary font-bold transition-all text-sm flex items-center gap-1"
+              className="px-4 py-2 rounded-xl bg-bh-red-600 hover:bg-primary-red text-primary font-bold transition-all text-sm flex items-center gap-1"
             >
               <Check className="w-4 h-4" /> Apply &amp; Upload
             </button>

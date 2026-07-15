@@ -3,8 +3,8 @@
 import { logger } from "@/lib/logger"
 import { createServiceClient } from "@/utils/supabase/service";
 import { revalidatePath } from "next/cache";
-import { auth0 } from "@/lib/auth0";
 import { sanitizeString, sanitizeTitle, sanitizeDescription } from "@/lib/validation";
+import { resolveProfileId } from "@/lib/profile-resolver";
 
 interface CreateEventInput {
   title: string
@@ -19,19 +19,8 @@ interface CreateEventInput {
 // ponytail: Looks up profile UUID from WorkOS user ID to satisfy organizer_id FK
 export async function createEvent(input: CreateEventInput) {
   try {
-    const session = await auth0.getSession()
-    if (!session?.user) throw new Error("Not authenticated")
-    const userId = session.user.sub
-
     const supabase = createServiceClient()
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth0_user_id", userId)
-      .single()
-
-    if (!profile) throw new Error("Profile not found — finish onboarding first")
+    const profileId = await resolveProfileId()
 
     const { data, error } = await supabase
       .from("events")
@@ -43,7 +32,7 @@ export async function createEvent(input: CreateEventInput) {
         location: input.location ?? null,
         banner_url: input.banner_url ?? null,
         is_published: input.is_published ?? false,
-        organizer_id: profile.id,
+        organizer_id: profileId,
       })
       .select("id")
       .single()
@@ -74,18 +63,8 @@ interface CreateChapterEventInput {
 
 export async function createChapterEvent(input: CreateChapterEventInput, orgSlug: string) {
   try {
-    const session = await auth0.getSession()
-    if (!session?.user) throw new Error("Not authenticated")
-    const userId = session.user.sub
-
     const supabase = createServiceClient()
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth0_user_id", userId)
-      .single()
-    if (!profile) throw new Error("Profile not found — finish onboarding first")
+    const profileId = await resolveProfileId()
 
     const { data, error } = await supabase
       .from("events")
@@ -97,7 +76,7 @@ export async function createChapterEvent(input: CreateChapterEventInput, orgSlug
         location: input.location ?? null,
         banner_url: input.banner_url ?? null,
         is_published: input.is_published ?? false,
-        organizer_id: profile.id,
+        organizer_id: profileId,
         chapter_id: input.chapterId,
       })
       .select("id")
@@ -120,19 +99,8 @@ export async function createChapterEvent(input: CreateChapterEventInput, orgSlug
 
 export async function closeEvent(eventId: string) {
   try {
-    const session = await auth0.getSession();
-    if (!session?.user) throw new Error("Unauthorized");
-    const userId = session.user.sub;
-
     const supabase = createServiceClient();
-    // 1. Look up profile UUID
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth0_user_id", userId)
-      .single()
-    if (!profile) throw new Error("Profile not found")
-
+    const profileId = await resolveProfileId()
     // 2. Verify user is organizer of the event
     const { data: event, error: eventError } = await supabase
       .from("events")
@@ -141,7 +109,7 @@ export async function closeEvent(eventId: string) {
       .single();
 
     if (eventError || !event) throw new Error("Event not found");
-    if (event.organizer_id !== profile.id) throw new Error("Only the organizer can close this event");
+    if (event.organizer_id !== profileId) throw new Error("Only the organizer can close this event");
 
     // 2. Identify attended participants
     const { data: attendees, error: attendeesError } = await supabase
@@ -190,24 +158,14 @@ export async function closeEvent(eventId: string) {
 export async function submitEventFeedback(eventId: string, rating: number, comment: string) {
   try {
     const supabase = createServiceClient();
-    const session = await auth0.getSession();
-    if (!session?.user) throw new Error("Unauthorized");
-    const userId = session.user.sub;
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth0_user_id", userId)
-      .single()
-    if (!profile) throw new Error("Profile not found")
-
+    const profileId = await resolveProfileId()
     const sanitizedComment = sanitizeString(comment, 2000)
 
     const { error } = await supabase
       .from("event_reviews")
       .upsert({
         event_id: eventId,
-        profile_id: profile.id,
+        profile_id: profileId,
         rating,
         comment: sanitizedComment,
         created_at: new Date().toISOString(),

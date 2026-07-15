@@ -4,19 +4,33 @@
  * Development: logs to console (no network call).
  * Production: sends structured JSON logs to Axiom's ingest API.
  *   - Fire-and-forget (no await) so it doesn't block request handling.
- *   - Includes level, timestamp, and structured context from the caller.
+ *   - Includes level, timestamp, error_id, and structured context from the caller.
  *   - Falls back to console if Axiom env vars are missing.
  *
+ * Full-stack traceability:
+ *   Use logger.withErrorId(bhErrorId) in request handlers to thread a unique
+ *   error ID through all server-side log entries, matching the client-side
+ *   error report from error.tsx. Example:
+ *
+ *     const log = logger.withErrorId("BH-ERR-a1b2c3-d4e5");
+ *     log.error("[api/route]", err);   // error_id auto-attached to Axiom entry
+ *
  * Usage:
- *   logger.error("[api/route]", err)       // Error level, string + structured
+ *   logger.error("[api/route]", err)       // Error level
  *   logger.warn("[api/route]", { key })    // Warning level
  *   logger.info("User action", { userId }) // Info level
- *
- * All call sites remain unchanged — only this file needed updates.
  */
 
 const isDev = process.env.NODE_ENV !== 'production';
 const isAxiomConfigured = !!process.env.AXIOM_TOKEN && !!process.env.AXIOM_DATASET;
+
+/** A single log entry sent to Axiom. */
+interface LogEntry {
+  level: string;
+  message: string;
+  error_id?: string;
+  timestamp: string;
+}
 
 /** URL-safe characters for search: strip ANSI codes and escape newlines. */
 function sanitize(val: unknown): string {
@@ -26,7 +40,7 @@ function sanitize(val: unknown): string {
 }
 
 /** Send a batch of log entries to Axiom (fire-and-forget). */
-function sendToAxiom(entries: { level: string; message: string; timestamp: string }[]) {
+function sendToAxiom(entries: LogEntry[]) {
   if (!isAxiomConfigured) return;
   const dataset = process.env.AXIOM_DATASET!;
   const token = process.env.AXIOM_TOKEN!;
@@ -50,7 +64,8 @@ function sendToAxiom(entries: { level: string; message: string; timestamp: strin
  *  worst case mixes log entries from concurrent requests, losing request correlation.
  *  Upgrade path: instantiate a per-request Logger via next-axiom's Logger class and
  *  pass it along instead of using a global singleton. */
-let batch: { level: string; message: string; timestamp: string }[] = [];
+// ponytail: const is safe — splice/push mutate the array without reassigning
+const batch: LogEntry[] = [];
 
 /** Flush buffered log entries to Axiom synchronously (fire-and-forget). */
 function flush() {
@@ -66,12 +81,13 @@ function flush() {
  * Flushes via queueMicrotask to ensure logs are sent before the serverless
  * function returns — avoids data loss from Vercel freezing the runtime.
  */
-function log(level: string, args: unknown[]) {
+function log(level: string, args: unknown[], errorId?: string) {
   if (isDev) {
     // Development: console only, no network call
-    if (level === 'error') console.error(...args);
-    else if (level === 'warn') console.warn(...args);
-    else console.log(...args);
+    const prefix = errorId ? `[${errorId}]` : '';
+    if (level === 'error') console.error(prefix, ...args);
+    else if (level === 'warn') console.warn(prefix, ...args);
+    else console.log(prefix, ...args);
     return;
   }
 
@@ -82,6 +98,7 @@ function log(level: string, args: unknown[]) {
   batch.push({
     level,
     message,
+    ...(errorId ? { error_id: errorId } : {}),
     timestamp: new Date().toISOString(),
   });
 
@@ -91,9 +108,26 @@ function log(level: string, args: unknown[]) {
   queueMicrotask(flush);
 }
 
+/** Base logger — every call is independent with no correlation context. */
 export const logger = {
   error: (...args: unknown[]) => log("error", args),
   warn: (...args: unknown[]) => log("warn", args),
   info: (...args: unknown[]) => log("info", args),
-};
 
+  /**
+   * Create a child logger that auto-attaches `errorId` to every entry.
+   *
+   * Use in request handlers that have received or generated a BH-ERR-* ID
+   * to enable full-stack traceability from client error → server log.
+   *
+   * Example:
+   *   const log = logger.withErrorId("BH-ERR-a1b2c3-d4e5");
+   *   log.error("[api/route]", someError);
+   *   // Axiom entry includes: { level: "error", message: "...", error_id: "BH-ERR-a1b2c3-d4e5" }
+   */
+  withErrorId: (errorId: string) => ({
+    error: (...args: unknown[]) => log("error", args, errorId),
+    warn: (...args: unknown[]) => log("warn", args, errorId),
+    info: (...args: unknown[]) => log("info", args, errorId),
+  }),
+};

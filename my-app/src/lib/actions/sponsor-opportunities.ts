@@ -67,7 +67,7 @@ export async function createOpportunity(input: CreateOpportunityInput) {
     });
 
     if (error) throw error;
-    revalidatePath("/dashboard/sponsor/opportunities");
+    revalidatePath("/portal/bounties");
     revalidatePath("/opportunities");
     return { success: true };
   } catch (error) {
@@ -115,7 +115,7 @@ export async function updateOpportunity(id: string, input: CreateOpportunityInpu
       .eq("id", id);
 
     if (error) throw error;
-    revalidatePath("/dashboard/sponsor/opportunities");
+    revalidatePath("/portal/bounties");
     revalidatePath("/opportunities");
     return { success: true };
   } catch (error) {
@@ -141,7 +141,7 @@ export async function toggleOpportunity(id: string) {
     if (!opp || opp.sponsor_profile_id !== sponsorProfileId) throw new Error("Not authorized");
 
     await supabase.from("sponsor_opportunities").update({ is_active: !opp.is_active, updated_at: new Date().toISOString() }).eq("id", id);
-    revalidatePath("/dashboard/sponsor/opportunities");
+    revalidatePath("/portal/bounties");
     revalidatePath("/opportunities");
     return { success: true, is_active: !opp.is_active };
   } catch (error) {
@@ -167,7 +167,7 @@ export async function deleteOpportunity(id: string) {
     if (!opp || opp.sponsor_profile_id !== sponsorProfileId) throw new Error("Not authorized");
 
     await supabase.from("sponsor_opportunities").delete().eq("id", id);
-    revalidatePath("/dashboard/sponsor/opportunities");
+    revalidatePath("/portal/bounties");
     revalidatePath("/opportunities");
     return { success: true };
   } catch (error) {

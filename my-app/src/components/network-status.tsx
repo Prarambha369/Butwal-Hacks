@@ -56,7 +56,7 @@ export default function NetworkStatus() {
         <div
           className={cn(
             "fixed top-0 left-0 right-0 z-[60] flex items-center justify-center gap-2",
-            "bg-status-yellow/90 backdrop-blur-[20px] text-bg-base text-xs font-bold",
+            "bg-status-yellow/90 text-bg-base text-xs font-bold",
             "px-4 py-2 shadow-lg animate-in slide-in-from-top duration-300",
           )}
           role="alert"
@@ -71,8 +71,8 @@ export default function NetworkStatus() {
         <div
           className={cn(
             "fixed top-4 right-4 z-[60] flex items-center gap-2",
-            "bg-status-green/90 backdrop-blur-[20px] text-white text-xs font-bold",
-            "px-4 py-2.5 rounded-2xl shadow-lg animate-in slide-in-from-top duration-300",
+            "bg-status-green/90 text-white text-xs font-bold",
+            "px-4 py-2.5 rounded-lg shadow-lg animate-in slide-in-from-top duration-300",
           )}
           role="status"
         >

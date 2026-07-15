@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, AlertCircle, CheckCircle, Loader2, Mail, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import { toast } from "sonner";
 import { issueTrustMarker } from "@/lib/actions/issue-marker";
 
@@ -40,7 +40,7 @@ export function IssueMarkerForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Email Field */}
       <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-widest opacity-40 flex items-center gap-2">
+        <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
           <Mail size={14} /> Recipient Email
         </label>
         <input
@@ -48,23 +48,23 @@ export function IssueMarkerForm() {
           type="email"
           required
           placeholder="hacker@example.com"
-          className="w-full bg-surface/10 border border-glass rounded-xl px-4 py-3 outline-none focus:ring-2 ring-red-500/50 transition-all text-sm"
+          className="bh-input"
           disabled={isSubmitting}
         />
-        <p className="text-[10px] opacity-30">
+        <p className="text-[10px] text-muted-foreground">
           If this email doesn&apos;t have an account yet, a claim link will be sent.
         </p>
       </div>
 
       {/* Marker Type */}
       <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-widest opacity-40 flex items-center gap-2">
+        <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
           <ShieldCheck size={14} /> Marker Type
         </label>
         <select
           name="type"
           required
-          className="w-full bg-surface/10 border border-glass rounded-xl px-4 py-3 outline-none focus:ring-2 ring-red-500/50 transition-all text-sm"
+          className="bh-select"
           disabled={isSubmitting}
         >
           <option value="achievement">Achievement</option>
@@ -77,21 +77,21 @@ export function IssueMarkerForm() {
 
       {/* Title */}
       <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-widest opacity-40">Marker Title</label>
+        <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Marker Title</label>
         <input
           name="title"
           type="text"
           required
           minLength={2}
           placeholder="e.g. Community Pillar, Hackathon Winner, Top Mentor"
-          className="w-full bg-surface/10 border border-glass rounded-xl px-4 py-3 outline-none focus:ring-2 ring-red-500/50 transition-all text-sm"
+          className="bh-input"
           disabled={isSubmitting}
         />
       </div>
 
       {/* Description */}
       <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-widest opacity-40">
+        <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
           Description &amp; Justification
         </label>
         <textarea
@@ -99,7 +99,7 @@ export function IssueMarkerForm() {
           required
           minLength={5}
           rows={4}
-          className="w-full bg-surface/10 border border-glass rounded-xl px-4 py-3 outline-none focus:ring-2 ring-red-500/50 transition-all text-sm resize-none"
+          className="bh-textarea"
           placeholder="Describe why this marker is being issued and what the recipient did..."
           disabled={isSubmitting}
         />
@@ -108,10 +108,10 @@ export function IssueMarkerForm() {
       {/* Result Banner */}
       {result && (
         <div
-          className={`flex items-start gap-3 p-4 rounded-xl text-sm ${
+          className={`flex items-start gap-3 p-4 rounded-lg text-sm ${
             result.success
-              ? "bg-green-500/10 border border-green-500/30 text-green-400"
-              : "bg-bh-red-500/10 border border-bh-red-500/30 text-bh-red-500"
+              ? "bg-status-green/10 border border-status-green/30 text-status-green"
+              : "bg-primary-red/10 border border-primary-red/30 text-primary-red"
           }`}
         >
           {result.success ? <CheckCircle size={18} className="mt-0.5 shrink-0" /> : <AlertCircle size={18} className="mt-0.5 shrink-0" />}
@@ -120,11 +120,10 @@ export function IssueMarkerForm() {
       )}
 
       {/* Submit */}
-      <div className="flex justify-end pt-4">
-        <Button
+      <div className="flex justify-end pt-4">          <button
           type="submit"
           disabled={isSubmitting}
-          variant="default"
+          className="inline-flex items-center gap-2 rounded-lg bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-deep-red disabled:opacity-50"
         >
           {isSubmitting ? (
             <>
@@ -137,7 +136,7 @@ export function IssueMarkerForm() {
               Issue Marker
             </>
           )}
-        </Button>
+        </button>
       </div>
     </form>
   );

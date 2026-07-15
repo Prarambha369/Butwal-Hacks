@@ -10,9 +10,8 @@ import {
   LayoutDashboard,
   CalendarDays,
   MapPin,
-  BookMarked,
-  ScanLine,
   KeyRound,
+  KanbanSquare,
 } from "lucide-react";
 
 const organizerLinks = [
@@ -27,19 +26,14 @@ const organizerLinks = [
     icon: <CalendarDays className="w-4 h-4" />,
   },
   {
+    href: "/dashboard/organizer/work",
+    label: "Team Work",
+    icon: <KanbanSquare className="w-4 h-4" />,
+  },
+  {
     href: "/dashboard/organizer/issue-marker",
     label: "Issue Marker",
     icon: <MapPin className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/organizer/my-markers",
-    label: "My Markers",
-    icon: <BookMarked className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/organizer/check-in",
-    label: "Check-in",
-    icon: <ScanLine className="w-4 h-4" />,
   },
   {
     href: "/dashboard/organizer/api-keys",
@@ -57,7 +51,7 @@ export default async function OrganizerDashboardLayout({
   const userId = session?.user?.sub;
 
   if (!userId) {
-    redirect("/sign-in");
+    redirect("/auth/login");
   }
 
   const supabase = await createClient();
@@ -74,13 +68,13 @@ export default async function OrganizerDashboardLayout({
   const slugId = profile?.slug_id ?? userId.slice(0, 8).toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-dvh bg-background">
       <DashboardSidebar
         role="organizer"
         slugId={slugId}
         links={organizerLinks}
       />
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 p-8 max-w-6xl">{children}</main>
     </div>
   );
-} // ponytail: Removed Supabase Auth, Clerk authentication now drives layout protection.
+} // ponytail: Auth0 session drives layout protection (replaced Supabase Auth).

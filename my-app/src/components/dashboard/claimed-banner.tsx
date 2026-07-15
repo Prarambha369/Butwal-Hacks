@@ -20,9 +20,9 @@ function BannerContent() {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-900/20 via-emerald-800/10 to-transparent p-6 shadow-lg shadow-emerald-950/20">
+    <div className="relative overflow-hidden rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-900/20 via-emerald-800/10 to-transparent p-6 shadow-lg shadow-emerald-950/20">
       <div className="flex items-start gap-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20">
           <ShieldCheck className="h-5 w-5 text-emerald-400" aria-hidden="true" />
         </div>
 
@@ -42,7 +42,7 @@ function BannerContent() {
 
         <button
           onClick={dismiss}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface/10 text-primary/40 transition-colors hover:bg-surface/10 hover:text-primary/70"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-hover text-primary/40 transition-colors hover:bg-surface-hover hover:text-primary/70"
           aria-label="Dismiss"
         >
           <X className="h-4 w-4" />

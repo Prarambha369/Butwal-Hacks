@@ -1,16 +1,13 @@
--- Migration: 074_auth0_migration
--- Purpose: Rename auth columns to auth0_user_id (final auth provider: Auth0)
+-- Migration: 074_auth0_finalize
+-- Purpose: Clean up legacy auth columns — all users now use Auth0
+-- auth0_user_id and auth0_org_id are already set up by migration 072.
+ALTER TABLE public.profiles DROP COLUMN IF EXISTS clerk_user_id;
+ALTER TABLE public.profiles DROP COLUMN IF EXISTS workos_user_id;
 
--- Step 1: Add auth0_user_id column
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS auth0_user_id TEXT;
+-- Step 2: Drop legacy columns from chapters
+ALTER TABLE public.chapters DROP COLUMN IF EXISTS clerk_org_id;
+ALTER TABLE public.chapters DROP COLUMN IF EXISTS workos_org_id;
 
--- Step 2: Copy data from workos_user_id or clerk_user_id
-UPDATE public.profiles SET auth0_user_id = COALESCE(workos_user_id, clerk_user_id) WHERE auth0_user_id IS NULL;
-
--- Step 3: Create UNIQUE index on auth0_user_id
-CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_auth0_user_id ON public.profiles (auth0_user_id);
-
--- Step 4: Rename clerk_org_id to auth0_org_id in chapters
-ALTER TABLE public.chapters ADD COLUMN IF NOT EXISTS auth0_org_id TEXT;
-UPDATE public.chapters SET auth0_org_id = COALESCE(workos_org_id, clerk_org_id) WHERE auth0_org_id IS NULL;
-CREATE UNIQUE INDEX IF NOT EXISTS idx_chapters_auth0_org_id ON public.chapters (auth0_org_id);
+-- Step 3: Drop legacy RLS helper function if it exists (replaced by auth.jwt())
+DROP FUNCTION IF EXISTS public.current_clerk_user_id();
+DROP FUNCTION IF EXISTS public.current_workos_user_id();

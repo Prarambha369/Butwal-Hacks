@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createAuthenticatedClient } from '@/utils/supabase/server';
 import { z } from 'zod';
-import { sanitizeTitle, sanitizeDescription, sanitizeUrl, sanitizeString, rejectOversized } from '@/lib/validation';
+import { sanitizeTitle, sanitizeDescription, sanitizeUrl, sanitizeString } from '@/lib/validation';
 import { logger } from '@/lib/logger';
-import { withRateLimit } from '@/lib/rate-limiter';
+import { withRateLimit, withPayloadLimit } from '@/lib/rate-limiter';
 import { captureServerEvent } from '@/lib/analytics/server';
 
 const createProjectSchema = z.object({
@@ -17,7 +17,7 @@ const createProjectSchema = z.object({
   team_id: z.string().optional(),
 });
 
-export const POST = withRateLimit(async (request: Request) => {
+export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
   try {
     const authClient = await createAuthenticatedClient();
     if (!authClient) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -36,8 +36,6 @@ export const POST = withRateLimit(async (request: Request) => {
       }
     }
 
-    // ponytail: reject oversized payloads before parsing — 1 MB limit
-    const oversized = rejectOversized(request); if (oversized) return oversized
     const raw = await request.json();
     const parsed = createProjectSchema.safeParse(raw);
     if (!parsed.success) {
@@ -49,7 +47,7 @@ export const POST = withRateLimit(async (request: Request) => {
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
-      .eq('clerk_user_id', userId)
+      .eq('auth0_user_id', userId)
       .single();
     if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 400 });
 
@@ -77,4 +75,4 @@ export const POST = withRateLimit(async (request: Request) => {
     logger.error('[api/projects]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-})
+}), "sensitive")
