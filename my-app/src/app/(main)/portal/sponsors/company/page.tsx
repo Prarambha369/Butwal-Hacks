@@ -35,7 +35,7 @@ export default async function SponsorCompanyPage() {
       <div>
         <h1 className="text-2xl font-bold text-primary">Company Profile</h1>
         <p className="text-secondary text-sm mt-1">
-          Set up your organization profile to attract hackers and showcase your sponsorship packages.
+          Set up your org profile so hackers can find your sponsorships.
         </p>
       </div>
 

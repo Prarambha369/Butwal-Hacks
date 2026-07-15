@@ -20,7 +20,7 @@ export default async function AdminUsersPage() {
           <span className="text-[11px] font-mono text-muted-foreground">{users.length} users</span>
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-primary">User Administration</h1>
-        <p className="text-sm text-muted-foreground">Control access, roles, and account status across the ecosystem.</p>
+        <p className="text-sm text-muted-foreground">Manage access, roles, and account status across the platform.</p>
       </div>
 
       {/* Mini stats */}

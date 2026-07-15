@@ -60,7 +60,7 @@ export const explorerMembers: ExplorerMember[] = [
     name: "Sneha KC",
     role: "Organizer",
     avatar: "SK",
-    bio: "Community lead at Butwal Hacks. Organizing events, managing teams, and growing the local tech ecosystem.",
+    bio: "Community lead at Butwal Hacks. Organizing events, managing teams, and growing the local tech community.",
     skills: ["Event Management", "Community Building", "Public Speaking", "Git"],
     xp: 3200,
     projects: 2,

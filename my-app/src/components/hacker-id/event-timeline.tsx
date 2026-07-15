@@ -128,7 +128,7 @@ export default function EventTimeline({ events }: { events: EventHistory[] }) {
           <Calendar size={32} className="text-muted-foreground opacity-20" />
         </div>
         <p className="text-muted-foreground font-mono text-sm opacity-60">
-          No event history found. Start your journey.
+          No events yet. Join one to get started.
         </p>
       </div>
     );
