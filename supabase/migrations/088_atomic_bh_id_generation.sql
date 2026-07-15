@@ -1,4 +1,4 @@
--- Migration: 086_atomic_bh_id_generation
+-- Migration: 088_atomic_bh_id_generation
 -- Purpose: Create an atomic BH-ID generator using advisory locks to prevent
 --          race conditions when two users sign up concurrently.
 --

@@ -7,14 +7,6 @@
  * that can be wired to any backend later (PostHog, Axiom, console, etc.).
  */
 
-type LogLevel = 1 | 2 | 3;
-
-const LEVELS: Record<string, LogLevel> = {
-  INFO: 1,
-  WARN: 2,
-  ERROR: 3,
-};
-
 function emit(level: string, body: string, attributes?: Record<string, unknown>) {
   // ponytail: Log to console for now. Swap in a real transport later.
   // To enable, set LOGGER_BACKEND=axiom|posthog in env and add the

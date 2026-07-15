@@ -1,4 +1,7 @@
-import { Quote, Code, CheckCircle, Link } from "lucide-react"
+"use client"
+
+import { useState } from "react"
+import { Quote, Code, CheckCircle, Copy, Check } from "lucide-react"
 
 const blocks = [
   {
@@ -38,6 +41,41 @@ const blocks = [
     code: "# Get your hacker ID in seconds\ncurl -X POST https://api.butwalhacks.com/profiles \\\n  -H \"Authorization: Bearer $BH_TOKEN\" \\\n  -d '{\"name\": \"Your Name\", \"email\": \"you@example.com\"}'",
   },
 ]
+
+function CopyButton({ code }: { code: string | undefined }) {
+  const [copied, setCopied] = useState(false)
+
+  async function handleCopy() {
+    if (!code) return
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard API not available — fail silently
+    }
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="ml-auto flex items-center justify-center gap-1.5 min-w-[44px] min-h-[44px] px-2 py-1 rounded text-xs text-muted-foreground hover:text-white transition-colors focus:ring-2 focus:ring-[#FE0000] focus:outline-none"
+      aria-label={copied ? "Copied" : "Copy code"}
+    >
+      {copied ? (
+        <>
+          <Check className="h-3 w-3 text-status-green" />
+          <span className="text-status-green">Copied</span>
+        </>
+      ) : (
+        <>
+          <Copy className="h-3 w-3" />
+          <span>Copy</span>
+        </>
+      )}
+    </button>
+  )
+}
 
 export default function TypographyBlocks() {
   return (
@@ -97,10 +135,7 @@ export default function TypographyBlocks() {
                     <div className="flex items-center gap-2 px-4 py-2 rounded-t-lg bg-surface-inverse border-b border-white/5">
                       <Code className="h-3.5 w-3.5 text-muted-foreground" />
                       <span className="text-xs font-mono text-muted-foreground">{block.language}</span>
-                      <button className="ml-auto flex items-center justify-center gap-1.5 min-w-[44px] min-h-[44px] px-2 py-1 rounded text-xs text-muted-foreground hover:text-white transition-colors focus:ring-2 focus:ring-[#FE0000] focus:outline-none" aria-label="Copy code">
-                        <Link className="h-3 w-3" />
-                        <span>Copy</span>
-                      </button>
+                      <CopyButton code={block.code} />
                     </div>
                     <pre className="rounded-b-lg bg-surface-inverse p-4 overflow-x-auto">
                       <code className="text-sm font-mono text-gray-300 leading-relaxed whitespace-pre">
