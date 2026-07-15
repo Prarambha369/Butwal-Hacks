@@ -7,51 +7,28 @@ import { posthogLog } from "@/lib/posthog-logger"
 
 const AUTH0_WEBHOOK_SECRET = process.env.AUTH0_WEBHOOK_SECRET ?? "";
 
-/**
- * Maps Auth0 role names (assigned in Auth0 Dashboard) to app-internal role values.
- * The user configured these roles in Auth0 → User Management → Roles:
- *   "Hacker", "Organizer", "Maintainer", "Sponsors", "Lead"
- */
+/** Maps Auth0 role names to app-internal role values.
+ *  Assigned in Auth0 Dashboard → User Management → Roles. */
 const AUTH0_ROLE_MAP: Record<string, string> = {
   "Hacker": "hacker",
   "Organizer": "organizer",
   "Maintainer": "maintainer",
-  "Sponsors": "sponsor",   // Plural in Auth0, singular in app
-  "Lead": "lead",           // Chapter Lead
+  "Sponsors": "sponsor",
+  "Lead": "lead",
 };
 
-/**
- * Priority order for role assignment. If a user has multiple Auth0 roles,
- * the highest-priority role wins.
- */
-const ROLE_PRIORITY: Record<string, number> = {
-  "maintainer": 5,
-  "organizer": 4,
-  "sponsor": 3,
-  "lead": 2,
-  "hacker": 1,
-};
+/** Role precedence (index 0 = highest). Used to prevent downgrades. */
+const ROLE_RANK = ["maintainer", "organizer", "sponsor", "lead", "hacker"];
 
 function mapAuth0Roles(auth0Roles: string[]): string | null {
-  const mapped = auth0Roles
-    .map((r) => AUTH0_ROLE_MAP[r])
-    .filter(Boolean);
-
-  if (mapped.length === 0) return null;
-
-  // Return the highest-priority role
-  return mapped.sort((a, b) => (ROLE_PRIORITY[b] || 0) - (ROLE_PRIORITY[a] || 0))[0];
+  const role = auth0Roles.map((r) => AUTH0_ROLE_MAP[r]).filter(Boolean)[0];
+  return role ?? null;
 }
 
 /**
  * POST /api/webhooks/auth0
  *
  * Called by Auth0 Action (Post-Login) to sync user to Supabase profiles.
- * Auth0 Actions send a POST with the user's sub (Auth0 User ID), email, name,
- * and optional auth0_roles array.
- *
- * If AUTH0_WEBHOOK_SECRET is set (production), verifies the X-Webhook-Secret
- * header matches. In dev, the secret is usually unset so the check is skipped.
  */
 export const POST = withRateLimit(async (req: NextRequest) => {
   try {
@@ -71,28 +48,19 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       }
     }
 
-    const body = await req.json() as {
+    const { sub, email, name, auth0_roles } = await req.json() as {
       sub?: string
       email?: string
       name?: string
       auth0_roles?: string[]
     }
 
-    const { sub, email, name, auth0_roles } = body;
-
     if (!sub || !email) {
       return NextResponse.json({ error: "sub and email are required" }, { status: 400 })
     }
 
     // ── Map Auth0 roles to app role ──────────────────────────────
-    let resolvedRole = "hacker";
-    if (auth0_roles && Array.isArray(auth0_roles) && auth0_roles.length > 0) {
-      const mapped = mapAuth0Roles(auth0_roles);
-      if (mapped) {
-        resolvedRole = mapped;
-        logger.info(`[auth0-webhook] Auth0 roles [${auth0_roles.join(", ")}] → mapped to "${resolvedRole}" for ${email}`);
-      }
-    }
+    const resolvedRole = mapAuth0Roles(auth0_roles ?? []) || "hacker";
 
     const db = createServiceClient()
 
@@ -104,26 +72,18 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       .single()
 
     if (existingProfile) {
-      // Build update payload
-      const updateData: Record<string, unknown> = {
-        email,
-        full_name: name?.trim() || null,
-      };
+      const update: Record<string, unknown> = { email, full_name: name?.trim() || null };
 
-      // Only upgrade role if Auth0 roles are provided and have higher priority
-      if (resolvedRole !== "hacker") {
-        const currentPriority = ROLE_PRIORITY[existingProfile.role as string] || 0;
-        const newPriority = ROLE_PRIORITY[resolvedRole] || 0;
-        if (newPriority > currentPriority) {
-          updateData.role = resolvedRole;
+      if (resolvedRole !== existingProfile.role) {
+        const oldRank = ROLE_RANK.indexOf(existingProfile.role ?? "hacker");
+        const newRank = ROLE_RANK.indexOf(resolvedRole);
+        if (newRank !== -1 && newRank < oldRank) {
+          update.role = resolvedRole;
           logger.info(`[auth0-webhook] Upgrading ${email} role: ${existingProfile.role} → ${resolvedRole}`);
         }
       }
 
-      await db
-        .from("profiles")
-        .update(updateData)
-        .eq("id", existingProfile.id)
+      await db.from("profiles").update(update).eq("id", existingProfile.id)
 
       posthogLog.info("Auth0 webhook: existing profile updated", {
         auth0_id: sub,
