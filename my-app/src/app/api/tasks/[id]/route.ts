@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase/service"
-import { checkRateLimit } from "@/lib/rate-limiter"
+import { withRateLimit } from "@/lib/rate-limiter"
 import { z } from "zod"
 
 // ─── Validation Schema ──────────────────────────────────────────────────
@@ -50,22 +50,10 @@ async function verifyTaskAccess(profileId: string, taskId: string) {
 
 // ─── PATCH /api/tasks/[id] ──────────────────────────────────────────────
 
-export async function PATCH(
+async function handlePatch(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Rate limit: 10 tasks updates per minute (frequent tier)
-  const rateLimitResult = await checkRateLimit(request, "frequent")
-  if (!rateLimitResult.allowed) {
-    return NextResponse.json({ error: "Too many requests" }, {
-      status: 429,
-      headers: {
-        "Retry-After": String(rateLimitResult.reset),
-        "X-RateLimit-Remaining": String(rateLimitResult.remaining),
-      },
-    })
-  }
-
   const session = await auth0.getSession()
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -128,6 +116,8 @@ export async function PATCH(
 
   return NextResponse.json({ task: updated })
 }
+
+export const PATCH = withRateLimit(handlePatch, "frequent");
 
 // ─── DELETE /api/tasks/[id] ─────────────────────────────────────────────
 

@@ -1,8 +1,4 @@
-import { twMerge } from "tailwind-merge"
-
-export function cn(...inputs: (string | boolean | null | undefined)[]) {
-  return twMerge(inputs.filter(Boolean).join(' '))
-}
+export { twMerge as cn } from "tailwind-merge"
 
 /** Apply Cloudinary auto-optimization transforms to an image URL. */
 export function cloudinaryUrl(url: string | null | undefined, width = 800): string {

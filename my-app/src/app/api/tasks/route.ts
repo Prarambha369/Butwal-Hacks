@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase/service"
-import { checkRateLimit } from "@/lib/rate-limiter"
+import { withRateLimit } from "@/lib/rate-limiter"
 import { z } from "zod"
 
 // ─── Validation Schemas ────────────────────────────────────────────────
@@ -109,19 +109,7 @@ export async function GET(request: NextRequest) {
 
 // ─── POST /api/tasks ────────────────────────────────────────────────────
 
-export async function POST(request: NextRequest) {
-  // Rate limit: 30 tasks per minute per IP (bulk tier)
-  const rateLimitResult = await checkRateLimit(request, "bulk")
-  if (!rateLimitResult.allowed) {
-    return NextResponse.json({ error: "Too many requests" }, {
-      status: 429,
-      headers: {
-        "Retry-After": String(rateLimitResult.reset),
-        "X-RateLimit-Remaining": String(rateLimitResult.remaining),
-      },
-    })
-  }
-
+async function handlePost(request: NextRequest) {
   const session = await auth0.getSession()
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -180,3 +168,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ task }, { status: 201 })
 }
+
+export const POST = withRateLimit(handlePost, "bulk");
