@@ -28,7 +28,7 @@ export default async function DashboardLayout({
   if (!profile) {
     // Atomic BH-ID generation via Postgres RPC — prevents race conditions
     // on concurrent signups (migration 086_atomic_bh_id_generation).
-    const { data: result, error: rpcError } = await db.rpc('create_profile_with_bh_id', {
+    const { error: rpcError } = await db.rpc('create_profile_with_bh_id', {
       p_auth0_user_id: userId,
       p_email: session.user.email || `${userId}@placeholder.butwalhacks.com`,
       p_full_name: session.user.name || 'New Hacker',

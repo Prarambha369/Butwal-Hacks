@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════════════
--- Migration 088: Create role_requests table
+-- Migration 089: Create role_requests table
 --
 -- Handles role upgrade requests for organizer and sponsor roles.
 -- Users who want Organizer or Sponsor access submit a request.

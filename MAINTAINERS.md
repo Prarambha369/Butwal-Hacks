@@ -155,7 +155,7 @@ The **Sync User to Supabase** action must be deployed and active in the Login fl
 - **Apply**: `supabase migration up --linked` (requires Supabase CLI)
 - **Idempotency**: Always use `IF NOT EXISTS` for tables/columns/indexes
 
-> There is also `my-app/supabase/migrations/` with migration 070 — this is *not* canonical. New migrations go in `supabase/migrations/`.
+> ⚠️ The `my-app/supabase/migrations/` directory was a duplicate and has been **deleted**. All migrations live in `supabase/migrations/` (repo root). New migrations go there only.
 
 ---
 

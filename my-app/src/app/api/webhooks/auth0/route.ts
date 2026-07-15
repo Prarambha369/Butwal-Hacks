@@ -55,8 +55,6 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       .eq("auth0_user_id", sub)
       .single()
 
-    let profileDbId: string | undefined = existingProfile?.id
-
     if (existingProfile) {
       // Update existing profile
       await db
@@ -87,7 +85,6 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         return NextResponse.json({ error: "Failed to create profile" }, { status: 500 })
       }
 
-      profileDbId = (result as { id: string }).id
       const bhId = (result as { bh_id: string }).bh_id
 
       await identifyServerUser(sub, { bh_id: bhId, role: "hacker" })

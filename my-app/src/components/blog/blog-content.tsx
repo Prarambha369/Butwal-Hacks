@@ -17,12 +17,11 @@ const tags = ["#react", "#opensource", "#hackathon", "#backend", "#nepaltech"]
 // Animated blog post card with entrance animation
 const BlogPostCard = memo(function BlogPostCard({
   post,
-  index,
   showSponsored,
 }: {
   post: BlogPost
-  index: number
   showSponsored: boolean
+  index?: number
 }) {
   return (
     <div>
