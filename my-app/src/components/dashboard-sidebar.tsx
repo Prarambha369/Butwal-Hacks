@@ -7,7 +7,7 @@ import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { OrgSwitcher } from "@/components/org-switcher"
 
-type Role = "hacker" | "sponsor" | "organizer" | "maintainer"
+type Role = "hacker" | "sponsor" | "organizer" | "maintainer" | "lead"
 
 interface NavLink {
   href: string
@@ -48,6 +48,12 @@ const roleConfig: Record<
     badge: "bg-primary-red/10 text-primary-red border border-primary-red/20",
     badgeText: "maintainer",
     activeClass: "bg-primary-red/8 text-primary-red font-semibold border border-primary-red/20",
+  },
+  lead: {
+    dot: "bg-status-purple",
+    badge: "bg-status-purple/10 text-status-purple border border-status-purple/20",
+    badgeText: "lead",
+    activeClass: "bg-status-purple/8 text-status-purple font-semibold border border-status-purple/20",
   },
 }
 

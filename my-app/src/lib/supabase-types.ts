@@ -1,5 +1,5 @@
 
-export type Role = 'hacker' | 'organizer' | 'maintainer'
+export type Role = 'hacker' | 'organizer' | 'maintainer' | 'sponsor' | 'lead'
 
 export interface Profile {
   id: string

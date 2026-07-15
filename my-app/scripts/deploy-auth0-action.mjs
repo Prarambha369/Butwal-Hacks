@@ -28,18 +28,22 @@
 const REQUIRED_ENV_VARS = ["AUTH0_DOMAIN", "AUTH0_CLIENT_ID", "AUTH0_CLIENT_SECRET"];
 
 // ── The Post-Login Action code ──────────────────────────────────
+// This Action syncs Auth0 user data (and Auth0 Roles) to Supabase.
+// When Auth0 Roles are assigned to a user via the Auth0 Dashboard,
+// they are read from event.user.roles and passed to the webhook.
 const ACTION_CODE = `exports.onExecutePostLogin = async (event, api) => {
-  // Read base URL from Auth0 Action secrets (set in Dashboard → Actions → Secrets).
-  // Defaults to production URL if secret is not configured.
   const baseUrl = event.secrets.BASE_URL || 'https://butwalhacks.com';
   const webhookSecret = event.secrets.AUTH0_WEBHOOK_SECRET;
 
   const headers = { 'Content-Type': 'application/json' };
 
-  // Include webhook secret if configured (for production signature verification).
   if (webhookSecret) {
     headers['X-Webhook-Secret'] = webhookSecret;
   }
+
+  // Read Auth0 Roles assigned to this user via Auth0 Dashboard → User Management → Roles.
+  // event.user.roles is populated when the Auth0 Roles feature is enabled.
+  const auth0Roles = event.user.roles || [];
 
   try {
     const response = await fetch(\`\${baseUrl}/api/webhooks/auth0\`, {
@@ -49,6 +53,7 @@ const ACTION_CODE = `exports.onExecutePostLogin = async (event, api) => {
         sub: event.user.user_id,
         email: event.user.email,
         name: event.user.name || event.user.nickname || event.user.given_name || '',
+        auth0_roles: auth0Roles,
       }),
     });
 
