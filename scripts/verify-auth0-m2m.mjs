@@ -13,7 +13,7 @@
  * Environment variables required:
  *   AUTH0_M2M_CLIENT_ID     — Client ID of the Butwal Hacks CI M2M app
  *   AUTH0_M2M_CLIENT_SECRET — Client Secret of the Butwal Hacks CI M2M app
- *   AUTH0_DOMAIN            — Auth0 tenant domain (e.g., butwal.jp.auth0.com)
+ *   AUTH0_DOMAIN            — Auth0 tenant domain (e.g., auth.butwalhacks.com)
  *
  * Exit codes:
  *   0 — All checks passed
@@ -32,7 +32,7 @@ function checkEnv() {
     console.error("To set them up in your local environment:");
     console.error("  export AUTH0_M2M_CLIENT_ID=<your-m2m-client-id>");
     console.error("  export AUTH0_M2M_CLIENT_SECRET=<your-m2m-client-secret>");
-    console.error("  export AUTH0_DOMAIN=butwal.jp.auth0.com");
+    console.error("  export AUTH0_DOMAIN=auth.butwalhacks.com");
     console.error("");
     console.error("In GitHub Actions, add these as repository secrets:");
     console.error("  https://github.com/Prarambha369/Butwal-Hacks/settings/secrets/actions");

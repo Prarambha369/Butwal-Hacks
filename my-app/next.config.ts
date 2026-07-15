@@ -34,7 +34,7 @@ const isDev = process.env.NODE_ENV === 'development';
 /** Base CSP without frame-ancestors — appended per-route below. */
 const baseCSP = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://butwal.jp.auth0.com https://*.posthog.com https://va.vercel-scripts.com;
+  script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://auth.butwalhacks.com https://*.posthog.com https://va.vercel-scripts.com;
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://api.dicebear.com;
   font-src 'self';
@@ -43,7 +43,7 @@ const baseCSP = `
   base-uri 'self';
   form-action 'self';
   upgrade-insecure-requests;
-  connect-src 'self' https://vitals.vercel-insights.com https://butwal.jp.auth0.com https://*.auth0.com https://*.posthog.com https://api.cloudinary.com https://*.supabase.co wss://*.supabase.co https://*.ingest.us.sentry.io;
+  connect-src 'self' https://vitals.vercel-insights.com https://auth.butwalhacks.com https://*.auth0.com https://*.posthog.com https://api.cloudinary.com https://*.supabase.co wss://*.supabase.co https://*.ingest.us.sentry.io;
   report-uri /api/csp-violation;
 `
 

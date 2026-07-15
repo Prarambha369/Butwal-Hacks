@@ -24,7 +24,7 @@ Update your `.env.local` file with the following variables:
 ```bash
 # Auth0 Configuration
 AUTH0_SECRET=your-64-char-hex-secret
-AUTH0_DOMAIN=butwal.jp.auth0.com
+AUTH0_DOMAIN=auth.butwalhacks.com
 AUTH0_CLIENT_ID=your-client-id
 AUTH0_CLIENT_SECRET=your-client-secret
 AUTH0_BASE_URL=http://localhost:3000

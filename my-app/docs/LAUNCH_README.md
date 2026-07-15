@@ -188,7 +188,7 @@ TRUST_MARKER_PRIVATE_KEY, TRUST_MARKER_PUBLIC_KEY, CRON_SECRET
 ### Deploy via Script (Recommended)
 
 ```bash
-export AUTH0_DOMAIN=butwal.jp.auth0.com
+export AUTH0_DOMAIN=auth.butwalhacks.com
 export AUTH0_CLIENT_ID=<your-app-client-id>
 export AUTH0_CLIENT_SECRET=<your-app-client-secret>
 node scripts/deploy-auth0-action.mjs
@@ -310,7 +310,7 @@ npm run test
 npx playwright test
 
 # Deploy Auth0 Action
-export AUTH0_DOMAIN=butwal.jp.auth0.com
+export AUTH0_DOMAIN=auth.butwalhacks.com
 export AUTH0_CLIENT_ID=<id>
 export AUTH0_CLIENT_SECRET=<secret>
 node scripts/deploy-auth0-action.mjs

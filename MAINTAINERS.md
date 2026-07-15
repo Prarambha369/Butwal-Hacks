@@ -19,8 +19,8 @@ Set these in **Vercel Dashboard → Settings → Environment Variables (Producti
 | Variable | Source |
 |---|---|
 | `AUTH0_SECRET` | `openssl rand -hex 32` |
-| `AUTH0_DOMAIN` | `butwal.jp.auth0.com` |
-| `AUTH0_ISSUER_BASE_URL` | `https://butwal.jp.auth0.com` |
+| `AUTH0_DOMAIN` | `auth.butwalhacks.com` |
+| `AUTH0_ISSUER_BASE_URL` | `https://auth.butwalhacks.com` |
 | `AUTH0_CLIENT_ID` | Auth0 Dashboard → Applications |
 | `AUTH0_CLIENT_SECRET` | Auth0 Dashboard → Applications |
 | `AUTH0_BASE_URL` | `https://butwalhacks.com` |

@@ -9,7 +9,7 @@
 ## Environment Variables
 - [ ] Auth0 credentials set in Vercel environment:
   - `AUTH0_SECRET` (64-char hex string)
-  - `AUTH0_DOMAIN` = `butwal.jp.auth0.com`
+  - `AUTH0_DOMAIN` = `auth.butwalhacks.com`
   - `AUTH0_CLIENT_ID`
   - `AUTH0_CLIENT_SECRET`
   - `APP_BASE_URL` = `https://butwalhacks.com`
@@ -48,12 +48,12 @@
 - [x] **Verify Management API access**: Run the following command locally to confirm:
       ```bash
       curl -s --request POST \
-        --url 'https://butwal.jp.auth0.com/oauth/token' \
+        --url 'https://auth.butwalhacks.com/oauth/token' \
         --header 'content-type: application/json' \
         --data '{
           "client_id":"$AUTH0_M2M_CLIENT_ID",
           "client_secret":"$AUTH0_M2M_CLIENT_SECRET",
-          "audience":"https://butwal.jp.auth0.com/api/v2/",
+          "audience":"https://auth.butwalhacks.com/api/v2/",
           "grant_type":"client_credentials"
         }' | jq .access_token
       ```
@@ -82,7 +82,7 @@
 - [ ] Animations respect `prefers-reduced-motion`
 
 ## Security
-- [ ] CSP headers set with Auth0 domains (`butwal.jp.auth0.com`, `*.auth0.com`, `*.posthog.com`)
+- [ ] CSP headers set with Auth0 domains (`auth.butwalhacks.com`, `*.auth0.com`, `*.posthog.com`)
 - [ ] HSTS preload enabled (`max-age=63072000; includeSubDomains; preload`)
 - [ ] `X-Frame-Options: DENY`
 - [ ] `X-Content-Type-Options: nosniff`

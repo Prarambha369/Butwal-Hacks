@@ -40,7 +40,7 @@ Create a **Regular Web Application** in Auth0 Dashboard:
 
 ```env
 AUTH0_SECRET=<openssl rand -hex 32>
-AUTH0_DOMAIN=butwal.jp.auth0.com
+AUTH0_DOMAIN=auth.butwalhacks.com
 AUTH0_CLIENT_ID=<from Auth0 Application>
 AUTH0_CLIENT_SECRET=<from Auth0 Application>
 AUTH0_BASE_URL=http://localhost:3000  # or https://butwalhacks.com in production

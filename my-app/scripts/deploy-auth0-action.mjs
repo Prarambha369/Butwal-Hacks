@@ -10,7 +10,7 @@
  *   node scripts/deploy-auth0-action.mjs
  *
  * Environment variables required:
- *   AUTH0_DOMAIN            — Auth0 tenant domain (e.g., butwal.jp.auth0.com)
+ *   AUTH0_DOMAIN            — Auth0 tenant domain (e.g., auth.butwalhacks.com)
  *   AUTH0_CLIENT_ID         — Client ID of your Regular Web Application (for Management API token)
  *   AUTH0_CLIENT_SECRET     — Client Secret of your Regular Web Application
  *
@@ -67,7 +67,7 @@ function checkEnv() {
   if (missing.length > 0) {
     console.error(`❌ Missing required env vars: ${missing.join(", ")}`);
     console.error("");
-    console.error("  export AUTH0_DOMAIN=butwal.jp.auth0.com");
+    console.error("  export AUTH0_DOMAIN=auth.butwalhacks.com");
     console.error("  export AUTH0_CLIENT_ID=<your-app-client-id>");
     console.error("  export AUTH0_CLIENT_SECRET=<your-app-client-secret>");
     process.exit(1);
