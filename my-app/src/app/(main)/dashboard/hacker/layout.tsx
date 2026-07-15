@@ -79,7 +79,9 @@ export default async function HackerDashboardLayout({
     .eq("auth0_user_id", userId)
     .single();
 
-  if (profile?.role && profile.role !== "hacker") {
+  // Lead users fall through to the hacker dashboard as a fallback
+  // until a dedicated /dashboard/lead layout is created.
+  if (profile?.role && profile.role !== "hacker" && profile.role !== "lead") {
     redirect(`/dashboard/${profile.role}`);
   }
 
