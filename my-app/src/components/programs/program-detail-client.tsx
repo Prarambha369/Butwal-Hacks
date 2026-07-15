@@ -4,8 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Calendar, MapPin, Trophy, Clock, ArrowRight, ExternalLink, Code, Users, Mail, FileText, ShieldCheck, Globe, Zap, Download } from 'lucide-react';
 import type { Program } from '@/lib/content';
-import { GlassBadge } from '@/components/ui/glass-badge';
-import { Button } from '@/components/ui/button';
+
 
 export default function ProgramDetailClient({ program }: { program: Program }) {
   const [activeTab, setActiveTab] = useState<'overview' | 'logistics' | 'rewards' | 'gallery' | 'resources'>('overview');
@@ -16,8 +15,8 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
     tagline: program.tagline,
     dateLabel: program.dateLabel,
     date: program.dateLabel,
-    initiativeSlug: "hackathon",
-    status: "completed",
+    initiativeSlug: program.initiativeSlug,
+    status: program.status,
     location: program.location,
     type: program.type,
     price: program.price,
@@ -27,7 +26,7 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
     hostedBy: "Butwal Hacks Foundation",
     managerEmail: "manager@butwalhacks.com",
     requirements: ["A valid ID", "A passion for building", "Laptop & Charger"],
-    whoCanParticipate: "Open to all students and builders aged 15-30 residing in Nepal",
+    whoCanParticipate: program.whoCanParticipate,
     submissions: 127,
   };
 
@@ -68,9 +67,9 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
                 in the Lumbini Province to build tools that solve real-world problems—from AI-powered agriculture to accessible education platforms.
                 We focus on &quot;Localized Innovation&quot;—building tools that actually impact the streets of Butwal.
               </p>
-              <div className="p-6 lg-surface rounded-[24px] border-l-4 border-bh-red-500 transition-all hover:bg-surface/10">
+              <div className="p-6 bh-card rounded-xl border-l-4 border-primary-red transition-all hover:bg-surface-hover">
                 <h4 className="font-bold mb-2 flex items-center gap-2">
-                  <ShieldCheck size={18} className="text-bh-red-500" /> Core Requirements
+                  <ShieldCheck size={18} className="text-primary-red" /> Core Requirements
                 </h4>
                 <ul className="text-sm text-secondary space-y-2">
                   {eventData.requirements.map((req, i) => (
@@ -83,10 +82,15 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
             </div>
             <div className="space-y-6">
               <h3 className="text-2xl font-semibold text-primary leading-[1.2]">Who Can Participate?</h3>
-              <p className="text-secondary leading-relaxed">
-                {eventData.whoCanParticipate}
-              </p>
-              <div className="p-6 lg-surface rounded-[24px] space-y-4 transition-all hover:bg-surface/10">
+              <ul className="space-y-2">
+                {eventData.whoCanParticipate.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-secondary leading-relaxed">
+                    <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-bh-red-500" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="p-6 bh-card rounded-xl space-y-4 transition-all hover:bg-surface-hover">
                 <h4 className="font-bold flex items-center gap-2">
                   <Globe size={18} className="text-blue-500" /> Participation Type
                 </h4>
@@ -107,7 +111,7 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
                 { title: "Team Size", text: "1-4 members per team." },
                 { title: "Conduct", text: "Zero tolerance for harassment or plagiarism." },
               ].map((rule, i) => (
-                <div key={i} className="p-6 lg-surface rounded-[24px] space-y-2 transition-all hover:bg-surface/10 hover:-translate-y-1">
+                <div key={i} className="p-6 bh-card rounded-xl space-y-2 transition-all hover:bg-surface-hover hover:-translate-y-1">
                   <div className="font-bold text-sm">{rule.title}</div>
                   <div className="text-xs text-secondary">{rule.text}</div>
                 </div>
@@ -130,12 +134,12 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
                   { criteria: "Technical Execution", weight: "40%", desc: "Quality of code and functionality." },
                   { criteria: "Local Impact", weight: "30%", desc: "Does it solve a real Butwal problem?" },
                 ].map((item, i) => (
-                  <div key={i} className="p-4 lg-surface rounded-xl flex justify-between items-center transition-all hover:bg-surface/10">
+                  <div key={i} className="p-4 bh-card rounded-lg flex justify-between items-center transition-all hover:bg-surface-hover">
                     <div>
                       <div className="font-bold text-sm">{item.criteria}</div>
                       <div className="text-xs text-secondary">{item.desc}</div>
                     </div>
-                    <div className="font-mono text-bh-red-500 font-bold">{item.weight}</div>
+                    <div className="font-mono text-primary-red font-bold">{item.weight}</div>
                   </div>
                 ))}
               </div>
@@ -144,8 +148,8 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
               <h3 className="text-2xl font-semibold text-primary leading-[1.2]">The Judges</h3>
               <div className="grid grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((j) => (
-                  <div key={j} className="p-4 lg-surface rounded-2xl flex items-center gap-3 transition-all hover:bg-surface/10">
-                    <div className="w-10 h-10 rounded-full bg-surface border border-glass" />
+                  <div key={j} className="p-4 bh-card flex items-center gap-3 transition-all hover:bg-surface-hover">
+                    <div className="w-10 h-10 rounded-full bg-surface border border-border" />
                     <div>
                       <div className="text-xs font-bold">{`Judge ${j}`}</div>
                       <div className="text-[10px] text-secondary">Industry Expert</div>
@@ -165,8 +169,8 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
                 { time: "Sunday 12:00 PM", event: "Project Submission", desc: "Final commits and demo recordings due." },
                 { time: "Sunday 3:00 PM", event: "Grand Finale", desc: "Pitches, judging, and awards ceremony." },
               ].map((item, i) => (
-                <div key={i} className="flex gap-6 p-6 lg-surface rounded-[24px] items-center transition-all hover:bg-surface/10">
-                  <div className="font-mono text-bh-red-500 font-bold whitespace-nowrap">{item.time}</div>
+                <div key={i} className="flex gap-6 p-6 bh-card rounded-xl items-center transition-all hover:bg-surface-hover">
+                  <div className="font-mono text-primary-red font-bold whitespace-nowrap">{item.time}</div>
                   <div>
                     <div className="font-bold text-primary">{item.event}</div>
                     <div className="text-sm text-secondary">{item.desc}</div>
@@ -188,7 +192,7 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
               { rank: "2nd Place", project: "The Runner-up", prize: "$500 + Gear", icon: "🥈" },
               { rank: "3rd Place", project: "The Innovator", prize: "$250 + Gear", icon: "🥉" },
             ].map((p, i) => (
-              <div key={i} className="p-8 lg-surface rounded-[32px] text-center space-y-4 border-t-2 border-bh-red-500 transition-all hover:bg-surface/10">
+              <div key={i} className="p-8 bh-card rounded-xl text-center space-y-4 border-t-2 border-primary-red transition-all hover:bg-surface-hover">
                 <div className="text-4xl">{p.icon}</div>
                 <div className="font-bold text-xl">{p.rank}</div>
                 <div className="text-primary font-semibold">{p.project}</div>
@@ -201,7 +205,7 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
             <h3 className="text-2xl font-semibold text-primary leading-[1.2]">Our Sponsors</h3>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
               {[1, 2, 3, 4, 5].map(s => (
-                <div key={s} className="aspect-square lg-surface rounded-[24px] flex items-center justify-center p-6 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer hover:bg-surface/10">
+                <div key={s} className="aspect-square bh-card rounded-xl flex items-center justify-center p-6 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer hover:bg-surface-hover">
                   <span className="text-xs font-bold text-center">{`Sponsor ${s}`}</span>
                 </div>
               ))}
@@ -215,16 +219,16 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
       content: (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {projects.map((project, i) => (
-            <div key={i} className="lg-surface rounded-[20px] p-4 group flex flex-col h-full">
-              <div className="lg-concentric-inner rounded-xl aspect-video mb-4 relative overflow-hidden">
+            <div key={i} className="bh-card rounded-xl p-4 group flex flex-col h-full">
+              <div className="lg-concentric-inner rounded-lg aspect-video mb-4 relative overflow-hidden">
                 <Image src={project.image} alt={project.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
               <h4 className="font-bold text-primary mb-2">{project.name}</h4>
               <p className="text-xs text-secondary mb-4 flex-1">{project.desc}</p>
               <div className="flex flex-wrap gap-2 mb-4">
-                {project.tech.map(t => <GlassBadge key={t} className="text-[10px]">{t}</GlassBadge>)}
+                {project.tech.map(t => <span key={t} className="inline-flex items-center rounded-full border border-border bg-surface-hover px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-text-secondary">{t}</span>)}
               </div>
-              <a href={project.link} target="_blank" className="flex items-center justify-center gap-2 py-2 rounded-full border border-glass text-xs hover:bg-surface/10 transition-all">
+              <a href={project.link} target="_blank" className="flex items-center justify-center gap-2 py-2 rounded-full border border-border text-xs hover:bg-surface-hover transition-all">
                 View on Devpost <ExternalLink size={12} />
               </a>
             </div>
@@ -244,9 +248,9 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
                 { name: "UI Kit", desc: "Pre-made Liquid Glass components.", icon: <Zap size={18} /> },
                 { name: "API Documentation", desc: "Local government data endpoints.", icon: <FileText size={18} /> },
               ].map((res, i) => (
-                <div key={i} className="p-4 lg-surface rounded-2xl flex items-center justify-between group cursor-pointer hover:bg-surface/10 transition-all">
+                <div key={i} className="p-4 bh-card flex items-center justify-between group cursor-pointer hover:bg-surface-hover transition-all">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-surface/10 rounded-lg text-bh-red-500">{res.icon}</div>
+                    <div className="p-2 bg-surface-hover rounded-lg text-primary-red">{res.icon}</div>
                     <div>
                       <div className="text-sm font-bold">{res.name}</div>
                       <div className="text-xs text-secondary">{res.desc}</div>
@@ -259,22 +263,19 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
           </div>
           <div className="space-y-6">
             <h3 className="text-2xl font-semibold text-primary leading-[1.2]">Support</h3>
-            <div className="p-8 lg-surface rounded-[32px] text-center space-y-6 transition-all hover:bg-surface/10">
-              <div className="w-16 h-16 bg-bh-red-500/20 rounded-full flex items-center justify-center mx-auto text-bh-red-500">
+            <div className="p-8 bh-card rounded-xl text-center space-y-6 transition-all hover:bg-surface-hover">
+              <div className="w-16 h-16 bg-primary-red/20 rounded-full flex items-center justify-center mx-auto text-primary-red">
                 <Mail size={32} />
               </div>
               <div>
                 <h4 className="font-bold text-lg">Have Questions?</h4>
                 <p className="text-sm text-secondary mb-6">Our hackathon manager is here to help you with any queries.</p>
-                <Button 
-                  variant="default"
-                  className="w-full"
-                  asChild
+                <a 
+                  href={`mailto:${eventData.managerEmail}`}
+                  className="bh-btn-primary w-full justify-center"
                 >
-                  <a href={`mailto:${eventData.managerEmail}`}>
-                    Email Manager
-                  </a>
-                </Button>
+                  Email Manager
+                </a>
               </div>
             </div>
           </div>
@@ -284,27 +285,27 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
   };
 
   return (
-    <div className="min-h-screen pt-32 pb-24 px-6 md:px-20">
+    <div className="min-h-dvh pt-32 pb-24 px-6 md:px-20">
       <div className="max-w-6xl mx-auto space-y-12">
         
         {/* Event Hero Section */}
-        <div className="relative rounded-[40px] overflow-hidden lg-surface p-4 md:p-8 flex flex-col lg:flex-row gap-8 items-center">
-          <div className="w-full lg:w-1/2 aspect-video rounded-[32px] overflow-hidden lg-concentric-inner shadow-2xl relative group">
+        <div className="relative rounded-xl overflow-hidden bh-card p-4 md:p-8 flex flex-col lg:flex-row gap-8 items-center">
+          <div className="w-full lg:w-1/2 aspect-video rounded-xl overflow-hidden lg-concentric-inner shadow-2xl relative group">
             <Image src={eventData.banner} alt={eventData.title} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
             <div className="absolute top-4 left-4">
-              <Image src={eventData.logo} alt="Logo" width={64} height={64} className="rounded-2xl border-2 border-glass shadow-lg" />
+              <Image src={eventData.logo} alt="Logo" width={64} height={64} className="rounded-lg border-2 border-border shadow-lg" />
             </div>
           </div>
           
           <div className="w-full lg:w-1/2 space-y-6 text-center lg:text-left">
             <div className="space-y-2">
-              <GlassBadge tier="live" dot="green" pulse>Official Event</GlassBadge>
+              <span className="inline-flex items-center gap-1 rounded-full border border-status-green/30 bg-status-green/8 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-status-green"><span className="h-1.5 w-1.5 rounded-full bg-status-green shadow-[0_0_6px_rgba(34,197,94,0.4)]" />Official Event</span>
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-primary leading-tight">{program.title}</h1>
               <p className="text-xl text-secondary">{program.tagline}</p>
             </div>
             
             {/* Quick Info Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-6 border-y border-glass">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-6 border-y border-border">
               <div className="flex flex-col items-center lg:items-start gap-1">
                 <div className="flex items-center gap-2 text-secondary text-xs font-mono uppercase">
                   <Calendar size={14} /> Date
@@ -344,12 +345,12 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
             </div>
             
             <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-4">
-              <Button variant="default" size="lg">
+              <a href="/sign-up" className="bh-btn-primary inline-flex items-center gap-2 px-8 py-3 text-base">
                 Register Now <ArrowRight size={20} />
-              </Button>
-              <Button variant="secondary" size="lg">
+              </a>
+              <a href="#" className="bh-btn-secondary inline-flex items-center gap-2 px-8 py-3 text-base">
                 Add to Calendar <Calendar size={18} />
-              </Button>
+              </a>
             </div>
           </div>
         </div>
@@ -357,7 +358,7 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
         {/* Content Section with Tabs */}
         <div className="space-y-8">
           {/* Tab Navigation */}
-          <div className="flex justify-center gap-2 p-1 lg-surface rounded-full w-fit mx-auto">
+          <div className="flex justify-center gap-2 p-1 bh-card rounded-full w-fit mx-auto">
             {Object.entries(tabs).map(([key, { label }]) => (
               <button 
                 key={key}

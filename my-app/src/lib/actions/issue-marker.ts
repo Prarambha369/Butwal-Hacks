@@ -3,8 +3,9 @@
 import { logger } from "@/lib/logger";
 import { createServiceClient } from "@/utils/supabase/service";
 import { revalidatePath } from "next/cache";
-import { auth0 } from "@/lib/auth0";
 import { sanitizeString } from "@/lib/validation";
+import { signTrustMarker } from "@/lib/crypto/sign";
+import { resolveProfileId } from "@/lib/profile-resolver";
 
 export async function issueTrustMarker(input: {
   email: string;
@@ -13,34 +14,44 @@ export async function issueTrustMarker(input: {
   type: string;
 }) {
   try {
-    const session = await auth0.getSession();
-    if (!session?.user) throw new Error("Unauthorized");
-    const userId = session.user.sub;
-
     const supabase = createServiceClient();
+    const issuerId = await resolveProfileId();
     const title = sanitizeString(input.title, 200);
     const description = sanitizeString(input.description, 2000);
 
-    // ponytail: Resolve profile UUID for issuer_id FK
-    const { data: issuer } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('auth0_user_id', userId)
+    const { data: marker, error } = await supabase
+      .from("trust_markers")
+      .insert({
+        issuer_id: issuerId,
+        claimant_email: input.email.trim().toLowerCase(),
+        title,
+        description,
+        type: input.type,
+      })
+      .select("id, created_at")
       .single();
-    if (!issuer) throw new Error("Profile not found");
 
-    const { error } = await supabase.from("trust_markers").insert({
-      issuer_id: issuer.id,
-      claimant_email: input.email.trim().toLowerCase(),
+    if (error || !marker) throw error || new Error("Failed to create marker");
+
+    // ── Sign with Ed25519 ──────────────────────────────
+    const signature = signTrustMarker({
+      id: marker.id,
+      profile_id: null,
+      issuer_id: issuerId,
       title,
-      description,
       type: input.type,
-    });
+      created_at: marker.created_at,
+    })
 
-    if (error) throw error;
+    if (signature) {
+      await supabase
+        .from("trust_markers")
+        .update({ crypto_signature: signature })
+        .eq("id", marker.id)
+    }
 
     revalidatePath("/dashboard/organizer");
-    return { success: true, message: "Trust marker issued successfully!" };
+    return { success: true, message: "Trust marker issued successfully!", signed: !!signature };
   } catch (error) {
     logger.error("Error issuing trust marker:", error);
     return {
@@ -52,11 +63,8 @@ export async function issueTrustMarker(input: {
 
 export async function claimTrustMarker(token: string) {
   try {
-    const session = await auth0.getSession();
-    if (!session?.user) throw new Error("Unauthorized");
-    const userId = session.user.sub;
-
     const supabase = createServiceClient();
+    const profileId = await resolveProfileId();
 
     const { data: claimRecord } = await supabase
       .from("claim_tokens")
@@ -66,18 +74,9 @@ export async function claimTrustMarker(token: string) {
 
     if (!claimRecord) throw new Error("Invalid or expired claim token");
 
-    // Look up the profile UUID for this user — profile_id FK references profiles.id
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth0_user_id", userId)
-      .single()
-
-    if (!profile) throw new Error("Profile not found")
-
     const { error } = await supabase
       .from("trust_markers")
-      .update({ is_claimed: true, profile_id: profile.id })
+      .update({ is_claimed: true, profile_id: profileId })
       .eq("id", claimRecord.trust_markers.id);
 
     if (error) throw error;

@@ -1,9 +1,9 @@
 import { auth0 } from "@/lib/auth0";
-import { redirect, notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
-import OrgEventCreationForm from "@/components/organizer/org-event-creation-form";
+import OrgEventCreateForm from "./event-create-form";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -12,7 +12,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   return buildPageMetadata({
-    title: `Create Event — ${slug}`,
+    title: `New Event — ${slug}`,
     description: `Create a new event for the ${slug} chapter.`,
     path: `/orgs/${slug}/events/new`,
   });
@@ -35,7 +35,7 @@ export default async function NewOrgEventPage({ params }: PageProps) {
 
   if (!chapter) notFound();
 
-  // Check admin role via chapter_members table
+  // Verify the user is an admin of this chapter
   const { data: membershipProfile } = await supabase
     .from("profiles")
     .select("id")
@@ -46,20 +46,25 @@ export default async function NewOrgEventPage({ params }: PageProps) {
     .from("chapter_members")
     .select("org_role")
     .eq("chapter_id", chapter.id)
-    .eq("profile_id", membershipProfile?.id ?? 'none')
+    .eq("profile_id", membershipProfile?.id ?? "none")
     .single();
 
-  if (!membership || membership.org_role !== "admin") {
+  if (membership?.org_role !== "admin") {
     redirect(`/orgs/${slug}/events`);
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-8">
-      <OrgEventCreationForm
-        chapterId={chapter.id}
-        chapterSlug={slug}
-        chapterName={chapter.name}
-      />
+    <div className="space-y-8">
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight text-primary">
+          New Event — {chapter.name}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Create a new event for your chapter members.
+        </p>
+      </div>
+
+      <OrgEventCreateForm chapterId={chapter.id} chapterSlug={slug} />
     </div>
   );
 }

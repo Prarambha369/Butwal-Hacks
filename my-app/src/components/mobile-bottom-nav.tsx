@@ -10,13 +10,15 @@ import {
   User,
   Home,
 } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
+import { t } from "@/lib/i18n";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/events", label: "Events", icon: CalendarDays },
-  { href: "/explore", label: "Explore", icon: Search },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/", i18nKey: "nav.home", icon: Home },
+  { href: "/dashboard", i18nKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/events", i18nKey: "nav.events", icon: CalendarDays },
+  { href: "/explore", i18nKey: "nav.explore", icon: Search },
+  { href: "/profile", i18nKey: "nav.profile", icon: User },
 ];
 
 /**
@@ -28,6 +30,7 @@ const NAV_ITEMS = [
  */
 export default function MobileBottomNav() {
   const pathname = usePathname();
+  const { locale } = useLanguage();
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -36,10 +39,10 @@ export default function MobileBottomNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bh-pb-safe"
       aria-label="Mobile navigation"
     >
-      <div className="bg-[#434343]/80 backdrop-blur-[30px] saturate-[180%] border-t border-[#656565]/30 px-2 py-1.5">
+      <div className="bg-surface border-t border-border px-2 py-1.5 shadow-[0_-1px_3px_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-around">
           {NAV_ITEMS.map((item) => {
             const active = isActive(item.href);
@@ -51,14 +54,14 @@ export default function MobileBottomNav() {
                 className={cn(
                   "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[56px]",
                   active
-                    ? "text-bh-red-500"
+                    ? "text-primary-red"
                     : "text-secondary/60 hover:text-primary"
                 )}
                 aria-current={active ? "page" : undefined}
               >
                 <Icon className="w-5 h-5" />
                 <span className="text-[9px] font-semibold tracking-tight">
-                  {item.label}
+                  {t(item.i18nKey, locale)}
                 </span>
               </Link>
             );

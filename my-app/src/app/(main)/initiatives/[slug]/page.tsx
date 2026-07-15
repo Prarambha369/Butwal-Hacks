@@ -4,10 +4,9 @@ import Link from "next/link"
 import { Calendar, ArrowRight } from "lucide-react"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-
-
-import { getInitiativeBySlug, initiatives, events } from "@/lib/content"
+import { getInitiativeBySlug, initiatives, events, blogPosts, getRelatedByTags } from "@/lib/content"
 import { buildPageMetadata } from "@/lib/seo"
+import RelatedLinks from "@/components/home/related-links"
 
 type InitiativeDetailPageProps = {
   params: Promise<{ slug: string }>
@@ -47,7 +46,7 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
   const relatedEvents = events.filter((event) => event.initiativeSlug === slug)
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-dvh bg-background">
       
       <section className="mx-auto max-w-4xl px-4 py-14 sm:py-16">
         <Breadcrumbs
@@ -62,7 +61,7 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
         <p className="mt-5 text-base sm:text-lg text-secondary leading-relaxed">{initiative.summary}</p>
 
         {initiative.status !== "active" ? (
-          <p className="mt-5 rounded-md border border-glass bg-surface p-4 text-sm text-secondary">
+          <p className="mt-5 rounded-md border border-border bg-surface p-4 text-sm text-secondary">
             This initiative is currently {initiative.status} and presented for transparency as part of the public roadmap.
           </p>
         ) : null}
@@ -75,7 +74,7 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
 
         {/* Related Events Section */}
         {relatedEvents.length > 0 && (
-          <section className="mt-12 pt-12 border-t border-glass">
+          <section className="mt-12 pt-12 border-t border-border">
             <div className="flex items-center gap-3 mb-6">
               <Calendar className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold font-heading text-primary">Related Events</h2>
@@ -84,7 +83,7 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
               {relatedEvents.map((event) => (
                 <article 
                   key={event.slug} 
-                  className="rounded-xl border border-glass bg-surface p-5 hover:shadow-md transition-shadow"
+                  className="rounded-xl border border-border bg-surface p-5 hover:shadow-md transition-shadow"
                 >
                   <p className="text-xs uppercase tracking-wide text-secondary mb-2">
                     {event.status === "completed" ? "Completed" : "Planned"}
@@ -104,6 +103,18 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
             </div>
           </section>
         )}
+
+        {/* Continue Reading: blog posts for deeper context, matched by tags */}
+        <RelatedLinks
+          title="Continue Reading"
+          links={getRelatedByTags(blogPosts, initiative.tags).map((p) => ({
+            title: p.title,
+            description: p.excerpt,
+            href: `/blog/${p.slug}`,
+            image: p.cover_image,
+            meta: p.publishedAt,
+          }))}
+        />
       </section>
       
     </main>

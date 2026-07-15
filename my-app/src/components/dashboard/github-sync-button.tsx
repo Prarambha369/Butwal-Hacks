@@ -62,8 +62,8 @@ export default function GitHubSyncButton() {
           ${isDone
             ? "bg-status-green/20 text-status-green border border-status-green/30 hover:bg-status-green/30"
             : isError
-              ? "bg-bh-red-500/10 text-bh-red-500 border border-bh-red-500/30 hover:bg-bh-red-500/20"
-              : "bg-surface/10 border border-glass text-primary hover:bg-surface/20 hover:border-bh-red-500/30"
+              ? "bg-primary-red/10 text-primary-red border border-primary-red/30 hover:bg-primary-red/20"
+              : "bg-surface-hover border border-border text-primary hover:bg-surface/20 hover:border-primary-red/30"
           }
           disabled:opacity-50 disabled:cursor-not-allowed active:scale-95
         `}
@@ -89,7 +89,7 @@ export default function GitHubSyncButton() {
       {message && (
         <p
           className={`text-xs ${
-            isError ? "text-bh-red-500/80" : isDone ? "text-status-green/80" : "text-text-muted/60"
+            isError ? "text-primary-red/80" : isDone ? "text-status-green/80" : "text-muted-foreground/60"
           }`}
         >
           {message}

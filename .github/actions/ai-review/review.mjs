@@ -21,7 +21,7 @@ if (!diff || !prNumber) {
 }
 
 // ─── Architecture-focused review prompt ──────────────────────────────────────
-const SYSTEM_PROMPT = `You are a senior security and architecture reviewer for a Next.js + Supabase + Clerk web application (Butwal Hacks — a nonprofit youth tech platform).
+const SYSTEM_PROMPT = `You are a senior security and architecture reviewer for a Next.js + Supabase + Auth0 web application (Butwal Hacks — a nonprofit youth tech platform).
 
 Your job is NOT to catch linting issues, formatting, or style preferences. Those are handled by ESLint and Prettier.
 

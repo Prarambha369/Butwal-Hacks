@@ -1,7 +1,8 @@
 "use client";
 
+// ponytail: auth routes use <a> tags (not <Link>) because Auth0 handles
+// them via proxy middleware — <Link> triggers RSC fetch which fails.
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useUser } from "@auth0/nextjs-auth0/client"
 import { LogOut, User } from "lucide-react"
 import { useState, useEffect } from "react"
@@ -9,12 +10,11 @@ import { createClient } from "@/utils/supabase/client"
 
 /**
  * OrgSwitcher — Chapter selector + user menu combo.
- * Replaced Clerk's OrganizationSwitcher + UserButton with a
- * simple dropdown that links to dashboard and sign-out.
+ * Simple dropdown that links to dashboard and sign-out (replaces
+ * the legacy organization switcher + user button).
  */
 export function OrgSwitcher() {
   const { user } = useUser()
-  const router = useRouter()
   const [profile, setProfile] = useState<{ bh_id: string; full_name: string } | null>(null)
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export function OrgSwitcher() {
       .then(({ data }) => {
         if (data) setProfile(data)
       })
-  }, [user?.id])
+  }, [user?.sub])
 
   if (!user) return null
 
@@ -44,16 +44,18 @@ export function OrgSwitcher() {
       </div>
       <Link
         href="/dashboard"
-        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-glass bg-surface/30 hover:bg-surface/50 transition-all"
+        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-border bg-surface/30 hover:bg-surface/50 transition-all"
+        aria-label="Dashboard"
       >
         <User className="h-4 w-4 text-primary" />
       </Link>
-      <Link
-        href="/sign-out"
-        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-glass bg-surface/30 hover:bg-surface/50 transition-all"
+      <a
+        href="/auth/logout"
+        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-border bg-surface/30 hover:bg-surface/50 transition-all"
+        aria-label="Sign out"
       >
         <LogOut className="h-4 w-4 text-primary" />
-      </Link>
+      </a>
     </div>
   )
 }

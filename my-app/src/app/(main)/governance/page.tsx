@@ -1,10 +1,10 @@
+export const dynamic = "force-static";
+
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Building2, Download, FileText, GraduationCap, Landmark, ShieldCheck, Siren, Users } from "lucide-react"
+import { Building2, FileText, GraduationCap, Landmark, ShieldCheck, Siren, Users } from "lucide-react"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-
-
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -30,13 +30,6 @@ const governanceCards = [
     title: "Student Board",
     description: "Community-led initiatives and project execution aligned with student needs.",
   },
-] as const
-
-const reports = [
-  { name: "Annual Report 2024", size: "4.2 MB", href: "#" },
-  { name: "Financial Audit 2023", size: "2.1 MB", href: "#" },
-  { name: "Tax Compliance 2023", size: "1.5 MB", href: "#" },
-  { name: "Strategic Plan '25", size: "3.8 MB", href: "#" },
 ] as const
 
 const board = [
@@ -66,10 +59,10 @@ const policies = [
 
 export default function GovernancePage() {
   return (
-    <main className="min-h-screen bg-background text-primary">
+    <main className="min-h-dvh bg-background text-primary">
       
 
-      <section className="border-b border-glass px-4 py-14 sm:py-16">
+      <section className="border-b border-border px-4 py-14 sm:py-16">
         <div className="mx-auto max-w-6xl">
           <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Governance" }]} />
           <div className="text-center">
@@ -87,15 +80,15 @@ export default function GovernancePage() {
         </div>
       </section>
 
-      <section className="border-b border-glass px-4 py-12">
+      <section className="border-b border-border px-4 py-12">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-3xl font-bold font-heading text-primary">Governance Structure</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {governanceCards.map((item) => {
               const Icon = item.icon
               return (
-                <article key={item.title} className="rounded-xl border border-glass bg-surface p-6">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-glass bg-background">
+                <article key={item.title} className="rounded-xl border border-border bg-surface p-6">
+                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-background">
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <h3 className="mt-4 text-xl font-semibold text-primary">{item.title}</h3>
@@ -107,7 +100,7 @@ export default function GovernancePage() {
         </div>
       </section>
 
-      <section className="border-b border-glass px-4 py-12">
+      <section className="border-b border-border px-4 py-12">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-3xl font-bold font-heading text-primary">Financial Integrity</h2>
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -135,13 +128,13 @@ export default function GovernancePage() {
               </div>
             </article>
 
-            <article className="rounded-xl border border-glass bg-surface p-6">
+            <article className="rounded-xl border border-border bg-surface p-6">
               <p className="text-lg font-semibold text-primary">Coursera Subsidized Model</p>
               <div className="mt-5 space-y-3">
-                <div className="rounded-md border border-glass bg-background px-4 py-3 text-sm text-secondary">
+                <div className="rounded-md border border-border bg-background px-4 py-3 text-sm text-secondary">
                   <div className="flex items-center justify-between"><span>Negotiated Enterprise Rate (per user)</span><span className="font-semibold text-primary">$49.00</span></div>
                 </div>
-                <div className="rounded-md border border-glass bg-background px-4 py-3 text-sm text-secondary">
+                <div className="rounded-md border border-border bg-background px-4 py-3 text-sm text-secondary">
                   <div className="flex items-center justify-between"><span>Student Access Rate</span><span className="font-semibold text-primary">$59.00</span></div>
                 </div>
                 <div className="rounded-md border border-primary/30 bg-primary/10 px-4 py-3 text-sm">
@@ -154,30 +147,22 @@ export default function GovernancePage() {
         </div>
       </section>
 
-      <section className="border-b border-glass px-4 py-12">
+      <section className="border-b border-border px-4 py-12">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-3xl font-bold font-heading text-primary">Annual Reports & Audits</h2>
-          <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {reports.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="inline-flex items-center justify-between rounded-lg border border-glass bg-surface px-4 py-3 text-sm text-secondary transition-colors hover:bg-surface/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                <span className="inline-flex items-center gap-2"><FileText className="h-4 w-4 text-primary" /> {item.name}</span>
-                <span className="inline-flex items-center gap-1"><Download className="h-3.5 w-3.5" />{item.size}</span>
-              </a>
-            ))}
+          <div className="mt-6 rounded-xl border border-border bg-surface p-8 text-center">
+            <FileText className="mx-auto h-8 w-8 text-muted-foreground/40" />
+            <p className="mt-3 text-sm text-muted-foreground">Reports will be published here after each fiscal year closes.</p>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-glass px-4 py-12">
+      <section className="border-b border-border px-4 py-12">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-3xl font-bold font-heading text-primary">Board & Advisors</h2>
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {board.map((member) => (
-              <article key={member.name} className="rounded-xl border border-glass bg-surface p-5 text-center">
+              <article key={member.name} className="rounded-xl border border-border bg-surface p-5 text-center">
                 <div className="mx-auto inline-flex h-20 w-20 items-center justify-center rounded-full border border-primary/40 bg-background text-xl font-bold text-primary">
                   {member.name.split(" ").map((part) => part[0]).join("")}
                 </div>
@@ -197,11 +182,11 @@ export default function GovernancePage() {
             {policies.map((item) => {
               const Icon = item.icon
               return (
-                <article key={item.title} className="rounded-xl border border-glass bg-surface p-6">
+                <article key={item.title} className="rounded-xl border border-border bg-surface p-6">
                   <Icon className="h-5 w-5 text-primary" />
                   <h3 className="mt-4 text-xl font-semibold text-primary">{item.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-secondary">{item.description}</p>
-                  <Link href="/privacy-policy" className="mt-5 inline-block text-sm font-semibold text-primary hover:underline">Read Policy →</Link>
+                  <Link href="/legal/privacy" className="mt-5 inline-block text-sm font-semibold text-primary hover:underline">Read Policy →</Link>
                 </article>
               )
             })}

@@ -1,69 +1,151 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@/utils/supabase/server'
-import { blogPosts, initiatives } from '@/lib/content'
+import { blogPosts, initiatives, events, programs, chapters } from '@/lib/content'
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://butwalhacks.com'
+const today = new Date()
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://butwalhacks.com'
+  const entries: MetadataRoute.Sitemap = [
+    // ─── Tier 1: Core entry points (priority 1.0) ──────────
+    { url: siteUrl, lastModified: today, changeFrequency: 'daily', priority: 1.0 },
+    { url: `${siteUrl}/explore`, lastModified: today, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/events`, lastModified: today, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/projects`, lastModified: today, changeFrequency: 'daily', priority: 0.9 },
 
-  // Static routes
-  const staticRoutes: MetadataRoute.Sitemap = [
-    { url: siteUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
-    { url: `${siteUrl}/events`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${siteUrl}/projects`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
-    { url: `${siteUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${siteUrl}/community`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${siteUrl}/chapters`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${siteUrl}/initiatives`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${siteUrl}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${siteUrl}/support`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${siteUrl}/docs`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+    // ─── Tier 2: Important content (priority 0.8) ──────────
+    { url: `${siteUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/community`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/chapters`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/initiatives`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/programs`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/gallery`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/sitemap`, lastModified: today, changeFrequency: 'monthly', priority: 0.8 },
+
+    // ─── Tier 3: Supporting pages (priority 0.7) ──────────
+    { url: `${siteUrl}/about`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/support`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/donors`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/transparency`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/governance`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/philosophy`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/opportunities`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${siteUrl}/resources`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/contact`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/docs`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/annual-report`, lastModified: today, changeFrequency: 'yearly', priority: 0.7 },
+
+    // ─── Tier 4: Reference & Legal (priority 0.5-0.6) ─────
+    { url: `${siteUrl}/legal/privacy`, lastModified: today, changeFrequency: 'yearly', priority: 0.5 },
+    { url: `${siteUrl}/legal/terms`, lastModified: today, changeFrequency: 'yearly', priority: 0.5 },
+    { url: `${siteUrl}/cookie-policy`, lastModified: today, changeFrequency: 'yearly', priority: 0.5 },
   ]
 
-  // Blog posts from content library
-  const blogRoutes: MetadataRoute.Sitemap = blogPosts.map(post => ({
-    url: `${siteUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.publishedAt),
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }))
+  // ─── Dynamic: Initiatives ─────────────────────────────────
+  for (const initiative of initiatives) {
+    entries.push({
+      url: `${siteUrl}/initiatives/${initiative.slug}`,
+      lastModified: today,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    })
+  }
 
-  // Initiative pages from content library
-  const initiativeRoutes: MetadataRoute.Sitemap = initiatives.map(init => ({
-    url: `${siteUrl}/initiatives/${init.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
-  }))
+  // ─── Dynamic: Programs ────────────────────────────────────
+  for (const program of programs) {
+    entries.push({
+      url: `${siteUrl}/programs/${program.slug}`,
+      lastModified: today,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    })
+  }
 
-  // Fetch dynamic routes from Supabase
-  const supabase = await createClient()
+  // ─── Dynamic: Blog posts ──────────────────────────────────
+  for (const post of blogPosts) {
+    entries.push({
+      url: `${siteUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.publishedAt),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    })
+  }
 
-  // Fetch events from DB
-  const { data: events } = await supabase
-    .from('events')
-    .select('slug, updated_at')
-    .not('status', 'eq', 'archived')
+  // ─── Dynamic: Chapters ────────────────────────────────────
+  for (const chapter of chapters) {
+    entries.push({
+      url: `${siteUrl}/chapters#${chapter.slug}`,
+      lastModified: today,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    })
+  }
 
-  const eventRoutes: MetadataRoute.Sitemap = (events ?? []).map((event) => ({
-    url: `${siteUrl}/events/${event.slug}`,
-    lastModified: event.updated_at ? new Date(event.updated_at) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }))
+  // ─── Dynamic: Events from content ─────────────────────────
+  for (const event of events) {
+    entries.push({
+      url: `${siteUrl}/events/${event.slug}`,
+      lastModified: today,
+      changeFrequency: event.status === 'completed' ? 'monthly' : 'weekly',
+      priority: 0.8,
+    })
+  }
 
-  // Fetch claimed, non-suspended profiles
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('bh_id, updated_at')
-    .eq('is_claimed', true)
-    .eq('is_suspended', false)
+  // ─── Dynamic: DB-driven routes ────────────────────────────
+  try {
+    const supabase = await createClient()
 
-  const profileRoutes: MetadataRoute.Sitemap = (profiles ?? []).map((profile) => ({
-    url: `${siteUrl}/profile/${profile.bh_id}`,
-    lastModified: profile.updated_at ? new Date(profile.updated_at) : new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.5,
-  }))
+    // Events from DB
+    const { data: dbEvents } = await supabase
+      .from('events')
+      .select('slug, updated_at')
+      .not('status', 'eq', 'archived')
+      .limit(200)
 
-  return [...staticRoutes, ...blogRoutes, ...initiativeRoutes, ...eventRoutes, ...profileRoutes]
+    for (const event of dbEvents ?? []) {
+      entries.push({
+        url: `${siteUrl}/events/${event.slug}`,
+        lastModified: event.updated_at ? new Date(event.updated_at) : today,
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      })
+    }
+
+    // Projects from DB
+    const { data: dbProjects } = await supabase
+      .from('projects')
+      .select('id, updated_at')
+      .order('updated_at', { ascending: false })
+      .limit(200)
+
+    for (const project of dbProjects ?? []) {
+      entries.push({
+        url: `${siteUrl}/projects/${project.id}`,
+        lastModified: project.updated_at ? new Date(project.updated_at) : today,
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      })
+    }
+
+    // Public profiles from DB
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('bh_id, updated_at')
+      .eq('is_claimed', true)
+      .eq('is_suspended', false)
+      .limit(500)
+
+    for (const profile of profiles ?? []) {
+      entries.push({
+        url: `${siteUrl}/p/${profile.bh_id}`,
+        lastModified: profile.updated_at ? new Date(profile.updated_at) : today,
+        changeFrequency: 'monthly',
+        priority: 0.5,
+      })
+    }
+  } catch {
+    // Silently fall back — static routes + content routes are enough
+  }
+
+  return entries
 }

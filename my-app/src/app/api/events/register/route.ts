@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createAuthenticatedClient } from '@/utils/supabase/server';
 import { z } from 'zod';
-import { sanitizeUuid, rejectOversized } from '@/lib/validation';
+import { sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
-import { withRateLimit } from '@/lib/rate-limiter';
+import { withRateLimit, withPayloadLimit } from '@/lib/rate-limiter';
 import { captureServerEvent } from '@/lib/analytics/server';
 import { posthogLog } from '@/lib/posthog-logger';
 
@@ -11,17 +11,17 @@ const registerSchema = z.object({
   event_id: z.string().transform(v => sanitizeUuid(v) ?? ''),
 }).refine(d => d.event_id.length > 0, { message: 'Invalid event ID' });
 
-export const POST = withRateLimit(async (request: Request) => {
+export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
   try {
     const authClient = await createAuthenticatedClient();
     if (!authClient) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { supabase, userId } = authClient;
 
-    // ponytail: Look up profile UUID to satisfy profile_id FK (UUID, not Clerk user_xxx)
+    // ponytail: Look up profile UUID to satisfy profile_id FK (UUID, not auth0_user_id string)
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
-      .eq('clerk_user_id', userId)
+      .eq('auth0_user_id', userId)
       .single();
     if (!profile) return NextResponse.json({ error: 'Profile not found — finish onboarding' }, { status: 400 });
 
@@ -38,8 +38,6 @@ export const POST = withRateLimit(async (request: Request) => {
       }
     }
 
-    // ponytail: reject oversized payloads before parsing — 1 MB limit
-    const oversized = rejectOversized(request); if (oversized) return oversized
     const raw = await request.json();
     const parsed = registerSchema.safeParse(raw);
     if (!parsed.success) {
@@ -69,4 +67,4 @@ export const POST = withRateLimit(async (request: Request) => {
     logger.error('[api/events/register]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-})
+}), "user_action")

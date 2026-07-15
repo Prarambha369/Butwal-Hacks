@@ -5,6 +5,9 @@ import { ArrowUpRight, DollarSign, TrendingUp, TrendingDown, ExternalLink } from
 import Breadcrumbs from "@/components/breadcrumbs"
 import { buildPageMetadata } from "@/lib/seo"
 
+export const dynamic = "force-static";
+export const revalidate = 300;
+
 export const metadata: Metadata = buildPageMetadata({
   title: "Financial Transparency",
   description:
@@ -59,8 +62,8 @@ export default async function TransparencyPage() {
   const stats = await fetchCollectiveStats()
 
   return (
-    <main className="min-h-screen bg-background text-primary">
-      <section className="border-b border-glass px-4 py-14 sm:py-16">
+    <main className="min-h-dvh bg-background text-primary">
+      <section className="border-b border-border px-4 py-14 sm:py-16">
         <div className="mx-auto max-w-6xl">
           <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Transparency" }]} />
           <div className="text-center">
@@ -80,10 +83,10 @@ export default async function TransparencyPage() {
 
       {stats ? (
         <>
-          <section className="border-b border-glass px-4 py-12">
+          <section className="border-b border-border px-4 py-12">
             <div className="mx-auto max-w-6xl">
               <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-xl border border-glass bg-surface p-6">
+                <div className="rounded-xl border border-border bg-surface p-6">
                   <div className="flex items-center gap-2 text-sm font-semibold text-secondary">
                     <DollarSign className="h-4 w-4" />
                     Current Balance
@@ -92,7 +95,7 @@ export default async function TransparencyPage() {
                     {formatCurrency(stats.balance, stats.currency)}
                   </p>
                 </div>
-                <div className="rounded-xl border border-glass bg-surface p-6">
+                <div className="rounded-xl border border-border bg-surface p-6">
                   <div className="flex items-center gap-2 text-sm font-semibold text-secondary">
                     <TrendingUp className="h-4 w-4" />
                     Total Received
@@ -101,7 +104,7 @@ export default async function TransparencyPage() {
                     {formatCurrency(stats.received, stats.currency)}
                   </p>
                 </div>
-                <div className="rounded-xl border border-glass bg-surface p-6">
+                <div className="rounded-xl border border-border bg-surface p-6">
                   <div className="flex items-center gap-2 text-sm font-semibold text-secondary">
                     <TrendingDown className="h-4 w-4" />
                     Total Spent
@@ -116,7 +119,7 @@ export default async function TransparencyPage() {
 
           {/* ponytail: contributor list + expense breakdown skipped. API returns paginated data that needs
           multi-step fetching. Open Collective page is the canonical source for those. */}
-          <section className="border-b border-glass px-4 py-12">
+          <section className="border-b border-border px-4 py-12">
             <div className="mx-auto max-w-6xl">
               <div className="rounded-xl border border-primary/40 bg-primary p-6 text-primary-foreground">
                 <div className="flex items-center justify-between">
@@ -141,9 +144,9 @@ export default async function TransparencyPage() {
           </section>
         </>
       ) : (
-        <section className="border-b border-glass px-4 py-12">
+        <section className="border-b border-border px-4 py-12">
           <div className="mx-auto max-w-6xl">
-            <div className="rounded-xl border border-glass bg-surface p-8 text-center">
+            <div className="rounded-xl border border-border bg-surface p-8 text-center">
               <p className="text-lg font-semibold text-primary">Open Collective data unavailable</p>
               <p className="mt-2 text-sm text-secondary">
                 Visit the Open Collective page directly to view financial data.
@@ -180,7 +183,7 @@ export default async function TransparencyPage() {
                   "Budget decisions, expense reports, and collective votes are documented and publicly accessible.",
               },
             ].map((item) => (
-              <article key={item.title} className="rounded-xl border border-glass bg-surface p-6">
+              <article key={item.title} className="rounded-xl border border-border bg-surface p-6">
                 <h3 className="text-xl font-semibold text-primary">{item.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-secondary">{item.description}</p>
               </article>

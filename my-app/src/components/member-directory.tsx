@@ -1,7 +1,7 @@
 "use client"
 
 import { Users, GraduationCap, CalendarCheck, Handshake } from "lucide-react"
-import { FadeIn, StaggerReveal } from "@/components/home/shared-primitives"
+import { FadeIn } from "@/components/home/shared-primitives"
 import { communityMembers } from "@/lib/content"
 
 const roleIcons: Record<string, React.ReactNode> = {
@@ -18,7 +18,7 @@ const roleColors: Record<string, {
   Builder: { icon: "text-status-blue bg-status-blue/10", card: "border-status-blue/20 hover:border-status-blue/40" },
   Mentor: { icon: "text-status-green bg-status-green/10", card: "border-status-green/20 hover:border-status-green/40" },
   Organizer: { icon: "text-status-orange bg-status-orange/10", card: "border-status-orange/20 hover:border-status-orange/40" },
-  Sponsor: { icon: "text-bh-red-500 bg-bh-red-500/10", card: "border-bh-red-500/20 hover:border-bh-red-500/40" },
+  Sponsor: { icon: "text-primary-red bg-primary-red/10", card: "border-bh-red-500/20 hover:border-primary-red/40" },
 }
 
 export function MemberDirectory() {
@@ -29,7 +29,7 @@ export function MemberDirectory() {
       {/* Decorative background */}
       <div className="absolute inset-0 bg-gradient-to-b from-surface/5 to-transparent pointer-events-none" />
       <div
-        className="absolute top-20 right-10 w-64 h-64 rounded-full bg-bh-red-500/5 blur-[100px] pointer-events-none"
+        className="absolute top-20 right-10 w-64 h-64 rounded-full bg-primary-red/5 blur-[100px] pointer-events-none"
         aria-hidden="true"
       />
       <div
@@ -39,26 +39,26 @@ export function MemberDirectory() {
 
       <FadeIn className="relative mx-auto max-w-6xl px-4">
         <div className="text-center mb-16">
-          <p className="text-xs font-bold uppercase tracking-[0.15em] text-bh-red-500 mb-4">
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-primary-red mb-4">
             Our Community
           </p>
           <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">
-            Built by <span className="text-bh-red-500">{totalMembers.toLocaleString()}</span> Members
+            Built by <span className="text-primary-red">{totalMembers.toLocaleString()}</span> Members
           </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-secondary text-base md:text-lg leading-relaxed">
-            From first-time hackers to experienced mentors — every role matters in building Butwal&apos;s tech ecosystem.
+          <p className="mt-4 max-w-2xl mx-auto text-muted-foreground text-base md:text-lg leading-relaxed">
+            From first-time hackers to experienced mentors — every role matters in building what&apos;s next.
           </p>
         </div>
 
-        <StaggerReveal staggerDelay={80} className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {communityMembers.map((member) => (
             <article
               key={member.role}
-              className={`lg-surface rounded-2xl border p-6 flex flex-col items-center text-center transition-all hover:shadow-md hover:scale-[1.02] group ${
-                roleColors[member.role]?.card || "border-glass"
+              className={`bh-card border p-6 flex flex-col items-center text-center transition-all hover:shadow-md hover:scale-[1.02] group ${
+                roleColors[member.role]?.card || "border-border"
               }`}
             >
-              <div                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${
+              <div                  className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${
                   roleColors[member.role]?.icon || "bg-surface/10"
                 }`}
               >
@@ -68,12 +68,12 @@ export function MemberDirectory() {
                 {member.count.toLocaleString()}
               </p>
               <p className="mt-1 text-sm font-bold text-primary/80">{member.role}s</p>
-              <p className="mt-2 text-[11px] leading-relaxed text-secondary/70 max-w-[160px]">
+              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground/70 max-w-[160px]">
                 {member.description}
               </p>
             </article>
           ))}
-        </StaggerReveal>
+        </div>
       </FadeIn>
     </section>
   )

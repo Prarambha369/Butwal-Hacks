@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { sanitizeName, sanitizeEmail, sanitizeString, rejectOversized } from "@/lib/validation"
-import { sponsorInquiryHtml } from "@/lib/emails/sponsor-inquiry"
+import { sanitizeName, sanitizeEmail, sanitizeString } from "@/lib/validation"
 import { logger } from "@/lib/logger"
-import { withRateLimit } from "@/lib/rate-limiter"
+import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter"
 import { captureServerEvent } from "@/lib/analytics/server"
 import { posthogLog } from "@/lib/posthog-logger"
 
@@ -15,10 +14,8 @@ const schema = z.object({
   message: z.string().optional().transform(v => v ? sanitizeString(v, 2000) : v),
 })
 
-export const POST = withRateLimit(async (request: Request) => {
+export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
   try {
-    // ponytail: reject oversized payloads before parsing — 1 MB limit
-    const oversized = rejectOversized(request); if (oversized) return oversized
     const body = await request.json()
     const data = schema.parse(body)
 
@@ -34,11 +31,16 @@ export const POST = withRateLimit(async (request: Request) => {
           Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "sponsors@butwalhacks.com",
+          from: "sponsors@mail.butwalhacks.com",
           to: [CONTACT_EMAIL],
           reply_to: data.email,
           subject: `[Sponsor Inquiry] ${data.company} — ${data.tier}`,
-          html: sponsorInquiryHtml(data.name, data.email, data.company, data.tier, data.message ?? null),
+          html: `<h1 style="color:#FE0000;">New Sponsorship Inquiry</h1>
+               <p><strong>Name:</strong> ${data.name}</p>
+               <p><strong>Email:</strong> ${data.email}</p>
+               <p><strong>Company:</strong> ${data.company}</p>
+               <p><strong>Tier:</strong> ${data.tier}</p>
+               ${data.message ? `<p><strong>Message:</strong> ${data.message}</p>` : ""}`.replace(/\s{2,}/g, " "),
           text: `Name: ${data.name}\nEmail: ${data.email}\nCompany: ${data.company}\nTier: ${data.tier}\n\n${data.message ?? ""}`,
         }),
       })
@@ -65,4 +67,4 @@ export const POST = withRateLimit(async (request: Request) => {
     logger.error("[sponsor route]", err)
     return NextResponse.json({ error: "Failed to send inquiry" }, { status: 500 })
   }
-})
+}), "public_form")

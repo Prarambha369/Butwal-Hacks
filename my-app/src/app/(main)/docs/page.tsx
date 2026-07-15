@@ -1,8 +1,7 @@
+export const dynamic = "force-static";
+
 import type { Metadata } from "next"
 import Link from "next/link"
-
-
-
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -13,7 +12,7 @@ export const metadata: Metadata = buildPageMetadata({
 
 export default function DocsIndexPage() {
   return (
-    <main className="min-h-screen bg-background text-primary">
+    <main className="min-h-dvh bg-background text-primary">
       
       <section className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
         <h1 className="text-4xl font-bold font-heading tracking-tight sm:text-5xl">Technical Documentation</h1>
@@ -22,7 +21,7 @@ export default function DocsIndexPage() {
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-2">
-          <article className="rounded-xl border border-glass bg-surface p-6">
+          <article className="rounded-xl border border-border bg-surface p-6">
             <h2 className="text-2xl font-bold font-heading text-primary">Environment Setup</h2>
             <p className="mt-2 text-sm text-secondary">
               Configure your local development environment to match production standards.
@@ -32,13 +31,23 @@ export default function DocsIndexPage() {
             </Link>
           </article>
 
-          <article className="rounded-xl border border-glass bg-surface p-6">
+          <article className="rounded-xl border border-border bg-surface p-6">
             <h2 className="text-2xl font-bold font-heading text-primary">Community Contribution</h2>
             <p className="mt-2 text-sm text-secondary">
               Start with contribution basics, code standards, and maintainers workflow.
             </p>
             <Link href="/resources" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
               Open resources
+            </Link>
+          </article>
+
+          <article className="rounded-xl border border-border bg-surface p-6">
+            <h2 className="text-2xl font-bold font-heading text-primary">Component Library</h2>
+            <p className="mt-2 text-sm text-secondary">
+              Live preview and usage reference for UI components, with props, variants, and color options.
+            </p>
+            <Link href="/docs/components/section-heading" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
+              Open preview
             </Link>
           </article>
         </div>

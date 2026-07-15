@@ -40,6 +40,19 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# clerk configuration (can include secrets)
-/.clerk/
 .env.local
+
+# locally downloaded Playwright browser
+/chrome/
+
+# git history rewrite artifacts
+/.git-rewrite/
+
+# local logs and audit output
+*.log
+lint_output.txt
+dev_log.txt
+q
+
+# temporary scripts
+tmp/

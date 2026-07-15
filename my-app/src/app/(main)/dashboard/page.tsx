@@ -1,127 +1,106 @@
-import React from 'react';
-import Image from 'next/image';
-import SiteHeader from '@/components/site-header';
-import Footer from '@/components/sections/Footer';
-import ActivityFeed from '@/components/dashboard/activity-feed';
-import LevelBadge from '@/components/dashboard/level-badge';
-import RewardsStore from '@/components/dashboard/rewards-store';
-import ClaimedBanner from '@/components/dashboard/claimed-banner';
+import Link from "next/link";
 import { auth0 } from "@/lib/auth0";
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from "@/utils/supabase/server";
+import { BHIDClaimCard } from "@/components/dashboard/bhid-claim-card";
+import { ToolGuideSection } from "@/components/dashboard/tool-guide-section";
+import { OnboardingSteps } from "@/components/dashboard/onboarding-steps";
+import { DashboardInitialScreen } from "@/components/dashboard/dashboard-initial-screen";
+import { ArrowRight, Sparkles } from "lucide-react";
 
-export default async function DashboardPage() {
+export default async function DashboardHubPage() {
   const session = await auth0.getSession();
   const userId = session?.user?.sub;
   if (!userId) return null;
 
+  const email = session.user.email ?? "";
+  const emailVerified = session.user.email_verified === true;
+
   const supabase = await createClient();
-  
+
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('auth0_user_id', userId)
+    .from("profiles")
+    .select("*")
+    .eq("auth0_user_id", userId)
     .single();
 
+  const profileId = profile?.id;
+
+  // Get project count for onboarding progress
+  const { count: projectCount } = await supabase
+    .from("projects")
+    .select("id", { count: "exact", head: true })
+    .eq("profile_id", profileId ?? "none");
+
+  // Get chapter count
+  const { count: chapterCount } = await supabase
+    .from("chapter_members")
+    .select("id", { count: "exact", head: true })
+    .eq("profile_id", profileId ?? "none");
+
+  const bhId = profile?.bh_id || profile?.slug_id || "BH-••••••";
+  const role = profile?.role || "hacker";
+  const fullName = profile?.full_name || "New Hacker";
+  const xp = profile?.xp || 0;
+
   return (
-    <div className="min-h-screen bg-background text-primary pt-24 pb-20 px-4">
-      <SiteHeader />
-      <div className="max-w-7xl mx-auto space-y-6">
-        <ClaimedBanner />
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        
-        {/* Left Column: User Profile Summary */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="lg-surface p-8 rounded-3xl border border-glass text-center space-y-6">
-            <div className="relative w-24 h-24 mx-auto overflow-hidden rounded-full ring-4 ring-bh-red-500/20">
-              {profile?.avatar_url || profile?.full_name ? (
-                <Image 
-                  src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name}`} 
-                  alt={profile?.full_name || 'Avatar'}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-surface/10 flex items-center justify-center text-2xl font-bold text-primary/40">
-                  ?
-                </div>
-              )}
-              <div className="absolute -bottom-2 -right-2 bg-bh-red-500 text-primary text-[10px] font-bold px-2 py-1 rounded-full">
-                {profile?.role}
-              </div>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold">{profile?.full_name}</h2>
-              <p className="text-xs font-mono text-secondary">{profile?.bh_id}</p>
-            </div>
-            <LevelBadge xp={profile?.xp || 0} />
+    <DashboardInitialScreen email={email} emailVerified={emailVerified} currentRole={role}>
+    <div className="min-h-dvh bg-bg-base text-text-body pt-16 pb-20 px-4">
+      <div className="max-w-4xl mx-auto space-y-10">
+        {/* ── Page Header ── */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="w-4 h-4 text-primary-red" />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-primary-red">
+              Dashboard Hub
+            </span>
           </div>
-          
-          <div className="lg-surface p-6 rounded-3xl border border-glass space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-secondary">Quick Links</h3>
-            <div className="grid grid-cols-1 gap-2">
-              <a href="/dashboard/explore" className="p-3 rounded-xl bg-surface/10 hover:bg-surface/10 transition-all text-xs font-medium flex items-center justify-between group">
-                Explore Hackers <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
-              </a>
-              <a href="/dashboard/teams" className="p-3 rounded-xl bg-surface/10 hover:bg-surface/10 transition-all text-xs font-medium flex items-center justify-between group">
-                My Team <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
-              </a>
-              <a href="/dashboard/projects/new" className="p-3 rounded-xl bg-bh-red-500/10 text-bh-red-500 hover:bg-bh-red-500/20 transition-all text-xs font-bold flex items-center justify-between group">
-                Submit Project <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
-              </a>
-            </div>
-          </div>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">
+            Welcome to Butwal Hacks
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-xl">
+            This is your central hub. Claim your identity, complete your onboarding, and explore every tool available to you.
+          </p>
         </div>
 
-        {/* Right Column: Main Content */}
-        <div className="lg:col-span-3 space-y-8">
-          <div className="flex items-center justify-between">
-            <h1 className="text-4xl font-black tracking-tight font-heading">Welcome back, {profile?.full_name?.split(' ')[0]}!</h1>
-            <div className="text-xs font-mono text-secondary">Lumbini Province, Nepal</div>
-          </div>
+        {/* ── Section 1: BH-ID Identity Card ── */}
+        <BHIDClaimCard bhId={bhId} role={role} fullName={fullName} xp={xp} />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-secondary flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-status-green animate-pulse" />
-                Live Community Activity
-              </h3>
-              <ActivityFeed />
-            </div>
-            
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-secondary">Daily Mission</h3>
-              <div className="lg-surface p-6 rounded-3xl border border-glass space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-status-yellow/10 text-status-yellow">
-                    <Trophy className="w-5 h-5" />
-                  </div>
-                  <p className="text-sm font-bold">Collaborate with a new hacker</p>
-                </div>
-                <p className="text-xs text-secondary">
-                  Find a teammate with complementary skills and send an invite to earn 20 XP.
-                </p>
-                <a href="/dashboard/explore" className="text-xs font-bold text-bh-red-500 hover:underline">Start Exploring →</a>
-              </div>
-            </div>
+        {/* ── Section 2: Onboarding Steps ── */}
+        <OnboardingSteps
+          profile={profile}
+          projectCount={projectCount ?? 0}
+          chapterCount={chapterCount ?? 0}
+        />
+
+        {/* ── Section 3: Tool Guide ── */}
+        <ToolGuideSection />
+
+        {/* ── Section 4: Quick Start CTA ── */}
+        <div className="bh-card p-6 md:p-8 text-center space-y-4">
+          <h2 className="text-xl font-bold text-primary">
+            Ready to start building?
+          </h2>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            Head to your role-specific dashboard to access all your tools, track progress, and manage your projects.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href={`/dashboard/${role}`}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary-red text-white text-sm font-bold hover:bg-deep-red transition-all shadow-[--bh-glow-red-soft] hover:shadow-[--bh-glow-red] active:scale-[0.97]"
+            >
+              Go to {role.charAt(0).toUpperCase() + role.slice(1)} Dashboard
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              href="/explore"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border bg-surface text-primary text-sm font-bold hover:bg-surface-hover transition-all active:scale-[0.97]"
+            >
+              Explore the Community
+            </Link>
           </div>
-          <RewardsStore />
         </div>
       </div>
-      </div>
-      <Footer />
     </div>
-  );
-}
-
-function Trophy({ className }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-      <path d="M4 22h16"></path>
-      <path d="M10 14.9C10 13.7 11 12.5 12 12.5s2 .8 2 2.4a2.5 2.5 0 0 1-2.5 2.5H10a2.5 2.5 0 0 1-2.5-2.5c0-1.6 1-2.4 2-2.4z"></path>
-      <path d="M12 2v12"></path>
-      <path d="M8 22v-4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4"></path>
-    </svg>
+    </DashboardInitialScreen>
   );
 }

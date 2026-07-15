@@ -2,22 +2,33 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { CldImage } from 'next-cloudinary';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, Search, LayoutDashboard } from 'lucide-react';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/components/language-provider';
+import { t } from '@/lib/i18n';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Cross-domain links: auth routes live on the app subdomain.
+// In dev (localhost), env vars point to the same origin.
+// In production, NEXT_PUBLIC_APP_URL points to https://app.butwalhacks.com
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.butwalhacks.com';
 
 const navLinks = [
-  { name: 'Home', href: '/' },
-  { name: 'Programs', href: '/programs' },
-  { name: 'Community', href: '/community' },
-  { name: 'Governance', href: '/governance' },
-  { name: 'Sponsorship', href: '/support' },
-  { name: 'Insights', href: '/blog' },
+  { name: 'Home', href: '/', i18nKey: 'nav.home' },
+  { name: 'Community', href: '/community', i18nKey: 'nav.community' },
+  { name: 'Events', href: '/events', i18nKey: 'nav.events' },
+  { name: 'Explore', href: '/explore', i18nKey: 'nav.explore' },
+  { name: 'Insights', href: '/blog', i18nKey: 'nav.insights' },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user, isLoading } = useUser();
+  const isSignedIn = !!user;
+  const { locale } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,11 +39,11 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav 
+    <nav
+      aria-label="Main navigation"
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300 border-b",
-        scrolled ? "bg-bg/95 backdrop-blur-md py-3" : "bg-bg py-5",
-        "border-border"
+        "sticky top-0 z-50 w-full bg-surface transition-all duration-200",
+        scrolled ? "border-b border-border shadow-sm" : ""
       )}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -40,49 +51,95 @@ export default function Navbar() {
           {/* Left: Logo */}
           <div className="flex items-center gap-3 shrink-0">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-300 transition-transform group-hover:scale-105 overflow-hidden">
-                <CldImage
-                  width="48"
-                  height="48"
-                  src="logo_circular"
-                  alt="Butwal Hacks Logo"
-                  crop="fill"
-                />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-deep-red text-white text-xs font-bold">
+                BH
               </div>
-              <span className="text-neutral-50 font-bold text-xl tracking-tight">
-                BUTWAL HACKS
+              <span className="text-primary font-bold text-lg tracking-tight">
+                Butwal Hacks
               </span>
             </Link>
           </div>
 
           {/* Center: Nav Links (Desktop) */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-neutral-50 text-sm font-medium opacity-70 transition-all hover:opacity-100 hover:text-red-300"
+                className="px-3 py-2 text-sm font-medium text-text-secondary rounded-md transition-all hover:bg-surface-hover hover:text-primary"
               >
-                {link.name}
+                {t(link.i18nKey, locale)}
               </Link>
             ))}
           </div>
 
-          {/* Right: CTA */}
-          <div className="hidden md:block">
-            <Link
-              href="/contact"
-              className="rounded-full bg-red-300 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-red-400 hover:shadow-[0_0_20px_rgba(254,0,0,0.4)] active:scale-95"
+          {/* Right: Search + Auth + Theme Toggle */}
+          <div className="hidden md:flex items-center gap-2">
+            {/* Cmd+K Search Trigger */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('bh:open-search'))}
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-secondary transition-all hover:bg-surface-hover hover:text-primary active:scale-95"
+              aria-label="Search"
             >
-              Contact Us
-            </Link>
+              <Search className="h-4 w-4" />
+              <span className="hidden lg:inline">{t('common.search', locale)}</span>
+            </button>
+            <ThemeToggle />
+            {isLoading ? (
+              /* Skeleton placeholder while Auth0 checks cached session */
+              <div className="flex items-center gap-2" aria-hidden="true">
+                <Skeleton className="h-9 w-20 rounded-full" />
+                <Skeleton className="h-9 w-24 rounded-full" />
+              </div>
+            ) : isSignedIn ? (
+              <>
+                <a
+                  href={`${APP_URL}/dashboard`}
+                  className="bh-btn-primary text-sm !px-4 !py-2"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </a>
+                <a
+                  href={`${APP_URL}/auth/logout`}
+                  className="bh-btn-ghost text-sm"
+                >
+                  <LogOut className="h-4 w-4" />
+                  {t('nav.sign_out', locale)}
+                </a>
+              </>
+            ) : (
+              <>
+                <a
+                  href={`${APP_URL}/auth/login`}
+                  className="bh-btn-ghost text-sm"
+                >
+                  <LogIn className="h-4 w-4" />
+                  {t('nav.sign_in', locale)}
+                </a>
+                <a
+                href={`${APP_URL}/auth/login?screen_hint=signup`}
+                className="bh-btn-primary text-sm !px-5"
+                >
+                  {t('nav.sign_up', locale)}
+                </a>
+              </>
+            )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          {/* Mobile: Search + Theme + Menu */}
+          <div className="md:hidden flex items-center gap-1">
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('bh:open-search'))}
+              className="text-text-secondary p-2 hover:text-primary transition-colors"
+              aria-label="Search"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+            <ThemeToggle />
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-neutral-50 p-2"
+              className="text-primary p-2"
               aria-label="Toggle menu"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -92,30 +149,77 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu Overlay */}
-      <div 
+      <div
         className={cn(
-          "absolute top-full left-0 w-full bg-bg border-b border-border transition-all duration-300 ease-in-out md:hidden",
+          "absolute top-full left-0 w-full bg-surface border-b border-border transition-all duration-200 ease-in-out md:hidden shadow-lg",
           isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
         )}
       >
-        <div className="flex flex-col p-6 gap-4">
+        <div className="flex flex-col p-4 gap-1">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               href={link.href}
               onClick={() => setIsOpen(false)}
-              className="text-neutral-50 text-lg font-medium opacity-70 hover:opacity-100 hover:text-red-300"
+              className="px-4 py-3 text-text-secondary text-base font-medium rounded-lg transition-all hover:bg-surface-hover hover:text-primary"
             >
-              {link.name}
+              {t(link.i18nKey, locale)}
             </Link>
           ))}
-          <Link
-            href="/contact"
-            onClick={() => setIsOpen(false)}
-            className="mt-4 rounded-full bg-red-300 px-6 py-3 text-center text-lg font-bold text-white"
+          {/* Mobile search trigger */}
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('bh:open-search'));
+              setIsOpen(false);
+            }}
+            className="flex items-center gap-3 px-4 py-3 text-text-secondary text-base font-medium rounded-lg transition-all hover:bg-surface-hover hover:text-primary"
           >
-            Contact Us
-          </Link>
+            <Search className="h-5 w-5" />
+            {t('common.search', locale)}
+          </button>
+          {isLoading ? (
+            /* Skeleton placeholder for mobile nav */
+            <div className="mt-4 flex flex-col gap-2" aria-hidden="true">
+              <Skeleton className="h-10 w-full rounded-lg" />
+            </div>
+          ) : isSignedIn ? (
+            <>
+              <a
+                href={`${APP_URL}/dashboard`}
+                onClick={() => setIsOpen(false)}
+                className="bh-btn-primary text-center"
+              >
+                <LayoutDashboard className="h-5 w-5" />
+                Dashboard
+              </a>
+              <a
+                href={`${APP_URL}/auth/logout`}
+                onClick={() => setIsOpen(false)}
+                className="bh-btn-secondary text-center"
+              >
+                <LogOut className="h-5 w-5" />
+                {t('nav.sign_out', locale)}
+              </a>
+            </>
+          ) : (
+            <div className="mt-2 flex flex-col gap-2">
+              <a
+                href={`${APP_URL}/auth/login`}
+                onClick={() => setIsOpen(false)}
+                className="bh-btn-secondary text-center"
+              >
+                <LogIn className="h-5 w-5" />
+                {t('nav.sign_in', locale)}
+              </a>
+              <a
+                href={`${APP_URL}/auth/login?screen_hint=signup`}
+                onClick={() => setIsOpen(false)}
+                className="bh-btn-primary text-center"
+              >
+                {t('nav.sign_up', locale)}
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </nav>

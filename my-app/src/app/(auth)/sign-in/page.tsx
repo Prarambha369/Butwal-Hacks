@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-// Auth0 mounts login at /api/auth/login via the [auth0] catch-all route
+// Auth0 v4 mounts login at /auth/login via the proxy middleware
 export default async function SignInPage() {
-  redirect("/api/auth/login")
+  redirect("/auth/login")
 }

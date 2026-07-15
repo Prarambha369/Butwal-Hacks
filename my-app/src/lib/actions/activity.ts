@@ -1,9 +1,12 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createServiceClient } from "@/utils/supabase/service";
 
+// ponytail: service role client bypasses RLS. The audit_logs table has no anon
+// SELECT policy and auth.uid() is null (Auth0, not Supabase Auth). Service role
+// is the correct client for internal activity queries.
 export async function getRecentActivity(page = 0, pageSize = 20) {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const from = page * pageSize;
   const to = from + pageSize - 1;
 
@@ -20,7 +23,11 @@ export async function getRecentActivity(page = 0, pageSize = 20) {
     .order('created_at', { ascending: false })
     .range(from, to);
 
-  if (error) throw error;
+  // ponytail: gracefully handle missing table (migration not yet applied)
+  if (error) {
+    if (error.code === 'PGRST205') return [];
+    throw error;
+  }
 
   // Map audit logs to human-readable messages
   return (data || []).map(log => {

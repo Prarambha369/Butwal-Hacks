@@ -1,7 +1,7 @@
+export const dynamic = "force-static";
+
 import type { Metadata } from "next"
 import { buildPageMetadata } from "@/lib/seo"
-
-
 import LegalDocumentLayout from "@/components/legal-document-layout"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -65,7 +65,7 @@ export default function CookiePolicyPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       
       <LegalDocumentLayout
         title="Cookie Policy"

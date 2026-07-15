@@ -2,6 +2,8 @@
 
 import { cn } from "@/lib/utils"
 
+/* ─── Base primitive ───────────────────────────────────────────────── */
+
 interface SkeletonProps {
   className?: string
   variant?: "default" | "card" | "text" | "circle" | "image"
@@ -9,7 +11,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ className, variant = "default", count = 1 }: SkeletonProps) {
-  const baseClasses = "animate-pulse bg-surface/50 rounded-md bg-gradient-to-r from-muted via-muted/70 to-muted"
+  const baseClasses = "animate-pulse bg-muted rounded-md"
 
   const variantClasses = {
     default: "h-4 w-full",
@@ -30,53 +32,95 @@ export function Skeleton({ className, variant = "default", count = 1 }: Skeleton
   return <div className="space-y-2">{items}</div>
 }
 
-export function BlogCardSkeleton() {
+/* ─── Card skeleton — generic card with icon area + title + lines ─── */
+
+interface CardSkeletonProps {
+  className?: string
+  lines?: number
+}
+
+export function CardSkeleton({ className, lines = 2 }: CardSkeletonProps) {
   return (
-    <div className="border-b border-glass pb-8 space-y-4">
-      {/* Meta row: date and read time */}
-      <div className="flex items-center gap-4">
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-4 w-24" />
+    <div className={cn("bh-card p-6 space-y-4", className)}>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-10 w-10 rounded-lg" />
+        <Skeleton className="h-5 w-16 rounded-full" />
       </div>
-      {/* Title */}
-      <Skeleton className="h-10 w-3/4" />
-      {/* Excerpt lines */}
-      <div className="space-y-2">
-        <Skeleton className="h-5 w-full" />
-        <Skeleton className="h-5 w-5/6" />
-        <Skeleton className="h-5 w-4/6" />
+      <Skeleton className="h-5 w-3/4" />
+      <div className="space-y-1.5">
+        {Array.from({ length: lines }).map((_, i) => (
+          <Skeleton key={i} className={i === lines - 1 ? "h-3 w-2/3" : "h-3 w-full"} />
+        ))}
       </div>
-      {/* Read more link */}
-      <Skeleton className="h-6 w-28" />
+      <div className="flex items-center justify-between pt-2">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-8 w-20 rounded-lg" />
+      </div>
     </div>
   )
 }
 
-export function BlogGridSkeleton({ count = 3 }: { count?: number }) {
+/* ─── Feed skeleton — list of avatar + text items ─────────────────── */
+
+interface FeedSkeletonProps {
+  count?: number
+  className?: string
+}
+
+export function FeedSkeleton({ count = 5, className }: FeedSkeletonProps) {
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className={cn("space-y-3", className)}>
       {Array.from({ length: count }).map((_, i) => (
-        <BlogCardSkeleton key={i} />
+        <div key={i} className="flex items-start gap-3 p-4 rounded-xl border border-border">
+          <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/3" />
+          </div>
+        </div>
       ))}
     </div>
   )
 }
 
-export function PageSkeleton() {
+/* ─── Table skeleton — parameterized rows + columns ───────────────── */
+
+interface TableSkeletonProps {
+  rows?: number
+  columns?: number
+}
+
+/** Single table row skeleton */
+function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
   return (
-    <div className="space-y-8">
-      <Skeleton variant="text" className="h-12 w-1/2" />
-      <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-        <div className="space-y-4">
-          <Skeleton variant="card" className="h-40" />
-          <Skeleton variant="card" className="h-32" />
-        </div>
-        <div className="space-y-6">
-          <BlogCardSkeleton />
-          <BlogCardSkeleton />
-          <BlogCardSkeleton />
+    <div className="flex items-center gap-4 px-6 py-4 border-b border-border">
+      {Array.from({ length: columns }).map((_, i) => (
+        <Skeleton
+          key={i}
+          className={cn(
+            "h-4",
+            i === 0 ? "flex-1" : "w-20",
+            i === columns - 1 && "ml-auto w-24",
+          )}
+        />
+      ))}
+    </div>
+  )
+}
+
+export function TableSkeleton({ rows = 5, columns = 4 }: TableSkeletonProps) {
+  return (
+    <div className="bh-card overflow-hidden">
+      <div className="px-6 py-4 border-b border-border">
+        <div className="flex items-center gap-4">
+          {Array.from({ length: columns }).map((_, i) => (
+            <Skeleton key={i} className={cn("h-3", i === 0 ? "w-24" : "w-16", i === columns - 1 && "ml-auto")} />
+          ))}
         </div>
       </div>
+      {Array.from({ length: rows }).map((_, i) => (
+        <TableRowSkeleton key={i} columns={columns} />
+      ))}
     </div>
   )
 }

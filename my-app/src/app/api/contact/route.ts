@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { sanitizeName, sanitizeEmail, sanitizeDescription, rejectOversized } from "@/lib/validation"
-import { contactNotificationHtml } from "@/lib/emails/contact-notification"
+import { sanitizeName, sanitizeEmail, sanitizeDescription } from "@/lib/validation"
 import { logger } from "@/lib/logger"
-import { withRateLimit } from "@/lib/rate-limiter"
+import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter"
 import { captureServerEvent } from "@/lib/analytics/server"
 import { posthogLog } from "@/lib/posthog-logger"
 
@@ -15,10 +14,8 @@ const schema = z.object({
   message: z.string().min(10).transform(v => sanitizeDescription(v)),
 })
 
-export const POST = withRateLimit(async (request: Request) => {
+export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
   try {
-    // ponytail: reject oversized payloads before parsing — 1 MB limit
-    const oversized = rejectOversized(request); if (oversized) return oversized
     const body = await request.json()
     const data = schema.parse(body)
 
@@ -34,11 +31,16 @@ export const POST = withRateLimit(async (request: Request) => {
           Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "contact@butwalhacks.com",
+          from: "contact@mail.butwalhacks.com",
           to: [CONTACT_EMAIL],
           reply_to: data.email,
           subject: `[Contact] ${data.subject}`,
-          html: contactNotificationHtml(data.name, data.email, data.phone ?? null, data.subject, data.message),
+          html: `<h1 style="color:#FE0000;">New Contact Form Submission</h1>
+               <p><strong>Name:</strong> ${data.name}</p>
+               <p><strong>Email:</strong> ${data.email}</p>
+               ${data.phone ? `<p><strong>Phone:</strong> ${data.phone}</p>` : ""}
+               <p><strong>Subject:</strong> ${data.subject}</p>
+               <p><strong>Message:</strong> ${data.message}</p>`.replace(/\s{2,}/g, " "),
           text: `Name: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone ?? "—"}\n\n${data.message}`,
         }),
       })
@@ -66,4 +68,4 @@ export const POST = withRateLimit(async (request: Request) => {
     logger.error("[contact route]", err)
     return NextResponse.json({ error: "Failed to send message" }, { status: 500 })
   }
-})
+}), "public_form")

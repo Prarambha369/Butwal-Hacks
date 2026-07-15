@@ -1,12 +1,12 @@
 -- 050_organizations.sql
--- Chapter/Community management via Clerk Organizations
--- Clerk Organizations = persistent chapters (e.g., Butwal Hacks, Pokhara Hacks)
+-- Chapter/Community management via Auth0 Organizations
+-- Auth0 Organizations = persistent chapters (e.g., Butwal Hacks, Pokhara Hacks)
 -- NOT for ephemeral event teams (those stay in the `teams` table)
 
--- Create chapters table (mirrors Clerk Organizations)
+-- Create chapters table (mirrors Auth0 Organizations)
 CREATE TABLE IF NOT EXISTS chapters (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  clerk_org_id TEXT UNIQUE NOT NULL,
+  auth0_org_id TEXT UNIQUE NOT NULL,
   slug TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS chapter_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   chapter_id UUID REFERENCES chapters(id) ON DELETE CASCADE,
   profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  clerk_org_role TEXT DEFAULT 'member', -- 'admin' or 'member'
+  auth0_org_role TEXT DEFAULT 'member', -- 'admin' or 'member'
   joined_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(chapter_id, profile_id)
 );
@@ -51,7 +51,7 @@ CREATE POLICY "Admins can manage members" ON chapter_members FOR ALL
   USING (auth.jwt() ->> 'org_role' = 'admin');
 
 -- Index for fast lookups
-CREATE INDEX IF NOT EXISTS idx_chapters_clerk_org_id ON chapters(clerk_org_id);
+CREATE INDEX IF NOT EXISTS idx_chapters_auth0_org_id ON chapters(auth0_org_id);
 CREATE INDEX IF NOT EXISTS idx_chapters_slug ON chapters(slug);
 CREATE INDEX IF NOT EXISTS idx_chapter_members_profile ON chapter_members(profile_id);
 CREATE INDEX IF NOT EXISTS idx_chapter_members_chapter ON chapter_members(chapter_id);

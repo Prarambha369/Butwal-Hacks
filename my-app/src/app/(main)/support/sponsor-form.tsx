@@ -47,34 +47,34 @@ export function SponsorForm() {
         </ul>
       </div>
 
-      <form onSubmit={handleSubmit} className="rounded-xl border border-glass bg-surface p-6" aria-label="Sponsor inquiry form">
+      <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-surface p-6" aria-label="Sponsor inquiry form">
         {formState === "success" && (
           <div className="mb-4 rounded-lg border border-green-600/50 bg-green-950/20 p-3 text-sm text-green-700 text-status-green">
             Inquiry sent! We&apos;ll be in touch within 2 business days.
           </div>
         )}
         {formState === "error" && (
-          <div className="mb-4 rounded-lg border border-red-600/50 bg-red-950/20 p-3 text-sm text-red-700 text-bh-red-500">
+          <div className="mb-4 rounded-lg border border-red-600/50 bg-red-950/20 p-3 text-sm text-red-700 text-primary-red">
             {formError}
           </div>
         )}
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="text-sm text-secondary">
             Full Name
-            <input required name="name" type="text" placeholder="John Doe" className="mt-1 w-full rounded-md border border-glass bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
+            <input required name="name" type="text" placeholder="John Doe" className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
           </label>
           <label className="text-sm text-secondary">
             Company Email
-            <input required name="email" type="email" placeholder="john@company.com" className="mt-1 w-full rounded-md border border-glass bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
+            <input required name="email" type="email" placeholder="john@company.com" className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
           </label>
         </div>
         <label className="mt-4 block text-sm text-secondary">
           Company Name
-          <input required name="company" type="text" placeholder="Tech Innovations Inc." className="mt-1 w-full rounded-md border border-glass bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
+          <input required name="company" type="text" placeholder="Tech Innovations Inc." className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
         </label>
         <label className="mt-4 block text-sm text-secondary">
           Interested Tier
-          <select required name="tier" className="mt-1 w-full rounded-md border border-glass bg-background px-3 py-2 text-sm text-primary">
+          <select required name="tier" className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary">
             <option value="">Select a tier...</option>
             <option>Community</option>
             <option>Silver</option>
@@ -85,7 +85,7 @@ export function SponsorForm() {
         </label>
         <label className="mt-4 block text-sm text-secondary">
           Message
-          <textarea name="message" rows={4} placeholder="How can we help?" className="mt-1 w-full rounded-md border border-glass bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
+          <textarea name="message" rows={4} placeholder="How can we help?" className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
         </label>
         <button
           type="submit"

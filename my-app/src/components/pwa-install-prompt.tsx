@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { Download, X, RefreshCw } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
+import { t } from "@/lib/i18n"
 
 /**
  * PWAInstallPrompt — handles install banner and service worker update notification.
@@ -12,6 +14,7 @@ export default function PWAInstallPrompt() {
   const [showInstall, setShowInstall] = useState(false)
   const [showUpdate, setShowUpdate] = useState(false)
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
+  const { locale } = useLanguage()
 
   useEffect(() => {
     // Skip in dev mode
@@ -75,24 +78,24 @@ export default function PWAInstallPrompt() {
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 max-w-sm w-full px-4">
       {showInstall && (
-        <div className="lg-surface rounded-2xl border border-glass p-4 flex items-center gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] animate-in slide-in-from-bottom-4 duration-300">
-          <div className="p-2 rounded-xl bg-bh-red-500/10">
-            <Download className="w-5 h-5 text-bh-red-500" />
+        <div className="bh-card p-4 flex items-center gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] animate-in slide-in-from-bottom-4 duration-300">
+          <div className="p-2 rounded-xl bg-primary-red/10">
+            <Download className="w-5 h-5 text-primary-red" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-primary">Install Butwal Hacks</p>
-            <p className="text-xs text-secondary">Add to your home screen for quick access</p>
+            <p className="text-sm font-bold text-primary">{t("pwa.install_title", locale)}</p>
+            <p className="text-xs text-secondary">{t("pwa.install_desc", locale)}</p>
           </div>
           <button
             onClick={handleInstall}
-            className="px-4 py-2 rounded-xl bg-bh-red-500 text-white text-xs font-bold hover:bg-bh-red-600 transition-all shrink-0"
+            className="px-4 py-2 rounded-xl bg-bh-red-500 text-white text-xs font-bold hover:bg-deep-red transition-all shrink-0"
           >
-            Install
+            {t("pwa.install_button", locale)}
           </button>
           <button
             onClick={() => setShowInstall(false)}
             className="p-1 rounded-lg hover:bg-surface/10 text-secondary shrink-0"
-            aria-label="Dismiss"
+            aria-label={t("pwa.dismiss", locale)}
           >
             <X className="w-4 h-4" />
           </button>
@@ -100,24 +103,24 @@ export default function PWAInstallPrompt() {
       )}
 
       {showUpdate && (
-        <div className="lg-surface rounded-2xl border border-glass p-4 flex items-center gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] animate-in slide-in-from-bottom-4 duration-300">
+        <div className="bh-card p-4 flex items-center gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] animate-in slide-in-from-bottom-4 duration-300">
           <div className="p-2 rounded-xl bg-status-blue/10">
             <RefreshCw className="w-5 h-5 text-status-blue" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-primary">Update Available</p>
-            <p className="text-xs text-secondary">A new version is ready</p>
+            <p className="text-sm font-bold text-primary">{t("pwa.update_title", locale)}</p>
+            <p className="text-xs text-secondary">{t("pwa.update_desc", locale)}</p>
           </div>
           <button
             onClick={handleUpdate}
-            className="px-4 py-2 rounded-xl bg-bh-red-500 text-white text-xs font-bold hover:bg-bh-red-600 transition-all shrink-0"
+            className="px-4 py-2 rounded-xl bg-bh-red-500 text-white text-xs font-bold hover:bg-deep-red transition-all shrink-0"
           >
-            Refresh
+            {t("pwa.refresh_button", locale)}
           </button>
           <button
             onClick={() => setShowUpdate(false)}
             className="p-1 rounded-lg hover:bg-surface/10 text-secondary shrink-0"
-            aria-label="Dismiss"
+            aria-label={t("pwa.dismiss", locale)}
           >
             <X className="w-4 h-4" />
           </button>

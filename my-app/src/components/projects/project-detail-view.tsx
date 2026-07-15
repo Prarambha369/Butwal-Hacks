@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-import React from 'react';
 import Image from 'next/image';
 import { Github, ExternalLink, Heart, Calendar, Users, Code2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -26,7 +25,7 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
   return (
     <div className="space-y-12 pb-20">
       {/* Header Section */}
-      <div className="relative h-[40vh] min-h-[300px] w-full overflow-hidden rounded-3xl mb-8">
+      <div className="relative h-[40vh] min-h-[300px] w-full overflow-hidden rounded-xl mb-8">
         {project.cover_image ? (
           <Image 
             src={cloudinaryUrl(project.cover_image, 1200)} 
@@ -35,7 +34,7 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
             className="object-cover"
           />
         ) : (
-          <div className="h-full w-full bg-surface/10 flex items-center justify-center border border-glass">
+          <div className="h-full w-full bg-surface-hover flex items-center justify-center border border-border">
             <Code2 className="w-20 h-20 text-primary/10" />
           </div>
         )}
@@ -44,7 +43,7 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
         <div className="absolute bottom-0 left-0 p-8 w-full">
           <Link 
             href="/projects" 
-            className="inline-flex items-center gap-2 text-sm text-secondary hover:text-primary transition-colors mb-4 group"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-4 group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
             Back to Gallery
@@ -53,11 +52,11 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
             {project.title}
           </h1>
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-surface/10 backdrop-blur-md border border-glass text-primary text-xs font-medium">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-hover border border-border text-primary text-xs font-medium">
               <Calendar className="w-3 h-3" />
               {project.created_at ? new Date(project.created_at).toLocaleDateString() : 'Recent'}
             </div>
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-bh-red-600/20 border border-red-600/30 text-bh-red-500 text-xs font-medium">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-deep-red/20 border border-red-600/30 text-primary-red text-xs font-medium">
               <Users className="w-3 h-3" />
               {project.teams?.members?.length || 1} Contributor{project.teams?.members?.length !== 1 ? 's' : ''}
             </div>
@@ -70,16 +69,16 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
         <div className="lg:col-span-2 space-y-12">
           <section className="space-y-6">
             <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
-              <Code2 className="w-6 h-6 text-bh-red-500" />
+              <Code2 className="w-6 h-6 text-primary-red" />
               Project Overview
             </h2>
-            <p className="text-lg text-secondary leading-relaxed">
+            <p className="text-lg text-muted-foreground leading-relaxed">
               {project.description || "No description provided for this project."}
             </p>
             
             <div className="flex flex-wrap gap-3">
               {project.tech_stack?.map((tech: string, i: number) => (
-                <span key={i} className="px-3 py-1 rounded-full bg-surface/10 border border-glass text-xs font-mono text-secondary">
+                <span key={i} className="px-3 py-1 rounded-full bg-surface-hover border border-border text-xs font-mono text-muted-foreground">
                   {tech}
                 </span>
               ))}
@@ -91,14 +90,14 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
               href={project.github_url || '#'} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="p-6 rounded-3xl lg-surface hover:border-bh-red-500/50 transition-all group"
+              className="p-6 bh-card hover:border-primary-red/50 transition-all group"
             >
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-surface/10 text-primary group-hover:bg-bh-red-600 transition-colors">
+                <div className="p-3 rounded-lg bg-surface-hover text-primary group-hover:bg-deep-red transition-colors">
                   <Github className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm text-secondary">Source Code</p>
+                  <p className="text-sm text-muted-foreground">Source Code</p>
                   <p className="text-base font-bold text-primary">GitHub Repository</p>
                 </div>
               </div>
@@ -107,14 +106,14 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
               href={project.demo_url || '#'} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="p-6 rounded-3xl lg-surface hover:border-bh-red-500/50 transition-all group"
+              className="p-6 bh-card hover:border-primary-red/50 transition-all group"
             >
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-surface/10 text-primary group-hover:bg-bh-red-600 transition-all">
+                <div className="p-3 rounded-lg bg-surface-hover text-primary group-hover:bg-deep-red transition-all">
                   <ExternalLink className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm text-secondary">Live Demo</p>
+                  <p className="text-sm text-muted-foreground">Live Demo</p>
                   <p className="text-base font-bold text-primary">View Prototype</p>
                 </div>
               </div>
@@ -124,7 +123,7 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
 
         {/* Right Column: Sidebar */}
         <div className="space-y-8">
-          <div className="p-8 rounded-3xl lg-surface space-y-6">
+          <div className="p-8 bh-card space-y-6">
             <h3 className="text-xl font-bold text-primary">Contributors</h3>
             <div className="space-y-4">
               {project.teams?.members?.map((member, i: number) => (
@@ -132,17 +131,17 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
                   {member.profiles?.avatar_url ? (
                     <img 
                       src={member.profiles?.avatar_url} 
-                      className="w-11 h-11 rounded-full border border-glass object-cover"
+                      className="w-11 h-11 rounded-full border border-border object-cover"
                       alt={member.profiles?.full_name || 'Contributor'}
                     />
                   ) : (
-                    <div className="w-11 h-11 rounded-full border border-glass bg-surface/10 flex items-center justify-center text-xs text-secondary">
+                    <div className="w-11 h-11 rounded-full border border-border bg-surface-hover flex items-center justify-center text-xs text-muted-foreground">
                       {(member.profiles?.full_name || '?')[0]}
                     </div>
                   )}
                   <div>
                     <p className="text-sm font-bold text-primary">{member.profiles?.full_name}</p>
-                    <p className="text-xs text-secondary font-mono">{member.profiles?.bh_id}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{member.profiles?.bh_id}</p>
                   </div>
                 </div>
               ))}
@@ -151,24 +150,24 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
                   {project.profiles?.avatar_url ? (
                     <img 
                       src={project.profiles?.avatar_url} 
-                      className="w-11 h-11 rounded-full border border-glass object-cover"
+                      className="w-11 h-11 rounded-full border border-border object-cover"
                       alt={project.profiles?.full_name || 'Creator'}
                     />
                   ) : (
-                    <div className="w-11 h-11 rounded-full border border-glass bg-surface/10 flex items-center justify-center text-xs text-secondary">
+                    <div className="w-11 h-11 rounded-full border border-border bg-surface-hover flex items-center justify-center text-xs text-muted-foreground">
                       {(project.profiles?.full_name || '?')[0]}
                     </div>
                   )}
                   <div>
                     <p className="text-sm font-bold text-primary">{project.profiles?.full_name}</p>
-                    <p className="text-xs text-secondary font-mono">{project.profiles?.bh_id}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{project.profiles?.bh_id}</p>
                   </div>
                 </div>
               )}
             </div>
-            <div className="pt-6 border-t border-glass flex items-center justify-between">
-              <span className="text-sm text-secondary">Community Love</span>
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-bh-red-600/20 border border-red-600/30 text-bh-red-500 text-xs font-bold">
+            <div className="pt-6 border-t border-border flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Community Love</span>
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-deep-red/20 border border-red-600/30 text-primary-red text-xs font-bold">
                 <Heart className="w-3 h-3 fill-red-500" />
                 {likesCount}
               </div>

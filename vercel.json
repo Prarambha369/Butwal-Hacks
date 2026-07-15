@@ -2,18 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "framework": "nextjs",
+  "rootDirectory": "my-app",
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
-  "outputDirectory": "my-app/.next",
-  "crons": [
-    {
-      "path": "/api/cron/cleanup-expired",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/daily-stats",
-      "schedule": "0 0 * * *"
-    }
-  ]
+  "crons": []
 }

@@ -44,8 +44,8 @@ export function CheckInButton({
       disabled={loading}
       className={`p-2 rounded-lg transition-all ${
         attended
-          ? 'text-green-500 hover:text-red-500'
-          : 'text-secondary hover:text-green-500'
+          ? 'text-status-green hover:text-primary-red'
+          : 'text-muted-foreground hover:text-status-green'
       } disabled:opacity-50`}
       title={attended ? 'Undo check-in' : 'Check in'}
     >

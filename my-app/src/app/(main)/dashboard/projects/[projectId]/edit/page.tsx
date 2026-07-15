@@ -1,4 +1,3 @@
-import React from 'react';
 import { notFound, redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
 import { createClient } from '@/utils/supabase/server';
@@ -37,7 +36,7 @@ export default async function EditProjectPage({
   const { data: profile } = await supabase
     .from('profiles')
     .select('id')
-    .eq('clerk_user_id', userId)
+    .eq('auth0_user_id', userId)
     .single();
 
   if (!profile) redirect('/sign-in');
@@ -54,7 +53,7 @@ export default async function EditProjectPage({
   }
 
   return (
-    <div className="min-h-screen bg-background text-primary pt-24 pb-20 px-4">
+    <div className="min-h-dvh bg-background text-primary pt-24 pb-20 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
         <Link
           href="/dashboard/hacker/projects"
@@ -66,7 +65,7 @@ export default async function EditProjectPage({
 
         <div className="space-y-4">
           <h1 className="text-4xl md:text-5xl font-black tracking-tight font-heading">
-            Edit <span className="text-bh-red-500">Project</span>
+            Edit <span className="text-primary-red">Project</span>
           </h1>
           <p className="text-lg text-secondary">
             Update your project details below.

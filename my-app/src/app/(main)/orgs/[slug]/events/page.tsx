@@ -53,7 +53,7 @@ export default async function OrgEventsPage({ params }: PageProps) {
 
   const { data: events } = await supabase
     .from("events")
-    .select("id, title, description, start_date, end_date, location, is_published")
+    .select("id, slug, title, description, start_date, end_date, location, is_published")
     .eq("chapter_id", chapter.id)
     .order("start_date", { ascending: false });
 
@@ -65,7 +65,7 @@ export default async function OrgEventsPage({ params }: PageProps) {
           <p className="text-sm text-primary/50">{events?.length ?? 0} event{(events?.length ?? 0) !== 1 ? "s" : ""}</p>
         </div>
         {isAdmin && (
-          <a href={`/orgs/${slug}/events/new`} className="px-4 py-2 rounded-xl bg-bh-red-500/20 text-bh-red-500 border border-bh-red-500/30 hover:bg-bh-red-500/30 transition-all text-sm font-medium">
+          <a href={`/orgs/${slug}/events/new`} className="px-4 py-2 rounded-xl bg-primary-red/20 text-primary-red border border-primary-red/30 hover:bg-primary-red/30 transition-all text-sm font-medium">
             + New Event
           </a>
         )}
@@ -74,10 +74,10 @@ export default async function OrgEventsPage({ params }: PageProps) {
       {events && events.length > 0 ? (
         <div className="grid grid-cols-1 gap-4">
           {events.map((event) => (
-            <a key={event.id} href={`/events/${event.id}`} className="lg-surface p-6 rounded-3xl border border-glass hover:bg-surface/10 transition-all flex items-start justify-between gap-4 group">
+            <a key={event.id} href={`/events/${event.slug}`} className="bh-card p-6 hover:bg-surface/10 transition-all flex items-start justify-between gap-4 group">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-primary group-hover:text-bh-red-500 transition-colors">{event.title}</h3>
+                  <h3 className="text-lg font-bold text-primary group-hover:text-primary-red transition-colors">{event.title}</h3>
                   {!event.is_published && <span className="text-[10px] font-medium text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-full">Draft</span>}
                 </div>
                 {event.description && <p className="text-sm text-primary/50 line-clamp-2">{event.description}</p>}
@@ -91,7 +91,7 @@ export default async function OrgEventsPage({ params }: PageProps) {
           ))}
         </div>
       ) : (
-        <div className="lg-surface p-12 rounded-3xl border border-glass text-center">
+        <div className="bh-card p-12 text-center">
           <CalendarDays className="w-12 h-12 text-primary/20 mx-auto mb-4" />
           <h3 className="text-lg font-bold text-primary/60 mb-2">No events yet</h3>
           <p className="text-sm text-primary/40">{isAdmin ? "Create your first chapter event to get started." : "Events will appear here when the chapter admin creates them."}</p>

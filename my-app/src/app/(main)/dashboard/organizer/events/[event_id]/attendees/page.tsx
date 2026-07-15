@@ -65,57 +65,57 @@ export default async function AttendeesPage({ params }: Props) {
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <Link href="/dashboard/organizer" className="text-xs font-mono text-secondary hover:text-primary transition-colors flex items-center gap-1 mb-2">
+          <Link href="/dashboard/organizer" className="text-xs font-mono text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 mb-2">
             ← Back to Hub
           </Link>
-          <h1 className="text-4xl font-black tracking-tight text-primary">
+          <h1 className="text-3xl font-bold tracking-tight text-primary">
             {event.title}
           </h1>
-          <p className="text-secondary">Manage your registered hackers</p>
+          <p className="text-sm text-muted-foreground">Manage your registered hackers</p>
         </div>
       </div>
 
       {/* Stats bar */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="lg-surface p-4 rounded-2xl border border-glass text-center">
-          <p className="text-2xl font-bold">{rows.length}</p>
-          <p className="text-xs text-secondary opacity-60">Registered</p>
+        <div className="bh-card p-4 text-center">
+          <p className="text-2xl font-bold text-primary">{rows.length}</p>
+          <p className="text-xs text-muted-foreground">Registered</p>
         </div>
-        <div className="lg-surface p-4 rounded-2xl border border-glass text-center">
-          <p className="text-2xl font-bold text-green-500">{attendedCount}</p>
-          <p className="text-xs text-secondary opacity-60">Checked In</p>
+        <div className="bh-card p-4 text-center">
+          <p className="text-2xl font-bold text-status-green">{attendedCount}</p>
+          <p className="text-xs text-muted-foreground">Checked In</p>
         </div>
-        <div className="lg-surface p-4 rounded-2xl border border-glass text-center flex items-center justify-center gap-2">
+        <div className="bh-card p-4 text-center flex items-center justify-center gap-2">
           <AttendeeExport attendees={attendees} eventName={event.title} />
         </div>
       </div>
 
-      <div className="lg-surface rounded-3xl border border-glass overflow-hidden">
-        <div className="p-6 border-b border-glass bg-surface/10 flex items-center justify-between">
-          <h3 className="text-lg font-bold flex items-center gap-2">
-            <Users className="w-5 h-5 text-accent-teal" /> Attendees ({rows.length})
+      <div className="bh-card overflow-hidden">
+        <div className="p-5 border-b border-border flex items-center justify-between">
+          <h3 className="text-base font-bold flex items-center gap-2 text-primary">
+            <Users className="w-5 h-5 text-muted-foreground" /> Attendees ({rows.length})
           </h3>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-surface/10 text-xs uppercase tracking-widest text-secondary font-bold">
+              <tr className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border">
                 <th className="px-6 py-4">Hacker</th>
                 <th className="px-6 py-4">BH-ID</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody>
               {rows.length > 0 ? (
                 rows.map((row) => {
                   const p = row.profiles;
                   return (
-                    <tr key={row.id} className="hover:bg-surface/10 transition-colors">
+                    <tr key={row.id} className="border-b border-border last:border-b-0 hover:bg-surface-hover transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="relative w-8 h-8 overflow-hidden rounded-full bg-surface/10">
+                          <div className="relative w-8 h-8 overflow-hidden rounded-full bg-surface-hover border border-border">
                             <Image 
                               src={p?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p?.full_name}`} 
                               alt={p?.full_name || 'Hacker'}
@@ -123,17 +123,17 @@ export default async function AttendeesPage({ params }: Props) {
                               className="object-cover"
                             />
                           </div>
-                          <span className="font-bold text-primary">{p?.full_name || 'Unknown'}</span>
+                          <span className="text-sm font-semibold text-primary">{p?.full_name || 'Unknown'}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-mono text-xs text-secondary">{p?.bh_id || 'N/A'}</td>
+                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{p?.bh_id || 'N/A'}</td>
                       <td className="px-6 py-4">
                         {row.attended ? (
-                          <span className="flex items-center gap-1 text-green-500 text-xs font-bold">
+                          <span className="flex items-center gap-1 text-status-green text-xs font-bold">
                             <CheckCircle2 size={14} /> Checked In
                           </span>
                         ) : (
-                          <span className="text-xs text-secondary opacity-60">Not checked in</span>
+                          <span className="text-xs text-muted-foreground">Not checked in</span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -144,7 +144,7 @@ export default async function AttendeesPage({ params }: Props) {
                           />
                           <Link 
                             href={`/profile/${p?.bh_id}`}
-                            className="p-2 rounded-lg hover:bg-surface/10 text-secondary hover:text-primary transition-all"
+                            className="p-2 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-all"
                           >
                             <ExternalLink className="w-4 h-4" />
                           </Link>
@@ -155,7 +155,7 @@ export default async function AttendeesPage({ params }: Props) {
                 })
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-secondary italic">
+                  <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
                     No registrations yet for this event.
                   </td>
                 </tr>

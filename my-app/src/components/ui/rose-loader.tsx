@@ -58,7 +58,7 @@ export function RoseLoader({
 
   if (size === "fullscreen") {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-background/80 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-background/80">
         <SpinnerSvg size={64} color={strokeColor} />
         {text && (
           <p className="animate-pulse text-xs font-mono uppercase tracking-widest opacity-50">

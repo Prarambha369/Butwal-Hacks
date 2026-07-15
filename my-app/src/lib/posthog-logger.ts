@@ -1,60 +1,38 @@
 /**
- * posthog-logger — PostHog Logs helper via OpenTelemetry
+ * posthog-logger — Standalone structured logging helper
  *
- * Typed wrapper around the global OTel logger set up by instrumentation.ts.
- * Provides .info(), .warn(), .error() methods for structured logging.
- *
- * Usage:
- *   posthogLog.info("User signed up", { email, bhId })
- *   posthogLog.warn("Rate limit exceeded", { ip })
- *   posthogLog.error("Payment failed", { error: err.message, userId })
- *
- * ponytail: Direct global access — no dependency injection or logger abstraction.
- * Upgrade path: Replace with Pino + OTel transport if more log levels needed.
+ * ponytail: Previously wrapped an OTel logger from instrumentation.ts.
+ * instrumentation.ts removed (YAGNI — OTel pipeline was dead config).
+ * The posthogLog.info/warn/error calls remain as structured log stubs
+ * that can be wired to any backend later (PostHog, Axiom, console, etc.).
  */
 
-import { SeverityNumber } from "@opentelemetry/api-logs";
-
-type OTelLogger = {
-  emit: (record: {
-    severityNumber: SeverityNumber;
-    severityText: string;
-    body: string;
-    attributes?: Record<string, unknown>;
-  }) => void;
-};
-
-function getLogger(): OTelLogger | undefined {
-  return (globalThis as Record<string, unknown>).__posthogLogger as
-    | OTelLogger
-    | undefined;
+function emit(level: string, body: string, attributes?: Record<string, unknown>) {
+  // ponytail: Log to console for now. Swap in a real transport later.
+  // To enable, set LOGGER_BACKEND=axiom|posthog in env and add the
+  // corresponding SDK + transport here.
+  if (process.env.NODE_ENV === "development") {
+    const prefix = `[posthogLog:${level}]`;
+    if (level === "ERROR") {
+      console.error(prefix, body, attributes ?? "");
+    } else if (level === "WARN") {
+      console.warn(prefix, body, attributes ?? "");
+    } else {
+      console.log(prefix, body, attributes ?? "");
+    }
+  }
 }
 
 export const posthogLog = {
   info: (body: string, attributes?: Record<string, unknown>) => {
-    getLogger()?.emit({
-      severityNumber: SeverityNumber.INFO,
-      severityText: "INFO",
-      body,
-      attributes: { ...attributes, timestamp: new Date().toISOString() },
-    });
+    emit("INFO", body, attributes);
   },
 
   warn: (body: string, attributes?: Record<string, unknown>) => {
-    getLogger()?.emit({
-      severityNumber: SeverityNumber.WARN,
-      severityText: "WARN",
-      body,
-      attributes: { ...attributes, timestamp: new Date().toISOString() },
-    });
+    emit("WARN", body, attributes);
   },
 
   error: (body: string, attributes?: Record<string, unknown>) => {
-    getLogger()?.emit({
-      severityNumber: SeverityNumber.ERROR,
-      severityText: "ERROR",
-      body,
-      attributes: { ...attributes, timestamp: new Date().toISOString() },
-    });
+    emit("ERROR", body, attributes);
   },
 };

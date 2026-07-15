@@ -68,7 +68,6 @@ export default function TeamInviteList({ onUpdate }: TeamInviteListProps) {
 
   useEffect(() => {
     fetchInvites();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRespond = async (inviteId: string, accept: boolean) => {
@@ -99,39 +98,39 @@ export default function TeamInviteList({ onUpdate }: TeamInviteListProps) {
   if (invites.length === 0 && !error) return null;
 
   return (
-    <div className="space-y-4 p-6 rounded-3xl bg-surface/10 border border-glass mb-8">
-      <h3 className="text-sm font-bold uppercase tracking-widest text-secondary flex items-center gap-2">
+    <div className="space-y-4 p-6 rounded-xl bg-surface-hover border border-border mb-8">
+      <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
         <Mail className="w-4 h-4" /> Pending Invitations
       </h3>
       {error && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-bh-red-500/10 border border-bh-red-500/30 text-bh-red-500 text-sm">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-primary-red/10 border border-primary-red/30 text-primary-red text-sm">
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto text-bh-red-500/60 hover:text-bh-red-500 text-xs">Dismiss</button>
+          <button onClick={() => setError(null)} className="ml-auto text-primary-red/60 hover:text-primary-red text-xs">Dismiss</button>
         </div>
       )}
       <div className="space-y-3">
         {invites.map(invite => (
-          <div key={invite.id} className="flex items-center justify-between p-3 rounded-2xl bg-background border border-glass">
+          <div key={invite.id} className="flex items-center justify-between p-3 rounded-lg bg-background border border-border">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-bh-red-500/20 flex items-center justify-center text-bh-red-500">
+              <div className="w-8 h-8 rounded-full bg-primary-red/20 flex items-center justify-center text-primary-red">
                 <Users className="w-4 h-4" />
               </div>
               <div>
                 <p className="text-sm font-bold">{invite.teams?.name || 'Unnamed Team'}</p>
-                <p className="text-[10px] font-mono text-secondary">Team ID: {invite.team_id}</p>
+                <p className="text-[10px] font-mono text-muted-foreground">Team ID: {invite.team_id}</p>
               </div>
             </div>
             <div className="flex gap-2">
               <button 
                 onClick={() => handleRespond(invite.id, false)}
-                className="p-2 rounded-lg bg-surface/10 text-secondary hover:text-bh-red-500 transition-colors"
+                className="p-2 rounded-lg bg-surface-hover text-muted-foreground hover:text-primary-red transition-colors"
                 title="Decline"
               >
                 <X className="w-4 h-4" />
               </button>
               <button 
                 onClick={() => handleRespond(invite.id, true)}
-                className="p-2 rounded-lg bg-bh-red-500 text-primary hover:bg-bh-red-500/90 transition-colors"
+                className="p-2 rounded-lg bg-bh-red-500 text-primary hover:bg-primary-red/90 transition-colors"
                 title="Accept"
               >
                 <Check className="w-4 h-4" />

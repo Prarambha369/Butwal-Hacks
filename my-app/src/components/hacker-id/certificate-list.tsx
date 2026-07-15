@@ -15,7 +15,7 @@ function CertificateCard({ cert }: CertificateCardProps) {
   const statusConfig = {
     Verified: {
       label: 'Verified',
-      color: 'text-bh-red-500 bg-bh-red-500/10 border-bh-red-500/20',
+      color: 'text-primary-red bg-primary-red/10 border-primary-red/20',
       icon: <CheckCircle2 size={12} strokeWidth={3} />,
       watermark: 'Verified',
     },
@@ -27,7 +27,7 @@ function CertificateCard({ cert }: CertificateCardProps) {
     },
     UnknownSource: {
       label: 'Unverified',
-      color: 'text-secondary bg-surface/10 border-glass',
+      color: 'text-muted-foreground bg-surface-hover border-border',
       icon: <HelpCircle size={12} strokeWidth={3} />,
       watermark: 'Unknown',
     },
@@ -39,7 +39,7 @@ function CertificateCard({ cert }: CertificateCardProps) {
     <div className="relative">
       <div 
         onClick={() => setIsOpen(true)}
-        className="group cursor-pointer lg-surface rounded-2xl p-4 md:p-6 border border-glass overflow-hidden transition-all duration-300 hover:border-bh-red-500/30 hover:scale-[1.01]"
+        className="group cursor-pointer bh-card p-4 md:p-6 overflow-hidden transition-all duration-300 hover:border-primary-red/30 hover:scale-[1.01]"
       >
         {/* Watermark */}
         <div 
@@ -53,11 +53,11 @@ function CertificateCard({ cert }: CertificateCardProps) {
 
         <div className="relative z-10 flex items-center gap-4 md:gap-6">
           {/* Year Icon */}
-          <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center shrink-0 shadow-lg transition-colors duration-300 ${
-            cert.verified === 'Verified' ? 'bg-bh-red-600/80 backdrop-blur-xl saturate-150 border border-bh-red-500/50 shadow-[0_4px_20px_var(--glow-bh-red)]' : 'bg-surface/10 border border-glass'
+          <div className={`w-12 h-12 md:w-14 md:h-14 rounded-lg flex items-center justify-center shrink-0 shadow-lg transition-colors duration-300 ${
+            cert.verified === 'Verified' ? 'bg-deep-red border border-primary-red/50 shadow-[0_4px_20px_var(--glow-bh-red)]' : 'bg-surface-hover border border-border'
           }`}>
             <span className={`font-mono font-bold text-lg ${
-              cert.verified === 'Verified' ? 'text-primary' : 'text-secondary'
+              cert.verified === 'Verified' ? 'text-primary' : 'text-muted-foreground'
             }`}>
               {cert.year}
             </span>
@@ -68,7 +68,7 @@ function CertificateCard({ cert }: CertificateCardProps) {
             <h4 className="text-primary font-bold text-base md:text-lg leading-tight">
               {cert.title}
             </h4>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-secondary">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
               <span className="font-medium">{cert.issuer}</span>
               <span className="hidden md:inline opacity-30">•</span>
               <span className="font-mono text-[11px] opacity-60">{cert.date}</span>
@@ -89,13 +89,13 @@ function CertificateCard({ cert }: CertificateCardProps) {
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300">
           <div 
-            className="absolute inset-0 bg-background/90 backdrop-blur-2xl" 
+            className="absolute inset-0 bg-background/90" 
             onClick={() => setIsOpen(false)}
           />
           
           <div className="relative w-full max-w-6xl h-full max-h-[90vh] flex flex-col md:flex-row gap-8 items-center justify-center animate-in zoom-in-95 duration-300">
             {/* Left: The actual certificate document */}
-            <div className="relative w-full md:w-1/2 h-[60vh] md:h-full rounded-3xl overflow-hidden border border-glass bg-background shadow-2xl">
+            <div className="relative w-full md:w-1/2 h-[60vh] md:h-full rounded-xl overflow-hidden border border-border bg-background shadow-2xl">
               {cert.certificateUrl ? (
                 <Image 
                   src={cert.certificateUrl} 
@@ -104,42 +104,42 @@ function CertificateCard({ cert }: CertificateCardProps) {
                   className="object-contain"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-surface/10">
-                  <span className="text-secondary text-sm font-mono">No Certificate Image</span>
+                <div className="w-full h-full flex items-center justify-center bg-surface-hover">
+                  <span className="text-muted-foreground text-sm font-mono">No Certificate Image</span>
                 </div>
               )}
             </div>
 
             {/* Right: The Verification Audit Trail */}
             <div className="w-full md:w-1/2 flex flex-col gap-6 text-left">
-              <div className="lg-surface p-8 rounded-3xl border border-glass space-y-6">
+              <div className="bh-card p-8 space-y-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-bh-red-500/10 rounded-lg text-bh-red-500">
+                  <div className="p-2 bg-primary-red/10 rounded-lg text-primary-red">
                     <ShieldCheck size={24} />
                   </div>
                   <h3 className="text-2xl font-bold text-primary">Verification Audit</h3>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-surface/10 border border-glass space-y-2">
-                    <p className="text-xs font-mono text-secondary uppercase tracking-widest">Verification Status</p>
-                    <p className={`font-bold ${cert.verified === 'Verified' ? 'text-bh-red-500' : 'text-yellow-500'}`}>
+                  <div className="p-4 rounded-lg bg-surface-hover border border-border space-y-2">
+                    <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Verification Status</p>
+                    <p className={`font-bold ${cert.verified === 'Verified' ? 'text-primary-red' : 'text-yellow-500'}`}>
                       {cert.verified === 'Verified' ? 'OFFICIALLY VERIFIED' : 'PENDING / UNVERIFIED'}
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-surface/10 border border-glass space-y-2">
-                    <p className="text-xs font-mono text-secondary uppercase tracking-widest">Audit Trail</p>
-                    <p className="text-secondary leading-relaxed italic">
+                  <div className="p-4 rounded-lg bg-surface-hover border border-border space-y-2">
+                    <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Audit Trail</p>
+                    <p className="text-muted-foreground leading-relaxed italic">
                       &quot;{cert.verificationTrail || 'No verification trail available for this document.'}&quot;
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-glass">
-                    <span className="text-xs text-secondary font-mono">Issuer: {cert.issuer}</span>
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
+                    <span className="text-xs text-muted-foreground font-mono">Issuer: {cert.issuer}</span>
                     <button 
                       onClick={() => setIsOpen(false)}
-                      className="px-4 py-2 rounded-full bg-bh-red-500 text-primary text-xs font-bold hover:bg-bh-red-600 transition-all"
+                      className="px-4 py-2 rounded-full bg-bh-red-500 text-primary text-xs font-bold hover:bg-deep-red transition-all"
                     >
                       Close Audit
                     </button>
@@ -157,11 +157,11 @@ function CertificateCard({ cert }: CertificateCardProps) {
 export default function CertificateList({ certificates }: { certificates: Certificate[] }) {
   if (certificates.length === 0) {
     return (
-      <div className="lg-surface rounded-3xl p-12 border border-glass text-center space-y-4">
-        <div className="w-16 h-16 bg-surface/10 rounded-full flex items-center justify-center mx-auto">
-          <CheckCircle2 size={32} className="text-secondary opacity-20" />
+      <div className="bh-card p-12 text-center space-y-4">
+        <div className="w-16 h-16 bg-surface-hover rounded-full flex items-center justify-center mx-auto">
+          <CheckCircle2 size={32} className="text-muted-foreground opacity-20" />
         </div>
-        <p className="text-secondary font-mono text-sm opacity-60">
+        <p className="text-muted-foreground font-mono text-sm opacity-60">
           No certificates issued yet. The compiler awaits.
         </p>
       </div>
@@ -174,7 +174,7 @@ export default function CertificateList({ certificates }: { certificates: Certif
         <h3 className="text-xs font-black uppercase tracking-widest text-primary opacity-40">
           Verified Credentials
         </h3>
-        <span className="text-[10px] font-mono text-secondary opacity-60">
+        <span className="text-[10px] font-mono text-muted-foreground opacity-60">
           {certificates.length} Issued
         </span>
       </div>
