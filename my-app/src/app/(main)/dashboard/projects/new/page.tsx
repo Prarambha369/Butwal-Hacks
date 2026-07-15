@@ -11,7 +11,7 @@ export default function NewProjectPage() {
             Submit <span className="text-primary-red">Project</span>
           </h1>
           <p className="text-xl text-secondary">
-            Showcase your hard work to the world. Fill in the details below to add your project to the gallery.
+            Fill in the details below to add your project.
           </p>
         </div>
         

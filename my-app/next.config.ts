@@ -106,6 +106,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
 
+
+
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [

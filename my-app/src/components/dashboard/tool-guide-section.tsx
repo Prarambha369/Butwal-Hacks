@@ -57,7 +57,7 @@ const toolCatalog: RoleSection[] = [
         description: "Your personal command center showing XP, projects, trust markers, chapters, and activity feed.",
         href: "/dashboard/hacker",
         icon: <LayoutDashboard className="w-4 h-4" />,
-        purpose: "Get a bird's-eye view of your entire hacker journey at a glance.",
+        purpose: "Your XP, projects, trust markers, and activity feed in one place.",
         howTo: "Visit /dashboard/hacker after onboarding. Stats cards show your totals; the activity feed shows community updates.",
       },
       {
@@ -65,7 +65,7 @@ const toolCatalog: RoleSection[] = [
         description: "Edit your full name, bio, social links, and avatar to build your public hacker identity.",
         href: "/dashboard/hacker/profile",
         icon: <User className="w-4 h-4" />,
-        purpose: "Your profile is your reputation. Complete it to earn trust and get discovered.",
+        purpose: "Your profile shows who you are. Complete it to connect with the community.",
         howTo: "Fill in your bio, add GitHub/Twitter/LinkedIn links, and upload an avatar. A complete profile unlocks onboarding step 1.",
       },
       {
@@ -82,7 +82,7 @@ const toolCatalog: RoleSection[] = [
         description: "Submit and manage all your hackathon project submissions in one place.",
         href: "/dashboard/hacker/projects",
         icon: <Code2 className="w-4 h-4" />,
-        purpose: "Showcase your work. Each project builds your portfolio and earns XP.",
+        purpose: "Submit your work. Each project builds your portfolio and earns XP.",
         howTo: "Click 'New Project' to submit. Add title, description, tech stack, and links. You can also sync from GitHub.",
       },
       {
@@ -106,7 +106,7 @@ const toolCatalog: RoleSection[] = [
         description: "Get AI-suggested teammates based on complementary skills and past projects.",
         href: "/dashboard/hacker/team-matching",
         icon: <UsersRound className="w-4 h-4" />,
-        purpose: "Find the perfect teammates whose skills fill your gaps. Powered by Llama 3 on Groq.",
+        purpose: "Find teammates whose skills complement yours. Powered by Llama 3 on Groq.",
         howTo: "AI analyzes your skills and suggests 3 optimal matches. Review profiles and send invites directly.",
         badge: "AI",
       },
@@ -186,7 +186,7 @@ const toolCatalog: RoleSection[] = [
         description: "Manage all users across the platform: roles, bans, and account status.",
         href: "/dashboard/maintainer/users",
         icon: <Users className="w-4 h-4" />,
-        purpose: "Control access and permissions across the entire ecosystem.",
+        purpose: "Manage users, roles, and permissions across the platform.",
         howTo: "Search users, toggle maintainer roles, ban/unban accounts. Use the table for quick batch operations.",
       },
       {

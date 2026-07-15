@@ -1,5 +1,9 @@
+"use client";
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useLanguage } from '@/components/language-provider';
 
 const sitemapGroups = [
   {
@@ -44,6 +48,29 @@ const sitemapGroups = [
     ],
   },
 ];
+
+function LanguageToggle() {
+  const { locale, setLocale } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="w-9 h-9" />;
+  }
+
+  return (
+    <button
+      onClick={() => setLocale(locale === 'en' ? 'ne' : 'en')}
+      className="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold tracking-tight text-muted-foreground hover:text-primary hover:bg-surface-hover transition-all duration-300 active:scale-95"
+      aria-label={locale === 'en' ? 'Switch to Nepali' : 'Switch to English'}
+    >
+      {locale === 'en' ? 'EN' : 'ने'}
+    </button>
+  );
+}
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -102,6 +129,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-3">
               <ThemeToggle />
+              <LanguageToggle />
             </div>
           </div>
           <div className="flex items-center gap-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">

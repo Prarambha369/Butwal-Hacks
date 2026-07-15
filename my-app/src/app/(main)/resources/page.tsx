@@ -68,7 +68,7 @@ export default function ResourcesPage() {
           <h1 className="text-4xl font-bold font-heading text-primary mb-4">Resources</h1>
           <p className="text-lg text-secondary max-w-2xl mx-auto">
             Access learning materials, documentation, and resources from Butwal Hacks community initiatives. 
-            We&apos;re building a collection of practical resources to support your learning journey.
+            Resources and guides from our community workshops and programs.
           </p>
         </div>
 
@@ -120,7 +120,7 @@ export default function ResourcesPage() {
         <section className="border-t border-border pt-12">
           <h2 className="text-2xl font-semibold font-heading text-primary mb-4">External Resources</h2>
           <p className="text-secondary mb-6">
-            Curated learning resources from around the web to support your development journey.
+            Hand-picked guides and tutorials from around the web.
           </p>
           
           <div className="grid gap-4 sm:grid-cols-2">

@@ -49,7 +49,7 @@ export default function SupportPage() {
               Partner with the <span className="text-primary">Next Generation</span> of Builders
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-secondary sm:text-lg">
-              Empowering youth across Lumbini through code, community, and innovation. Join Nepal&apos;s most impactful
+              Supporting youth across Lumbini through code, community, and innovation. Join Nepal&apos;s most impactful
               district-led tech initiative and reach bright minds building practical solutions for real-world problems.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
