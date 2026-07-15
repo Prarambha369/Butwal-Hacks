@@ -58,7 +58,7 @@ export default function ExplorePage() {
               </h1>
               <p className="mt-4 max-w-xl text-muted-foreground text-base md:text-lg leading-relaxed">
                 Browse profiles, explore projects, and find your next collaborator
-                in Butwal&apos;s growing tech ecosystem.
+                in Butwal's tech community.
               </p>
             </div>
 

@@ -161,7 +161,7 @@ export function OnboardingSteps({
                 Get Started — {completedCount} of {totalCount} done
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Complete these steps to unlock your full hacker experience
+                Complete these steps to get started
               </p>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Menu, X, LogIn, LogOut, Search, LayoutDashboard } from 'lucide-react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { cn } from '@/lib/utils';
@@ -14,6 +15,29 @@ import { Skeleton } from '@/components/ui/skeleton';
 // In dev (localhost), env vars point to the same origin.
 // In production, NEXT_PUBLIC_APP_URL points to https://app.butwalhacks.com
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.butwalhacks.com';
+
+function LanguageToggle() {
+  const { locale, setLocale } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="w-10 h-10" />;
+  }
+
+  return (
+    <button
+      onClick={() => setLocale(locale === 'en' ? 'ne' : 'en')}
+      className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold tracking-tight text-muted-foreground hover:text-primary hover:bg-surface-hover transition-all duration-300 active:scale-95"
+      aria-label={locale === 'en' ? 'Switch to Nepali' : 'Switch to English'}
+    >
+      {locale === 'en' ? 'EN' : 'ने'}
+    </button>
+  );
+}
 
 const navLinks = [
   { name: 'Home', href: '/', i18nKey: 'nav.home' },
@@ -51,8 +75,15 @@ export default function Navbar() {
           {/* Left: Logo */}
           <div className="flex items-center gap-3 shrink-0">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-deep-red text-white text-xs font-bold">
-                BH
+              <div className="relative h-9 w-9 overflow-hidden rounded-lg bg-deep-red">
+                <Image
+                  src="/logo.png"
+                  alt="Butwal Hacks"
+                  fill
+                  className="object-cover"
+                  sizes="36px"
+                  priority
+                />
               </div>
               <span className="text-primary font-bold text-lg tracking-tight">
                 Butwal Hacks
@@ -85,6 +116,7 @@ export default function Navbar() {
               <span className="hidden lg:inline">{t('common.search', locale)}</span>
             </button>
             <ThemeToggle />
+            <LanguageToggle />
             {isLoading ? (
               /* Skeleton placeholder while Auth0 checks cached session */
               <div className="flex items-center gap-2" aria-hidden="true">
@@ -137,6 +169,7 @@ export default function Navbar() {
               <Search className="h-5 w-5" />
             </button>
             <ThemeToggle />
+            <LanguageToggle />
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-primary p-2"
