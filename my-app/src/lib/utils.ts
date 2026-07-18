@@ -1,6 +1,12 @@
 export { twMerge as cn } from "tailwind-merge"
 
-/** Apply Cloudinary auto-optimization transforms to an image URL. */
+/**
+ * Applies Cloudinary automatic optimization transforms to an image URL.
+ *
+ * @param url - The image URL to optimize.
+ * @param width - The requested transformation width.
+ * @returns The transformed Cloudinary URL, or the original URL when it is not a supported Cloudinary URL.
+ */
 export function cloudinaryUrl(url: string | null | undefined, width = 800): string {
   if (!url || !url.includes("res.cloudinary.com")) return url ?? "";
   const marker = "/image/upload/";

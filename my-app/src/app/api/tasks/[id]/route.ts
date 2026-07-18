@@ -48,7 +48,11 @@ async function verifyTaskAccess(profileId: string, taskId: string) {
   return membership ? task : null
 }
 
-// ─── PATCH /api/tasks/[id] ──────────────────────────────────────────────
+/**
+ * Updates an accessible task with validated fields and returns the updated task.
+ *
+ * @returns A response containing the updated task or an error status.
+ */
 
 async function handlePatch(
   request: NextRequest,
@@ -119,7 +123,12 @@ async function handlePatch(
 
 export const PATCH = withRateLimit(handlePatch, "frequent");
 
-// ─── DELETE /api/tasks/[id] ─────────────────────────────────────────────
+/**
+ * Deletes a task after authenticating the user and verifying task access.
+ *
+ * @param params - Route parameters containing the task identifier.
+ * @returns A success response or an error response when authentication, access verification, or deletion fails.
+ */
 
 export async function DELETE(
   request: NextRequest,

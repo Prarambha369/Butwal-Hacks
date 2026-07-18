@@ -107,7 +107,12 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ tasks })
 }
 
-// ─── POST /api/tasks ────────────────────────────────────────────────────
+/**
+ * Creates a task in an accessible workspace.
+ *
+ * @param request - The incoming request containing the task details.
+ * @returns A response containing the created task, or an error response when authentication, validation, access, or persistence fails.
+ */
 
 async function handlePost(request: NextRequest) {
   const session = await auth0.getSession()

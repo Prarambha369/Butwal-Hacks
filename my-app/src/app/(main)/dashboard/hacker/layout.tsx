@@ -60,6 +60,15 @@ const hackerLinks = [
   },
 ];
 
+/**
+ * Renders the authenticated hacker dashboard layout.
+ *
+ * Redirects unauthenticated users to login and routes users with other roles to
+ * their corresponding dashboard.
+ *
+ * @param children - The dashboard content to render.
+ * @returns The hacker dashboard layout.
+ */
 export default async function HackerDashboardLayout({
   children,
 }: {

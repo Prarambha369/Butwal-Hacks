@@ -57,6 +57,13 @@ const roleConfig: Record<
   },
 }
 
+/**
+ * Renders a role-specific dashboard sidebar with responsive navigation.
+ *
+ * @param role - The role whose styling and identity badge the sidebar displays
+ * @param slugId - The identifier shown in the sidebar identity block
+ * @param links - The navigation links displayed in the sidebar
+ */
 export default function DashboardSidebar({
   role,
   slugId,

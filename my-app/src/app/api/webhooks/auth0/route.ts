@@ -20,6 +20,12 @@ const AUTH0_ROLE_MAP: Record<string, string> = {
 /** Role precedence (index 0 = highest). Used to prevent downgrades. */
 const ROLE_RANK = ["maintainer", "organizer", "sponsor", "lead", "hacker"];
 
+/**
+ * Maps Auth0 roles to the corresponding application role.
+ *
+ * @param auth0Roles - Auth0 role names to resolve
+ * @returns The first recognized application role, or `null` when none are recognized
+ */
 function mapAuth0Roles(auth0Roles: string[]): string | null {
   const role = auth0Roles.map((r) => AUTH0_ROLE_MAP[r]).filter(Boolean)[0];
   return role ?? null;

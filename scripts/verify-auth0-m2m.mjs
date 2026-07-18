@@ -24,6 +24,9 @@
 
 const REQUIRED_ENV_VARS = ["AUTH0_M2M_CLIENT_ID", "AUTH0_M2M_CLIENT_SECRET", "AUTH0_DOMAIN"];
 
+/**
+ * Validates that all required Auth0 environment variables are configured.
+ */
 function checkEnv() {
   const missing = REQUIRED_ENV_VARS.filter((name) => !process.env[name]);
   if (missing.length > 0) {

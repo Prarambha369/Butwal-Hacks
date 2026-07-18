@@ -67,6 +67,10 @@ const ACTION_CODE = `exports.onExecutePostLogin = async (event, api) => {
   }
 };`;
 
+/**
+ * Verifies that all required environment variables are set.
+ * @returns {void}
+ */
 function checkEnv() {
   const missing = REQUIRED_ENV_VARS.filter((name) => !process.env[name]);
   if (missing.length > 0) {

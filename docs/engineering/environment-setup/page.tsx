@@ -24,6 +24,9 @@ const toc = [
   { id: "configuration", label: "Configuration" },
 ]
 
+/**
+ * Renders the Environment Setup documentation page.
+ */
 export default function EnvironmentSetupDocPage() {
   return (
     <main className="dark min-h-screen bg-background text-foreground">
