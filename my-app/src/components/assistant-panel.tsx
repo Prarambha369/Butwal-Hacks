@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Bot, MessageSquareText, X, Send, Loader2, Sparkles, Bug, Lightbulb, CheckCircle2, MessageSquare } from "lucide-react";
+import { Bot, X, Send, Loader2, Sparkles, CheckCircle2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { submitFeedback } from "@/lib/actions/feedback";
@@ -10,19 +10,14 @@ import { cn } from "@/lib/utils";
 // ─── Types ──────────────────────────────────────────────────────────
 
 type Tab = "chat" | "feedback";
-type Category = "bug" | "feature" | "improvement" | "other";
+
 
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
-const CATEGORIES: { value: Category; label: string; icon: React.ReactNode; description: string }[] = [
-  { value: "bug", label: "Bug", icon: <Bug size={14} />, description: "Something isn't working" },
-  { value: "feature", label: "Feature", icon: <Lightbulb size={14} />, description: "I have an idea" },
-  { value: "improvement", label: "Improve", icon: <Sparkles size={14} />, description: "Make this better" },
-  { value: "other", label: "Other", icon: <MessageSquareText size={14} />, description: "Something else" },
-];
+
 
 const CHAT_WELCOME: Message = {
   role: "assistant",
@@ -65,13 +60,12 @@ export default function AssistantPanel() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
 
-  // ── Feedback state ──
-  const [category, setCategory] = useState<Category>("bug");
-  const [fbMessage, setFbMessage] = useState("");
-  const [fbCharCount, setFbCharCount] = useState(0);
-  const [fbSubmitting, setFbSubmitting] = useState(false);
-  const [fbSubmitted, setFbSubmitted] = useState(false);
-  const fbTextareaRef = useRef<HTMLTextAreaElement>(null);
+  // ── Message state ──
+  const [msgText, setMsgText] = useState("");
+  const [msgCharCount, setMsgCharCount] = useState(0);
+  const [msgSubmitting, setMsgSubmitting] = useState(false);
+  const [msgSubmitted, setMsgSubmitted] = useState(false);
+  const msgTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // ── Shared refs ──
   const panelRef = useRef<HTMLDivElement>(null);
@@ -86,7 +80,7 @@ export default function AssistantPanel() {
     if (!isOpen) return;
     requestAnimationFrame(() => {
       if (activeTab === "chat") chatInputRef.current?.focus();
-      else if (activeTab === "feedback") fbTextareaRef.current?.focus();
+      else if (activeTab === "feedback") msgTextareaRef.current?.focus();
     });
   }, [isOpen, activeTab]);
 
@@ -156,32 +150,32 @@ export default function AssistantPanel() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleChatSubmit(chatInput); }
   };
 
-  // ── Feedback handlers ──
-  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+  // ── Message handlers ──
+  const handleMsgSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (fbMessage.trim().length < 3) { toast.error("Please enter at least 3 characters."); return; }
-    setFbSubmitting(true);
+    if (msgText.trim().length < 3) { toast.error("Please enter at least 3 characters."); return; }
+    setMsgSubmitting(true);
     try {
       const result = await submitFeedback({
-        category,
-        message: fbMessage.trim(),
+        category: "other",
+        message: msgText.trim(),
         ...(user?.sub ? { auth0_id: user.sub } : {}),
       });
       if (result.success) {
-        setFbSubmitted(true);
+        setMsgSubmitted(true);
         setTimeout(() => {
-          setFbSubmitted(false);
-          setFbMessage("");
-          setFbCharCount(0);
+          setMsgSubmitted(false);
+          setMsgText("");
+          setMsgCharCount(0);
           setIsOpen(false);
         }, 2000);
       } else {
-        toast.error(result.error || "Failed to send feedback.");
+        toast.error(result.error || "Failed to send.");
       }
     } catch {
       toast.error("Something went wrong.");
     } finally {
-      setFbSubmitting(false);
+      setMsgSubmitting(false);
     }
   };
 
@@ -252,8 +246,8 @@ export default function AssistantPanel() {
                   : "text-muted-foreground hover:text-primary"
               )}
             >
-              <MessageSquareText className="w-4 h-4" />
-              Feedback
+              <MessageSquare className="w-4 h-4" />
+              Message
             </button>
           </div>
 
@@ -356,73 +350,52 @@ export default function AssistantPanel() {
             </>
           )}
 
-          {/* ── Feedback Tab ── */}
+          {/* ── Message Tab ── */}
           {activeTab === "feedback" && (
             <>
-              {fbSubmitted ? (
+              {msgSubmitted ? (
                 <div className={cn("px-6 py-10 text-center space-y-3 flex-1", reducedMotion ? "" : "animate-in fade-in zoom-in duration-300")}>
                   <div className="mx-auto w-12 h-12 rounded-full bg-status-green/10 border border-status-green/30 flex items-center justify-center">
                     <CheckCircle2 className="w-6 h-6 text-status-green" />
                   </div>
-                  <p className="text-sm font-bold text-primary">Thank you!</p>
-                  <p className="text-xs text-muted-foreground">Your feedback helps shape the future of Butwal Hacks.</p>
+                  <p className="text-sm font-bold text-primary">Message sent!</p>
+                  <p className="text-xs text-muted-foreground">Your message has been received. We review every submission.</p>
                 </div>
               ) : (
-                <form onSubmit={handleFeedbackSubmit} className="px-5 py-4 space-y-4 flex-1 flex flex-col">
-                  {/* Category Tabs */}
-                  <div className="flex gap-1.5">
-                    {CATEGORIES.map((cat) => (
-                      <button
-                        key={cat.value}
-                        type="button"
-                        onClick={() => setCategory(cat.value)}
-                        className={cn(
-                          "flex-1 flex flex-col items-center gap-1 rounded-lg border px-2 py-2 text-[10px] font-semibold transition-all",
-                          category === cat.value
-                            ? "border-bh-red-500/50 bg-primary-red/10 text-primary-red"
-                            : "border-border bg-surface-hover text-muted-foreground hover:text-primary"
-                        )}
-                        title={cat.description}
-                      >
-                        {cat.icon}
-                        <span>{cat.label}</span>
-                      </button>
-                    ))}
-                  </div>
-
+                <form onSubmit={handleMsgSubmit} className="px-5 py-4 space-y-4 flex-1 flex flex-col">
                   {/* Message Input */}
                   <div className="relative flex-1 flex flex-col">
                     <textarea
-                      ref={fbTextareaRef}
-                      value={fbMessage}
-                      onChange={(e) => { setFbMessage(e.target.value); setFbCharCount(e.target.value.length); }}
-                      placeholder="Share your thoughts..."
-                      rows={4}
+                      ref={msgTextareaRef}
+                      value={msgText}
+                      onChange={(e) => { setMsgText(e.target.value); setMsgCharCount(e.target.value.length); }}
+                      placeholder="Send a message to the team..."
+                      rows={6}
                       maxLength={2000}
                       className="flex-1 w-full rounded-lg bg-background/50 border border-border px-4 py-3 text-sm text-primary placeholder:text-muted-foreground/40 focus:border-bh-red-500/50 focus:outline-none resize-none transition-all"
                     />
                     <span className={cn(
                       "absolute bottom-2 right-3 text-[10px] transition-colors",
-                      fbCharCount > 1800 ? "text-status-orange" : "text-muted-foreground/40"
-                    )}>{fbCharCount}/2000</span>
+                      msgCharCount > 1800 ? "text-status-orange" : "text-muted-foreground/40"
+                    )}>{msgCharCount}/2000</span>
                   </div>
 
                   {/* Submit */}
                   <button
                     type="submit"
-                    disabled={fbSubmitting || fbMessage.trim().length < 3}
+                    disabled={msgSubmitting || msgText.trim().length < 3}
                     className="w-full rounded-full px-6 py-2.5 text-sm font-bold text-white bg-bh-red-500 hover:bg-deep-red transition-all disabled:opacity-40"
                   >
-                    {fbSubmitting ? (
+                    {msgSubmitting ? (
                       <span className="flex items-center justify-center gap-2">
                         <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         Sending...
                       </span>
-                    ) : "Send Feedback"}
+                    ) : "Send Message"}
                   </button>
 
                   <p className="text-[10px] text-muted-foreground/40 text-center">
-                    {user?.name ? `Feedback sent as ${user.name}` : "No account needed — anonymous"}
+                    {user?.name ? `Sent as ${user.name}` : "You can send messages without an account"}
                   </p>
                 </form>
               )}

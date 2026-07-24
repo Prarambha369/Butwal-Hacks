@@ -111,7 +111,7 @@ jobs:
 
       - name: Skip build notice
         if: steps.check-secrets.outputs.secrets_available != 'true'
-        run: echo "WARNING: Secrets missing. Skipping build step."
+        run: 'echo "WARNING: Secrets missing. Skipping build step."'
 
   test:
     name: Tests
