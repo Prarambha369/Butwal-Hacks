@@ -7,11 +7,16 @@ import {
   Lock,
   Unlock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  GraduationCap,
+  FileDown,
+  QrCode,
+  ScanQrCode
 } from "lucide-react";
 import Link from "next/link";
 
 import { CloseEventClientButton } from "./close-event-button";
+import { CertificateExportButton } from "./certificate-export-button";
 
 export default async function EventDetailsPage({
   params,
@@ -36,6 +41,12 @@ export default async function EventDetailsPage({
     .select("id", { count: "exact", head: true })
     .eq("event_id", event_id);
 
+  // Check if certificates exist for this event (to enable export button)
+  const { count: certCount } = await supabase
+    .from("certificates")
+    .select("id", { count: "exact", head: true })
+    .eq("event_id", event_id);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -50,6 +61,27 @@ export default async function EventDetailsPage({
           >
             <Users className="w-4 h-4" />
             Attendees
+          </Link>
+          <Link 
+            href={`/dashboard/organizer/events/${event_id}/teams`}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-surface-hover transition-all"
+          >
+            <GraduationCap className="w-4 h-4" />
+            Teams
+          </Link>
+          <Link 
+            href={`/dashboard/organizer/events/${event_id}/qr`}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-surface-hover transition-all"
+          >
+            <QrCode className="w-4 h-4" />
+            QR Codes
+          </Link>
+          <Link 
+            href={`/dashboard/organizer/events/${event_id}/scan`}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-surface-hover transition-all"
+          >
+            <ScanQrCode className="w-4 h-4" />
+            Scan
           </Link>
           <Link 
             href={`/dashboard/organizer/events/${event_id}/analytics`}
@@ -96,18 +128,33 @@ export default async function EventDetailsPage({
           </div>
         </div>
 
-        <div className="bh-card p-6 border-primary-red/20 space-y-5">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-primary-red" />
-            <h2 className="text-base font-bold text-primary">Closure Actions</h2>
+        <div className="space-y-4">
+          {/* Closure Actions */}
+          <div className="bh-card p-6 border-primary-red/20 space-y-5">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-primary-red" />
+              <h2 className="text-base font-bold text-primary">Closure Actions</h2>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Closing an event will stop registrations and automatically issue certificates to attended participants.
+            </p>
+            <CloseEventButton eventId={event_id} isPublished={event.is_published} />
+            <p className="text-[11px] text-center text-muted-foreground">
+              This action is irreversible.
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Closing an event will stop registrations and automatically issue certificates to attended participants.
-          </p>
-          <CloseEventButton eventId={event_id} isPublished={event.is_published} />
-          <p className="text-[11px] text-center text-muted-foreground">
-            This action is irreversible.
-          </p>
+
+          {/* Certificate Export */}
+          <div className="bh-card p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <FileDown className="w-5 h-5 text-primary-red" />
+              <h2 className="text-base font-bold text-primary">Certificate Export</h2>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Download all certificates for this event as a single PDF with one page per participant. Includes event details, attendee name, BH-ID, and issue date.
+            </p>
+            <CertificateExportButton eventId={event_id} hasCertificates={(certCount ?? 0) > 0} />
+          </div>
         </div>
       </div>
     </div>

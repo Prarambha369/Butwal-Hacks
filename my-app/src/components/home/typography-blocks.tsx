@@ -18,7 +18,7 @@ const blocks = [
   {
     type: "paragraph",
     content:
-      "Every member gets a public Hacker ID with verifiable certificates, a GitHub-synced project portfolio, and a shareable profile URL that stays with them regardless of which events they attend.",
+      "Every member gets a public Hacker ID with verifiable certificates, a GitHub-synced project portfolio, and a shareable profile URL. It stays with you, no matter what events you attend.",
   },
   {
     type: "highlight",
@@ -33,7 +33,7 @@ const blocks = [
   {
     type: "paragraph",
     content:
-      "Build your hacker profile in minutes. Complete with trust markers, project portfolio, and a shareable public URL.",
+      "Build your hacker profile in minutes. Complete with trust markers, project portfolio, and a shareable URL.",
   },
   {
     type: "code",
@@ -59,7 +59,7 @@ function CopyButton({ code }: { code: string | undefined }) {
   return (
     <button
       onClick={handleCopy}
-      className="ml-auto flex items-center justify-center gap-1.5 min-w-[44px] min-h-[44px] px-2 py-1 rounded text-xs text-muted-foreground hover:text-white transition-colors focus:ring-2 focus:ring-[#FE0000] focus:outline-none"
+      className="ml-auto flex items-center justify-center gap-1.5 min-w-[44px] min-h-[44px] px-2 py-1 rounded text-xs text-muted-foreground hover:text-white transition-colors focus:ring-2 focus:ring-primary-red focus:outline-none"
       aria-label={copied ? "Copied" : "Copy code"}
     >
       {copied ? (
@@ -138,7 +138,7 @@ export default function TypographyBlocks() {
                       <CopyButton code={block.code} />
                     </div>
                     <pre className="rounded-b-lg bg-surface-inverse p-4 overflow-x-auto">
-                      <code className="text-sm font-mono text-gray-300 leading-relaxed whitespace-pre">
+                      <code className="text-sm font-mono text-text-body/80 leading-relaxed whitespace-pre">
                         {block.code}
                       </code>
                     </pre>

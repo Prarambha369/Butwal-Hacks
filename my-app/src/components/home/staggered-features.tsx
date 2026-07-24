@@ -3,8 +3,8 @@ import Link from "next/link"
 
 const features = [
   {
-    title: "Your Hacker ID, Signed & Verifiable",
-    description: "A public profile with cryptographically signed trust markers. Every certificate, contribution, and skill is timestamped and independently verifiable — no middleman required.",
+    title: "Your Hacker ID, Signed & Verified",
+    description: "A public profile with cryptographically signed trust markers. Every certificate and contribution is timestamped and independently verifiable — no middleman required.",
     icon: Fingerprint,
     color: "text-primary-red bg-primary-red/8",
     href: "/explore",
@@ -12,7 +12,7 @@ const features = [
   },
   {
     title: "Team Matching That Actually Works",
-    description: "Tell us what you build. We'll find teammates with complementary skills — designers who need developers, IoT tinkerers looking for ML people. No more cold DMs in Discord.",
+    description: "Describe what you're working on. We'll find teammates with complementary skills — designers who need developers, IoT tinkerers looking for ML people without the cold DMs.",
     icon: Users,
     color: "text-status-blue bg-status-blue/8",
     href: "/explore",
@@ -27,7 +27,7 @@ const features = [
     span: "md:col-span-1 md:row-span-1",
   },
   {
-    title: "Paid Bounties, Not Just Badges",
+    title: "Bounties with Real Payouts",
     description: "Complete real-world challenges and earn payouts through Open Collective. Transparent, publicly tracked, zero fees taken.",
     icon: Award,
     color: "text-status-yellow bg-status-yellow/8",
@@ -92,25 +92,7 @@ export default function StaggeredFeatures() {
             )
           })}
 
-          {/* Highlight card — breaks the grid pattern with a different visual style */}
-          <Link
-            href="/dashboard/hacker"
-            className="group relative rounded-xl border-2 border-primary-red/20 bg-gradient-to-br from-primary-red/5 to-transparent p-6 md:p-7 transition-all duration-200 hover:shadow-sm md:col-span-3 md:row-span-1 flex flex-col justify-center items-center text-center"
-          >
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-red mb-3">
-              🌱 New to Butwal Hacks?
-            </p>
-            <h3 className="text-lg font-bold text-primary mb-2">
-              Your profile is ready in under 2 minutes
-            </h3>
-            <p className="text-sm text-text-secondary leading-relaxed max-w-lg mx-auto">
-              Sign up, connect GitHub, and get your verifiable Hacker ID. No approval queue, no manual review — just you and your work.
-            </p>
-            <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-primary-red">
-              <span>Claim your Hacker ID</span>
-              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-            </div>
-          </Link>
+
         </div>
       </div>
     </section>

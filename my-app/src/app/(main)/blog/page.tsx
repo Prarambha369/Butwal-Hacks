@@ -7,7 +7,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Blog",
-  description: "Read Butwal Hacks updates, reflections, and community notes on technology learning and mentorship.",
+  description: "Updates from Butwal Hacks on community events, project building, and tech learning in Nepal.",
   path: "/blog",
 })
 

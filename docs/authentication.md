@@ -132,6 +132,115 @@ The `/api/webhooks/auth0` endpoint currently does **not** verify the incoming we
 - Client: Links to `/sign-out`, which redirects to `/auth/logout`
 - Auth0 clears the session, redirects to the homepage
 
+### Account Linking (Connect GitHub, LinkedIn, Google)
+
+Users can link multiple Auth0 identities to their primary account. This lets them sign in with any connected provider and auto-populates social profile URLs.
+
+```
+User clicks "Connect GitHub" → POST /api/auth/link/initiate { provider: "github" }
+                                  ↓
+                          Returns Auth0 authorization URL
+                                  ↓
+                          User redirected to Auth0 login (GitHub OAuth)
+                                  ↓
+                          Auth0 redirects to GET /api/auth/link/callback?code=...&state=...
+                                  ↓
+                          Code exchanged for tokens
+                                  ↓
+                          Auth0 Management API: link identities
+                                  ↓
+                          Supabase: linked_accounts + socials updated
+                                  ↓
+                          Redirect to /dashboard/hacker/profile?linked=success:GitHub
+```
+
+#### API Routes
+
+| Route | Method | Purpose | Rate Limit |
+|-------|--------|---------|------------|
+| `/api/auth/link/status` | GET | Get linked accounts for current user | None (read-only) |
+| `/api/auth/link/initiate` | POST | Start linking flow, returns Auth0 URL | `sensitive` (3/min) |
+| `/api/auth/link/callback` | GET | Handle OAuth callback, link identities | None (redirect target) |
+| `/api/auth/link/unlink` | POST | Disconnect a linked account | `sensitive` (3/min) |
+
+#### Supported Providers
+
+| Provider | `provider` value | Auto-populates social URL |
+|----------|-----------------|--------------------------|
+| GitHub | `github` | `https://github.com/{nickname}` |
+| LinkedIn | `linkedin` | `https://linkedin.com/in/{vanity}` (if non-numeric) |
+| Google | `google-oauth2` | No (no profile URL) |
+
+#### Data Storage
+
+Linked accounts are stored in two places:
+
+1. **Auth0 Management API** — authoritative source. Identities are linked via `POST /api/v2/users/{id}/identities`.
+2. **Supabase `profiles.linked_accounts`** (JSONB column) — cached copy for fast reads when the Management API is unavailable.
+
+When a user links GitHub or LinkedIn, the corresponding social URL is also auto-populated in `profiles.socials` (only if the field is currently empty).
+
+#### Auth0 Configuration Required
+
+**1. Social Connections** — Enable in Auth0 Dashboard > Authentication > Social:
+- GitHub (requires GitHub OAuth app credentials)
+- LinkedIn (requires LinkedIn developer app credentials)
+- Google (uses built-in Google credentials from Auth0)
+
+**2. M2M Application for Management API** — Create in Auth0 Dashboard > Applications > Machine to Machine:
+- Select "Auth0 Management API" as the API
+- Grant scopes: `read:users`, `update:users`
+- Copy the Client ID and Client Secret
+
+**3. Allowed Callback URLs** — Add to your Auth0 Application settings:
+- `http://localhost:3000/api/auth/link/callback` (dev)
+- `https://app.butwalhacks.com/api/auth/link/callback` (production)
+- Also keep the existing `/auth/callback` for the main login flow
+
+**4. Environment Variables** — Add to `.env.local`:
+```env
+AUTH0_MGMT_CLIENT_ID=<from M2M application>
+AUTH0_MGMT_CLIENT_SECRET=<from M2M application>
+```
+
+#### Code Flows
+
+**Initiate linking (client-side):**
+```ts
+// User clicks "Connect GitHub"
+const res = await fetch("/api/auth/link/initiate", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ provider: "github" }),
+});
+const { url } = await res.json();
+window.location.href = url;  // Redirect to Auth0
+```
+
+**Check status (client-side):**
+```ts
+const res = await fetch("/api/auth/link/status");
+const { linkedAccounts } = await res.json();
+// linkedAccounts = [{ provider, user_id, email, name, linked_at }, ...]
+```
+
+**Unlink (client-side):**
+```ts
+await fetch("/api/auth/link/unlink", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ provider: "github", user_id: "12345" }),
+});
+```
+
+#### Security
+
+- CSRF protected via state cookies (random nonce + primary user ID, stored in httpOnly cookie)
+- State cookie has 10-minute TTL
+- Rate limited at `sensitive` tier (3 req/min) for initiate and unlink
+- Auth0 Management API uses M2M credentials with `read:users` and `update:users` scopes only
+- Unlink blocked if only one linked account remains (prevents lockout)
+
 ---
 
 ## Code Patterns

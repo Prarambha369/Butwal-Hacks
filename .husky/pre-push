@@ -1,0 +1,15 @@
+#!/bin/sh
+# Pre-push hook: scan for hardcoded secrets before pushing.
+# Defense-in-depth for commits made with --no-verify bypassing the pre-commit hook.
+# Activate with: git config core.hooksPath .husky/
+
+# ── Secrets audit ─────────────────────────────────────────────────────────
+# Same scanner as the pre-commit hook and CI secrets-audit job.
+node .github/actions/secrets-audit/audit.mjs
+if [ $? -ne 0 ]; then
+  echo "Push blocked: secrets detected in tracked files."
+  echo "Fix the issues above or use --no-verify to override (not recommended)."
+  exit 1
+fi
+
+exit 0

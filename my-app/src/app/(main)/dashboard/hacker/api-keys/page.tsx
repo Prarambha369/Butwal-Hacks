@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Key, Plus, Copy, Trash2, CheckCircle2, AlertCircle, Clock, Loader2 } from "lucide-react";
+import { Key, Plus, Copy, Trash2, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { CardSkeleton } from "@/components/ui/skeleton";
 interface ApiKey {
   id: string;
   prefix: string;
@@ -92,8 +93,17 @@ export default function ApiKeysPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 size={32} className="animate-spin text-primary-red" />
+      <div className="space-y-6 max-w-3xl">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-7 w-28 bg-surface-hover rounded animate-pulse" />
+            <div className="h-4 w-64 bg-surface-hover rounded animate-pulse" />
+          </div>
+          <div className="h-10 w-24 bg-surface-hover rounded-full animate-pulse" />
+        </div>
+        <CardSkeleton lines={3} />
+        <CardSkeleton lines={3} />
+        <CardSkeleton lines={2} />
       </div>
     );
   }
@@ -221,13 +231,13 @@ export default function ApiKeysPage() {
                           {key.prefix}...
                         </code>
                         {!key.is_active && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-status-orange">
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider text-status-orange">
                             <AlertCircle className="w-2.5 h-2.5" />
                             Revoked
                           </span>
                         )}
                         {key.is_active && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-status-green">
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider text-status-green">
                             Active
                           </span>
                         )}

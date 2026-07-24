@@ -11,10 +11,7 @@ import { t } from '@/lib/i18n';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Cross-domain links: auth routes live on the app subdomain.
-// In dev (localhost), env vars point to the same origin.
-// In production, NEXT_PUBLIC_APP_URL points to https://app.butwalhacks.com
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.butwalhacks.com';
+import { APP_URL } from "@/lib/constants";
 
 function LanguageToggle() {
   const { locale, setLocale } = useLanguage();
@@ -25,13 +22,13 @@ function LanguageToggle() {
   }, []);
 
   if (!mounted) {
-    return <div className="w-10 h-10" />;
+    return <div className="min-w-[44px] min-h-[44px]" />;
   }
 
   return (
     <button
       onClick={() => setLocale(locale === 'en' ? 'ne' : 'en')}
-      className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold tracking-tight text-muted-foreground hover:text-primary hover:bg-surface-hover transition-all duration-300 active:scale-95"
+      className="flex min-w-[44px] min-h-[44px] items-center justify-center rounded-full text-xs font-bold tracking-tight text-muted-foreground hover:text-primary hover:bg-surface-hover transition-all duration-300 active:scale-95"
       aria-label={locale === 'en' ? 'Switch to Nepali' : 'Switch to English'}
     >
       {locale === 'en' ? 'EN' : 'ने'}
@@ -74,8 +71,8 @@ export default function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Left: Logo */}
           <div className="flex items-center gap-3 shrink-0">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative h-9 w-9 overflow-hidden rounded-lg bg-deep-red">
+            <Link href="/" className="flex items-center gap-3 group min-h-[44px]">
+              <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-deep-red">
                 <Image
                   src="/logo.png"
                   alt="Butwal Hacks"
@@ -163,7 +160,7 @@ export default function Navbar() {
           <div className="md:hidden flex items-center gap-1">
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('bh:open-search'))}
-              className="text-text-secondary p-2 hover:text-primary transition-colors"
+              className="text-text-secondary min-w-[44px] min-h-[44px] p-2.5 hover:text-primary transition-colors flex items-center justify-center"
               aria-label="Search"
             >
               <Search className="h-5 w-5" />
@@ -172,7 +169,7 @@ export default function Navbar() {
             <LanguageToggle />
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-primary p-2"
+              className="text-primary min-w-[44px] min-h-[44px] p-2.5 flex items-center justify-center"
               aria-label="Toggle menu"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -184,11 +181,11 @@ export default function Navbar() {
       {/* Mobile Menu Overlay */}
       <div
         className={cn(
-          "absolute top-full left-0 w-full bg-surface border-b border-border transition-all duration-200 ease-in-out md:hidden shadow-lg",
+          "absolute top-full left-0 w-full bg-surface border-b border-border transition-all duration-200 ease-in-out md:hidden shadow-lg max-h-dvh overflow-y-auto",
           isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
         )}
       >
-        <div className="flex flex-col p-4 gap-1">
+        <div className="flex flex-col p-4 pb-8 gap-1 bh-pb-safe">
           {navLinks.map((link) => (
             <Link
               key={link.name}

@@ -55,6 +55,7 @@ Internet ──→ Vercel Edge ──→ Vercel Serverless ──→ Supabase (P
 - **Provider:** Auth0 (Regular Web Application)
 - **SDK:** `@auth0/nextjs-auth0` v4
 - **Config:** `src/lib/auth0.ts` — single `Auth0Client` instance
+- **Management API:** `src/lib/auth0-management.ts` — M2M client for identity linking/unlinking
 
 ### 2.2 Auth Flow
 
@@ -149,6 +150,40 @@ if (profile?.role && profile.role !== "organizer") {
 - **UUID (internal):** `profiles.id` — primary key, used for FK relationships in Supabase
 
 > ⚠️ **Common pitfall:** Most tables use `profile_id` (UUID FK), NOT `auth0_user_id`. Server-side actions must resolve `auth0_user_id` → UUID before inserting/querying related tables. This is documented across the codebase in 17+ `ponytail:` comments.
+
+### 2.7 Account Linking (Auth0 Identity Linking)
+
+Users can link multiple Auth0 identities (GitHub, LinkedIn, Google) to their primary account. This is handled server-side via the Auth0 Management API v2.
+
+#### Flow
+
+1. User clicks "Connect GitHub" on the profile page
+2. `POST /api/auth/link/initiate` generates a state cookie (random nonce + primary user ID + provider) and returns an Auth0 authorization URL
+3. User authenticates with the secondary provider (GitHub OAuth)
+4. Auth0 redirects to `GET /api/auth/link/callback?code=...&state=...`
+5. The callback verifies the state cookie (CSRF protection), exchanges the auth code for tokens, and calls the Auth0 Management API to link the identities
+6. The linked account is stored in `profiles.linked_accounts` (JSONB) and the social URL is auto-populated in `profiles.socials` if the field was empty
+
+#### Security Controls
+
+| Control | Mechanism | File |
+|---------|-----------|------|
+| CSRF protection | State cookie (httpOnly, 10-min TTL, nonce verification) | `initiate/route.ts`, `callback/route.ts` |
+| Rate limiting | `sensitive` tier (3 req/min) for initiate and unlink | `initiate/route.ts`, `unlink/route.ts` |
+| Auth0 M2M auth | Client Credentials flow, token cached with 23h refresh | `auth0-management.ts` |
+| Scope restriction | M2M app scoped to `read:users` and `update:users` only | Auth0 Dashboard |
+| Lockout prevention | Unlink blocked if only 1 linked account remains | `unlink/route.ts` |
+| Graceful degradation | Falls back to Supabase cache if Management API unavailable | `status/route.ts` |
+
+#### Management API Token
+
+The M2M token is cached in memory (`lib/auth0-management.ts`) and refreshed 1 hour before expiry. In serverless environments, the cache resets per invocation, so each function call fetches a fresh token. This is acceptable because the Management API is only called on explicit user actions (linking/unlinking), not on every page load.
+
+#### Data Storage
+
+- **Auth0 Management API:** Authoritative source. Linked identities are managed via `POST /api/v2/users/{id}/identities` and `DELETE /api/v2/users/{id}/identities/{provider}/{id}`.
+- **Supabase `profiles.linked_accounts` (JSONB):** Cached copy for fast reads when Management API is unavailable. Synced on every link/unlink operation and periodically by the status endpoint.
+- **Supabase `profiles.socials` (JSONB):** Auto-populated with GitHub/LinkedIn URLs when linking, only if the field was previously empty.
 
 ---
 
@@ -391,7 +426,7 @@ All secrets are stored in Vercel Environment Variables (production, preview, dev
 
 | Category | Variables | Sensitivity |
 |----------|-----------|-------------|
-| **Auth0** | `AUTH0_SECRET`, `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_WEBHOOK_SECRET` | 🔴 Critical |
+| **Auth0** | `AUTH0_SECRET`, `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_WEBHOOK_SECRET`, `AUTH0_MGMT_CLIENT_ID`, `AUTH0_MGMT_CLIENT_SECRET` | 🔴 Critical |
 | **Supabase** | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | 🔴 Critical (service key) |
 | **Upstash** | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | 🟠 High |
 | **Cloudinary** | `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | 🟠 High |
@@ -560,4 +595,4 @@ Every PR should pass this checklist before merging:
 | Secrets Audit | `.github/actions/secrets-audit/audit.mjs` | Leaked credential detection script |
 | Ponytail Audit | `.github/actions/ponytail-audit/audit.mjs` | Dead code detection script |
 | Platform Constraints | `docs/platform-constraint-checklist.md` | Vercel, Supabase, Upstash limits |
-| Ponytail Debt | `PONYTAIL-DEBT.md` | Documented shortcuts and deferred work |
+| Technical Debt | `TECHNICAL-DEBT.md` | Documented shortcuts and deferred work |

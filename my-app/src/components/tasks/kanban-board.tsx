@@ -9,6 +9,7 @@ import {
 } from "@hello-pangea/dnd"
 import { Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTaskSubscription } from "@/hooks/use-task-subscription"
 import TaskCard from "./task-card"
 import TaskDetailDrawer from "./task-detail-drawer"
 import { columns, getTasksByColumn, applyDragResult, createTempTask } from "@/lib/tasks/board-utils"
@@ -22,6 +23,7 @@ interface KanbanBoardProps {
     searchQuery?: string
     priority?: string
     assignee?: string
+    status?: string
   }
 }
 
@@ -35,11 +37,17 @@ export default function KanbanBoard({
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null)
   const [newTaskInputs, setNewTaskInputs] = useState<Record<string, string>>({})
 
+  // ─── Real-time subscription ─────────────────────────────────────
+  const { markPending } = useTaskSubscription({ workspaceId, setTasks })
+
   // ─── Drag-and-drop handler ──────────────────────────────────────
   const onDragEnd = useCallback(
     async (result: DropResult) => {
       const { draggableId, source, destination } = result
       if (!destination) return
+
+      // Mark this task as pending to skip real-time echo
+      markPending(draggableId)
 
       const updated = applyDragResult(tasks, draggableId, source, destination)
       setTasks(updated)
@@ -64,7 +72,7 @@ export default function KanbanBoard({
         }
       }
     },
-    [tasks, initialTasks]
+    [tasks, initialTasks, markPending]
   )
 
   // ─── Filter tasks ───────────────────────────────────────────────
@@ -80,6 +88,9 @@ export default function KanbanBoard({
           return false
         }
         if (filters.assignee && t.assignee_id !== filters.assignee) {
+          return false
+        }
+        if (filters.status && t.status !== filters.status) {
           return false
         }
         return true
@@ -110,6 +121,7 @@ export default function KanbanBoard({
 
     const colTasks = getTasksByColumn(filteredTasks, columnKey)
     const tempTask = createTempTask(title, columnKey as TaskItem["status"], colTasks.length)
+    markPending(tempTask.id)
     setTasks((prev) => [...prev, tempTask])
     setNewTaskInputs((prev) => ({ ...prev, [columnKey]: "" }))
 
@@ -125,7 +137,15 @@ export default function KanbanBoard({
       })
       if (!res.ok) throw new Error("Failed to create")
       const { task } = await res.json()
-      setTasks((prev) => prev.map((t) => (t.id === tempTask.id ? task : t)))
+      markPending(task.id)
+      setTasks((prev) => {
+        // Remove the temp task and deduplicate in case Realtime INSERT already added the real task
+        const withoutTemp = prev.filter((t) => t.id !== tempTask.id)
+        if (withoutTemp.some((t) => t.id === task.id)) {
+          return withoutTemp
+        }
+        return [...withoutTemp, task]
+      })
     } catch {
       setTasks((prev) => prev.filter((t) => t.id !== tempTask.id))
     }
@@ -133,6 +153,7 @@ export default function KanbanBoard({
 
   // ─── Drawer handlers ────────────────────────────────────────────
   const handleUpdateTask = async (id: string, updates: Partial<TaskItem>) => {
+    markPending(id)
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)))
     try {
       const res = await fetch(`/api/tasks/${id}`, {

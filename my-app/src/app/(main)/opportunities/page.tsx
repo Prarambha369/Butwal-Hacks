@@ -41,13 +41,13 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default async function OpportunitiesPage() {
-  const [jobs, bounties] = await Promise.all([
+  const [jobsResult, bountiesResult] = await Promise.all([
     getPublicOpportunities({ is_bounty: false }),
     getPublicOpportunities({ is_bounty: true }),
   ]);
 
-  const typedBounties = bounties as OpportunityWithSponsor[];
-  const typedJobs = jobs as OpportunityWithSponsor[];
+  const typedBounties = bountiesResult.data as OpportunityWithSponsor[];
+  const typedJobs = jobsResult.data as OpportunityWithSponsor[];
 
   return (
     <main className="min-h-dvh bg-background text-primary">
@@ -61,7 +61,7 @@ export default async function OpportunitiesPage() {
             Build with <span className="text-primary-red">Purpose</span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base text-secondary sm:text-lg">
-            Jobs, internships, grants, and bounties from organizations investing in Nepal&apos;s next generation of builders.
+            Jobs, internships, grants, and bounties from organizations supporting Nepal&apos;s student builders.
           </p>
         </div>
       </section>
@@ -72,7 +72,7 @@ export default async function OpportunitiesPage() {
           <div className="mx-auto max-w-6xl">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold">🏆 Bounty Board</h2>
+                <h2 className="text-2xl font-bold">Bounty Board</h2>
                 <p className="text-sm text-secondary mt-1">Complete challenges and earn rewards</p>
               </div>
               <span className="px-3 py-1 rounded-full bg-status-yellow/20 text-status-yellow text-xs font-bold border border-status-yellow/30">
@@ -146,7 +146,7 @@ export default async function OpportunitiesPage() {
                         <span className="px-2 py-0.5 rounded-md bg-surface/20 border border-border text-[10px] font-bold uppercase text-secondary">
                           {TYPE_LABELS[opp.type] || opp.type}
                         </span>
-                        {opp.is_remote && <span className="text-[10px] text-secondary/60">🌐 Remote</span>}
+                        {opp.is_remote && <span className="text-[10px] text-secondary/60">Remote</span>}
                       </div>
                       <h3 className="font-bold text-primary">{opp.title}</h3>
                       <p className="text-xs text-secondary line-clamp-2">{opp.description}</p>

@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
-import { createAuthenticatedClient } from '@/utils/supabase/server';
+import { createServiceClient } from '@/utils/supabase/service';
+import { auth0 } from '@/lib/auth0';
 import { z } from 'zod';
-import { sanitizeTitle, sanitizeDescription, sanitizeUrl, sanitizeString } from '@/lib/validation';
+import { sanitizeUrl, sanitizeString } from '@/lib/validation';
 import { logger } from '@/lib/logger';
-import { withRateLimit, withPayloadLimit } from '@/lib/rate-limiter';
+import { withRateLimit } from '@/lib/rate-limiter';
+import { parsePagination, paginationMeta } from '@/lib/pagination';
 import { captureServerEvent } from '@/lib/analytics/server';
 
 const createProjectSchema = z.object({
-  title: z.string().min(1).transform(v => sanitizeTitle(v)),
-  description: z.string().min(1).transform(v => sanitizeDescription(v)),
+  title: z.string().min(1).transform(v => sanitizeString(v, 200)),
+  description: z.string().min(1).transform(v => sanitizeString(v, 2000)),
   github_url: z.string().optional().transform(v => v ? sanitizeUrl(v) ?? '' : ''),
   demo_url: z.string().optional().transform(v => v ? sanitizeUrl(v) ?? '' : ''),
   cover_image: z.string().optional().transform(v => v ? sanitizeUrl(v) ?? '' : ''),
@@ -17,11 +19,76 @@ const createProjectSchema = z.object({
   team_id: z.string().optional(),
 });
 
-export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
+/**
+ * GET /api/projects
+ *
+ * Returns a paginated list of projects for the authenticated user.
+ * Includes projects owned by the user and projects from teams they belong to.
+ * Cache: private, max-age=60 — per-user response.
+ */
+export async function GET(request: Request) {
   try {
-    const authClient = await createAuthenticatedClient();
-    if (!authClient) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const { supabase, userId } = authClient;
+    const session = await auth0.getSession();
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const supabase = createServiceClient();
+    const userId = session.user.sub;
+    const { limit, offset } = parsePagination(request);
+
+    // Resolve profile UUID
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('auth0_user_id', userId)
+      .single();
+
+    if (!profile) {
+      return NextResponse.json({ projects: [], pagination: paginationMeta(limit, offset, 0) }, {
+        headers: { "Cache-Control": "private, max-age=60" },
+      });
+    }
+
+    // Get team memberships to include team projects
+    const { data: memberships } = await supabase
+      .from('team_members')
+      .select('team_id')
+      .eq('profile_id', profile.id);
+
+    const teamIds = memberships?.map(m => m.team_id) || [];
+
+    // Build query — include own projects and team projects
+    let query = supabase
+      .from('projects')
+      .select('id, title, description, tech_stack, category, cover_image, created_at, updated_at, profile_id, event_id, team_id, github_url', { count: 'exact' });
+
+    if (teamIds.length > 0) {
+      query = query.or(`profile_id.eq.${profile.id},team_id.in.(${teamIds.join(',')})`);
+    } else {
+      query = query.eq('profile_id', profile.id);
+    }
+
+    const { data: projects, count } = await query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    return NextResponse.json({
+      projects: projects || [],
+      pagination: paginationMeta(limit, offset, count ?? 0),
+    }, {
+      headers: { "Cache-Control": "private, max-age=60" },
+    });
+  } catch (err) {
+    logger.error('[api/projects] GET error:', err);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export const POST = withRateLimit(async (request: Request) => {
+  try {
+    const session = await auth0.getSession();
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createServiceClient();
+    const userId = session.user.sub;
 
     // Idempotency: check for duplicate submission
     const idempotencyKey = request.headers.get('idempotency-key');
@@ -75,4 +142,4 @@ export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
     logger.error('[api/projects]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}), "sensitive")
+}, "sensitive")

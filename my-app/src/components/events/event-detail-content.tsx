@@ -70,10 +70,7 @@ export default function EventDetailContent({ event }: Props) {
           <div className="flex items-center justify-center gap-3">
             {isLive ? (
               <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-red/10 text-primary-red text-xs font-bold border border-primary-red/20">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bh-red-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-bh-red-500" />
-                </span>
+                <span className="inline-flex rounded-full h-2 w-2 bg-bh-red-500" />
                 Live Now
               </span>
             ) : isUpcoming ? (

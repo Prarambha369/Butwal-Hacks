@@ -114,7 +114,7 @@ Butwal-Hacks/
 │   │   │   ├── p/              # Public BH-ID profiles
 │   │   │   ├── verify/         # Trust marker verification
 │   │   │   ├── widget/         # Embeddable verification widget
-│   │   │   ├── api/            # 35+ route handlers
+│   │   │   ├── api/            # 51 route handlers
 │   │   │   ├── layout.tsx      # Root layout with metadata
 │   │   │   ├── globals.css     # Design tokens & utilities
 │   │   │   ├── sitemap.ts      # Dynamic sitemap
@@ -125,7 +125,7 @@ Butwal-Hacks/
 │   │   ├── lib/                # Business logic, i18n, content
 │   │   └── utils/              # Supabase client factories
 │   └── public/                 # Static assets
-├── supabase/migrations/        # 88 database migrations
+├── supabase/migrations/        # 65 database migrations
 ├── docs/                       # Wiki-style documentation
 └── .github/                    # CI workflows, issue templates
 ```

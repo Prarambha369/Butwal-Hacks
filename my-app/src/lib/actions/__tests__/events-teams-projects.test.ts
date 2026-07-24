@@ -18,10 +18,6 @@ vi.mock("@/lib/analytics/server", () => ({
   captureServerEvent: vi.fn(),
 }));
 
-vi.mock("@/lib/posthog-logger", () => ({
-  posthogLog: { info: vi.fn(), error: vi.fn() },
-}));
-
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));

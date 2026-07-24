@@ -86,7 +86,7 @@ function EventNode({ event }: EventNodeProps) {
               <span className={`
                 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border
                 ${event.status === 'Upcoming' 
-                  ? 'bg-primary-red/10 border-primary-red/20 text-primary-red animate-pulse' 
+                  ? 'bg-primary-red/10 border-primary-red/20 text-primary-red' 
                   : 'bg-surface-hover border-border text-muted-foreground'}
               `}>
                 {event.status}

@@ -42,7 +42,7 @@ async function verifyTaskAccess(profileId: string, taskId: string) {
     .from("team_members")
     .select("id")
     .eq("team_id", (task.workspace as any).team_id)
-    .eq("user_id", profileId)
+    .eq("profile_id", profileId)
     .maybeSingle()
 
   return membership ? task : null
@@ -95,16 +95,16 @@ async function handlePatch(
 
   // If status changed and no explicit position, append to the end of the new column
   if (parsed.data.status && parsed.data.position === undefined) {
-    const { data: lastTask } = await db
-      .from("tasks")
-      .select("position")
-      .eq("workspace_id", task.workspace_id)
-      .eq("status", parsed.data.status)
-      .order("position", { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const { data: nextPosition, error: posError } = await db.rpc("get_next_task_position", {
+      p_workspace_id: task.workspace_id,
+      p_status: parsed.data.status,
+    })
 
-    updateData.position = (lastTask?.position ?? -1) + 1
+    if (posError || typeof nextPosition !== "number") {
+      return NextResponse.json({ error: "Failed to allocate task position" }, { status: 500 })
+    }
+
+    updateData.position = nextPosition
   }
 
   const { data: updated, error } = await db
@@ -130,7 +130,7 @@ export const PATCH = withRateLimit(handlePatch, "frequent");
  * @returns A success response or an error response when authentication, access verification, or deletion fails.
  */
 
-export async function DELETE(
+async function handleDelete(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -164,3 +164,5 @@ export async function DELETE(
 
   return NextResponse.json({ success: true })
 }
+
+export const DELETE = withRateLimit(handleDelete, "frequent");

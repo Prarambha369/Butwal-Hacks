@@ -74,7 +74,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               href={project.github_url} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="p-2 rounded-lg bg-surface-hover hover:bg-surface-hover text-muted-foreground hover:text-primary transition-all"
+              className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-surface-hover hover:bg-surface-hover text-muted-foreground hover:text-primary transition-all flex items-center justify-center"
               title="GitHub"
             >
               <Github className="w-4 h-4" />
@@ -85,7 +85,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               href={project.demo_url} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="p-2 rounded-lg bg-surface-hover hover:bg-surface-hover text-muted-foreground hover:text-primary transition-all"
+              className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-surface-hover hover:bg-surface-hover text-muted-foreground hover:text-primary transition-all flex items-center justify-center"
               title="Demo"
             >
               <ExternalLink className="w-4 h-4" />

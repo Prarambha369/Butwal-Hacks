@@ -52,7 +52,9 @@ export async function GET() {
 
     if (error) throw error;
 
-    return NextResponse.json({ keys: keys ?? [] });
+    return NextResponse.json({ keys: keys ?? [] }, {
+      headers: { "Cache-Control": "private, max-age=30" },
+    });
   } catch (err) {
     logger.error("[api-keys] GET error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

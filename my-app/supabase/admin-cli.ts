@@ -182,7 +182,7 @@ async function leaderboard() {
   for (let i = 0; i < data.length; i++) {
     const user = data[i];
     const rank = i + 1;
-    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : String(rank);
+    const medal = String(rank);
     console.log(
       medal.padEnd(6),
       (user.bh_id ?? "—").padEnd(14),
@@ -214,10 +214,10 @@ async function checkProfile(bhId: string) {
   if (!profile.slug_id) issues.push("Missing slug_id");
 
   if (issues.length === 0) {
-    console.log("✅ All required fields present");
+    console.log("[OK] All required fields present");
   } else {
     for (const issue of issues) {
-      console.log(`❌ ${issue}`);
+      console.log(`[MISSING] ${issue}`);
     }
   }
 

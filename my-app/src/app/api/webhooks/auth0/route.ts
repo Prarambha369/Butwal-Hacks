@@ -3,7 +3,6 @@ import { createServiceClient } from "@/utils/supabase/service"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
 import { captureServerEvent, identifyServerUser } from "@/lib/analytics/server"
-import { posthogLog } from "@/lib/posthog-logger"
 
 const AUTH0_WEBHOOK_SECRET = process.env.AUTH0_WEBHOOK_SECRET ?? "";
 
@@ -27,8 +26,21 @@ const ROLE_RANK = ["maintainer", "organizer", "sponsor", "lead", "hacker"];
  * @returns The first recognized application role, or `null` when none are recognized
  */
 function mapAuth0Roles(auth0Roles: string[]): string | null {
-  const role = auth0Roles.map((r) => AUTH0_ROLE_MAP[r]).filter(Boolean)[0];
-  return role ?? null;
+  const mapped = auth0Roles
+    .map((r) => AUTH0_ROLE_MAP[r])
+    .filter((r): r is string => !!r);
+  if (mapped.length === 0) return null;
+  // Pick the role with the highest precedence (lowest ROLE_RANK index)
+  let best = mapped[0];
+  let bestRank = ROLE_RANK.indexOf(best);
+  for (let i = 1; i < mapped.length; i++) {
+    const rank = ROLE_RANK.indexOf(mapped[i]);
+    if (rank !== -1 && (bestRank === -1 || rank < bestRank)) {
+      best = mapped[i];
+      bestRank = rank;
+    }
+  }
+  return best;
 }
 
 /**
@@ -45,13 +57,15 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       return new NextResponse("Payload too large", { status: 413 })
     }
 
-    // ── Webhook secret verification ──────────────────────────────
-    if (AUTH0_WEBHOOK_SECRET) {
-      const headerSecret = req.headers.get("x-webhook-secret");
-      if (!headerSecret || headerSecret !== AUTH0_WEBHOOK_SECRET) {
-        logger.warn("[auth0-webhook] Rejected request — invalid or missing webhook secret");
-        return NextResponse.json({ error: "Invalid webhook secret" }, { status: 401 });
-      }
+    // ── Webhook secret verification (fail-closed) ─────────────────
+    if (!AUTH0_WEBHOOK_SECRET) {
+      logger.error("[auth0-webhook] AUTH0_WEBHOOK_SECRET not configured - rejecting all requests");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const headerSecret = req.headers.get("x-webhook-secret");
+    if (!headerSecret || headerSecret !== AUTH0_WEBHOOK_SECRET) {
+      logger.warn("[auth0-webhook] Rejected request - invalid or missing webhook secret");
+      return NextResponse.json({ error: "Invalid webhook secret" }, { status: 401 });
     }
 
     const { sub, email, name, auth0_roles } = await req.json() as {
@@ -85,15 +99,14 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         const newRank = ROLE_RANK.indexOf(resolvedRole);
         if (newRank !== -1 && newRank < oldRank) {
           update.role = resolvedRole;
-          logger.info(`[auth0-webhook] Upgrading ${email} role: ${existingProfile.role} → ${resolvedRole}`);
+          logger.info(`[auth0-webhook] Upgrading sub=${sub} role: ${existingProfile.role} -> ${resolvedRole}`);
         }
       }
 
       await db.from("profiles").update(update).eq("id", existingProfile.id)
 
-      posthogLog.info("Auth0 webhook: existing profile updated", {
+      logger.info("Auth0 webhook: existing profile updated", {
         auth0_id: sub,
-        email,
         role: resolvedRole,
         has_name: !!name,
       });
@@ -116,20 +129,18 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       await identifyServerUser(sub, { bh_id: bhId, role: resolvedRole })
       await captureServerEvent('user_signed_up', sub, { bh_id: bhId, role: resolvedRole })
 
-      posthogLog.info("Auth0 webhook: new profile created", {
+      logger.info("Auth0 webhook: new profile created", {
         auth0_id: sub,
-        email,
         bh_id: bhId,
         role: resolvedRole,
-        name: name?.trim(),
       });
 
-      logger.info(`[auth0-webhook] Created profile BH-ID: ${bhId} for ${email} (role: ${resolvedRole})`)
+      logger.info(`[auth0-webhook] Created profile BH-ID: ${bhId} for sub=${sub} (role: ${resolvedRole})`)
     }
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    posthogLog.error("Auth0 webhook failed", {
+    logger.error("Auth0 webhook failed", {
       error: err instanceof Error ? err.message : String(err),
     });
     logger.error("[auth0-webhook] Error:", err)

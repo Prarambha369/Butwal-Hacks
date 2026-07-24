@@ -26,7 +26,7 @@ const CATEGORIES: { value: Category; label: string; icon: React.ReactNode; descr
 
 const CHAT_WELCOME: Message = {
   role: "assistant",
-  content: "👋 Hey there! I'm BH Bot. Ask me about Butwal Hacks — our chapters, events, programs, or how to get involved!",
+  content: "Hey there! I'm BH Bot. Ask me about Butwal Hacks - our chapters, events, programs, or how to get involved!",
 };
 
 const CHAT_SUGGESTIONS = [
@@ -144,7 +144,7 @@ export default function AssistantPanel() {
       setMessages((prev) => [...prev, {
         role: "assistant",
         content: isRateLimit
-          ? "⏳ You\u2019re sending messages too quickly. Please wait a moment before trying again."
+          ? "You're sending messages too quickly. Please wait a moment before trying again."
           : "Sorry, I had trouble connecting. Please try again in a moment.",
       }]);
     } finally {
@@ -346,7 +346,7 @@ export default function AssistantPanel() {
                     onClick={() => handleChatSubmit(chatInput)}
                     disabled={!chatInput.trim() || chatLoading}
                     aria-label="Send message"
-                    className="p-1.5 rounded-lg bg-bh-red-500 text-white hover:bg-deep-red transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="min-w-[44px] min-h-[44px] p-1.5 rounded-lg bg-bh-red-500 text-white hover:bg-deep-red transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </button>

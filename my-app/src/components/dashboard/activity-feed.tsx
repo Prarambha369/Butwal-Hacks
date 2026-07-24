@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Zap, Trophy, Code2, Users, Activity, AlertCircle } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { FeedSkeleton } from '@/components/ui/skeleton';
+import { RoseSpinner } from '@/components/ui/rose-loader';
 import { EmptyState } from '@/components/ui/empty-state';
 
 const PAGE_SIZE = 20;
@@ -42,10 +43,10 @@ export default function ActivityFeed() {
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'XP_AWARDED': return <Zap className="w-4 h-4 text-yellow-400" />;
-      case 'PROJECT_SUBMITTED': return <Code2 className="w-4 h-4 text-blue-400" />;
-      case 'BADGE_EARNED': return <Trophy className="w-4 h-4 text-orange-400" />;
-      case 'TEAM_JOINED': return <Users className="w-4 h-4 text-teal-400" />;
+      case 'XP_AWARDED': return <Zap className="w-4 h-4 text-status-yellow" />;
+      case 'PROJECT_SUBMITTED': return <Code2 className="w-4 h-4 text-status-blue" />;
+      case 'BADGE_EARNED': return <Trophy className="w-4 h-4 text-status-orange" />;
+      case 'TEAM_JOINED': return <Users className="w-4 h-4 text-status-teal" />;
       default: return <div className="w-4 h-4 rounded-full bg-surface-hover" />;
     }
   };
@@ -128,7 +129,7 @@ export default function ActivityFeed() {
             disabled={loading}
             className="px-6 py-2 rounded-full bg-surface-hover border border-border text-xs font-bold text-muted-foreground hover:bg-surface-hover transition-all disabled:opacity-50"
           >
-            {loading ? 'Loading...' : 'Load More'}
+            {loading ? <RoseSpinner size="sm" /> : 'Load More'}
           </button>
         </div>
       )}

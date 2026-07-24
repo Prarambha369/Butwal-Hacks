@@ -16,20 +16,20 @@ export function ThemeToggle() {
   }, []);
 
   if (!mounted) {
-    return <div className="w-10 h-10" />; // Stable placeholder to prevent layout shift
+    return <div className="w-11 h-11" />; // Match min-w/min-h of rendered button to prevent layout shift
   }
 
   return (
     <Button
       variant="ghost"
       size="icon"
-      className="rounded-full w-10 h-10 transition-all duration-300 hover:scale-110"
+      className="rounded-full min-w-[44px] min-h-[44px] transition-all duration-300 hover:scale-110"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
     >
       {theme === "dark" ? (
         <Sun className="h-5 w-5 text-status-yellow animate-in fade-in zoom-in duration-300" />
       ) : (
-        <Moon className="h-5 w-5 text-bh-grey-600 animate-in fade-in zoom-in duration-300" />
+        <Moon className="h-5 w-5 text-muted-foreground animate-in fade-in zoom-in duration-300" />
       )}
       <span className="sr-only">Toggle theme</span>
     </Button>

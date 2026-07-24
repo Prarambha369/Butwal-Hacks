@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
 import { User, Eye, ExternalLink } from 'lucide-react';
 import ProfileSettingsForm from '@/components/dashboard/hacker/profile-form';
+import ProfileOnboardingGuide from '@/components/dashboard/hacker/profile-onboarding-guide';
 import { PublicProfileToggle } from '@/components/dashboard/hacker/public-profile-toggle';
+import LinkedAccounts from '@/components/dashboard/hacker/linked-accounts';
 
 export default async function HackerProfileSettingsPage() {
   const session = await auth0.getSession();
@@ -18,6 +20,12 @@ export default async function HackerProfileSettingsPage() {
     .eq('auth0_user_id', userId)
     .single();
 
+  const fullName = profile?.full_name as string | undefined;
+  const bio = profile?.bio as string | undefined;
+  const avatarUrl = profile?.avatar_url as string | undefined;
+  const socials = profile?.socials as Record<string, string> | undefined;
+  const bhId = profile?.bh_id as string | undefined;
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -27,14 +35,25 @@ export default async function HackerProfileSettingsPage() {
         </div>
       </div>
 
+      {/* Profile onboarding guide — shown until all profile fields are complete */}
+      <ProfileOnboardingGuide
+        fullName={fullName}
+        bio={bio}
+        avatarUrl={avatarUrl}
+        socials={socials}
+        bhId={bhId}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bh-card p-8 space-y-6">
+          <div className="bh-card p-4 sm:p-6 md:p-8 space-y-6">
             <ProfileSettingsForm initialProfile={profile || {}} />
           </div>
         </div>
 
         <div className="space-y-6">
+          <LinkedAccounts />
+
           <div className="bh-card p-6 space-y-4">
             <h3 className="font-bold flex items-center gap-2">
               <User size={18} className="text-primary-red" />

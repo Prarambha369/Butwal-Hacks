@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
 import { revalidatePath } from "next/cache"
 import { captureServerEvent } from "@/lib/analytics/server"
+import { fetchRepoMeta } from "@/lib/github"
 
 // ponytail: single endpoint. Fetches public repos from GitHub API via a stored
 // GitHub token in the profiles table. Users must connect GitHub through the
@@ -85,6 +86,7 @@ export const POST = withRateLimit(async (_req: NextRequest) => {
     const existingUrls = new Set(existing?.map((p) => p.github_url) ?? [])
 
     let synced = 0
+    let metaSynced = 0
     // ponytail: repos are paginated at 50. If a hacker has more, they can sync again.
     for (const repo of repos) {
       if (repo.fork) continue // Skip forks
@@ -96,6 +98,26 @@ export const POST = withRateLimit(async (_req: NextRequest) => {
         if (!techStack.includes(t)) techStack.push(t)
       })
 
+      // Fetch deep GitHub metadata for each new repo
+      let githubMeta: Record<string, unknown> | null = null
+      try {
+        const meta = await fetchRepoMeta(repo.html_url)
+        if (meta) {
+          githubMeta = {
+            stargazers_count: meta.stargazers_count,
+            forks_count: meta.forks_count,
+            commit_count: meta.commit_count,
+            readme_preview: meta.readme_preview,
+            pushed_at: meta.pushed_at,
+            topics: meta.topics,
+            language: meta.language,
+          }
+          metaSynced++
+        }
+      } catch {
+        // Best-effort — metadata is optional
+      }
+
       const { error: insertError } = await db.from("projects").insert({
         profile_id: profile.id,
         title: repo.name,
@@ -104,6 +126,7 @@ export const POST = withRateLimit(async (_req: NextRequest) => {
         demo_url: repo.homepage || null,
         tech_stack: techStack,
         github_verified: false,
+        github_meta: githubMeta,
       })
 
       if (insertError) {
@@ -113,9 +136,10 @@ export const POST = withRateLimit(async (_req: NextRequest) => {
       synced++
     }
 
-    logger.info(`[github-sync] Synced ${synced}/${repos.length} repos for user ${userId}`)
+    logger.info(`[github-sync] Synced ${synced}/${repos.length} repos, meta for ${metaSynced}`)
     await captureServerEvent('github_sync_completed', userId, {
       synced_count: synced,
+      meta_synced: metaSynced,
       total_repos: repos.filter((r) => !r.fork).length,
     });
     revalidatePath("/dashboard/hacker/projects")
@@ -124,6 +148,7 @@ export const POST = withRateLimit(async (_req: NextRequest) => {
     return NextResponse.json({
       ok: true,
       synced,
+      metaSynced,
       total: repos.filter((r) => !r.fork).length,
       message: synced > 0
         ? `Imported ${synced} project${synced === 1 ? "" : "s"} from GitHub.`

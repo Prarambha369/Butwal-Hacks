@@ -1,7 +1,7 @@
 # Butwal Hacks — Codebase Overview (State of the Union)
 
-> Generated: July 12, 2026
-> Branch: `rewrite-history`
+> Generated: July 23, 2026
+> Branch: `test/ci-pipeline-verification`
 > Root: `/home/mrbashyal/air/Butwal-Hacks/my-app`
 
 ---
@@ -17,7 +17,7 @@ The platform allows hackers to:
 - Showcase their work on a public **Hacker ID profile** (`/p/[slug_id]`)
 - Participate in **chapters** (regional communities across Nepal)
 
-**Current state:** MVP phase. Auth migrated from Clerk to Auth0. UI strictly uses the Liquid Glass design system. The core credentialing engine (Trust Markers, Ghost Profiles, Ed25519 signing) is built. Dashboards for all three roles (Hacker, Organizer, Maintainer) exist. R2 storage plan abandoned — Cloudinary handles images, video via embeds.
+**Current state:** Post-MVP phase. Auth migrated from Clerk to Auth0. UI uses semantic @theme CSS variables with dark/light mode support. The core credentialing engine (Trust Markers, Ghost Profiles, Ed25519 signing) is built and stable. Dashboards for all three roles (Hacker, Organizer, Maintainer) exist along with sponsor portal, mentor directory (with Cal.com integration), team formation V2 (manual force-create), QR code check-in with scanner, certificate bulk PDF export, health endpoint (DB + Redis), and AI pitch generator. Nepali i18n covers 200+ translation keys across top UI surfaces. Test suite covers 875 tests across 47 test files (19 server action test files) with full mock isolation and CI integration.
 
 ---
 
@@ -91,9 +91,10 @@ The platform allows hackers to:
 - **About, Philosophy, Governance, Donors, Initiatives, Programs** — Static content pages
 
 ### ✅ Dashboard (Server-side rendered)
-- **Hacker Dashboard** — Activity feed, level progression, XP tracking, profile settings, projects management, teams management, certificates, GitHub sync
-- **Organizer Dashboard** — Event management (create/edit/analytics), attendee management with CSV export, trust marker issuance, API keys
-- **Maintainer Dashboard** — User management, trust override/revoke, moderation panel, audit log, site config, annual report generation
+- **Hacker Dashboard** — Activity feed, level progression, XP tracking, profile settings, projects management, teams management, certificates, GitHub sync, skill trees with unlockable micro-credentials
+- **Organizer Dashboard** — Event management (create/edit/analytics), attendee management with CSV export + QR code check-in scanner, trust marker issuance, API keys, team force-creation
+- **Maintainer Dashboard** — User management, trust override/revoke, moderation panel, audit log, site config, annual report generation, school dedication
+- **Sponsor Portal** — Bounty board, opportunity management, hacker talent search with marker-type filtering
 
 ### ✅ Trust Marker System
 - **Issue markers** — Organizers can issue markers to hackers by email
@@ -103,14 +104,15 @@ The platform allows hackers to:
 - **Badge assertions** — Open Badges 3.0 compatible JSON-LD format
 - **Certificate scanner** — AI-powered extraction from uploaded certificate images
 
-### ✅ API Routes (38 endpoints)
-- Auth0 webhook sync, Cloudinary signed uploads, event CRUD + registration + check-in
-- Project CRUD + likes + GitHub sync, team management, profile management
+### ✅ API Routes (51 endpoints)
+- Auth0 webhook sync, Cloudinary signed uploads, event CRUD + registration + check-in + QR scan
+- Project CRUD + likes + GitHub deep sync, team management (manual force-create), profile management
 - AI chat (BH Bot), AI certificate extraction, AI pitch generator
-- Contact form, feedback submission, notifications, reviews, sponsor operations
-- Trust marker issuance (v1 API), badge assertions, annual report generation
+- Contact form, feedback submission, notifications, reviews, sponsor + bounty operations
+- Trust marker issuance (v1 API), badge assertions, annual report generation, health check
+- Mentor directory, QR code check-in scanner, certificate bulk PDF export
 - Cron jobs (daily stats, cleanup), Open Collective webhook, proxy webhooks
-- Heartbeat, error reporting, resource completion
+- Bounty listing with pagination, skill trees with status, GitHub deep sync
 
 ### ✅ Infrastructure
 - **PWA** — Service worker, install prompt, offline page
@@ -122,6 +124,12 @@ The platform allows hackers to:
 - **Command palette** — Cmd+K search across hackers, projects, events
 - **Feedback widget** — Anonymous feedback collection
 - **BH Bot** — RAG chatbot with Groq Llama 3
+- **Mentor Directory** — Profiles with "Available for Mentorship" flag + Cal.com integration for 15-min chat requests
+- **Team Formation V2** — Organizer manual force-create teams and assign members
+- **QR Code Check-in** — Per-hacker QR code generation + scanner for marking attendance
+- **Certificate Export** — Bulk PDF export of all trust markers for an event
+- **Health Endpoint** — `/api/health` checking DB and Redis connectivity
+- **AI Pitch Generator** — Groq-powered Devpost-style project description generation
 
 ---
 
@@ -271,14 +279,14 @@ User clicks "Register" → EventRegisterButton (client)
 | `/orgs/[slug]/events` | Chapter events |
 | `/orgs/[slug]/members` | Chapter members |
 
-### API Routes (38 total)
+### API Routes (51 total)
 | Category | Endpoints |
 |----------|-----------|
 | **Auth** | `POST /api/webhooks/auth0` |
 | **Events** | `GET /api/events`, `POST /api/events/register`, `POST /api/events/checkin`, `GET /api/events/[eventId]/registrations` |
-| **Projects** | `GET /api/projects`, `POST /api/projects/like`, `POST /api/github/sync` |
+| **Projects** | `GET /api/projects`, `POST /api/projects/like`, `POST /api/github/sync`, `POST /api/github/deep-sync` |
 | **Profiles** | `POST /api/profile/complete`, `POST /api/profile/update` |
-| **Teams** | `POST /api/teams` |
+| **Teams** | `POST /api/teams`, `POST /api/teams/force-create` |
 | **Media** | `POST /api/cloudinary-signature` |
 | **AI** | `POST /api/ai/chat` (BH Bot), `POST /api/ai/pitch`, `POST /api/certificates/extract` |
 | **Badges** | `GET /api/badges/check`, `GET /api/badges/assertions/[markerId]`, `GET /api/badges/issuer` |
@@ -292,7 +300,12 @@ User clicks "Register" → EventRegisterButton (client)
 | **Resources** | `POST /api/resources/complete` |
 | **Metrics** | `GET /api/organizer/metrics` |
 | **Notifications** | `GET /api/notifications` |
-| **System** | `GET /api/heartbeat`, `POST /api/report-error` |
+| **System** | `GET /api/heartbeat`, `POST /api/report-error`, `GET /api/health` |
+| **Bounties** | `GET /api/bounties` (paginated), `POST /api/bounties` |
+| **Skill Trees** | `GET /api/skill-trees` (paginated) |
+| **Mentors** | `GET /api/mentors/available`, `POST /api/mentors/request-chat` |
+| **Check-in** | `GET /api/events/[eventId]/checkin/qr/[profileId]`, `POST /api/events/[eventId]/checkin/scan` |
+| **Certificates** | `GET /api/certificates/event/[eventId]/export` |
 
 ---
 
@@ -316,11 +329,11 @@ A platform where any young technologist in Nepal can:
 - **Liquid Glass aesthetic** — Premium dark-themed UI with red accent, glass morphism
 
 ### North Star Metrics
-- 500+ community members
-- 12+ events hosted
-- 40+ projects shipped
-- 8+ districts reached across Lumbini Province
-- Active chapters in Pokhara, Kathmandu, Chitwan
+- Community of student builders, mentors, and organizers across Lumbini Province
+- Regular hackathons, game jams, and workshops
+- Open-source and hackathon projects built by the community
+- Participants from across Lumbini and neighboring provinces
+- Chapter network in planning — no active chapters yet
 
 ---
 
@@ -336,7 +349,7 @@ src/
 │   │   ├── portal/         # Sponsor/recruiter portal
 │   │   ├── orgs/           # Chapter subdomain pages
 │   │   └── ...             # Public pages
-│   ├── api/                # 38 API route handlers
+│   ├── api/                # 51 API route handlers
 │   ├── p/[slug_id]/        # Public Hacker ID profile
 │   ├── verify/             # Trust marker verification
 │   └── widget/             # Embeddable widget

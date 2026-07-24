@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import {Trophy, Link as LinkIcon, Settings, Trash2, ShieldCheck, UserPlus} from 'lucide-react';
+import { Trophy, Link as LinkIcon, Settings, Trash2, ShieldCheck, UserPlus } from 'lucide-react';
 import TeamRequestList from '@/components/dashboard/team-request-list';
 import TeamInviteList from '@/components/dashboard/team-invite-list';
 import InviteHackerModal from '@/components/dashboard/invite-hacker-modal';
@@ -11,6 +11,7 @@ import LinkProjectModal from '@/components/dashboard/link-project-modal';
 import { createClient } from '@/utils/supabase/client';
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Team, TeamMember, Profile } from '@/lib/supabase-types';
+import { getAvatarUrl } from '@/lib/utils';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
@@ -221,7 +222,7 @@ export default function TeamManagement() {
             <div className="pt-6 border-t border-border space-y-4">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Status</span>
-                <span className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold uppercase">Active</span>
+                <span className="px-2 py-1 rounded-full bg-status-green/10 text-status-green text-[10px] font-bold uppercase">Active</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Members</span>
@@ -284,10 +285,11 @@ export default function TeamManagement() {
                     <div className="flex items-center gap-4">
                       <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/10">
                         <Image
-                          src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name}`}
-                          alt={profile?.full_name}
+                          src={getAvatarUrl(profile?.avatar_url, profile?.full_name)}
+                          alt={profile?.full_name ?? 'Member'}
                           fill
                           className="object-cover"
+                          unoptimized={!profile?.avatar_url}
                         />
                       </div>
                       <div>

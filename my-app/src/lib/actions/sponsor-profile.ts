@@ -1,7 +1,7 @@
 "use server";
 
 import { createServiceClient } from "@/utils/supabase/service";
-import { sanitizeString, sanitizeUrl, sanitizeName } from "@/lib/validation";
+import { sanitizeString, normalizeSocialUrl } from "@/lib/validation";
 import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
 import { resolveProfileId } from "@/lib/profile-resolver";
@@ -54,9 +54,9 @@ export async function upsertSponsorProfile(data: SponsorProfileData) {
     if (profile.role !== "sponsor") throw new Error("Only sponsors can manage company profiles");
 
     const sanitized = {
-      company_name: sanitizeName(data.companyName),
-      company_website: data.companyWebsite ? sanitizeUrl(data.companyWebsite) : null,
-      company_logo_url: data.companyLogoUrl ? sanitizeUrl(data.companyLogoUrl) : null,
+      company_name: sanitizeString(data.companyName, 100),
+      company_website: data.companyWebsite ? normalizeSocialUrl(data.companyWebsite) : null,
+      company_logo_url: data.companyLogoUrl ? normalizeSocialUrl(data.companyLogoUrl) : null,
       description: data.description ? sanitizeString(data.description, 2000) : null,
       locations: data.locations?.filter(Boolean).map(l => sanitizeString(l, 100)) || [],
       industries: data.industries?.filter(Boolean).map(i => sanitizeString(i, 100)) || [],

@@ -47,6 +47,8 @@ export async function getYearMetrics(year: number, useServiceRole = false): Prom
       { count: newRegistrations },
       { data: xpData },
       { data: topHackers },
+      { count: activeChapters },
+      { count: sponsorOrganizations },
     ] = await Promise.all([
       db.from("profiles").select("*", { count: "exact", head: true })
         .gte("created_at", startDate).lt("created_at", endDate),
@@ -66,6 +68,8 @@ export async function getYearMetrics(year: number, useServiceRole = false): Prom
         .gte("created_at", startDate).lt("created_at", endDate),
       db.from("profiles").select("bh_id, full_name, xp")
         .order("xp", { ascending: false }).limit(10),
+      db.from("chapters").select("*", { count: "exact", head: true }),
+      db.from("sponsor_profiles").select("*", { count: "exact", head: true }),
     ])
 
     const totalXpAwarded = xpData?.reduce((sum, p) => sum + (p.xp ?? 0), 0) ?? 0
@@ -100,10 +104,9 @@ export async function getYearMetrics(year: number, useServiceRole = false): Prom
       },
       topHackers: topHackers ?? [],
       monthlySignups,
-      // ponytail: Hardcoded until real data sources are connected
       communityMetrics: {
-        activeChapters: new Date().getFullYear() >= 2024 ? 3 : 0,
-        sponsorOrganizations: 0,
+        activeChapters: activeChapters ?? 0,
+        sponsorOrganizations: sponsorOrganizations ?? 0,
         bountyCompleted: 0,
         totalEventsHeld: newEvents ?? 0,
       },

@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Send, Github, ExternalLink, Code2, Image as ImageIcon, Calendar, Tags } from 'lucide-react';
+import { Send, Github, ExternalLink, Code2, Image as ImageIcon, Calendar, Tags, Sparkles, Loader2 } from 'lucide-react';
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { submitProject } from '@/lib/actions/projects';
 import { toast } from 'sonner';
+import posthog from 'posthog-js';
 import { createClient } from '@/utils/supabase/client';
 import { useUser } from '@auth0/nextjs-auth0/client';
 
@@ -37,7 +38,8 @@ export default function ProjectSubmissionForm() {
   const supabase = createClient();
   const { user } = useUser();
   const [events, setEvents] = useState<EventOption[]>([]);
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm({
+  const [generatingPitch, setGeneratingPitch] = useState(false);
+  const { register, handleSubmit, setValue, getValues, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       title: '',
@@ -54,8 +56,9 @@ export default function ProjectSubmissionForm() {
   const [techTags, setTechTags] = useState<string[]>([]);
   const [coverImage, setCoverImage] = useState('');
   const [bhId, setBhId] = useState<string | undefined>();
+  const [usedAiPitch, setUsedAiPitch] = useState(false);
 
-  // ponytail: Fetch hacker's registered events + bh_id for the event selector and Cloudinary metadata
+  // Fetch hacker's registered events + bh_id for the event selector and Cloudinary metadata
   useEffect(() => {
     const userId = user?.sub;
     if (!userId) return;
@@ -112,7 +115,15 @@ export default function ProjectSubmissionForm() {
         teamId: data.teamId || null,
       });
       if (result.success) {
-        toast.success("Project submitted successfully! 🚀");
+        toast.success("Project submitted successfully!");
+        // Track if the description was AI-generated (from the pitch generator)
+        try {
+          posthog.capture('project_submitted', {
+            title: data.title,
+            category: data.category || null,
+            usedAiPitch,
+          });
+        } catch { /* analytics best-effort */ }
         router.push('/dashboard/hacker/projects');
         router.refresh();
       }
@@ -146,7 +157,66 @@ export default function ProjectSubmissionForm() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground ml-1">Description</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-muted-foreground ml-1">Description</label>
+              <button
+                type="button"
+                onClick={async () => {
+                  const values = getValues();
+                  if (!values.title || values.title.length < 3) {
+                    toast.error("Enter a project title first (min 3 chars).");
+                    return;
+                  }
+                  const techStack = techTags.length > 0 ? techTags : [];
+                  const currentDescription = values.description?.trim() || '';
+
+                  setGeneratingPitch(true);
+                  try {
+                    const res = await fetch('/api/ai/pitch-generator', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        title: values.title,
+                        description: currentDescription || 'Use title and tech stack to generate.',
+                        techStack,
+                        category: values.category || undefined,
+                      }),
+                    });
+                    if (!res.ok) {
+                      const err = await res.json().catch(() => ({}));
+                      toast.error(err.error || 'Failed to generate pitch');
+                      return;
+                    }
+                    const data = await res.json();
+                    setValue('description', data.pitch);
+                    setUsedAiPitch(true);
+                    toast.success('AI pitch generated! Review and edit before submitting.');
+                    try {
+                      posthog.capture('pitch_generated', {
+                        title: values.title,
+                        category: values.category || undefined,
+                        techStack: techStack,
+                        model: data.model,
+                        hadExistingDescription: currentDescription.length > 0,
+                      });
+                    } catch { /* analytics best-effort */ }
+                  } catch {
+                    toast.error('Failed to generate pitch. Check your connection and try again.');
+                  } finally {
+                    setGeneratingPitch(false);
+                  }
+                }}
+                disabled={generatingPitch}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-red/10 text-primary-red text-[10px] font-bold hover:bg-primary-red/20 transition-all disabled:opacity-50"
+              >
+                {generatingPitch ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3 h-3" />
+                )}
+                {generatingPitch ? 'Generating...' : 'Generate with AI'}
+              </button>
+            </div>
             <textarea 
               {...register('description')}
               rows={4}
@@ -242,7 +312,7 @@ export default function ProjectSubmissionForm() {
             <label className="text-sm font-medium text-muted-foreground ml-1">Tech Stack (Press Enter to add)</label>
             <div className="flex flex-wrap gap-2 p-2 bg-surface-hover border border-border rounded-lg focus-within:ring-2 focus-within:ring-[#FE0000] focus-within:outline-none transition-all">
               {techTags.map((tag, i) => (
-                <span key={i} className="px-2 py-1 bg-deep-red/20 text-primary-red text-xs rounded-lg border border-red-600/30 flex items-center gap-1">
+                <span key={i} className="px-2 py-1 bg-deep-red/20 text-primary-red text-xs rounded-lg border border-primary-red/30 flex items-center gap-1">
                   {tag}
                   <button 
                     type="button" 
@@ -269,7 +339,7 @@ export default function ProjectSubmissionForm() {
           <button 
             disabled={isSubmitting}
             type="submit" 
-            className="w-full py-4 bg-bh-red-600 hover:bg-primary-red text-primary rounded-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-red/20"
+            className={`w-full py-4 bg-bh-red-600 hover:bg-primary-red text-primary rounded-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-red/20 ${isSubmitting ? 'bh-btn-disabled' : ''}`}
           >
             {isSubmitting ? (
               <RoseSpinner size="sm" />

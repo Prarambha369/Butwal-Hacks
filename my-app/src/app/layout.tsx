@@ -103,7 +103,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <meta name="theme-color" content="#FE0000" />
           <meta name="apple-mobile-web-app-title" content="Butwal Hacks" />
           </head>
-      <body className="bg-background text-primary transition-colors duration-300 antialiased">
+      <body className="bg-background text-primary transition-colors duration-300 antialiased" suppressHydrationWarning>
         <div className="scroll-progress-bar" aria-hidden="true" />
         {/* ══ Skip-to-content link — visible on keyboard focus, hidden otherwise ══ */}
         <a

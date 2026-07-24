@@ -15,6 +15,7 @@ import {
   Mail,
   Send,
 } from "lucide-react";
+import { toast } from "sonner";
 import { selectRole, requestRoleUpgrade } from "@/lib/actions/role-selection";
 
 interface RoleOption {
@@ -138,6 +139,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
     const result = await selectRole(formData);
     if (result?.error) {
       setError(result.error);
+      toast.error(result.error);
       setIsSubmitting(false);
       setSelectedRole(null);
     }
@@ -166,6 +168,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
       setRequestMessage("");
     } else {
       setRequestError(result.error ?? "Failed to submit request.");
+      toast.error(result.error ?? "Failed to submit request.");
     }
     setRequestSubmitting(false);
   }, [showRequestForm, requestMessage]);
@@ -238,7 +241,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
                 <button
                   type="submit"
                   disabled={requestSubmitting || requestMessage.trim().length < 10}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all ${requestSubmitting || requestMessage.trim().length < 10 ? 'bh-btn-disabled' : ''}`}
                 >
                   {requestSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

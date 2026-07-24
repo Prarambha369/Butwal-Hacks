@@ -14,8 +14,8 @@ export function EnhancedContactForm() {
 
   if (submitted) {
     return (
-      <div className="rounded-xl border border-green-200 bg-green-50 p-8 text-center dark:border-green-800 dark:bg-green-950/30">
-        <p className="text-lg font-medium text-green-800 dark:text-green-300">
+      <div className="rounded-xl border border-status-green/20 bg-status-green/5 p-8 text-center">
+        <p className="text-lg font-medium text-status-green">
           Thanks for reaching out! We&apos;ll get back to you soon.
         </p>
       </div>

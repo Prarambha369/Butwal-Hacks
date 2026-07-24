@@ -3,6 +3,7 @@ import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase/service"
 import { withRateLimit } from "@/lib/rate-limiter"
 import { z } from "zod"
+import { parsePagination, paginationMeta } from "@/lib/pagination"
 
 // ─── Validation Schemas ────────────────────────────────────────────────
 
@@ -48,7 +49,7 @@ async function verifyWorkspaceAccess(profileId: string, workspaceId: string) {
     .from("team_members")
     .select("id")
     .eq("team_id", workspace.team_id)
-    .eq("user_id", profileId)
+    .eq("profile_id", profileId)
     .maybeSingle()
 
   return !!membership
@@ -84,10 +85,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 })
   }
 
+  const { limit, offset } = parsePagination(request)
+
   const db = createServiceClient()
   let query = db
     .from("tasks")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("workspace_id", parsed.data.workspace_id)
     .order("position", { ascending: true })
 
@@ -98,13 +101,18 @@ export async function GET(request: NextRequest) {
     query = query.eq("assignee_id", parsed.data.assignee_id)
   }
 
-  const { data: tasks, error } = await query
+  const { data: tasks, error, count } = await query.range(offset, offset + limit - 1)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ tasks })
+  return NextResponse.json({
+    tasks: tasks ?? [],
+    pagination: paginationMeta(limit, offset, count ?? 0),
+  }, {
+    headers: { "Cache-Control": "private, max-age=30" },
+  })
 }
 
 /**
@@ -140,17 +148,15 @@ async function handlePost(request: NextRequest) {
 
   const db = createServiceClient()
 
-  // Get the next position for this status column
-  const { data: lastTask } = await db
-    .from("tasks")
-    .select("position")
-    .eq("workspace_id", parsed.data.workspace_id)
-    .eq("status", parsed.data.status)
-    .order("position", { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  // Atomic position generation via Postgres RPC (advisory-lock guarded)
+  const { data: nextPosition, error: posError } = await db.rpc("get_next_task_position", {
+    p_workspace_id: parsed.data.workspace_id,
+    p_status: parsed.data.status,
+  })
 
-  const nextPosition = (lastTask?.position ?? -1) + 1
+  if (posError || typeof nextPosition !== "number") {
+    return NextResponse.json({ error: "Failed to allocate task position" }, { status: 500 })
+  }
 
   const { data: task, error } = await db
     .from("tasks")

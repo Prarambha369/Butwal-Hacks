@@ -3,7 +3,8 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Rate limit tiers — each named tier gets its own sliding window.
+ * Rate limit tiers - each named tier gets its own sliding window.
+ * Public export for route inventory checks.
  */
 const TIERS = {
   public_form: { requests: 5, window: "60 s" },
@@ -13,9 +14,13 @@ const TIERS = {
   bulk: { requests: 30, window: "60 s" },
 } as const;
 
-type Tier = keyof typeof TIERS;
+// Public aliases for third-party use and route inventory
+export const RATE_LIMIT_TIERS = TIERS;
+export type RateLimitTier = keyof typeof TIERS;
 
-type RateLimitResult = { allowed: boolean; remaining: number; reset: number };
+export type RateLimitResult = { allowed: boolean; remaining: number; reset: number };
+
+type Tier = keyof typeof TIERS;
 
 /**
  * Creates a rate limiter for the specified tier when Redis is configured.
@@ -74,8 +79,13 @@ async function checkRateLimit(request: Request, tier: Tier = "user_action"): Pro
   const limiter = getLimiter(tier);
   if (!limiter) return { allowed: true, remaining: 999, reset: 0 };
   const ip = extractIp(request);
-  const { success, remaining, reset } = await limiter.limit(ip);
-  return { allowed: success, remaining, reset };
+  try {
+    const { success, remaining, reset } = await limiter.limit(ip);
+    return { allowed: success, remaining, reset };
+  } catch {
+    // Fail open: if Redis is unreachable, allow the request through.
+    return { allowed: true, remaining: 999, reset: 0 };
+  }
 }
 
 /**

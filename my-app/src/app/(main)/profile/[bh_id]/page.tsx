@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { createClient } from '@/utils/supabase/server';
+import { createServiceClient } from '@/utils/supabase/service';
 
 import { getUserProjects } from '@/lib/actions/projects';
 import ProfileClient from '@/components/hacker-id/profile-client';
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HackerProfilePage({ params }: { params: Promise<{ bh_id: string }> }) {
   const { bh_id } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: profile, error } = await supabase
     .from('profiles')

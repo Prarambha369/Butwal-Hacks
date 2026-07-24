@@ -1,6 +1,6 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect, notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { createServiceClient } from "@/utils/supabase/service";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import { CalendarDays, Users, Trophy, Plus } from "lucide-react";
@@ -25,7 +25,7 @@ export default async function OrgDashboardPage({ params }: PageProps) {
 
   if (!userId) redirect("/sign-in");
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: chapter } = await supabase
     .from("chapters")
@@ -84,20 +84,20 @@ export default async function OrgDashboardPage({ params }: PageProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(160px,auto)]">
-        <StatCard title="Members" value={memberCount ?? 0} icon={<Users className="text-blue-500" />} description="Chapter members" variant="hero" />
-        <StatCard title="Events" value={eventCount ?? 0} icon={<CalendarDays className="text-emerald-500" />} description="Chapter events" />
-        <StatCard title="Role" value={isAdmin ? "Admin" : "Member"} icon={<Trophy className="text-yellow-500" />} description={isAdmin ? "Full chapter access" : "Participant access"} />
+        <StatCard title="Members" value={memberCount ?? 0} icon={<Users className="text-status-blue" />} description="Chapter members" variant="hero" />
+        <StatCard title="Events" value={eventCount ?? 0} icon={<CalendarDays className="text-status-green" />} description="Chapter events" />
+        <StatCard title="Role" value={isAdmin ? "Admin" : "Member"} icon={<Trophy className="text-status-yellow" />} description={isAdmin ? "Full chapter access" : "Participant access"} />
       </div>
 
       <div className="bh-card p-8 space-y-6">
         <h3 className="text-lg font-bold text-primary">Quick Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <a href={`/orgs/${slug}/events`} className="p-4 rounded-xl bg-surface/10 border border-border hover:bg-surface/10 transition-all flex items-center gap-3 text-sm font-medium text-primary/80">
-            <CalendarDays className="w-5 h-5 text-emerald-500" />
+            <CalendarDays className="w-5 h-5 text-status-green" />
             Browse Events
           </a>
           <a href={`/orgs/${slug}/members`} className="p-4 rounded-xl bg-surface/10 border border-border hover:bg-surface/10 transition-all flex items-center gap-3 text-sm font-medium text-primary/80">
-            <Users className="w-5 h-5 text-blue-500" />
+            <Users className="w-5 h-5 text-status-blue" />
             View Members
           </a>
         </div>

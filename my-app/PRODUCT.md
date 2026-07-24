@@ -34,7 +34,7 @@ Three claims, each true, each describing a different facet of the same product:
 
 - **Nepal's first ORCID-style trust verification for hackers** — cryptographically-signed credentials that outlast any single event or platform. Driven by the Ed25519 signing system at `/api/verify` and the trust marker lifecycle (issue → verify → revoke).
 - **The all-in-one hackathon platform for Nepal's tech community** — events, teams, projects, verification, and funding in one coherent system. Driven by the event engine, team management, project gallery, and Open Collective integration.
-- **Your verified hacker passport for Nepal's tech ecosystem** — a portable identity that proves what you built, where, and when, signed at the protocol level. Driven by the public profile at `/p/[slug_id]`, the API key system, and the embeddable verification widget.
+- **Your verified hacker passport for Nepal's tech community** — a portable identity that proves what you built, where, and when, signed at the protocol level. Driven by the public profile at `/p/[slug_id]`, the API key system, and the embeddable verification widget.
 
 Every screen reinforces at least one claim. The product register (dashboard/app) leads with **tooling**: helping hackers get things done efficiently. The brand register (landing page) leads with **vision**: why a portable identity matters for Nepal's tech future.
 
@@ -50,7 +50,7 @@ Tone adapts to context:
 - **Achievement:** celebratory and proud. Trust marker unlocks, level-ups, and project milestones get visual emphasis with the red glow system.
 - **Error states:** direct and helpful. Rate limits explain why ("You're sending messages too quickly"), not just "too many requests." Empty states teach the interface instead of saying "nothing here."
 
-Emotional goals: a hacker should feel **trusted** (the verification system has their back), **capable** (the tools make complex tasks manageable), and **part of something larger** (their work sits alongside peers in a growing national ecosystem).
+Emotional goals: a hacker should feel **trusted** (the verification system has their back), **capable** (the tools make complex tasks manageable), and **part of something larger** (their work sits alongside peers in a growing national community).
 
 ## Anti-references
 

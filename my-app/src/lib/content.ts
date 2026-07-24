@@ -37,11 +37,11 @@ export const initiatives: Initiative[] = [
     name: "Hackathon",
     status: "active",
     tags: ["hackathon", "building", "teamwork", "coding"],
-    summary: "A long-term community hackathon initiative focused on practical building, teamwork, and problem-solving.",
+    summary: "48-hour build sprints where students ship real projects — websites, apps, hardware, games. Open to all skill levels across Nepal.",
     details: [
-      "Hackathon is an active mission-layer initiative and can host multiple execution events over time.",
-      "It exists continuously even between event cycles and focuses on sustained learning outcomes.",
-      "The initiative supports students and youth in building practical solutions through collaboration.",
+      "Multiple hackathon events throughout the year — each one a weekend build sprint with workshops, mentorship, and a shipped project.",
+      "Projects are judged on execution, creativity, and real-world relevance — not on who has the shiniest resume.",
+      "Workshops, mentorship, and team matching included. You show up with curiosity, leave with a shipped project.",
     ],
   },
   {
@@ -49,11 +49,11 @@ export const initiatives: Initiative[] = [
     name: "MiniHackathon",
     status: "active",
     tags: ["hackathon", "beginner", "hackday", "mentorship"],
-    summary: "A focused HackDay track under the Hackathon initiative for compact, beginner-friendly hack sessions.",
+    summary: "Shorter, beginner-friendly hack sessions under the HackDay format. Ship a prototype in a single day, no experience required.",
     details: [
-      "MiniHackathon falls under the HackDay operating format and is part of the broader Hackathon direction.",
-      "It uses shorter timelines and practical mentorship to make participation approachable.",
-      "This track supports rapid prototyping and execution-focused teamwork.",
+      "A lightweight track designed for first-time hackers who want to build something without committing to a weekend-long event.",
+      "Mentors guide teams through ideation to working prototype in 6-12 hours.",
+      "Focus on rapid prototyping: pick a problem, form a team, build something that works.",
     ],
   },
   {
@@ -61,11 +61,11 @@ export const initiatives: Initiative[] = [
     name: "GameJam",
     status: "active",
     tags: ["gamejam", "game-dev", "creative", "design"],
-    summary: "A recurring initiative centered on game development, creativity, and collaborative design challenges.",
+    summary: "Build a playable game in 24-48 hours. Design, code, and ship with a team — no game dev experience needed to start.",
     details: [
-      "GameJam is an active initiative designed for creative, hands-on project execution.",
-      "It supports ideation, storytelling, and technical skills through structured jam cycles.",
-      "Events under this initiative help participants ship playable prototypes in collaborative teams.",
+      "Weekend-long game jams focused on creativity, storytelling, and technical execution.",
+      "Teams form around themes revealed at the start. Past games include Scratch platformers, Unity puzzle games, and text adventures.",
+      "Workshops on game design, pixel art, and sound design are included with every jam.",
     ],
   },
 ]
@@ -87,7 +87,7 @@ export const events: EventItem[] = [
     tags: ["hackathon", "beginner", "hackday", "learning"],
     status: "completed",
     dateLabel: "Completed program",
-    summary: "A completed day of collaborative building and learning for local student and youth communities.",
+    summary: "A day-long build sprint where first-time hackers shipped their first projects — websites, games, and hardware demos.",
   },
 ]
 
@@ -99,10 +99,10 @@ export const blogPosts: BlogPost[] = [
     publishedAt: "2026-02-10",
     cover_image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1200",
     excerpt:
-      "How consistent local mentorship, open collaboration, and practical learning opportunities can shape long-term innovation outcomes.",
+      "A practical framework for volunteer-driven mentorship in Nepal's tech communities.",
     body: [
-      "Butwal Hacks is organized around community access and practical experience. Our focus is to create pathways where young people can learn through projects, discussion, and peer support.",
-      "As a nonprofit initiative, we prioritize transparent growth and realistic program design. This means documenting what is active, what is planned, and what remains a proposal in our public roadmap.",
+      "Butwal Hacks is a community where students build real projects and learn from each other. No gatekeeping, no fees — just people who show up to build.",
+      "As a nonprofit, we keep our roadmap public and our finances transparent. Every rupee is tracked on Open Collective.",
     ],
   },
   {
@@ -112,10 +112,10 @@ export const blogPosts: BlogPost[] = [
     publishedAt: "2026-02-18",
     cover_image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1200",
     excerpt:
-      "A practical framework for volunteer-driven mentorship in regional tech communities.",
+      "What we've learned from setting up volunteer-driven mentorship in Butwal and beyond.",
     body: [
-      "Mentorship works best when the community shares ownership. Butwal Hacks encourages facilitation models that help mentors and learners collaborate consistently.",
-      "Our next phase is to improve documentation, event continuity, and community support systems while preserving inclusive participation.",
+      "Mentorship works best when the community shares ownership. Butwal Hacks helps mentors and learners work together consistently.",
+      "Next up: better documentation, more consistent events, and community systems that work for everyone.",
     ],
   },
 ]
@@ -232,17 +232,17 @@ export interface CommunityStat {
 }
 
 export const communityStats: CommunityStat[] = [
-  { value: "500+", label: "Community Members", description: "Active builders, mentors, and organizers across Lumbini Province" },
-  { value: "12+", label: "Events Hosted", description: "Hackathons, game jams, workshops, and meetups since 2024" },
-  { value: "40+", label: "Projects Shipped", description: "Open-source and hackathon projects built by the community" },
-  { value: "8+", label: "Districts Reached", description: "Youth participants from across Lumbini and neighboring provinces" },
+  { value: "—", label: "Community Members", description: "Active builders, mentors, and organizers across Lumbini Province" },
+  { value: "—", label: "Events Hosted", description: "Hackathons, game jams, workshops, and meetups since 2024" },
+  { value: "—", label: "Projects Shipped", description: "Open-source and hackathon projects built by the community" },
+  { value: "—", label: "Districts Reached", description: "Youth participants from across Lumbini and neighboring provinces" },
 ]
 
 export const communityMembers: CommunityMember[] = [
-  { role: "Builder", count: 320, description: "Active hackers and project contributors" },
-  { role: "Mentor", count: 45, description: "Experienced developers and engineers guiding the community" },
-  { role: "Organizer", count: 28, description: "Volunteers running events and initiatives" },
-  { role: "Sponsor", count: 12, description: "Organizations supporting the mission" },
+  { role: "Builder", count: 0, description: "Active hackers and project contributors" },
+  { role: "Mentor", count: 0, description: "Experienced developers and engineers guiding the community" },
+  { role: "Organizer", count: 0, description: "Volunteers running events and initiatives" },
+  { role: "Sponsor", count: 0, description: "Organizations supporting the mission" },
 ]
 
 export interface CommunityUpdate {

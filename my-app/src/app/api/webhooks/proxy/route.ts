@@ -23,7 +23,6 @@ import { logger } from "@/lib/logger";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase/service";
-import { posthogLog } from "@/lib/posthog-logger";
 
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL ?? "";
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL ?? "";
@@ -75,6 +74,7 @@ async function forwardToSlack(payload: {
   const res = await fetch(SLACK_WEBHOOK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(10_000),
     body: JSON.stringify({
       attachments: [
         {
@@ -125,6 +125,7 @@ async function forwardToDiscord(payload: {
   const res = await fetch(DISCORD_WEBHOOK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(10_000),
     body: JSON.stringify({ embeds: [embed] }),
   });
 
@@ -181,7 +182,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       Object.assign(results, discordResult);
     }
 
-    posthogLog.info("Webhook proxy forwarded", {
+    logger.info("Webhook proxy forwarded", {
       event,
       channel: channel ?? "all",
       results,

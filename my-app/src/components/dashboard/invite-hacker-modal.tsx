@@ -5,6 +5,7 @@ import Image from 'next/image';
 import {Search, UserPlus, X} from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { Profile } from '@/lib/supabase-types';
+import { getAvatarUrl } from '@/lib/utils';
 
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { toast } from 'sonner';
@@ -102,10 +103,11 @@ export default function InviteHackerModal({ teamId, onClose, onSuccess }: Invite
                   <div className="flex items-center gap-3">
                     <div className="relative w-10 h-10 overflow-hidden rounded-full bg-surface-hover">
                       <Image 
-                        src={profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.full_name}`} 
+                        src={getAvatarUrl(profile.avatar_url, profile.full_name)}
                         alt={profile.full_name}
                         fill
                         className="object-cover"
+                        unoptimized={!profile.avatar_url}
                       />
                     </div>
                     <div>

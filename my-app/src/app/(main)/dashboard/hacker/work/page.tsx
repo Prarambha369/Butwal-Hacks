@@ -1,3 +1,5 @@
+import Link from "next/link"
+import { Users } from "lucide-react"
 import { redirect } from "next/navigation"
 import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase/service"
@@ -66,11 +68,11 @@ export default async function WorkPage() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 space-y-8">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Work</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">Work</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Notion-style task management for your hackathon team
           </p>
@@ -88,13 +90,24 @@ export default async function WorkPage() {
           workspaceId={firstWorkspace.id}
           initialTasks={tasks.data || []}
           teamMembers={members}
+          workspaces={workspaces.data || []}
         />
       ) : (
-        <div className="bh-card p-12 text-center">
-          <h3 className="text-lg font-semibold text-primary mb-2">No Active Workspace</h3>
-          <p className="text-sm text-muted-foreground">
+        <div className="bh-card p-12 text-center space-y-4">
+          <Users className="w-10 h-10 mx-auto text-muted-foreground/40" />
+          <h3 className="text-lg font-semibold text-primary">No Active Workspace</h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
             Join a team to get access to your workspace and start managing tasks.
           </p>
+          <div className="pt-2">
+            <Link
+              href="/teams"
+              className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+            >
+              <Users className="w-4 h-4" />
+              Join a Team
+            </Link>
+          </div>
         </div>
       )}
     </div>

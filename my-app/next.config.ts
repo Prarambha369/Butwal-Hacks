@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
  * Key settings:
  *  - poweredByHeader: disabled (removes "X-Powered-By: Next.js" response header)
  *  - reactStrictMode: enabled (catches common React pitfalls early)
- *  - images.remotePatterns: whitelist for future external images (CDN, avatars)
+ *  - images.remotePatterns: whitelist for external images (CDN, avatars)
  *  - Security headers: CSP (per-route frame-ancestors), HSTS, X-Content-Type-Options
  *  - Sentry: error monitoring via withSentryConfig wrapper
  */
@@ -18,6 +18,7 @@ import type { NextConfig } from "next";
 // Domains audited against actual browser-side requests (2026-07-13):
 //   - Removed: googletagmanager.com, google-analytics.com, analytics.google.com (not loaded)
 //   - Removed: api.axiom.co, api.resend.com, api.github.com, api.groq.com (server-only)
+//   - Removed: www.gravatar.com, secure.gravatar.com (no longer generating gravatar URLs)
 //   - Added:   api.cloudinary.com (upload XHR), images.unsplash.com (blog covers)
 //   - Added:   res.cloudinary.com (CDN images), api.dicebear.com (avatar fallbacks)
 //   - Fonts:   'self' only — next/font self-hosts after migration
@@ -36,7 +37,7 @@ const baseCSP = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://auth.butwalhacks.com https://*.posthog.com https://va.vercel-scripts.com;
   style-src 'self' 'unsafe-inline';
-  img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://api.dicebear.com;
+  img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://api.dicebear.com https://api.qrserver.com;
   font-src 'self';
   worker-src 'self';
   object-src 'none';
@@ -70,11 +71,11 @@ const securityHeaders = [
   },
   {
     key: "Referrer-Policy",
-    value: "origin-when-cross-origin",
+    value: "strict-origin-when-cross-origin",
   },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=()",
+    value: "camera=(self), microphone=(), geolocation=()",
   },
 ]
 
@@ -94,11 +95,11 @@ const widgetHeaders = [
   },
   {
     key: "Referrer-Policy",
-    value: "origin-when-cross-origin",
+    value: "strict-origin-when-cross-origin",
   },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=()",
+    value: "camera=(self), microphone=(), geolocation=()",
   },
 ]
 
@@ -122,6 +123,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "api.qrserver.com",
       },
     ],
   },

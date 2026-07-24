@@ -2,21 +2,21 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
-vi.mock("@/utils/supabase/server", () => ({
-  createAuthenticatedClient: vi.fn(),
+vi.mock("@/lib/auth0", () => ({
+  auth0: { getSession: vi.fn() },
+}));
+
+vi.mock("@/utils/supabase/service", () => ({
+  createServiceClient: vi.fn(),
 }));
 
 vi.mock("@/lib/rate-limiter", () => ({
   withRateLimit: vi.fn((handler) => handler),
-  withPayloadLimit: vi.fn((handler) => handler),
   checkRateLimit: vi.fn(),
 }));
 
 vi.mock("@/lib/validation", () => ({
   sanitizeUuid: vi.fn((v: string) => v),
-  sanitizeTitle: vi.fn((v: string) => v),
-  sanitizeDescription: vi.fn((v: string) => v),
-  sanitizeName: vi.fn((v: string) => v),
   sanitizeUrl: vi.fn((v: string) => v),
   sanitizeString: vi.fn((v: string, max: number) => v?.slice(0, max)),
 }));
@@ -29,13 +29,11 @@ vi.mock("@/lib/analytics/server", () => ({
   captureServerEvent: vi.fn(),
 }));
 
-vi.mock("@/lib/posthog-logger", () => ({
-  posthogLog: { info: vi.fn(), error: vi.fn() },
-}));
+import { createServiceClient } from "@/utils/supabase/service";
+import { auth0 } from "@/lib/auth0";
 
-import { createAuthenticatedClient } from "@/utils/supabase/server";
-
-const mockedCreateAuthenticatedClient = createAuthenticatedClient as ReturnType<typeof vi.fn>;
+const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>;
+const mockedGetSession = auth0.getSession as ReturnType<typeof vi.fn>;
 
 // ─── Mock Database Builder ───────────────────────────────────────────────────
 
@@ -51,7 +49,7 @@ function buildMockDb() {
     db[m] = vi.fn(() => db);
   }
 
-  return db as unknown as ReturnType<typeof createAuthenticatedClient> & {
+  return db as unknown as ReturnType<typeof createServiceClient> & {
     from: ReturnType<typeof vi.fn>;
     select: ReturnType<typeof vi.fn>;
     eq: ReturnType<typeof vi.fn>;
@@ -82,14 +80,13 @@ function mockRequest(body: unknown, headers?: Record<string, string>): Request {
 describe("POST /api/events/register", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedCreateAuthenticatedClient.mockResolvedValue({
-      supabase: buildMockDb(),
-      userId: "auth0|12345",
-    });
+    const db = buildMockDb();
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
   });
 
   it("returns 401 when not authenticated", async () => {
-    mockedCreateAuthenticatedClient.mockResolvedValue(null);
+    mockedGetSession.mockResolvedValue(null);
     const { POST } = await import("../events/register/route");
     const res = await POST(mockRequest({ event_id: "some-uuid" }));
     const body = await res.json();
@@ -101,7 +98,8 @@ describe("POST /api/events/register", () => {
   it("returns 400 when profile not found", async () => {
     const db = buildMockDb();
     db.single.mockResolvedValue({ data: null, error: null });
-    mockedCreateAuthenticatedClient.mockResolvedValue({ supabase: db, userId: "auth0|12345" });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../events/register/route");
     const res = await POST(mockRequest({ event_id: "some-uuid" }));
@@ -115,7 +113,8 @@ describe("POST /api/events/register", () => {
     const db = buildMockDb();
     db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null });
     db.insert.mockResolvedValue({ error: null });
-    mockedCreateAuthenticatedClient.mockResolvedValue({ supabase: db, userId: "auth0|12345" });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../events/register/route");
     await POST(mockRequest({ event_id: "some-uuid" }));
@@ -126,16 +125,17 @@ describe("POST /api/events/register", () => {
     expect(auth0Query![1]).toBe("auth0|12345");
   });
 
-  it("returns 200 on successful registration", async () => {
+  it("returns 201 on successful registration", async () => {
     const db = buildMockDb();
     db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null });
     db.insert.mockResolvedValue({ error: null });
-    mockedCreateAuthenticatedClient.mockResolvedValue({ supabase: db, userId: "auth0|12345" });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../events/register/route");
     const res = await POST(mockRequest({ event_id: "valid-uuid" }));
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(201);
     const body = await res.json();
     expect(body.success).toBe(true);
   });
@@ -148,14 +148,13 @@ describe("POST /api/events/register", () => {
 describe("POST /api/teams", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedCreateAuthenticatedClient.mockResolvedValue({
-      supabase: buildMockDb(),
-      userId: "auth0|12345",
-    });
+    const db = buildMockDb();
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
   });
 
   it("returns 401 when not authenticated", async () => {
-    mockedCreateAuthenticatedClient.mockResolvedValue(null);
+    mockedGetSession.mockResolvedValue(null);
     const { POST } = await import("../teams/route");
     const res = await POST(mockRequest({ name: "Test Team", event_id: "some-uuid" }));
     const body = await res.json();
@@ -167,7 +166,8 @@ describe("POST /api/teams", () => {
   it("returns 400 when profile not found", async () => {
     const db = buildMockDb();
     db.single.mockResolvedValue({ data: null, error: null });
-    mockedCreateAuthenticatedClient.mockResolvedValue({ supabase: db, userId: "auth0|12345" });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../teams/route");
     const res = await POST(mockRequest({ name: "Test Team", event_id: "some-uuid" }));
@@ -185,7 +185,8 @@ describe("POST /api/teams", () => {
     // route uses insert().select().single() chaining, and mockResolvedValue
     // would replace the mock with a Promise, breaking the chain. The default
     // vi.fn(() => db) return is what keeps the chain intact.
-    mockedCreateAuthenticatedClient.mockResolvedValue({ supabase: db, userId: "auth0|12345" });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../teams/route");
     await POST(mockRequest({ name: "Test Team" }));
@@ -201,12 +202,13 @@ describe("POST /api/teams", () => {
     db.single.mockResolvedValueOnce({ data: { id: "profile-uuid" }, error: null }); // profile
     db.single.mockResolvedValueOnce({ data: { id: "team-uuid", name: "Test Team" }, error: null }); // team inserted
     // Same reason as above — insert() must keep returning db for chaining
-    mockedCreateAuthenticatedClient.mockResolvedValue({ supabase: db, userId: "auth0|12345" });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../teams/route");
     const res = await POST(mockRequest({ name: "Test Team", event_id: "event-uuid" }));
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(201);
     const body = await res.json();
     expect(body.success).toBe(true);
     expect(body.team.name).toBe("Test Team");
@@ -223,14 +225,13 @@ describe("POST /api/teams", () => {
 describe("POST /api/projects", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedCreateAuthenticatedClient.mockResolvedValue({
-      supabase: buildMockDb(),
-      userId: "auth0|12345",
-    });
+    const db = buildMockDb();
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
   });
 
   it("returns 401 when not authenticated", async () => {
-    mockedCreateAuthenticatedClient.mockResolvedValue(null);
+    mockedGetSession.mockResolvedValue(null);
     const { POST } = await import("../projects/route");
     const res = await POST(mockRequest({ title: "My Project", description: "A cool project" }));
     const body = await res.json();
@@ -242,7 +243,8 @@ describe("POST /api/projects", () => {
   it("returns 400 when profile not found", async () => {
     const db = buildMockDb();
     db.single.mockResolvedValue({ data: null, error: null });
-    mockedCreateAuthenticatedClient.mockResolvedValue({ supabase: db, userId: "auth0|12345" });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../projects/route");
     const res = await POST(mockRequest({ title: "My Project", description: "A cool project" }));
@@ -256,7 +258,8 @@ describe("POST /api/projects", () => {
     const db = buildMockDb();
     db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null });
     db.insert.mockResolvedValue({ error: null });
-    mockedCreateAuthenticatedClient.mockResolvedValue({ supabase: db, userId: "auth0|12345" });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../projects/route");
     await POST(mockRequest({ title: "My Project", description: "A cool project" }));
@@ -271,7 +274,8 @@ describe("POST /api/projects", () => {
     const db = buildMockDb();
     db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null });
     db.insert.mockResolvedValue({ error: null });
-    mockedCreateAuthenticatedClient.mockResolvedValue({ supabase: db, userId: "auth0|12345" });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../projects/route");
     const res = await POST(mockRequest({
@@ -290,7 +294,8 @@ describe("POST /api/projects", () => {
   it("rejects request with missing title", async () => {
     const db = buildMockDb();
     db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null });
-    mockedCreateAuthenticatedClient.mockResolvedValue({ supabase: db, userId: "auth0|12345" });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../projects/route");
     const res = await POST(mockRequest({ description: "Missing title" }));

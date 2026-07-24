@@ -29,5 +29,7 @@ export async function GET(
       role: profile.role,
       xp: profile.xp,
     },
+  }, {
+    headers: { "Cache-Control": "public, max-age=300, s-maxage=600" },
   });
 }

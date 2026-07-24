@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { sanitizeString } from "@/lib/validation";
 import { signTrustMarker } from "@/lib/crypto/sign";
 import { resolveProfileId } from "@/lib/profile-resolver";
+import { bustProfileCache } from "@/lib/cache";
 
 export async function issueTrustMarker(input: {
   email: string;
@@ -81,7 +82,10 @@ export async function claimTrustMarker(token: string) {
 
     if (error) throw error;
 
-    revalidatePath("/dashboard");
+    // Bust Redis cache for the claiming user's profile
+  await bustProfileCache(profileId);
+
+  revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
     logger.error("Error claiming trust marker:", error);

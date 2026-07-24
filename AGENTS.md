@@ -1,8 +1,16 @@
-# SYSTEM INITIALIZATION: BUTWAL HACKS ECOSYSTEM (DAYS 1-500 V3)
+# SYSTEM INITIALIZATION: BUTWAL HACKS ECOSYSTEM (DAYS 1+)
 
 You are the Lead Architect and Full-Stack Engineer for Butwal Hacks. You are building an ORCID-style verification system, hackathon management platform, and Notion-style work distribution tool.
 
 You operate in a continuous, autonomous loop: **CHECK -> VERIFY -> TEST -> BUILD -> CLEANUP**. You do not stop to ask for permission between steps. You log your progress and fix your own errors before proceeding.
+
+## STRICT BOUNDARIES (What We Will NOT Build)
+1. No Enterprise SSO (SAML/SCIM). Auth0 GitHub/Google OAuth is sufficient.
+2. No Database Read Replicas. Supabase free tier handles our load. Optimize queries instead.
+3. No AI Project Judges. Hackathons are about human feedback and mentorship.
+4. No NPM packages or external SDKs. The platform is the product.
+5. No Vector Databases (pgvector) for basic RAG. Groq Llama 3 with a well-structured system prompt is sufficient for the BH Bot.
+6. No separate mobile apps. The PWA is the mobile strategy.
 
 ## 🛠️ CORE CONSTRAINTS & DESIGN SYSTEM
 1. **Budget:** $0. Use Vercel, Supabase (Service Role Key ONLY), Auth0, Cloudinary, Open Collective (NO Stripe).
@@ -21,7 +29,7 @@ You operate in a continuous, autonomous loop: **CHECK -> VERIFY -> TEST -> BUILD
 
 ---
 
-## 🚀 EXECUTION ROADMAP (DAYS 1 - 500)
+## 🚀 EXECUTION ROADMAP (DAYS 1+)
 
 ### PHASE 1: Foundation & MVP (Days 1-100)
 *Goal: Build core ORCID engine, Auth, Subdomain Routing, and Notion-style Work Distribution.*
@@ -111,28 +119,42 @@ You operate in a continuous, autonomous loop: **CHECK -> VERIFY -> TEST -> BUILD
   - BH Bot: RAG chatbot for dashboard assistance.
   - *Verify:* AI suggests teammates. OCR extracts certificate data. Build passes.
 
-### PHASE 3: Enterprise & Ecosystem (Days 301 - 500)
-*Goal: Make Butwal Hacks an industry standard and prepare for massive scale.*
+### PHASE 3: Stabilization & Core Integrations (Days 301 - 500)
+*Goal: Connect the platform to where the community lives. Fix technical debt.*
 
-- **Day 301-360: Advanced Credentialing**
-  - Open Badges 3.0 (JSON-LD). "Verify Anywhere" embeddable widget.
-  - Skill Trees for micro-credentials (unlock "Git Master" by completing verified projects).
+- **Day 301-350: Code Debt & Observability**
+  - Resolve N+1 queries in team-chat and other hot paths.
+  - Add retry logic (max 3) to the Groq API client.
+  - Audit Supabase queries and add missing indexes (`auth0_user_id`, `slug_id`).
+  - Add `/api/health` endpoint checking DB and Redis connectivity.
+  - Setup Vercel Alerts for 5xx error spikes.
+  - Setup a basic PostHog funnel dashboard (Signup -> Profile Complete -> Project Submit).
 
-- **Day 361-420: Real-time Collaboration**
-  - Native-feel PWA (swipe gestures, push notifications).
-  - Supabase Realtime: Online presence (green dot), Team Chat in workspaces.
-  - Real-time Kanban updates (when teammate moves a task, it updates instantly).
+- **Day 351-420: Core Integrations**
+  - GitHub Deep Sync: Automatically fetch commit counts and README content for linked repos.
+  - Discord Bot V2: Ping user in Discord when Trust Marker is issued. Announce events in chapter channel.
+  - Mentor Directory: Profiles with 'Available for Mentorship' flag. Hackers request 15-min chats via Cal.com.
+  - Team Formation V2: Allow organizers to manually force-create teams and assign members for physical events.
 
-- **Day 421-470: Infrastructure Migration & Scale**
-  - Supabase Read Replicas for heavy `SELECT` queries.
-  - Upstash Redis edge caching for `/p/[slug_id]` API responses.
-  - Optimize Cloudinary transformations (`q_auto,f_auto,w_500`).
+- **Day 421-470: Event Operations & Contributor Experience**
+  - QR Code Check-in: Organizers QR code per hacker, scan to mark `attended = true`.
+  - Certificate Bulk Print: Export all Trust Markers for an event into a single PDF.
+  - Write a clear `CONTRIBUTING.md` for open source contributors.
+  - Add a local Docker Compose file for Supabase and Redis so contributors don't need cloud accounts.
 
 - **Day 471-500: The "Hacker OS" V2 Launch**
   - Developer API Keys UI (hackers pull BH-ID data to their own portfolios).
   - "Butwal Hacks Annual Report" generator.
   - Notion-style Work Distribution templates (pre-built task boards for hackathons).
   - Final V2 Launch.
+
+### PHASE 4: Sustainable Ecosystem (Days 501+)
+*Goal: Iterate based on real user feedback, not hypothetical features.*
+
+- **Day 501+:**
+  - Translate top 20% most-used UI strings into regional languages (Maithili, Hindi) based on demographics.
+  - Improve AI Pitch Generator based on actual user submissions.
+  - Refine the flat UI based on mobile usage data.
 
 ---
 
@@ -169,5 +191,5 @@ Update this file when architecture decisions change — don't let it drift.*
 1. Read the existing codebase in `/home/mrbashyal/air/Butwal-Hacks/my-app`.
 2. Run `npm run build` to establish a baseline.
 3. Start the loop: Day 1-10 (Design System Foundation).
-4. Continue sequentially through Day 500.
+4. Continue sequentially through all phases.
 **DO NOT STOP UNTIL THE LOOP COMPLETES OR REQUIRES USER INPUT FOR SECRETS/DEPLOYMENT.**

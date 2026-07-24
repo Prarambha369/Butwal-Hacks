@@ -6,7 +6,7 @@ import { Users, Trophy, ExternalLink, Code2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { Team, Profile, Project } from '@/lib/supabase-types';
 
-import { cloudinaryUrl } from '@/lib/utils';
+import { cloudinaryUrl, getAvatarUrl } from '@/lib/utils';
 import { Skeleton, CardSkeleton, FeedSkeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { logger } from '@/lib/logger';
@@ -131,10 +131,11 @@ export default function TeamPortfolio({ teamId }: TeamPortfolioProps) {
               >
                 <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-bh-red-500/50 transition-all">
                   <Image 
-                    src={member?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member?.full_name}`} 
-                    alt={member?.full_name}
+                    src={getAvatarUrl(member?.avatar_url, member?.full_name)}
+                    alt={member?.full_name ?? 'Team member'}
                     fill
                     className="object-cover"
+                    unoptimized={!member?.avatar_url}
                   />
                 </div>
                 <div>

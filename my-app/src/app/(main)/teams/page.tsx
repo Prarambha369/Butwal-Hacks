@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
 import { createClient } from "@/utils/supabase/server";
 import { Users, Plus, ChevronRight, UserPlus } from "lucide-react";
@@ -9,19 +8,22 @@ import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function TeamsPage() {
   const session = await auth0.getSession();
-  const userId = session?.user?.sub;
-
-  if (!userId) redirect("/auth/login");
-
   const supabase = await createClient();
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, full_name, slug_id")
-    .eq("auth0_user_id", userId)
+    .eq("auth0_user_id", session?.user?.sub)
     .single();
 
-  if (!profile) redirect("/dashboard/hacker");
+  if (!profile) {
+    return (
+      <div className="space-y-8 p-6 md:p-12">
+        <h1 className="text-3xl font-bold tracking-tight">My Teams</h1>
+        <p className="text-secondary">Complete your profile setup before creating or joining teams.</p>
+      </div>
+    );
+  }
 
   // Fetch teams where user is a member
   const { data: memberships } = await supabase
@@ -85,7 +87,7 @@ export default async function TeamsPage() {
               </div>
               <Link
                 href={`/teams?invite=${invite.id}`}
-                className="text-xs font-bold text-primary-red hover:text-red-300 transition-colors"
+                className="text-xs font-bold text-primary-red hover:text-primary-red/70 transition-colors"
               >
                 View →
               </Link>

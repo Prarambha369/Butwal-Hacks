@@ -49,7 +49,9 @@ export async function GET(request: Request) {
 
     const report = await getYearMetrics(year, true);
 
-    return NextResponse.json(report);
+    return NextResponse.json(report, {
+      headers: { "Cache-Control": "private, max-age=3600" },
+    });
   } catch (err) {
     logger.error("[annual-report] Error:", err);
     return NextResponse.json({ error: "Failed to generate report" }, { status: 500 });

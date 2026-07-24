@@ -6,10 +6,6 @@ const BASE = "inline-flex items-center font-mono text-xs uppercase tracking-wide
 
 const VARIANT_CLASSES: Record<string, string> = {
   default: "border-border bg-surface-hover text-primary/70",
-  verified: "border-bh-red-500/50 bg-primary-red/15 text-primary-red",
-  organizer: "border-yellow-400/50 bg-yellow-400/10 text-yellow-400",
-  ghost: "border-transparent bg-transparent text-primary/60",
-  secondary: "border-border bg-surface-hover text-primary/70",
   outline: "border-border bg-transparent text-primary/70",
 };
 

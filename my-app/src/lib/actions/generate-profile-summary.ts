@@ -1,6 +1,7 @@
 "use server";
 
-import { createAuthenticatedClient } from "@/utils/supabase/server";
+import { createServiceClient } from "@/utils/supabase/service";
+import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
 
@@ -45,10 +46,11 @@ export async function generateProfileSummary(profileId: string) {
     throw new Error("GROQ_API_KEY not configured. Set it in your .env.local file.")
   }
 
-  const authClient = await createAuthenticatedClient()
-  if (!authClient) throw new Error("Unauthorized")
+  const session = await auth0.getSession()
+  if (!session?.user) throw new Error("Unauthorized")
 
-  const { supabase, userId } = authClient
+  const supabase = createServiceClient()
+  const userId = session.user.sub
 
   // Verify the profile belongs to the current user
   const { data: profile, error: profileError } = await supabase
@@ -79,7 +81,7 @@ export async function generateProfileSummary(profileId: string) {
   let summary: string
 
   try {
-    // ponytail: 30s timeout — AI inference takes longer. Falls back gracefully.
+    // 30s timeout — AI inference takes longer. Falls back gracefully with error message.
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       signal: AbortSignal.timeout(30_000),
       method: "POST",

@@ -31,6 +31,8 @@ interface OnboardingStepsProps {
   profile: Profile | null;
   projectCount: number;
   chapterCount: number;
+  projectHasStack?: boolean;
+  projectHasLink?: boolean;
 }
 
 const STEP_ICONS: Record<string, React.ReactNode> = {
@@ -45,10 +47,55 @@ const STEP_ICONS: Record<string, React.ReactNode> = {
  * Shows progress, step-by-step tasks with their status, and a skip button.
  * This replaces the old modal-based FirstRunWizard for the main /dashboard page.
  */
+// ─── Substep definitions ────────────────────────────────────────────────
+
+interface SubStep {
+  id: string
+  label: string
+  isComplete: boolean
+  action?: string
+  href?: string
+}
+
+const CHAPTER_SUBSTEPS: Omit<SubStep, "isComplete">[] = [
+  { id: "browse", label: "Browse chapters", action: "Explore", href: "/explore" },
+  { id: "join", label: "Join a chapter", action: "Find yours" },
+]
+
+const PROJECT_SUBSTEPS: Omit<SubStep, "isComplete">[] = [
+  { id: "create", label: "Create a project", action: "Start", href: "/dashboard/hacker/projects" },
+  { id: "stack", label: "Add tech stack", action: "Add tags" },
+  { id: "link", label: "Link GitHub or demo", action: "Connect" },
+]
+
+function getChapterSubsteps(chapterCount: number): SubStep[] {
+  return CHAPTER_SUBSTEPS.map((s, i) => ({
+    ...s,
+    isComplete: i === 0 ? true : chapterCount > 0, // "Browse" is always done; "Join" depends on count
+  }))
+}
+
+function getProjectSubsteps(
+  projectCount: number,
+  hasStack: boolean,
+  hasLink: boolean
+): SubStep[] {
+  return PROJECT_SUBSTEPS.map((s) => {
+    switch (s.id) {
+      case "create": return { ...s, isComplete: projectCount > 0 }
+      case "stack":  return { ...s, isComplete: hasStack }
+      case "link":   return { ...s, isComplete: hasLink }
+      default:       return { ...s, isComplete: false }
+    }
+  })
+}
+
 export function OnboardingSteps({
   profile,
   projectCount,
   chapterCount,
+  projectHasStack = false,
+  projectHasLink = false,
 }: OnboardingStepsProps) {
   const [isDismissed, setIsDismissed] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -114,7 +161,7 @@ export function OnboardingSteps({
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-lg font-bold text-primary">
-                All done! 🎉
+                All done!
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
                 You&apos;ve completed all {totalCount} onboarding steps. Your profile is ready to go.
@@ -196,83 +243,162 @@ export function OnboardingSteps({
           const isCurrent = i === currentStepIndex;
           const isComplete = step.isComplete;
 
+          // Compute substeps for chapter and project when current
+          const chapterSubsteps = isCurrent && step.id === "chapter"
+            ? getChapterSubsteps(chapterCount)
+            : null;
+          const projectSubsteps = isCurrent && step.id === "project"
+            ? getProjectSubsteps(projectCount, projectHasStack, projectHasLink)
+            : null;
+          const currentSubsteps = chapterSubsteps || projectSubsteps || null;
+          const substepProgress = currentSubsteps
+            ? Math.round((currentSubsteps.filter(s => s.isComplete).length / currentSubsteps.length) * 100)
+            : null;
+
           return (
             <div
               key={step.id}
               className={cn(
-                "flex items-start gap-4 p-4 md:p-5 transition-all",
-                isCurrent && "bg-primary-red/[0.03]",
-                isComplete && "opacity-60"
+                "transition-all",
+                isComplete && !isCurrent && "opacity-60"
               )}
             >
-              {/* Icon */}
-              <div
-                className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-all",
-                  isComplete && "bg-status-green/20 text-status-green",
-                  isCurrent && "bg-primary-red text-white",
-                  !isComplete && !isCurrent && "bg-surface-hover text-muted-foreground border border-border"
-                )}
-              >
-                {isComplete ? (
-                  <CheckCircle2 className="w-5 h-5" />
-                ) : (
-                  STEP_ICONS[step.id] ?? <User className="w-5 h-5" />
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "text-sm font-bold",
-                      isComplete ? "text-primary/60" : "text-primary"
-                    )}
-                  >
-                    {step.title}
-                  </span>
-                  {isComplete && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-status-green bg-status-green/10 px-1.5 py-0.5 rounded-full">
-                      Done
-                    </span>
-                  )}
-                  {isCurrent && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-primary-red bg-primary-red/10 px-1.5 py-0.5 rounded-full">
-                      Next
-                    </span>
-                  )}
-                </div>
-                <p
+              {/* Main step row */}
+              <div className={cn(
+                "flex items-start gap-4 p-4 md:p-5",
+                isCurrent && "bg-primary-red/[0.03]"
+              )}>
+                {/* Icon */}
+                <div
                   className={cn(
-                    "text-xs leading-relaxed mt-0.5",
-                    isComplete ? "text-primary/30" : "text-muted-foreground"
+                    "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-all",
+                    isComplete && "bg-status-green/20 text-status-green",
+                    isCurrent && "bg-primary-red text-white",
+                    !isComplete && !isCurrent && "bg-surface-hover text-muted-foreground border border-border"
                   )}
                 >
-                  {step.description}
-                </p>
-              </div>
+                  {isComplete ? (
+                    <CheckCircle2 className="w-5 h-5" />
+                  ) : (
+                    STEP_ICONS[step.id] ?? <User className="w-5 h-5" />
+                  )}
+                </div>
 
-              {/* CTA */}
-              <div className="shrink-0">
-                {isComplete ? (
-                  <div className="w-8 h-8 rounded-lg bg-status-green/10 flex items-center justify-center">
-                    <CheckCircle2 className="w-4 h-4 text-status-green" />
+                {/* Content */}
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "text-sm font-bold",
+                        isComplete ? "text-primary/60" : "text-primary"
+                      )}
+                    >
+                      {step.title}
+                    </span>
+                    {isComplete && (
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-status-green bg-status-green/10 px-1.5 py-0.5 rounded-full">
+                        Done
+                      </span>
+                    )}
+                    {isCurrent && (
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-primary-red bg-primary-red/10 px-1.5 py-0.5 rounded-full">
+                        Next
+                      </span>
+                    )}
                   </div>
-                ) : (
-                  <Link
-                    href={step.href}
+                  <p
                     className={cn(
-                      "inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full transition-all",
-                      isCurrent
-                        ? "bg-primary-red text-white hover:bg-deep-red shadow-[--bh-glow-red-soft]"
-                        : "bg-surface-hover text-muted-foreground border border-border hover:text-primary"
+                      "text-xs leading-relaxed",
+                      isComplete ? "text-primary/30" : "text-muted-foreground"
                     )}
                   >
-                    {step.cta}
-                    <ChevronRight className="w-3 h-3" />
-                  </Link>
-                )}
+                    {step.description}
+                  </p>
+
+                  {/* Inline substep progress bar — shown only for current chapter/project step */}
+                  {currentSubsteps && substepProgress !== null && (
+                    <div className="w-full max-w-xs">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[10px] font-mono font-bold text-primary-red">
+                          {substepProgress}%
+                        </span>
+                        <span className="text-[9px] text-muted-foreground">
+                          {currentSubsteps.filter(s => s.isComplete).length}/{currentSubsteps.length}
+                        </span>
+                      </div>
+                      <div className="h-1 w-full bg-surface-hover rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-bh-red-500 rounded-full transition-all duration-500 ease-out"
+                          style={{ width: `${substepProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Substep checklist — shown only for current chapter/project step */}
+                  {currentSubsteps && (
+                    <div className="space-y-1.5 pt-1">
+                      {currentSubsteps.map((sub) => (
+                        <div
+                          key={sub.id}
+                          className={cn(
+                            "flex items-center gap-2.5 py-1.5 px-2 rounded-md transition-all",
+                            sub.isComplete && "opacity-50"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-5 h-5 rounded flex items-center justify-center shrink-0 transition-all",
+                            sub.isComplete
+                              ? "bg-status-green/20 text-status-green"
+                              : "bg-surface-hover text-muted-foreground border border-border"
+                          )}>
+                            {sub.isComplete ? (
+                              <CheckCircle2 className="w-3 h-3" />
+                            ) : (
+                              <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                            )}
+                          </div>
+                          <span className={cn(
+                            "text-[11px]",
+                            sub.isComplete ? "text-primary/50 line-through" : "text-primary font-medium"
+                          )}>
+                            {sub.label}
+                          </span>
+                          {!sub.isComplete && sub.href && (
+                            <Link
+                              href={sub.href}
+                              className="ml-auto text-[10px] font-bold text-primary-red hover:text-deep-red transition-colors"
+                            >
+                              {sub.action || "Go"} →
+                            </Link>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* CTA */}
+                <div className="shrink-0">
+                  {isComplete ? (
+                    <div className="w-8 h-8 rounded-lg bg-status-green/10 flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 text-status-green" />
+                    </div>
+                  ) : !currentSubsteps && (
+                    <Link
+                      href={step.href}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full transition-all",
+                        isCurrent
+                          ? "bg-primary-red text-white hover:bg-deep-red shadow-[--bh-glow-red-soft]"
+                          : "bg-surface-hover text-muted-foreground border border-border hover:text-primary"
+                      )}
+                    >
+                      {step.cta}
+                      <ChevronRight className="w-3 h-3" />
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
           );

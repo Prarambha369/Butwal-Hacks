@@ -41,7 +41,20 @@ export default function FeaturedProjects() {
   }, []);
 
   if (loading) return <div className="flex justify-center p-20"><RoseSpinner size="lg" /></div>;
-  if (projects.length === 0) return null;
+  if (projects.length === 0) {
+    return (
+      <section className="py-12">
+        <div className="text-center space-y-4">
+          <div className="mx-auto w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center">
+            <Award className="w-8 h-8 text-muted-foreground opacity-20" />
+          </div>
+          <p className="text-sm text-muted-foreground font-mono opacity-60">
+            No featured projects yet. Verified projects appear here.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-8 py-12">

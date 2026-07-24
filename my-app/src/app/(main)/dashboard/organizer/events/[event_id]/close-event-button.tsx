@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { closeEvent } from "@/lib/actions/events";
 import { toast } from "sonner";
+import { RoseSpinner } from "@/components/ui/rose-loader";
 
 export function CloseEventClientButton({ eventId }: { eventId: string }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +35,7 @@ export function CloseEventClientButton({ eventId }: { eventId: string }) {
       className="w-full rounded-lg bg-bh-red-500 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-deep-red disabled:opacity-50"
     >
       {isLoading ? (
-        <span className="inline-block w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+        <RoseSpinner size="sm" color="white" />
       ) : null}
       {isLoading ? "Closing Event..." : "Close & Issue Certificates"}
     </button>

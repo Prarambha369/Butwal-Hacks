@@ -1,177 +1,279 @@
-# Butwal Hacks — Maintainer Guide
+# Maintainer Handbook - Butwal Hacks
 
-## 🚀 Deployment
+This document covers operational tasks for maintainers: deploy, CI, secrets, release, and rollback. It assumes you have maintainer access to the Vercel project, Auth0 tenant, Supabase project, and GitHub repository.
 
-### Vercel
-- **Project**: Connected to GitHub `Prarambha369/Butwal-Hacks`
-- **Build command**: `cd my-app && npm run build` (defined in `vercel.json`)
-- **Output directory**: `my-app/.next`
-- **Install command**: `cd my-app && npm install` (defined in `vercel.json`)
-- **Cron jobs** (defined in `vercel.json`):
-  - `/api/cron/daily-stats` — daily at midnight UTC
-  - `/api/cron/cleanup-expired` — every hour
+## Repository Layout
 
-### Required Environment Variables (Production)
+```
+Butwal-Hacks/
+  my-app/              # Next.js 16 application source
+    src/               # App source (app, components, lib, utils)
+    e2e/               # Playwright E2E tests
+  supabase/
+    migrations/        # Database migrations (canonical)
+  docs/                # Engineering documentation
+  .github/workflows/   # CI and deploy pipelines
+```
 
-Set these in **Vercel Dashboard → Settings → Environment Variables (Production)**:
+Root `package.json` delegates to `my-app/`. All commands run from `my-app/`.
 
-#### Auth0
-| Variable | Source |
-|---|---|
-| `AUTH0_SECRET` | `openssl rand -hex 32` |
-| `AUTH0_DOMAIN` | `auth.butwalhacks.com` |
-| `AUTH0_ISSUER_BASE_URL` | `https://auth.butwalhacks.com` |
-| `AUTH0_CLIENT_ID` | Auth0 Dashboard → Applications |
-| `AUTH0_CLIENT_SECRET` | Auth0 Dashboard → Applications |
-| `AUTH0_BASE_URL` | `https://butwalhacks.com` |
+## Secrets Inventory
 
-#### Supabase
-| Variable | Source |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard → Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard → Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Settings → API |
+### Auth0 (Authentication)
 
-#### Cloudinary
-| Variable | Source |
-|---|---|
-| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Cloudinary Dashboard |
-| `CLOUDINARY_API_KEY` | Cloudinary Dashboard |
-| `CLOUDINARY_API_SECRET` | Cloudinary Dashboard |
-| `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Cloudinary Dashboard → Settings → Upload |
+| Variable | Required | Source |
+|----------|----------|--------|
+| `AUTH0_DOMAIN` | Build, runtime | Auth0 tenant settings |
+| `AUTH0_CLIENT_ID` | Build, runtime | Auth0 application settings |
+| `AUTH0_CLIENT_SECRET` | Build, runtime | Auth0 application settings |
+| `AUTH0_SECRET` | Build, runtime | Generate via `openssl rand -hex 32` |
+| `AUTH0_BASE_URL` | Build | Vercel deployment URL |
+| `AUTH0_WEBHOOK_SECRET` | Runtime | Generate via `openssl rand -hex 32` |
+| `AUTH0_M2M_CLIENT_ID` | Build, CI | Auth0 Machine-to-Machine app |
+| `AUTH0_M2M_CLIENT_SECRET` | Build, CI | Auth0 Machine-to-Machine app |
 
-#### Cloudflare R2 (optional — video)
-| Variable | Source |
-|---|---|
-| `R2_ACCOUNT_ID` | Cloudflare Dashboard → R2 |
-| `R2_ACCESS_KEY_ID` | Cloudflare → R2 → API Tokens |
-| `R2_SECRET_ACCESS_KEY` | Cloudflare → R2 → API Tokens |
-| `R2_BUCKET_NAME` | `butwal-hacks-media` |
+### Supabase (Database)
 
-#### Upstash Redis
-| Variable | Source |
-|---|---|
-| `UPSTASH_REDIS_REST_URL` | Upstash Console → Redis Database |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Console → Redis Database |
+| Variable | Required | Source |
+|----------|----------|--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Build, runtime | Supabase project settings > API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Build, runtime | Supabase project settings > API (anon public key) |
+| `SUPABASE_DB_URL` | Deploy only | Supabase project settings > Database > Connection string (with service_role) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Runtime | Supabase project settings > API (service_role secret) |
 
-#### Email
-| Variable | Source |
-|---|---|
-| `RESEND_API_KEY` | Resend Dashboard → API Keys |
-| `CONTACT_EMAIL` | `hello@butwalhacks.com` |
+### Cloudinary (Media)
 
-#### Analytics & Logging
-| Variable | Source |
-|---|---|
-| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | PostHog → Project Settings |
-| `NEXT_PUBLIC_POSTHOG_HOST` | `https://eu.i.posthog.com` |
-| `AXIOM_TOKEN` | Axiom → Settings → API Tokens |
-| `AXIOM_DATASET` | `butwal-hacks` |
+| Variable | Required | Source |
+|----------|----------|--------|
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Build, runtime | Cloudinary dashboard |
+| `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Build, runtime | Cloudinary settings > Upload presets |
+| `CLOUDINARY_API_KEY` | Runtime | Cloudinary dashboard |
+| `CLOUDINARY_API_SECRET` | Runtime | Cloudinary dashboard |
 
-#### AI
-| Variable | Source |
-|---|---|
-| `GROQ_API_KEY` | Groq Console → API Keys |
+### External APIs
 
-#### Site
-| Variable | Value |
-|---|---|
-| `NEXT_PUBLIC_SITE_URL` | `https://butwalhacks.com` |
-| `CRON_SECRET` | Random string — protects cron endpoints |
+| Variable | Required | Source |
+|----------|----------|--------|
+| `GROQ_API_KEY` | Runtime | Groq console |
+| `RESEND_API_KEY` | Runtime | Resend dashboard |
+| `OC_WEBHOOK_SECRET` | Runtime | Generate via `openssl rand -hex 32` |
+| `APP_BASE_URL` | CI | Set to deployment URL (e.g., `http://localhost:3000` in CI) |
+| `NEXT_PUBLIC_SITE_URL` | Build, CI | Canonical site URL (`https://butwalhacks.com`) |
 
----
+### Infrastructure
 
-## 🧪 CI Pipeline
+| Variable | Required | Source |
+|----------|----------|--------|
+| `UPSTASH_REDIS_REST_URL` | Runtime | Upstash console > REST API |
+| `UPSTASH_REDIS_REST_TOKEN` | Runtime | Upstash console > REST API |
 
-Defined in `.github/workflows/ci.yml`. Runs on every PR and push to `main`:
+### Observability
 
-| Step | What it does |
-|---|---|
-| `lint` | ESLint check |
-| `typecheck` | `tsc --noEmit` |
-| `build` | `next build` |
-| `test` | Vitest unit tests |
-| `secrets-audit` | Scans for hardcoded secrets |
-| `ai-review` | AI-powered code review |
+| Variable | Required | Source |
+|----------|----------|--------|
+| `AXIOM_TOKEN` | Runtime | Axiom ingest token |
+| `AXIOM_DATASET` | Runtime | Axiom dataset name |
+| `SENTRY_DSN` | Runtime | Sentry project settings |
+| `SENTRY_ORG` | Build | Sentry org slug |
+| `SENTRY_PROJECT` | Build | Sentry project name |
+| `SENTRY_AUTH_TOKEN` | Build | Sentry auth token (source map uploads) |
+| `NEXT_PUBLIC_POSTHOG_KEY` | Runtime | PostHog project settings |
+| `NEXT_PUBLIC_POSTHOG_HOST` | Runtime | PostHog instance URL |
 
-### CI Secrets
+### CI-Only
 
-Set these in **GitHub → Settings → Secrets and Variables → Actions**:
+| Variable | Required | Source |
+|----------|----------|--------|
+| `ANTHROPIC_API_KEY` | CI | Anthropic console (for AI code review) |
+| `GITHUB_TOKEN` | CI | Auto-provided by GitHub Actions |
 
-| Secret | Source |
-|---|---|
-| `AUTH0_M2M_CLIENT_ID` | Auth0 → Applications → M2M App |
-| `AUTH0_M2M_CLIENT_SECRET` | Auth0 → Applications → M2M App |
+### Where to set them
 
----
+- **Vercel**: All `NEXT_PUBLIC_*` and runtime env vars in Vercel project dashboard > Environment Variables.
+- **GitHub**: All build-time and CI vars in Settings > Secrets and Variables > Actions.
+- **Local**: Copy `.env.example` to `my-app/.env.local` and fill in development values.
 
-## 📦 Release Checklist
+## CI Pipeline
+
+The CI pipeline (`.github/workflows/ci.yml`) runs on every push and PR to `main`. Jobs run in parallel unless noted:
+
+| Job | Trigger | Depends on | Description |
+|-----|---------|------------|-------------|
+| `lint` | push, PR | none | ESLint check |
+| `security-audit` | push, PR | none | `npm audit --audit-level=high` |
+| `typecheck` | push, PR | none | `tsc --noEmit` |
+| `build` | push, PR | `typecheck` | `npm run build` with env vars |
+| `test` | push, PR | none | `vitest run` (unit + smoke tests) |
+| `secrets-audit` | PR only | none | Scan for leaked secrets in diff |
+| `auth0-m2m-verify` | push, PR | none | Verify Auth0 M2M API access |
+| `ai-review` | PR only | none | Claude-based code review on diff |
+| `ponytail-audit` | PR only | none | Dead code detection |
+
+### Current known CI issues
+
+- **Lint**: Fails with 3 errors and ~65 warnings. Errors are hook rules and `prefer-const`. Warnings are tracked but non-blocking for deployment.
+- **All other jobs pass**: Typecheck, build, tests (323), secrets audit, M2M verify, and audits are green.
+
+## Deploy Flow
+
+### Vercel (automatic)
+
+Every push to `main` triggers an automatic Vercel deployment via the GitHub integration. Vercel reads `vercel.json` from the repo root.
+
+Key Vercel settings:
+- **Root Directory**: `my-app/`
+- **Build Command**: `npm run build`
+- **Output Directory**: `.next`
+- **Install Command**: `npm ci --legacy-peer-deps`
+- **Framework**: Next.js
+
+Preview deployments are created for each PR branch with a unique URL.
+
+### Database Migrations (manual via deploy.yml)
+
+The deploy workflow (`.github/workflows/deploy.yml`) applies Supabase migrations on push to `main`:
+
+```yaml
+jobs:
+  migrate:
+    - Install Supabase CLI (via `supabase/setup-cli`)
+    - Run `supabase db push --db-url "$SUPABASE_DB_URL"`
+```
+
+**The migration step requires `SUPABASE_DB_URL` to be set as a GitHub secret.** This is a `postgresql://` connection string with the service role.
+
+If the migration step fails, the Vercel deployment may still succeed but the app could hit schema errors. Check the deploy workflow logs.
+
+### Manual deploy
+
+```bash
+# 1. Apply any pending migrations
+supabase db push --db-url "$SUPABASE_DB_URL"
+
+# 2. Push to main (triggers Vercel auto-deploy)
+git push origin main
+
+# 3. Verify deployment at https://butwalhacks.com
+```
+
+## Release Checklist
 
 ### Before Merge
-- [ ] `npx tsc --noEmit` passes in `my-app/`
-- [ ] `npm run lint` — no new errors
-- [ ] `npm run test` — all tests pass
-- [ ] `npm run build` — build succeeds
-- [ ] PR reviewed by at least one maintainer
-- [ ] API changes documented in `public/swagger.json` if public
+
+- [ ] TypeScript compiles: `npx tsc --noEmit`
+- [ ] Tests pass: `npx vitest run`
+- [ ] Lint is clean (or known warnings documented in issue tracker)
+- [ ] New API routes have `withRateLimit` wrapper
+- [ ] New POST routes return `{ status: 201 }` for resource creation
+- [ ] New env vars added to `.env.example` and documented in secrets table
+- [ ] Database migration created in `supabase/migrations/` with sequential number
+- [ ] Migration uses `NOT VALID` + separate `VALIDATE CONSTRAINT` for table-wide checks
+- [ ] PR review completed (human or AI)
+- [ ] No secrets or hardcoded credentials in the diff
+
+### Before Deploy
+
+- [ ] All migrations applied: `supabase db push --db-url "$SUPABASE_DB_URL"`
+- [ ] Vercel deploy triggered from `main`
+- [ ] Production build logs checked for errors (watch Vercel deploy logs)
 
 ### After Deploy
-- [ ] Smoke test: visit `https://butwalhacks.com`
-- [ ] Smoke test: sign-in flow works
-- [ ] Smoke test: profile page loads (`/p/BH-26-001`)
-- [ ] Check Auth0 Logs for login errors
-- [ ] Check Vercel Deployment logs for build errors
 
-### Rollback
-- **Vercel**: Go to Vercel Dashboard → Deployments → click "..." on the last good deploy → "Promote to Production"
-- **Database**: Migrations are forward-only. To roll back:
-  1. Write a new migration reversing the change
-  2. Apply it: `supabase migration up --linked`
-  3. Do NOT edit or delete existing migration files
+- [ ] Homepage loads at https://butwalhacks.com
+- [ ] Sign-in flow works at https://butwalhacks.com/sign-in
+- [ ] At least one dashboard loads after sign-in
+- [ ] Check Sentry for new errors in the first 5 minutes
+- [ ] Check Axiom for anomalous log patterns
+- [ ] Verify the release in PostHog (session count matches expected traffic)
 
----
+## Rollback
 
-## 🔐 Auth0 Administration
+### Vercel
 
-### Post-Login Action
-The **Sync User to Supabase** action must be deployed and active in the Login flow:
-- **Action**: POST to `https://butwalhacks.com/api/webhooks/auth0`
-- **Payload**: `{ sub, email, name }`
-- **Without this action**: New users will not get a Supabase profile and will redirect in a loop
+1. Go to Vercel project dashboard > Deployments
+2. Find the last known-good deployment
+3. Click the three dots menu > Promote to Production
+4. Verify rollback at https://butwalhacks.com
 
-### Application Settings
-| Setting | Value |
-|---|---|
-| Callback URLs | `https://butwalhacks.com/auth/callback` |
-| Logout URLs | `https://butwalhacks.com` |
-| Web Origins | `https://butwalhacks.com` |
+### Database
 
----
+Supabase migrations are designed to be additive only. To roll back:
 
-## 🗄️ Database Migrations
+```sql
+-- Reverse migration 090 (example)
+DROP FUNCTION IF EXISTS get_next_task_position(UUID, TEXT);
+```
 
-- **Canonical location**: `supabase/migrations/` (repo root)
-- **Naming**: `NNN_descriptive_name.sql` (zero-padded, sequential)
-- **Apply**: `supabase migration up --linked` (requires Supabase CLI)
-- **Idempotency**: Always use `IF NOT EXISTS` for tables/columns/indexes
+For destructive changes (column drops, table drops), create a rollback migration script before deploying the forward migration.
 
-> ⚠️ The `my-app/supabase/migrations/` directory was a duplicate and has been **deleted**. All migrations live in `supabase/migrations/` (repo root). New migrations go there only.
+### Full rollback
 
----
+If both code and database need rollback:
+1. Revert the PR in git: `git revert <commit-hash>`
+2. Push to main (triggers Vercel deploy)
+3. Apply the database rollback SQL manually via Supabase SQL editor
+4. Verify at https://butwalhacks.com
 
-## 🎯 Key URLs
+## On-Call Runbook
 
-| Resource | URL |
-|---|---|
-| Production site | https://butwalhacks.com |
-| Vercel Dashboard | https://vercel.com/... |
-| Auth0 Dashboard | https://manage.auth0.com |
-| Supabase Dashboard | https://supabase.com/dashboard |
-| Cloudinary Dashboard | https://cloudinary.com/console |
-| Upstash Console | https://console.upstash.com |
-| Resend Dashboard | https://resend.com |
-| PostHog | https://us.posthog.com |
-| Axiom | https://app.axiom.co |
-| Groq Console | https://console.groq.com |
-| Open Collective | https://opencollective.com/butwal-hacks |
-| GitHub | https://github.com/Prarambha369/Butwal-Hacks |
+### Sign-in is broken
+
+1. Check Auth0 tenant health at https://status.auth0.com
+2. Verify `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET` are set in Vercel env vars
+3. Check Auth0 application settings for correct callback/logout URLs
+4. Verify Auth0 Post-Login Action is enabled (syncs user to Supabase)
+
+### Database errors in production
+
+1. Check Vercel function logs for SQL error messages
+2. Verify Supabase project is not at connection pool limit
+3. Run `SELECT count(*) FROM pg_stat_activity;` to check active connections
+4. If pool exhausted, enable PgBouncer or upgrade Supabase plan
+
+### Emails not sending
+
+1. Check Resend dashboard for API errors or rate limits
+2. Verify `RESEND_API_KEY` is set in Vercel env vars
+3. Check daily email quota (free tier: 100/day)
+
+### Rate limiting is disabled
+
+1. Check `UPSTASH_REDIS_REST_URL` is set in Vercel env vars
+2. Check Upstash dashboard for remaining monthly commands (free tier: 500,000/month)
+3. The rate limiter fails open (allows requests) when Redis is unreachable
+
+### CI is failing
+
+Check which job is failing in the GitHub Actions dashboard:
+
+- **Lint fails**: Run `npm run lint` locally, fix errors
+- **Typecheck fails**: Run `tsc --noEmit` locally, fix type errors
+- **Build fails**: Check for missing env vars in CI secrets (mirror Vercel env)
+- **Tests fail**: Run `npx vitest run` locally, fix failing tests
+- **Secrets audit fails**: Remove leaked secrets from the diff
+
+## Ownership
+
+| Area | Owner | Review Required |
+|------|-------|----------------|
+| Auth0 configuration | Maintainer | Any change to callback URLs, roles, or Actions |
+| Supabase schema | Maintainer | Any new migration or RPC function |
+| API routes | Author | Rate limiting, Zod validation, status codes |
+| UI components | Author | Design system compliance, accessibility |
+| Documentation | Author | Aligned with current codebase |
+| CI/CD pipeline | Maintainer | Any change to workflow files |
+| Dependencies | Author | `npm audit` must pass; no `--force` flag |
+
+## Cleanup Policy
+
+The following artifacts should never be committed to the repository:
+
+- Build output: `.next/`, `out/`
+- Local logs: `dev_log.txt`, `lint_output.txt`, any `.log` files
+- Browser downloads: `chrome/` directory (use Playwright-managed browsers)
+- History rewrite artifacts: `.git-rewrite/`
+- Temporary audit output: `.audit.json`, `tmp/`
+- Editor config: `.vscode/`, `.idea/`
+- OS files: `.DS_Store`, `Thumbs.db`
+
+Add new patterns to `.gitignore` at the repo root.

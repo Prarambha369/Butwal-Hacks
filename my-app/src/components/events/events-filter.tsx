@@ -118,10 +118,7 @@ function EventCard({ event, filter }: { event: EventItem; filter: FilterMode }) 
           <div className="flex items-center gap-2 flex-wrap">
             {isLive ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/10 text-primary-red text-[10px] font-bold border border-primary-red/20">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bh-red-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-bh-red-500" />
-                </span>
+                <span className="inline-flex rounded-full h-1.5 w-1.5 bg-bh-red-500" />
                 Live
               </span>
             ) : filter === "upcoming" ? (

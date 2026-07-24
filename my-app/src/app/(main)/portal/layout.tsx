@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import NextDynamic from "next/dynamic";
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase/server";
+import { createServiceClient } from "@/utils/supabase/service";
 
 export const dynamic = "force-dynamic";
 
@@ -42,20 +42,16 @@ export default async function SponsorDashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth0.getSession();
-  const userId = session?.user?.sub;
+  const userId = session?.user?.sub ?? "none";
 
-  if (!userId) {
-    redirect("/sign-in");
-  }
-
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, slug_id")
     .eq("auth0_user_id", userId)
     .single();
 
-  if (profile?.role && profile.role !== "sponsor") {
+  if (profile?.role && profile.role !== "sponsor" && profile.role !== "maintainer") {
     redirect(`/dashboard/${profile.role}`);
   }
 
@@ -68,7 +64,7 @@ export default async function SponsorDashboardLayout({
         slugId={slugId}
         links={sponsorLinks}
       />
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 p-8 max-w-7xl mx-auto min-h-dvh flex flex-col">{children}</main>
     </div>
   );
 }

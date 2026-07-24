@@ -180,6 +180,9 @@ These are used by the frontend and are documented for contribution purposes.
 | `/api/events` | GET/POST | List/create events |
 | `/api/events/register` | POST | Register for an event |
 | `/api/events/checkin` | POST | Organizer check-in |
+| `/api/events/[eventId]/registrations` | GET | List event registrations |
+| `/api/events/[eventId]/export-certificates` | GET | Export certificates as PDF |
+| `/api/events/ical` | GET | Export events as iCal feed |
 | `/api/projects` | GET/POST | List/submit projects |
 | `/api/projects/like` | POST | Like/unlike a project |
 | `/api/teams` | GET/POST | List/create teams |
@@ -187,16 +190,35 @@ These are used by the frontend and are documented for contribution purposes.
 | `/api/sponsor` | POST | Submit sponsor inquiry |
 | `/api/reviews` | POST | Submit event review |
 | `/api/resources/complete` | POST | Mark resource as completed |
-| `/api/github/sync` | POST | Sync GitHub repos |
+| `/api/github/sync` | POST | Sync GitHub repos metadata |
+| `/api/github/deep-sync` | POST | Deep sync: commits + README |
 | `/api/badges/check` | POST | Check badge eligibility |
-| `/api/ai/chat` | POST | AI assistant chat |
+| `/api/ai/chat` | POST | AI assistant chat (BH Bot) |
+| `/api/ai/pitch-generator` | POST | AI project pitch generator |
+| `/api/certificates` | GET | List user certificates |
 | `/api/certificates/extract` | POST | OCR certificate extraction |
 | `/api/profile/complete` | POST | Complete profile onboarding |
 | `/api/profile/update` | PATCH | Update profile fields |
+| `/api/auth/link/initiate` | POST | Initiate account linking |
+| `/api/auth/link/callback` | POST | Complete account linking |
+| `/api/auth/link/status` | GET | Check link status |
+| `/api/auth/link/unlink` | POST | Unlink a connected account |
 | `/api/tasks` | GET/POST | List/create tasks |
 | `/api/tasks/[id]` | PATCH/DELETE | Update/delete task |
 | `/api/workspaces` | GET/POST | List/create workspaces |
 | `/api/search` | POST | Full-text search across platform |
+| `/api/health` | GET | Health check (DB + Redis) |
+| `/api/keep-alive` | GET | Cron job keep-alive |
+| `/api/metrics` | GET | Platform metrics |
+| `/api/notifications` | GET | List user notifications |
+| `/api/bounties` | GET | List sponsor bounties |
+| `/api/skill-trees` | GET/POST | List/create skill trees |
+| `/api/organizer/metrics` | GET | Organizer dashboard metrics |
+| `/api/admin/annual-report` | GET | Annual report generation |
+| `/api/impact/report/[projectId]` | GET | Project impact report |
+| `/api/verify/[bhId]` | GET | Public BH-ID verification |
+| `/api/verify/[bhId]/embed` | GET | Embeddable verification widget |
+| `/api/cloudinary-signature` | POST | Generate Cloudinary upload signature |
 
 ---
 

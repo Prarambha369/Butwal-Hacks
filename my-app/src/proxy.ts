@@ -137,6 +137,11 @@ export async function proxy(request: NextRequest) {
       if (pathname.startsWith("/dashboard/") || pathname.startsWith("/portal/")) {
         return requireRoleByPath(request, pathname);
       }
+
+      // Protect /orgs/* routes (require any authenticated user)
+      if (pathname.startsWith("/orgs/")) {
+        return requireAnyAuth(request, pathname);
+      }
       return NextResponse.next();
     }
 
@@ -208,7 +213,7 @@ export async function proxy(request: NextRequest) {
  * Check Auth0 session and verify the user has one of the allowed roles.
  * Queries Supabase profiles table for the user's role.
  */
-async function requireRole(
+export async function requireRole(
   request: NextRequest,
   pathname: string,
   allowedRoles: string[]
@@ -228,7 +233,14 @@ async function requireRole(
       .eq("auth0_user_id", session.user.sub)
       .single();
 
-    const userRole = (profile?.role as string) || "hacker";
+    if (!profile) {
+      // No profile yet — let the request through so the dashboard layout
+      // can create one. Don't default to "hacker" which would cause a
+      // redirect loop for newly-signed-up maintainers.
+      return NextResponse.next();
+    }
+
+    const userRole = profile.role as string;
 
     if (!allowedRoles.includes(userRole)) {
       return NextResponse.redirect(new URL("/dashboard/hacker", request.url));
@@ -244,7 +256,7 @@ async function requireRole(
 }
 
 /** Route-specific role requirements for dashboard paths. */
-async function requireRoleByPath(
+export async function requireRoleByPath(
   request: NextRequest,
   pathname: string
 ): Promise<NextResponse> {
@@ -259,13 +271,24 @@ async function requireRoleByPath(
   }
   // /dashboard/hacker and /dashboard/* — require any authenticated user
   if (pathname.startsWith("/dashboard/")) {
-    const session = await auth0.getSession();
-    if (!session?.user?.sub) {
-      const loginUrl = new URL("/auth/login", request.url);
-      loginUrl.searchParams.set("returnTo", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-    return NextResponse.next();
+    return requireAnyAuth(request, pathname);
+  }
+  return NextResponse.next();
+}
+
+/**
+ * Require any authenticated user (no role restriction).
+ * Redirects to /auth/login if no valid session exists.
+ */
+export async function requireAnyAuth(
+  request: NextRequest,
+  pathname: string
+): Promise<NextResponse> {
+  const session = await auth0.getSession();
+  if (!session?.user?.sub) {
+    const loginUrl = new URL("/auth/login", request.url);
+    loginUrl.searchParams.set("returnTo", pathname);
+    return NextResponse.redirect(loginUrl);
   }
   return NextResponse.next();
 }
@@ -273,7 +296,7 @@ async function requireRoleByPath(
 // ─── Redirect helper ────────────────────────────────────────────────────
 
 /** Redirect the request to the marketing or app domain. */
-function redirectToDomain(request: NextRequest, target: "main" | "app"): NextResponse {
+export function redirectToDomain(request: NextRequest, target: "main" | "app"): NextResponse {
   const { pathname, search, protocol } = request.nextUrl;
 
   const targetHost =
@@ -288,7 +311,7 @@ function redirectToDomain(request: NextRequest, target: "main" | "app"): NextRes
 // ─── Local dev handler ──────────────────────────────────────────────────
 
 /** In local development, let all routes pass through without subdomain enforcement. */
-async function handleLocalDev(request: NextRequest): Promise<NextResponse> {
+export async function handleLocalDev(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
   // Auth0 middleware for auth routes
@@ -304,6 +327,11 @@ async function handleLocalDev(request: NextRequest): Promise<NextResponse> {
   // Protect /portal/* routes (requires auth in dev too)
   if (pathname.startsWith("/portal/")) {
     return requireRole(request, pathname, ["sponsor", "recruiter", "organizer", "maintainer"]);
+  }
+
+  // Protect /orgs/* routes (requires any authenticated user in dev too)
+  if (pathname.startsWith("/orgs/")) {
+    return requireAnyAuth(request, pathname);
   }
 
   return NextResponse.next();

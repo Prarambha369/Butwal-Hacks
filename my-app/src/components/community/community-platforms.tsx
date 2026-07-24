@@ -69,8 +69,8 @@ export function CommunityPlatforms() {
                         <ArrowUpRight className="w-3 h-3" />
                       </a>
                     ) : (
-                      <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-secondary/50 cursor-not-allowed">
-                        Coming Soon
+                      <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground/50">
+                        In Development
                       </span>
                     )}
                   </div>

@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Butwal Hacks',
     short_name: 'BHacks',
-    description: "Powering Nepal's Next Generation of Builders.",
+    description: "Student hackathons, projects & verified credentials in Nepal.",
     start_url: '/',
     display: 'standalone',
     background_color: '#F7F7F8',

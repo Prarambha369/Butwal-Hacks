@@ -13,7 +13,9 @@ export async function GET(
 
   try {
     const report = await generateImpactReport(projectId);
-    return NextResponse.json(report);
+    return NextResponse.json(report, {
+      headers: { "Cache-Control": "private, max-age=60" },
+    });
   } catch (error: unknown) {
     if (error instanceof Error && error.message === 'Project not found') {
       return NextResponse.json(

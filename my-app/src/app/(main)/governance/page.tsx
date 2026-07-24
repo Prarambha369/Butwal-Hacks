@@ -8,9 +8,8 @@ import Breadcrumbs from "@/components/breadcrumbs"
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Transparency & Governance",
-  description:
-    "Governance model, financial integrity, audit reports, and board transparency for Butwal Hacks Foundation in Lumbini.",
+  title: "Transparency & Governance",    description:
+    "How Butwal Hacks is run: our board members, operating policies, financial breakdowns, and commitment to open decision-making in Lumbini.",
   path: "/governance",
 })
 
@@ -18,17 +17,17 @@ const governanceCards = [
   {
     icon: Building2,
     title: "Nepal Hacks Foundation",
-    description: "Parent oversight and legal compliance with a regulatory framework for local chapters.",
+    description: "Provides legal oversight and handles compliance so local chapters don&apos;t have to.",
   },
   {
     icon: Users,
     title: "Butwal Hacks Executive",
-    description: "Strategic operations and resource management across mission and partner alignment.",
+    description: "Runs day-to-day operations, manages partnerships, and keeps programs on track.",
   },
   {
     icon: GraduationCap,
     title: "Student Board",
-    description: "Community-led initiatives and project execution aligned with student needs.",
+    description: "Makes sure programs actually serve student needs. Led by the people who attend events.",
   },
 ] as const
 
@@ -43,17 +42,17 @@ const policies = [
   {
     icon: Siren,
     title: "Conflict of Interest Policy",
-    description: "How personal interests are managed to preserve institutional integrity.",
+    description: "Rules for when personal interests intersect with organizational decisions.",
   },
   {
     icon: ShieldCheck,
     title: "Whistleblower Policy",
-    description: "A safe reporting channel for potential unethical behavior and risk signals.",
+    description: "A safe way to report unethical behavior without fear of retaliation.",
   },
   {
     icon: Landmark,
     title: "Data Ethics",
-    description: "Principles for student data handling, consent, and responsible processing.",
+    description: "How we handle student data: consent first, collection minimal, use transparent.",
   },
 ] as const
 

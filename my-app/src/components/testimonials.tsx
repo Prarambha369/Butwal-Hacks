@@ -16,7 +16,7 @@ const testimonials: Testimonial[] = [
     name: "Aarav Sharma",
     role: "First-time Hacker",
     quote:
-      "Before Butwal Hacks, I thought building software was impossible. In 48 hours, I shipped my first full-stack app. This community doesn't just teach — it empowers.",
+      "Before Butwal Hacks, I thought building software was impossible. In 48 hours, I shipped my first full-stack app. This community makes you ship.",
     avatar: "AS",
   },
   {
@@ -30,14 +30,14 @@ const testimonials: Testimonial[] = [
     name: "Rajan Thapa",
     role: "Organizer",
     quote:
-      "We are proving that world-class tech talent doesn't only come from Kathmandu. Butwal is becoming a launchpad for innovation in Lumbini Province.",
+      "Tech talent isn't limited to Kathmandu. Butwal is producing builders who solve real problems in Lumbini Province.",
     avatar: "RT",
   },
   {
     name: "Sneha KC",
     role: "Open Source Contributor",
     quote:
-      "The verification system gave me the confidence to contribute to open source. Having my trust markers publicly visible opened doors I didn't know existed.",
+      "Getting verified made me confident enough to contribute to open source. My trust markers are public proof of what I've built.",
     avatar: "SK",
   },
 ]

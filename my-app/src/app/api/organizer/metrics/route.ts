@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
-import { createAuthenticatedClient } from '@/utils/supabase/server';
+import { createServiceClient } from '@/utils/supabase/service';
+import { auth0 } from '@/lib/auth0';
 import { parsePagination, paginationMeta } from '@/lib/pagination';
 
 export async function GET(request: Request) {
   try {
-    const authClient = await createAuthenticatedClient();
-    if (!authClient) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const { supabase, userId } = authClient;
+    const session = await auth0.getSession();
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createServiceClient();
+    const userId = session.user.sub;
     const { limit, offset } = parsePagination(request);
 
     // ponytail: Resolve profile UUID then fetch events with registration counts
@@ -28,6 +30,8 @@ export async function GET(request: Request) {
     return NextResponse.json({
       metrics: data,
       pagination: paginationMeta(limit, offset, data?.length ?? 0),
+    }, {
+      headers: { "Cache-Control": "private, max-age=60" },
     });
   } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

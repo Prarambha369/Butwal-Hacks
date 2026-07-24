@@ -77,7 +77,7 @@ export default async function VerifyMarkerPage({ params }: Props) {
           <div
             className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center ${
               isActive
-                ? "bg-primary-red/10 text-primary-red border-[#FE0000] shadow-[0_0_15px_rgba(254,0,0,0.2)]"
+                ? "bg-primary-red/10 text-primary-red border-primary-red shadow-[0_0_15px_rgba(254,0,0,0.2)]"
                 : "bg-surface/10 text-muted-foreground border-border"
             } border`}
           >

@@ -1,6 +1,6 @@
 import { auth0 } from "@/lib/auth0";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { createServiceClient } from "@/utils/supabase/service";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import { CalendarDays, MapPin, Users } from "lucide-react";
@@ -25,7 +25,7 @@ export default async function OrgEventsPage({ params }: PageProps) {
 
   if (!userId) redirect("/sign-in");
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: chapter } = await supabase
     .from("chapters")
@@ -78,7 +78,7 @@ export default async function OrgEventsPage({ params }: PageProps) {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-bold text-primary group-hover:text-primary-red transition-colors">{event.title}</h3>
-                  {!event.is_published && <span className="text-[10px] font-medium text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-full">Draft</span>}
+                  {!event.is_published && <span className="text-[10px] font-medium text-status-yellow bg-status-yellow/10 px-2 py-0.5 rounded-full">Draft</span>}
                 </div>
                 {event.description && <p className="text-sm text-primary/50 line-clamp-2">{event.description}</p>}
                 <div className="flex items-center gap-4 text-xs text-primary/40">

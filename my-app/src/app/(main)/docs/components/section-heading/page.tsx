@@ -37,7 +37,7 @@ function CodeSnippet({ code }: { code: string }) {
         aria-label="Copy code"
       >
         {copied ? (
-          <Check className="h-3.5 w-3.5 text-green-500" />
+          <Check className="h-3.5 w-3.5 text-status-green" />
         ) : (
           <Copy className="h-3.5 w-3.5 text-secondary" />
         )}
@@ -157,8 +157,8 @@ export default function SectionHeadingDocsPage() {
               <tbody className="divide-y divide-border">
                 {[
                   ["variant*", <code key="v" className="text-primary-red font-mono text-xs">"accent" | "icon" | "badge" | "dot" | "plain"</code>, "—", "Visual treatment for the heading"],
-                  ["children*", <code key="ch" className="text-blue-500 font-mono text-xs">ReactNode</code>, "—", "Heading text"],
-                  ["icon", <code key="i" className="text-blue-500 font-mono text-xs">ReactNode</code>, "—", "Lucide icon (required for icon variant)"],
+                  ["children*", <code key="ch" className="text-status-blue font-mono text-xs">ReactNode</code>, "—", "Heading text"],
+                  ["icon", <code key="i" className="text-status-blue font-mono text-xs">ReactNode</code>, "—", "Lucide icon (required for icon variant)"],
                   ["badge", <code key="b" className="text-secondary font-mono text-xs">string</code>, "—", "Pill label text (required for badge variant)"],
                   ["color", <code key="c" className="text-secondary font-mono text-xs">"red" | "green" | "yellow" | "blue" | "orange"</code>, <span className="text-primary-red font-mono text-xs">"red"</span>, "Accent color"],
                   ["animate", <code key="a" className="text-secondary font-mono text-xs">boolean</code>, <code className="text-xs font-mono">false</code>, "Pulse animation (dot variant only)"],

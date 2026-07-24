@@ -88,6 +88,7 @@ export default async function OrganizerWorkPage() {
           workspaceId={firstWorkspace.id}
           initialTasks={tasks.data || []}
           teamMembers={members}
+          workspaces={workspaces.data || []}
         />
       ) : (
         <div className="bh-card p-12 text-center">

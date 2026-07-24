@@ -1,6 +1,4 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
-import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "./service"
 
 /**
  * Base Supabase client for server-side use.
@@ -23,16 +21,4 @@ export function createClient() {
   )
 }
 
-/**
- * Creates an authenticated Supabase client using the current Auth0 session.
- * Uses the Service Role Key (bypasses RLS) per the architectural decision to
- * use Supabase strictly as a database with Auth0 for auth.
- *
- * Returns `{ supabase, userId }` on success, or `null` if not authenticated.
- */
-export async function createAuthenticatedClient() {
-  const session = await auth0.getSession()
-  if (!session?.user) return null
 
-  return { supabase: createServiceClient(), userId: session.user.sub }
-}

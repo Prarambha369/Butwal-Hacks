@@ -99,7 +99,7 @@ export default function TrustedBy() {
     <section className="border-b border-border bg-background py-12 md:py-16">
       <div className="mx-auto max-w-6xl px-4">
         <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-8">
-          Tools and platforms that inspire what we build
+          Tools we actually use
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-8 md:gap-x-14 md:gap-y-10">
@@ -127,7 +127,7 @@ export default function TrustedBy() {
         </div>
 
         <p className="mt-8 text-center text-[10px] font-mono text-muted-foreground/60">
-          We use these tools every day. Student-led, open-source, built in public.
+          Student-run, open-source, built in public.
         </p>
       </div>
     </section>

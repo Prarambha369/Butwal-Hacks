@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, CheckCircle2, Zap } from 'lucide-react';
+import { ShoppingBag, CheckCircle2, Zap, Award, FileEdit, Badge, GraduationCap } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { cn } from '@/lib/utils';
@@ -9,6 +9,14 @@ import { CardSkeleton } from '@/components/ui/skeleton';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { AVAILABLE_REWARDS } from '@/lib/data/rewards';
+
+const REWARD_ICONS: Record<string, React.ReactNode> = {
+  'gold-border': <Award className="w-8 h-8" />,
+  'custom-bio': <FileEdit className="w-8 h-8" />,
+  'priority-reg': <Zap className="w-8 h-8" />,
+  'exclusive-sticker': <Badge className="w-8 h-8" />,
+  'mentor-session': <GraduationCap className="w-8 h-8" />,
+};
 
 export default function RewardsStore() {
   const [userXP, setUserXP] = useState(0);
@@ -107,12 +115,14 @@ export default function RewardsStore() {
           return (
             <div key={reward.id} className={cn(
               "bh-card p-6 border transition-all duration-300",
-              isRedeemed ? "border-green-500/50 bg-green-500/5" : "border-border hover:border-border"
+              isRedeemed ? "border-status-green/30 bg-status-green/5" : "border-border hover:border-border"
             )}>
               <div className="flex justify-between items-start mb-4">
-                <div className="text-3xl">{reward.icon}</div>
+                <div className="w-12 h-12 rounded-lg bg-surface-hover border border-border flex items-center justify-center text-primary">
+                  {REWARD_ICONS[reward.id] ?? <Award className="w-8 h-8" />}
+                </div>
                 {isRedeemed ? (
-                  <div className="p-1 rounded-full bg-green-500 text-primary">
+                  <div className="p-1 rounded-full bg-status-green text-primary">
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                 ) : (
@@ -132,7 +142,7 @@ export default function RewardsStore() {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1 text-xs font-mono text-muted-foreground">
-                  <Zap className="w-3 h-3 text-yellow-400" />
+                  <Zap className="w-3 h-3 text-status-yellow" />
                   {reward.cost} XP
                 </div>
                 <button 
@@ -141,7 +151,7 @@ export default function RewardsStore() {
                   className={cn(
                     "px-4 py-2 rounded-lg text-xs font-bold transition-all",
                     isRedeemed 
-                      ? "bg-green-500/20 text-green-500 cursor-default" 
+                      ? "bg-status-green/20 text-status-green cursor-default" 
                       : canAfford 
                         ? "bg-bh-red-500 text-primary hover:bg-primary-red/90" 
                         : "bg-surface-hover text-muted-foreground cursor-not-allowed"

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
-import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter";
+import { withRateLimit } from "@/lib/rate-limiter";
 
 const SLACK_EMAIL_CHANNEL = process.env.SLACK_EMAIL_CHANNEL ?? "";
 const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://butwalhacks.com";
@@ -17,7 +17,7 @@ const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://butwalhacks.com";
  * No auth required — errors can happen on any page regardless of login state.
  * ponytail: Single Resend email, no retry, no queue. Best-effort only.
  */
-export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
+export const POST = withRateLimit(async (req: NextRequest) => {
   if (!SLACK_EMAIL_CHANNEL) {
     return NextResponse.json({ ok: false, reason: "slack_email_not_configured" });
   }
@@ -70,12 +70,12 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
 
     // Header
     sections.push("═" .repeat(50));
-    sections.push(`🚨 ERROR REPORT  #${body.error_id || "N/A"}`);
+    sections.push(`ERROR REPORT  #${body.error_id || "N/A"}`);
     sections.push("═" .repeat(50));
     sections.push("");
 
     // 1. Core error info
-    sections.push("📋 CORE INFO");
+    sections.push("CORE INFO");
     sections.push("─" .repeat(30));
     sections.push(`Error ID:   ${body.error_id || "N/A"}`);
     sections.push(`Message:    ${body.message || "unknown"}`);
@@ -86,14 +86,14 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
     sections.push("");
 
     // 2. User info
-    sections.push("👤 USER");
+    sections.push("USER");
     sections.push("─" .repeat(30));
     sections.push(`User ID:    ${body.user_id || "anonymous"}`);
     sections.push(`Language:   ${body.language || "N/A"}`);
     sections.push("");
 
     // 3. Environment / device
-    sections.push("💻 ENVIRONMENT");
+    sections.push("ENVIRONMENT");
     sections.push("─" .repeat(30));
     sections.push(`Browser:    ${body.browser || "N/A"}`);
     sections.push(`OS:         ${body.os || "N/A"}`);
@@ -103,7 +103,7 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
     sections.push("");
 
     // 4. Raw error message
-    sections.push("📎 RAW ERROR");
+    sections.push("RAW ERROR");
     sections.push("─" .repeat(30));
     sections.push(body.message || "unknown");
     if (body.digest) {
@@ -124,7 +124,7 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
       body: JSON.stringify({
         from: "errors@mail.butwalhacks.com",
         to: [SLACK_EMAIL_CHANNEL],
-        subject: `🚨 Error #${body.error_id || "???"} on Butwal Hacks`,
+        subject: `Error #${body.error_id || "???"} on Butwal Hacks`,
         text: emailBody,
       }),
     });
@@ -137,4 +137,4 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
     // Silent failure — the error page already loaded
     return NextResponse.json({ ok: false });
   }
-}));
+});

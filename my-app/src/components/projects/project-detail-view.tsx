@@ -56,7 +56,7 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
               <Calendar className="w-3 h-3" />
               {project.created_at ? new Date(project.created_at).toLocaleDateString() : 'Recent'}
             </div>
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-deep-red/20 border border-red-600/30 text-primary-red text-xs font-medium">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-deep-red/20 border border-primary-red/30 text-primary-red text-xs font-medium">
               <Users className="w-3 h-3" />
               {project.teams?.members?.length || 1} Contributor{project.teams?.members?.length !== 1 ? 's' : ''}
             </div>
@@ -167,7 +167,7 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
             </div>
             <div className="pt-6 border-t border-border flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Community Love</span>
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-deep-red/20 border border-red-600/30 text-primary-red text-xs font-bold">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-deep-red/20 border border-primary-red/30 text-primary-red text-xs font-bold">
                 <Heart className="w-3 h-3 fill-red-500" />
                 {likesCount}
               </div>

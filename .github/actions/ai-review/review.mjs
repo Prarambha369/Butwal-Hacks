@@ -156,22 +156,12 @@ async function main() {
 
   console.log(`🔍 Reviewing PR #${prNumber}: ${prTitle}`);
 
-  const prompt = `PR Title: ${prTitle}
-PR Description: ${prBody || "(none)"}
-
---- DIFF ---
-${diff}
---- END DIFF ---`;
+  const prompt = `PR Title: ${prTitle}\nPR Description: ${prBody || "(none)"}\n\n--- DIFF ---\n${diff}\n--- END DIFF ---`;
 
   const review = await callClaude(prompt);
 
   // Post the review as a PR comment
-  await postComment(`## 🤖 AI Code Review
-
-${review}
-
----
-<sub>Automated review by Claude • Focus: architecture, security, business logic</sub>`);
+  await postComment(`## 🤖 AI Code Review\n\n${review}\n\n---\n<sub>Automated review by Claude • Focus: architecture, security, business logic</sub>`);
 
   // Check for critical issues — fail the check if found
   const criticalCount = (review.match(/\[SEVERITY: CRITICAL\]/g) || []).length;

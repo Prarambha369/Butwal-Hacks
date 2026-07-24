@@ -5,8 +5,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { CalendarDays, Clock3, Search, X, ArrowRight, Mail } from "lucide-react"
 import { blogPosts, type BlogPost } from "@/lib/content"
-import { validateSearchInput, sanitizeInput } from "@/lib/validation"
+import { validateSearchInput, sanitizeString } from "@/lib/validation"
 import { Skeleton } from "@/components/ui/skeleton"
+import { RoseSpinner } from "@/components/ui/rose-loader"
 import { NoResultsState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -105,7 +106,7 @@ export function BlogContent() {
       toast.error(validation.error, { duration: 2000 })
       return
     }
-    const sanitized = sanitizeInput(rawValue)
+    const sanitized = sanitizeString(rawValue, 100)
     setSearchQuery(sanitized)
     setIsLoading(true)
     setTimeout(() => { setIsLoading(false) }, 300)
@@ -189,8 +190,7 @@ export function BlogContent() {
         <div>
           <h1 className="text-5xl font-black tracking-tight text-primary sm:text-6xl">Blog</h1>
           <p className="mt-5 max-w-3xl text-lg sm:text-xl text-muted-foreground leading-relaxed">
-            Technical insights, community spotlights, and updates from Butwal Hacks.
-            Discover how we&apos;re building a tech movement in Western Nepal.
+            Project breakdowns, community stories, and updates from Butwal Hacks.
           </p>
         </div>
 
@@ -222,8 +222,7 @@ export function BlogContent() {
           <span className="text-sm text-muted-foreground">
             {isLoading ? (
               <span className="inline-flex items-center gap-2">
-                <span className="h-3 w-3 animate-spin rounded-full border-2 border-border border-t-bh-red-500" />
-                Loading...
+                <RoseSpinner size="sm" />
               </span>
             ) : (
               <span>
@@ -329,7 +328,7 @@ export function BlogContent() {
             />
             <button
               type="submit"
-              className="w-full bh-btn-pill text-sm"
+              className="w-full bh-btn-primary text-sm"
             >
               Subscribe
             </button>

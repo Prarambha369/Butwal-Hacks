@@ -22,8 +22,6 @@ const roleColors: Record<string, {
 }
 
 export function MemberDirectory() {
-  const totalMembers = communityMembers.reduce((sum, m) => sum + m.count, 0)
-
   return (
     <section className="relative py-24 md:py-32 overflow-hidden" aria-label="Community Members">
       {/* Decorative background */}
@@ -43,7 +41,7 @@ export function MemberDirectory() {
             Our Community
           </p>
           <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">
-            Built by <span className="text-primary-red">{totalMembers.toLocaleString()}</span> Members
+            Built by <span className="text-primary-red">You</span>
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-muted-foreground text-base md:text-lg leading-relaxed">
             From first-time hackers to experienced mentors — every role matters in building what&apos;s next.
@@ -65,7 +63,7 @@ export function MemberDirectory() {
                 {roleIcons[member.role] || <Users className="w-5 h-5" />}
               </div>
               <p className="text-3xl md:text-4xl font-black text-primary tracking-tight">
-                {member.count.toLocaleString()}
+                —
               </p>
               <p className="mt-1 text-sm font-bold text-primary/80">{member.role}s</p>
               <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground/70 max-w-[160px]">

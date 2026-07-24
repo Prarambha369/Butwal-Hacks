@@ -1,216 +1,127 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-13T00:00:00.000Z",
+  "generatedAt": "2026-07-16T10:30:00Z",
   "title": "Design System: Butwal Hacks",
   "extensions": {
     "colorMeta": {
-      "primary": {
-        "role": "primary",
-        "displayName": "Hackathon Red",
-        "canonical": "#FE0000",
-        "tonalRamp": ["#420000", "#7b0000", "#B10000", "#D60000", "#FE0000", "#ff4040", "#ff7c7c", "#ffb9b9", "#ffe0e0"]
-      },
-      "primary-deep": {
-        "role": "primary",
-        "displayName": "Deep Red",
-        "canonical": "#B10000",
-        "tonalRamp": []
-      },
-      "primary-dark": {
-        "role": "primary",
-        "displayName": "Dark Red",
-        "canonical": "#7b0000",
-        "tonalRamp": []
-      },
-      "primary-dark-deeper": {
-        "role": "primary",
-        "displayName": "Dark Red Deeper",
-        "canonical": "#420000",
-        "tonalRamp": []
-      },
-      "primary-light": {
-        "role": "primary",
-        "displayName": "Light Red",
-        "canonical": "#ff7c7c",
-        "tonalRamp": []
-      },
-      "neutral-bg": {
-        "role": "neutral",
-        "displayName": "Deep Space",
-        "canonical": "#242424",
-        "tonalRamp": ["#0a0a0a", "#181818", "#242424", "#303030", "#3a3a3a", "#434343", "#585858", "#6b6b6b", "#898989"]
-      },
-      "neutral-surface": {
-        "role": "neutral",
-        "displayName": "Starlight Surface",
-        "canonical": "#434343",
-        "tonalRamp": []
-      },
-      "neutral-heading": {
-        "role": "neutral",
-        "displayName": "Starlight White",
-        "canonical": "#FFFFFF",
-        "tonalRamp": []
-      }
+      "primary": { "role": "primary", "displayName": "Butwal Red", "canonical": "oklch(0.54 0.25 30)", "tonalRamp": ["#3a0000", "#5c0000", "#7b0000", "#9e0000", "#c20000", "#e00000", "#fe0000", "#ff6b6b", "#ffb3b3", "#ffe6e6"] },
+      "primary-deep": { "role": "primary", "displayName": "Deep Red", "canonical": "oklch(0.42 0.2 30)", "tonalRamp": ["#2a0000", "#450000", "#600000", "#7a0000", "#940000", "#ae0000", "#b10000", "#c84c4c", "#e09999", "#f5d6d6"] },
+      "bg-base-light": { "role": "neutral", "displayName": "Page Canvas", "canonical": "oklch(0.965 0.003 260)", "tonalRamp": ["#d4d4d8", "#e4e4e7", "#f0f0f2", "#f4f4f5", "#f7f7f8", "#f9f9fa", "#fbfbfc", "#fcfcfd", "#fdfdfe", "#fefefe"] },
+      "surface-light": { "role": "neutral", "displayName": "Card Surface", "canonical": "oklch(1 0 0)", "tonalRamp": ["#cccccc", "#dddddd", "#e8e8e8", "#f0f0f0", "#f5f5f5", "#fafafa", "#fcfcfc", "#fdfdfd", "#fefefe", "#ffffff"] },
+      "text-primary-light": { "role": "neutral", "displayName": "Heading Ink", "canonical": "oklch(0.2 0 260)", "tonalRamp": ["#000000", "#0a0a0a", "#141414", "#1a1a1a", "#1f1f1f", "#2a2a2a", "#404040", "#666666", "#999999", "#cccccc"] },
+      "status-green": { "role": "status", "displayName": "Success Green", "canonical": "oklch(0.55 0.15 150)", "tonalRamp": ["#0a4a1a", "#106a2a", "#168a3a", "#16a34a", "#22c55e", "#4ade80", "#86efac", "#bbf7d0", "#dcfce7", "#f0fdf4"] },
+      "status-blue": { "role": "status", "displayName": "Info Blue", "canonical": "oklch(0.5 0.15 260)", "tonalRamp": ["#1a3a6a", "#1e4a8a", "#225aaa", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe", "#dbeafe", "#eff6ff"] }
     },
     "typographyMeta": {
-      "display": {
-        "displayName": "Display",
-        "purpose": "Hero headlines and major section headers only."
-      },
-      "body": {
-        "displayName": "Body",
-        "purpose": "Paragraphs, descriptions, and general reading text. Max width 65-75ch."
-      },
-      "label": {
-        "displayName": "Label/Mono",
-        "purpose": "Badges, trust markers, metadata, timestamps, keyboard shortcuts. Always uppercase with tracking-widest."
-      }
+      "display": { "displayName": "Display", "purpose": "Hero headlines only. Typically used on landing page hero sections." },
+      "body": { "displayName": "Body", "purpose": "All reading text: descriptions, paragraphs, list content. Max width 65-75ch." },
+      "label": { "displayName": "Mono Label", "purpose": "Technical identifiers: BH-IDs, timestamps, API keys, badge text, metadata tags." },
+      "title": { "displayName": "Title", "purpose": "Card titles, section headings, modal headers." }
     },
     "shadows": [
-      { "name": "surface-hover", "value": "0 16px 48px -8px rgba(254, 0, 0, 0.35)", "purpose": "Interactive state — cards and glass containers on hover." },
-      { "name": "modal", "value": "0 8px 32px rgba(0, 0, 0, 0.4)", "purpose": "Modal / dialog overlay panels." },
-      { "name": "button-glow", "value": "0 0 20px rgba(254, 0, 0, 0.3)", "purpose": "Primary button hover glow (expands to 40px on hover)." },
-      { "name": "trust-marker", "value": "0 0 15px rgba(254, 0, 0, 0.2)", "purpose": "Active trust badges and verified markers." }
+      { "name": "shadow-sm", "value": "0 1px 2px rgba(0, 0, 0, 0.05)", "purpose": "Subtle card shadow. Rarely used; cards default to flat." },
+      { "name": "shadow-md", "value": "0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.05)", "purpose": "Card hover state. The most commonly used shadow." },
+      { "name": "shadow-lg", "value": "0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04)", "purpose": "Dropdown menus, hovered modals." },
+      { "name": "shadow-xl", "value": "0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)", "purpose": "Modals, sidebars, floating overlays." }
     ],
     "motion": [
-      { "name": "spring-bounce", "value": "cubic-bezier(0.175, 0.885, 0.32, 1.275)", "purpose": "Primary transition timing — buttons, interactive elements. Spring-like overshoot." },
-      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for non-spring transitions." },
-      { "name": "duration-fast", "value": "200ms", "purpose": "Quick feedback transitions (hover tints, color shifts)." },
-      { "name": "duration-medium", "value": "300ms", "purpose": "Standard transition duration (layout shifts, entrance/exit)." },
-      { "name": "duration-slow", "value": "400ms", "purpose": "Spring transition length (buttons, interactive elements)." },
-      { "name": "duration-extra-slow", "value": "700ms", "purpose": "PWA install prompt entrance, heavy entrance animations." }
-    ],
-    "backdropFilters": [
-      { "name": "glass-blur", "value": "blur(30px)", "purpose": "Liquid glass surface blur — the defining material property." },
-      { "name": "glass-saturate", "value": "saturate(180%)", "purpose": "Saturation boost that gives glass surfaces their frosted-vibrant quality." }
+      { "name": "transition-default", "value": "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default transition for all interactive elements." },
+      { "name": "transition-slow", "value": "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Panel slide, modal entrance." },
+      { "name": "transition-fast", "value": "all 0.15s cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Color transitions, hover tints." },
+      { "name": "press", "value": "transform 0.1s ease-out", "purpose": "Button press feedback (active:scale-97)." }
     ],
     "breakpoints": [
       { "name": "sm", "value": "640px" },
       { "name": "md", "value": "768px" },
       { "name": "lg", "value": "1024px" },
-      { "name": "xl", "value": "1280px" },
-      { "name": "2xl", "value": "1536px" }
-    ],
-    "borderValues": {
-      "button-ghost": "1px solid rgba(118, 118, 118, 0.3)",
-      "button-secondary": "1px solid rgba(118, 118, 118, 0.3)",
-      "card-glass": "1px solid rgba(118, 118, 118, 0.3)",
-      "input-field": "1px solid rgba(118, 118, 118, 0.3)"
-    }
+      { "name": "xl", "value": "1280px" }
+    ]
   },
   "components": [
     {
-      "name": "Primary Button",
+      "name": "Primary Pill Button",
       "kind": "button",
-      "refersTo": "button-primary",
-      "description": "The primary call-to-action pill button. Used for sign up, submit, confirm, and other high-emphasis actions.",
-      "html": "<button class=\"ds-btn-primary\">GET STARTED</button>",
-      "css": ".ds-btn-primary { background: rgba(254, 0, 0, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(254, 0, 0, 0.4); color: #FFFFFF; padding: 8px 24px; border-radius: 9999px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; line-height: 1.5; cursor: pointer; transition: all 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 0 20px rgba(254, 0, 0, 0.3); } .ds-btn-primary:hover { background: rgb(177, 0, 0); box-shadow: 0 0 40px rgba(254, 0, 0, 0.3); transform: scale(1.03); } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.5), 0 0 20px rgba(254, 0, 0, 0.3); }"
+      "refersTo": "button-pill",
+      "description": "Primary call-to-action. Rounded pill shape with red background. Red glow appears on hover.",
+      "html": "<button class=\"ds-btn-pill\">Get Started</button>",
+      "css": ".ds-btn-pill { display: inline-flex; align-items: center; gap: 0.5rem; background: #FE0000; color: #FFFFFF; font-family: 'DM Sans', 'Inter', sans-serif; font-weight: 700; font-size: 0.875rem; padding: 0.75rem 2rem; border: none; border-radius: 9999px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }.ds-btn-pill:hover { background: #B10000; box-shadow: 0 0 20px rgba(254, 0, 0, 0.25); transform: translateY(-1px); }.ds-btn-pill:focus-visible { outline: 2px solid #FE0000; outline-offset: 2px; }.ds-btn-pill:active { transform: scale(0.97); }"
     },
     {
-      "name": "Ghost Button",
+      "name": "Secondary Outline Button",
       "kind": "button",
-      "refersTo": "button-ghost",
-      "description": "Low-emphasis ghost button with glass border. Used for secondary actions and sign-in links.",
-      "html": "<button class=\"ds-btn-ghost\">Sign In</button>",
-      "css": ".ds-btn-ghost { background: transparent; padding: 8px 20px; border-radius: 9999px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; line-height: 1.5; color: #FFFFFF; cursor: pointer; transition: all 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid rgba(118, 118, 118, 0.3); } .ds-btn-ghost:hover { background: rgba(67, 67, 67, 0.1); border-color: rgba(254, 0, 0, 0.2); transform: scale(1.02); } .ds-btn-ghost:active { transform: scale(0.97); } .ds-btn-ghost:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.5); }"
+      "refersTo": "button-secondary",
+      "description": "Secondary action. Transparent with 1px border.",
+      "html": "<button class=\"ds-btn-secondary\">Learn More</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: #1F1F1F; font-family: 'DM Sans', 'Inter', sans-serif; font-weight: 700; font-size: 0.875rem; padding: 0.625rem 1.5rem; border: 1px solid #E5E5E5; border-radius: 8px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }.ds-btn-secondary:hover { background: #F0F0F2; }.ds-btn-secondary:focus-visible { outline: 2px solid #FE0000; outline-offset: 2px; }.ds-btn-secondary:active { transform: scale(0.97); }"
     },
     {
-      "name": "Glass Card",
+      "name": "Card Component",
       "kind": "card",
-      "refersTo": "card-glass",
-      "description": "The primary Liquid Glass container. Used for dashboard sections, profile cards, project showcases, and feature panels.",
-      "html": "<div class=\"ds-card-glass\"><div class=\"ds-card-content\"><h3 class=\"ds-card-title\">Card Title</h3><p class=\"ds-card-body\">This is a glass card — the primary container pattern in the Butwal Hacks design system.</p></div></div>",
-      "css": ".ds-card-glass { background: rgba(67, 67, 67, 0.7); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); saturate: 180%; -webkit-saturate: 180%; border: 1px solid rgba(118, 118, 118, 0.3); border-radius: 20px; padding: 24px; transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-card-glass:hover { border-color: rgba(254, 0, 0, 0.3); box-shadow: 0 16px 48px -8px rgba(254, 0, 0, 0.35); transform: translateY(-4px); } .ds-card-title { font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 600; color: #FFFFFF; margin: 0 0 8px 0; } .ds-card-body { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 400; line-height: 1.625; color: #d6d6d6; margin: 0; } .ds-card-content { display: flex; flex-direction: column; gap: 4px; }"
+      "refersTo": "card",
+      "description": "Standard content card. Flat white surface with 1px border.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-body\"><h3 class=\"ds-card-title\">Card Title</h3><p class=\"ds-card-text\">Card description content goes here. Keep it concise and informative.</p></div></div>",
+      "css": ".ds-card { background: #FFFFFF; border: 1px solid #E5E5E5; border-radius: 12px; padding: 1.5rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }.ds-card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06); transform: translateY(-2px); }.ds-card-title { font-family: 'DM Sans', 'Inter', sans-serif; font-weight: 700; font-size: 1rem; line-height: 1.25; color: #1F1F1F; margin: 0 0 0.5rem 0; }.ds-card-text { font-family: 'DM Sans', 'Inter', sans-serif; font-weight: 400; font-size: 0.9375rem; line-height: 1.625; color: #333333; margin: 0; }"
     },
     {
-      "name": "Input Field",
+      "name": "Text Input",
       "kind": "input",
-      "refersTo": "input-field",
-      "description": "Text input field with liquid glass styling. Focus reveals the Hackathon Red ring glow.",
-      "html": "<div class=\"ds-input-wrapper\"><input type=\"text\" class=\"ds-input\" placeholder=\"Enter your text...\" /></div>",
-      "css": ".ds-input-wrapper { display: flex; flex-direction: column; gap: 6px; } .ds-input { background: rgba(36, 36, 36, 0.5); color: #FFFFFF; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 400; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(118, 118, 118, 0.3); transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1); outline: none; } .ds-input::placeholder { color: #9e9e9e; } .ds-input:focus { border-color: #FE0000; box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.2); } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; }"
+      "refersTo": "input",
+      "description": "Standard text input field with focus ring.",
+      "html": "<div style=\"display: flex; flex-direction: column; gap: 0.25rem;\"><label class=\"ds-label\">Email</label><input class=\"ds-input\" type=\"email\" placeholder=\"you@example.com\" /></div>",
+      "css": ".ds-label { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: #666666; }.ds-input { background: #FFFFFF; color: #1F1F1F; font-family: 'DM Sans', 'Inter', sans-serif; font-size: 0.875rem; padding: 0.5rem 0.75rem; border: 1px solid #E5E5E5; border-radius: 8px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; width: 100%; box-sizing: border-box; }.ds-input::placeholder { color: #888888; }.ds-input:focus { border-color: #FE0000; box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.15); }"
     },
     {
-      "name": "Verified Badge",
+      "name": "Red Badge",
       "kind": "chip",
       "refersTo": "badge",
-      "description": "Trust marker badge for verified identities and active trust markers. Uses Hackathon Red with optional dot indicator.",
-      "html": "<span class=\"ds-badge-verified\"><span class=\"ds-badge-dot\"></span>VERIFIED</span>",
-      "css": ".ds-badge-verified { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #FE0000; border: 1px solid rgba(254, 0, 0, 0.5); background: rgba(254, 0, 0, 0.15); } .ds-badge-dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background: #FE0000; box-shadow: 0 0 6px rgba(254, 0, 0, 0.35); } .ds-badge-verified[data-pulse=\"true\"] .ds-badge-dot { animation: pulse-red 2s infinite; } @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }"
+      "description": "Status badge using Butwal Red accent.",
+      "html": "<span class=\"ds-badge-red\">Verified</span>",
+      "css": ".ds-badge-red { display: inline-flex; align-items: center; background: rgba(254, 0, 0, 0.08); color: #FE0000; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.6875rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.125rem 0.5rem; border-radius: 6px; white-space: nowrap; }"
     },
     {
-      "name": "Revoked Badge",
-      "kind": "chip",
-      "refersTo": "badge",
-      "description": "Struck-through badge for revoked trust markers. Grey, muted, visually retired.",
-      "html": "<span class=\"ds-badge-revoked\">REVOKED</span>",
-      "css": ".ds-badge-revoked { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-decoration: line-through; color: rgba(158, 158, 158, 0.4); border: 1px solid rgba(118, 118, 118, 0.3); background: rgba(67, 67, 67, 0.1); }"
-    },
-    {
-      "name": "Sign Up CTA Button (Navbar)",
-      "kind": "button",
-      "refersTo": "button-primary",
-      "description": "The prominent sign-up call-to-action pill used in the navbar. Larger than inline primary buttons.",
-      "html": "<a class=\"ds-btn-cta\">SIGN UP</a>",
-      "css": ".ds-btn-cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #FE0000; padding: 10px 24px; border-radius: 9999px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; color: #FFFFFF; text-decoration: none; cursor: pointer; transition: all 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275); } .ds-btn-cta:hover { background: #B10000; box-shadow: 0 0 20px rgba(254, 0, 0, 0.4); } .ds-btn-cta:active { transform: scale(0.95); } .ds-btn-cta:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.5), 0 0 20px rgba(254, 0, 0, 0.4); }"
-    },
-    {
-      "name": "Navigation Bar",
+      "name": "Top Navigation",
       "kind": "nav",
-      "refersTo": "Navbar",
-      "description": "Sticky top navigation bar. Glass backdrops appears on scroll beyond 20px. Contains logo, nav links, search trigger, language switcher, and auth buttons.",
-      "html": "<nav class=\"ds-nav\"><div class=\"ds-nav-inner\"><div class=\"ds-nav-logo\"><div class=\"ds-nav-logo-icon\"></div><span class=\"ds-nav-title\">BUTWAL HACKS</span></div><div class=\"ds-nav-links\"><a class=\"ds-nav-link\" href=\"#\">Home</a><a class=\"ds-nav-link\" href=\"#\">Events</a><a class=\"ds-nav-link\" href=\"#\">Community</a></div><div class=\"ds-nav-actions\"><button class=\"ds-nav-search\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.35-4.35\"/></svg><kbd class=\"ds-nav-kbd\">\u2318K</kbd></button><a class=\"ds-btn-ghost\" href=\"#\">Sign In</a><a class=\"ds-btn-cta\" href=\"#\">Sign Up</a></div></div></nav>",
-      "css": ".ds-nav { position: sticky; top: 0; z-index: 50; width: 100%; padding: 20px 0; background: #242424; transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-nav[data-scrolled=\"true\"] { background: rgba(67, 67, 67, 0.7); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); saturate: 180%; -webkit-saturate: 180%; border-bottom: 1px solid rgba(118, 118, 118, 0.3); padding: 12px 0; } .ds-nav-inner { max-width: 1280px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 48px; } .ds-nav-logo { display: flex; align-items: center; gap: 12px; } .ds-nav-logo-icon { width: 48px; height: 48px; border-radius: 9999px; background: rgba(67, 67, 67, 0.7); border: 1px solid rgba(118, 118, 118, 0.3); } .ds-nav-title { font-family: 'DM Sans', sans-serif; font-size: 20px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.02em; } .ds-nav-links { display: none; gap: 32px; } @media (min-width: 768px) { .ds-nav-links { display: flex; } } .ds-nav-link { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: #9e9e9e; text-decoration: none; transition: color 200ms; } .ds-nav-link:hover { color: #FFFFFF; } .ds-nav-actions { display: none; align-items: center; gap: 12px; } @media (min-width: 768px) { .ds-nav-actions { display: flex; } } .ds-nav-search { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 9999px; border: 1px solid rgba(118, 118, 118, 0.3); background: transparent; color: #9e9e9e; cursor: pointer; transition: all 200ms; font-family: 'DM Sans', sans-serif; font-size: 14px; } .ds-nav-search:hover { background: rgba(67, 67, 67, 0.7); color: #FFFFFF; } .ds-nav-kbd { display: none; padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(118, 118, 118, 0.3); background: rgba(67, 67, 67, 0.5); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(158, 158, 158, 0.6); } @media (min-width: 1024px) { .ds-nav-kbd { display: inline-block; } }"
-    },
-    {
-      "name": "Empty State Card",
-      "kind": "card",
-      "refersTo": "card-glass",
-      "description": "Glass card shown when a section has no content. Icon + title + description + optional action button.",
-      "html": "<div class=\"ds-empty-state\"><div class=\"ds-empty-icon\"><svg width=\"48\" height=\"48\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"20\" height=\"14\" x=\"2\" y=\"3\" rx=\"2\"/><path d=\"M8 21h8\"/><path d=\"M12 17v4\"/></svg></div><h3 class=\"ds-empty-title\">No projects yet</h3><p class=\"ds-empty-desc\">Submit your first project to start building your portfolio.</p><a class=\"ds-btn-primary\" href=\"#\">Create Project</a></div>",
-      "css": ".ds-empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 24px; padding: 48px; background: rgba(67, 67, 67, 0.7); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); saturate: 180%; -webkit-saturate: 180%; border: 1px solid rgba(118, 118, 118, 0.3); border-radius: 24px; animation: fadeIn 300ms ease-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } .ds-empty-icon { padding: 16px; border-radius: 16px; background: rgba(254, 0, 0, 0.05); border: 1px solid rgba(254, 0, 0, 0.1); color: rgba(254, 0, 0, 0.4); } .ds-empty-title { font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 700; color: #FFFFFF; margin: 0; } .ds-empty-desc { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 400; line-height: 1.625; color: #9e9e9e; max-width: 320px; margin: 0; }"
+      "refersTo": "navbar",
+      "description": "Sticky top navigation bar with logo, links, and CTAs.",
+      "html": "<nav class=\"ds-nav\"><div class=\"ds-nav-inner\"><div class=\"ds-nav-brand\"><div class=\"ds-nav-logo\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\"><rect width=\"20\" height=\"20\" rx=\"4\" fill=\"#B10000\"/><path d=\"M6 6h3v8H8V7H7V6zm5 0v8h-1V6h1z\" fill=\"white\"/></svg><span class=\"ds-nav-title\">Butwal Hacks</span></div><div class=\"ds-nav-links\"><a class=\"ds-nav-link\">Events</a><a class=\"ds-nav-link\">Community</a><a class=\"ds-nav-link\">About</a></div></div><div class=\"ds-nav-actions\"><button class=\"ds-btn-pill\" style=\"padding:0.5rem 1.25rem;font-size:0.8125rem\">Sign In</button></div></div></nav>",
+      "css": ".ds-nav { background: #FFFFFF; border-bottom: 1px solid #E5E5E5; padding: 0 1.5rem; position: sticky; top: 0; z-index: 50; }.ds-nav-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 3.5rem; }.ds-nav-brand { display: flex; align-items: center; gap: 2rem; }.ds-nav-logo { display: flex; align-items: center; gap: 0.5rem; }.ds-nav-title { font-family: 'DM Sans', 'Inter', sans-serif; font-weight: 700; font-size: 0.9375rem; color: #1F1F1F; }.ds-nav-links { display: flex; align-items: center; gap: 0.25rem; }.ds-nav-link { font-family: 'DM Sans', 'Inter', sans-serif; font-weight: 500; font-size: 0.875rem; color: #666666; padding: 0.375rem 0.75rem; border-radius: 6px; text-decoration: none; transition: color 0.2s, background 0.2s; cursor: pointer; }.ds-nav-link:hover { color: #1F1F1F; background: #F0F0F2; }"
     }
   ],
   "narrative": {
-    "northStar": "The Workshop",
-    "overview": "Butwal Hacks is a workshop, not a showroom. The design feels raw, honest, and maker-focused — red as a functional tool, glass as the workbench surface. Every pixel serves the builder: clear hierarchy, tactile buttons, surfaces that feel solid without calling attention to themselves. This is a space for getting things done, not for decoration.\n\nThe system rejects dark-mode-with-purple-gradients SaaS clichés, generic AI-tool marketing gloss, and anything that looks like a 2014 startup landing page. Instead, it builds depth from *material honesty*: liquid glass surfaces that feel substantial through blur and saturation rather than drop shadows, and a single assertive red accent that earns its place by being used sparingly.",
+    "northStar": "The Builder's Workbench",
+    "overview": "Butwal Hacks is a flat, layered SaaS platform built for Nepal's hacker community — a workbench with everything a builder needs and nothing they don't. The design prioritizes clarity, hierarchy, and earned familiarity over ornament.\n\nSurfaces are solid white or light gray (#F7F7F8 / #FFFFFF). Borders are crisp 1px (#E5E5E5). Depth comes from tonal layering — lighter content areas, slightly darker sidebars and panels — not from shadows or blur. A single assertive red accent (#FE0000) earns its place by being used sparingly on primary actions and verified credentials only.",
     "keyCharacteristics": [
-      "Honest materiality — glass surfaces (backdrop-blur-[30px] saturate-[180%]) replace empty shadows as the primary depth signal",
-      "Single accent discipline — Hackathon Red (#FE0000) is the only accent. It appears on ≤ 10% of any screen. Its rarity is the point.",
-      "Tool-like buttons — pill-shaped (rounded-full), substantial padding, spring-loaded hover scale (scale-[1.02] / scale-[1.03]), active press (scale-[0.97])",
-      "Mono confidence — JetBrains Mono for labels, badges, and metadata signals 'this is technical, this is precise'",
-      "Dark-first — Deep Space (#242424) is the default canvas. Starlight surfaces emerge as needed. Light mode exists but is secondary."
+      "Layered-by-default — depth through background lightness changes, not shadows or glass",
+      "Single accent discipline — Butwal Red is the only accent; appears on ≤10% of any screen",
+      "Selective glow — red glow appears only on primary CTA hover and verified trust markers",
+      "Mono confidence — JetBrains Mono for badges, metadata, IDs signals 'this is technical, precise'",
+      "Responsive grid — repeat(auto-fit, minmax(280px, 1fr)) for adaptive layouts"
     ],
     "rules": [
-      { "name": "The One Accent Rule", "body": "Hackathon Red is the only accent color. Status colors exist for signal, not for decoration. If more than one red-based element appears in a single viewport, one of them is wrong.", "section": "colors" },
-      { "name": "The Rarity Rule", "body": "Hackathon Red occupies ≤ 10% of any screen. Its infrequency is what makes it meaningful. If elements are fighting for red, the hierarchy is broken.", "section": "colors" },
-      { "name": "The Mono Rule", "body": "If it needs to communicate technical precision (a badge, a trust level, a cryptographic signature, a keyboard shortcut, an ID), it's in JetBrains Mono uppercase. If it's a paragraph or headline, it's DM Sans. No exceptions.", "section": "typography" },
-      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. Shadows appear only as a response to state (hover, elevation, focus). If a card has a shadow at rest, it's either a modal or it's wrong.", "section": "elevation" },
-      { "name": "The Glass-Over-Shadow Rule", "body": "When both glass and shadow could work, choose glass. backdrop-blur creates material depth; shadows create visual noise.", "section": "elevation" }
+      { "name": "The Single Accent Rule", "body": "Butwal Red is the only accent. Status colors carry meaning (green = success, blue = info), not decoration. If a color can't justify its role in one sentence, it's decorative — remove it.", "section": "colors" },
+      { "name": "The Mono Data Rule", "body": "Any text that represents a technical identifier (BH-ID, date, task name, API key) uses JetBrains Mono. Any text meant to be read as prose uses DM Sans. If in doubt, DM Sans wins.", "section": "typography" },
+      { "name": "The Flat-At-Rest Rule", "body": "Every surface is flat until the user interacts with it. Shadows and glows are responses to hover, focus, or active states only. At rest, the interface is a set of crisp planes distinguished by lightness alone.", "section": "elevation" }
     ],
     "dos": [
-      "Do use lg-surface (or GlassPrimitive variant=\"default\") as the primary container pattern for all card-like sections",
-      "Do use rounded-full for all buttons, badges, and interactive pills",
-      "Do reserve Hackathon Red (#FE0000) exclusively for CTAs, trust markers, and verified badges — never for decorative borders or gratuitous accents",
-      "Do use JetBrains Mono uppercase for all badges, labels, timestamps, and metadata",
-      "Do apply the spring transition (duration-[400ms] ease-[cubic-bezier(0.175,0.885,0.32,1.275)]) to interactive elements",
-      "Do use focus-visible:ring-2 focus-visible:ring-primary-red/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded-lg as the global focus indicator",
-      "Do prefer backdrop-blur + saturate over box-shadow for creating surface depth",
-      "Do use glass surfaces (translucent) for containers and solid surfaces (bg-surface) for dense information displays",
-      "Do use the custom-scrollbar utility (scrollbar-width: thin; scrollbar-color: var(--bh-border) transparent) for scrollable sections"
+      "Use bg-surface / border-border / rounded-xl as the standard card recipe",
+      "Use bh-btn-pill (rounded-full) for primary CTAs — the red glow appears on hover",
+      "Reserve Butwal Red (#FE0000) exclusively for CTAs, trust markers, and verified badges",
+      "Use JetBrains Mono uppercase for all badges, labels, timestamps, BH-IDs, and metadata",
+      "Use focus-visible:ring-2 ring-primary-red ring-offset-2 as the global focus indicator",
+      "Layer depth through tonal background changes (lighter content, darker sidebars)",
+      "Use text-body for body copy (#333333 light / #cccccc dark)",
+      "Use text-muted for placeholders, timestamps, and secondary metadata"
     ],
     "donts": [
-      "Don't use inline style={{}} for colors — always use Tailwind arbitrary values (bg-[#FE0000], text-[#242424])",
-      "Don't apply box shadows to cards at rest — surfaces should appear flat until hovered",
-      "Don't use more than one accent color on a single screen. The red IS the accent. Status colors are signal, not decoration.",
-      "Don't use purple gradients, neon accents, or glassmorphism with saturated rainbow backdrops (anti-reference: generic SaaS landing page)",
-      "Don't animate elements on page load unless they convey meaningful information (anti-reference: animated header counters that exist purely for visual effect)",
-      "Don't use DM Sans for metadata or badges — that's what JetBrains Mono is for",
-      "Don't mix glass and solid card styles in the same section — pick one container language per layout zone",
-      "Don't apply the lg-surface pattern to navigation or top-level structural elements — use solid bg-surface for sidebars and nav bars",
-      "Don't create new color tokens outside the palette without a documented reason. If you need a new shade, derive it from the existing scale."
+      "Use backdrop-blur — no glass effects on any surface",
+      "Use inline style={{}} for colors — use var(--bh-*) CSS properties or Tailwind classes",
+      "Use more than one accent on a screen — Butwal Red is the single accent",
+      "Use box shadows on cards at rest — shadows are hover-interaction feedback only",
+      "Use DM Sans for badges, IDs, or metadata — JetBrains Mono is for technical precision",
+      "Use gradient text, parallax effects, or animated cursor-tracking elements",
+      "Use border-left or border-right greater than 1px as a colored accent stripe on cards",
+      "Use the hero-metric template (big number, small label, gradient accent)",
+      "Recreate the Kloner.app look exactly — the hybrid approach is the brand"
     ]
   }
 }

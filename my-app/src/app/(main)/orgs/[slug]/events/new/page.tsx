@@ -1,6 +1,6 @@
 import { auth0 } from "@/lib/auth0";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { createServiceClient } from "@/utils/supabase/service";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import OrgEventCreateForm from "./event-create-form";
@@ -25,7 +25,7 @@ export default async function NewOrgEventPage({ params }: PageProps) {
 
   if (!userId) redirect("/sign-in");
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: chapter } = await supabase
     .from("chapters")

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, CalendarDays } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { createChapterEvent } from "@/lib/actions/events";
 
 interface Props {
@@ -51,10 +52,12 @@ export default function OrgEventCreateForm({ chapterId, chapterSlug }: Props) {
         return;
       }
 
+      toast.success("Chapter event created successfully!");
       router.push(`/orgs/${chapterSlug}/events`);
       router.refresh();
     } catch {
       setError("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
       setSubmitting(false);
     }
   };
@@ -141,7 +144,7 @@ export default function OrgEventCreateForm({ chapterId, chapterSlug }: Props) {
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex items-center gap-2 rounded-full bg-primary-red px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`inline-flex items-center gap-2 rounded-full bg-primary-red px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95 ${submitting ? 'bh-btn-disabled' : ''}`}
         >
           {submitting ? (
             <Loader2 className="w-4 h-4 animate-spin" />
