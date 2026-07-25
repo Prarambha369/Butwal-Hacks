@@ -18,6 +18,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 import { LanguageProvider } from "@/components/language-provider";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PostHogProvider } from "@/components/posthog-provider";
 import PWARegister from "@/components/pwa-register";
 import { Toaster } from "sonner";
@@ -128,6 +129,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MobileBottomNav />
         <SwipeNavigator />
         <Analytics />
+        <SpeedInsights />
         <PWARegister />
         <PWAInstallPrompt />
         <NetworkStatus />
