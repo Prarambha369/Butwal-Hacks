@@ -307,12 +307,14 @@ function findUnusedDependencies(allFiles) {
 
   // ponytail: config files scanned inline via allSourceFiles + configKeyPattern
 
+  // ponytail: peer/config-only deps that static analysis can't detect
+  const ALWAYS_NEEDED = new Set(["react", "react-dom", "postcss", "happy-dom"]);
+
   // Check each dep — if never imported in any source file, flag it
   for (const dep of allDeps) {
-    if (dep === "next" || dep.startsWith("@types/") || dep === "typescript") continue; // Always needed
+    if (dep === "next" || dep.startsWith("@types/") || dep === "typescript") continue;
+    if (ALWAYS_NEEDED.has(dep)) continue;
     if (!allImports.has(dep)) {
-      // Skip peer-dependency-looking packages that are implicit
-      if (["react", "react-dom"].includes(dep)) continue;
       findings.push({ type: "unused_dep", path: `package.json → ${dep}`, severity: "WARNING" });
     }
   }
