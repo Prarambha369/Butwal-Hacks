@@ -305,10 +305,7 @@ function findUnusedDependencies(allFiles) {
     }
   }
 
-  // Config files are now scanned inline above (the allSourceFiles filter
-  // already includes .mjs files, and config keys are caught by the
-  // configKeyPattern regex in the main loop). This explicit block is no
-  // longer needed since postcss.config.mjs is included in allSourceFiles.
+  // ponytail: config files scanned inline via allSourceFiles + configKeyPattern
 
   // Check each dep — if never imported in any source file, flag it
   for (const dep of allDeps) {
