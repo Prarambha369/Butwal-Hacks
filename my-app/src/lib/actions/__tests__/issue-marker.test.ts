@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@/utils/supabase/service", () => ({ createServiceClient: vi.fn() }));
+vi.mock("@/utils/supabase", () => ({ createServiceClient: vi.fn() }));
 vi.mock("@/lib/logger", () => ({ logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() } }));
 vi.mock("@/lib/validation", () => ({ sanitizeString: vi.fn((s: string, max: number) => s.slice(0, max)) }));
 vi.mock("@/lib/profile-resolver", () => ({ resolveProfileId: vi.fn() }));
 vi.mock("@/lib/crypto/sign", () => ({ signTrustMarker: vi.fn(() => "ed25519-sig-abc123") }));
-vi.mock("@/lib/cache", () => ({ bustProfileCache: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("@/lib/cache", () => ({ bustCache: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { resolveProfileId } from "@/lib/profile-resolver";
 
 const mockedCreateServiceClient = createServiceClient as any;
@@ -94,7 +94,10 @@ describe("claimTrustMarker", () => {
       error: null,
     });
     // Chain 2: from().update({ is_claimed, profile_id }).eq("id", markerId) — terminal is eq
-    db.eq.mockResolvedValue({ error: null });
+    db.eq.mockResolvedValueOnce({ error: null });
+    // Chain 3: from().select("bh_id").eq("id", profileId).single() — needs eq to return db, single to resolve
+    db.eq.mockImplementationOnce(() => db);
+    db.single.mockResolvedValueOnce({ data: { bh_id: "BH-24-001" }, error: null });
 
     const { claimTrustMarker } = await import("../issue-marker");
     const result = await claimTrustMarker("valid-token");

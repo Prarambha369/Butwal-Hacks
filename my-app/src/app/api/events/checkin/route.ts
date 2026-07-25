@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
 import { z } from 'zod';
 import { sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { withRateLimit } from '@/lib/rate-limiter';
-import { captureServerEvent } from '@/lib/analytics/server';
 
 const checkinSchema = z.object({
   registration_id: z.string().transform(v => sanitizeUuid(v) ?? ''),
@@ -17,7 +16,6 @@ export const POST = withRateLimit(async (request: Request) => {
     const session = await auth0.getSession();
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = createServiceClient();
-    const userId = session.user.sub;
     const raw = await request.json();
     const parsed = checkinSchema.safeParse(raw);
     if (!parsed.success) {
@@ -37,7 +35,6 @@ export const POST = withRateLimit(async (request: Request) => {
         .update({ attended: !reg.attended })
         .eq('id', registration_id);
       if (error) throw error;
-      await captureServerEvent('event_checkin_toggled', userId, { registration_id, attended: !reg.attended });
       return NextResponse.json({ success: true, attended: !reg.attended });
     }
 
@@ -47,7 +44,6 @@ export const POST = withRateLimit(async (request: Request) => {
       .eq('id', registration_id);
 
     if (error) throw error;
-    await captureServerEvent('event_checkin_toggled', userId, { registration_id, attended });
     return NextResponse.json({ success: true, attended });
   } catch (err) {
     logger.error('[api/events/checkin]', err);

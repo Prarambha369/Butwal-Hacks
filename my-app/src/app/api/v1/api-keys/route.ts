@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
 import { withRateLimit } from "@/lib/rate-limiter";
 import crypto from "crypto";

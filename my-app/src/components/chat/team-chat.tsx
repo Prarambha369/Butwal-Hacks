@@ -13,7 +13,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 import { usePresence } from "@/hooks/use-presence";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase";
 import { getAvatarUrl } from "@/lib/utils";
 import type { ChatMessage } from "@/lib/actions/team-chat";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";

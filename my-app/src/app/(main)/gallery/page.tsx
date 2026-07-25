@@ -1,5 +1,5 @@
 import { Calendar } from "lucide-react";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import GalleryGrid from "./gallery-grid";

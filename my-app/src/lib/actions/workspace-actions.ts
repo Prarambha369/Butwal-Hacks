@@ -1,7 +1,7 @@
 "use server"
 
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 
 /**
  * Fetch workspaces for a given team.

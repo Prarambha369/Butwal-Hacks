@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
-import { bustProfileCache } from "@/lib/cache"
+import { bustCache } from "@/lib/cache"
 
 /**
  * POST /api/certificates/extract
@@ -155,7 +155,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     }
 
     // Bust Redis cache for the user's profile
-    await bustProfileCache(profile.id);
+    await bustCache(`profile:bh_id:${profile.bh_id}`);
 
     logger.info(`[certificates/extract] Created trust_marker ${marker.id} for user ${userId}: ${safeTitle}`)
 

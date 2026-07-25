@@ -625,4 +625,14 @@
     text-decoration: line-through;
   }
 
+  /* ponytail: replaces framer-motion pulse animation */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 24px rgba(254, 0, 0, 0.55); }
+    50% { box-shadow: 0 0 32px rgba(254, 0, 0, 0.7); }
+  }
 
+  /* ponytail: replaces framer-motion step slide animation */
+  @keyframes step-fade-in {
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }

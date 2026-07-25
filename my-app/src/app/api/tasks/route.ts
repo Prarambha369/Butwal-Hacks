@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { withRateLimit } from "@/lib/rate-limiter"
 import { z } from "zod"
-import { parsePagination, paginationMeta } from "@/lib/pagination"
+
 
 // ─── Validation Schemas ────────────────────────────────────────────────
 
@@ -85,7 +85,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 })
   }
 
-  const { limit, offset } = parsePagination(request)
+  const u = new URL(request.url);
+  const limit = Math.min(200, Math.max(1, parseInt(u.searchParams.get("limit") ?? "", 10) || 50));
+  const offset = Math.max(0, parseInt(u.searchParams.get("offset") ?? "", 10) || 0);
 
   const db = createServiceClient()
   let query = db
@@ -109,7 +111,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     tasks: tasks ?? [],
-    pagination: paginationMeta(limit, offset, count ?? 0),
+    pagination: { limit, offset, hasMore: (count ?? 0) >= limit },
   }, {
     headers: { "Cache-Control": "private, max-age=30" },
   })

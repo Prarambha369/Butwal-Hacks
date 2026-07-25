@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
 import { z } from 'zod';
 import { sanitizeString, sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { withRateLimit } from '@/lib/rate-limiter';
-import { captureServerEvent } from '@/lib/analytics/server';
 
 const createTeamSchema = z.object({
   name: z.string().min(1).transform(v => sanitizeString(v, 100)),
@@ -46,7 +45,6 @@ export const POST = withRateLimit(async (request: Request) => {
       .insert({ team_id: team.id, profile_id: profile.id, is_captain: true });
 
     if (memberError) throw memberError;
-    await captureServerEvent('team_created', userId, { team_id: team.id, has_event: !!event_id });
 
     logger.info('Team created', { team_id: team.id, has_event: !!event_id, auth0_user_id: userId });
 

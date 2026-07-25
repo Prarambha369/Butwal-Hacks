@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 
 import Link from "next/link";
 import { CalendarDays, ArrowRight, MapPin } from "lucide-react";

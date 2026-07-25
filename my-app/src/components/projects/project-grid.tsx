@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Search, Filter, Code2, ExternalLink, Github, ShieldCheck, Heart, Tags } from 'lucide-react';
 import { RoseSpinner } from '@/components/ui/rose-loader';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
 import type { Project } from '@/lib/supabase-types';
 import { cn, cloudinaryUrl } from '@/lib/utils';
 import Link from 'next/link';

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import WorkDashboardClient from "../../hacker/work/work-dashboard-client"
 
 export const dynamic = "force-dynamic"

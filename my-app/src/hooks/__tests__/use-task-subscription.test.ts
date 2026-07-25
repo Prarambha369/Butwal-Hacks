@@ -13,7 +13,7 @@ let mockSubscribe: ReturnType<typeof vi.fn>;
 let mockChannel: { on: ReturnType<typeof vi.fn>; subscribe: ReturnType<typeof vi.fn> };
 let mockRemoveChannel: ReturnType<typeof vi.fn>;
 
-vi.mock("@/utils/supabase/client", () => ({
+vi.mock("@/utils/supabase", () => ({
   createClient: vi.fn(() => ({
     channel: vi.fn(() => mockChannel),
     removeChannel: mockRemoveChannel,

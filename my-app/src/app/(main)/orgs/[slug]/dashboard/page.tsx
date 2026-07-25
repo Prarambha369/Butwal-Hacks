@@ -1,6 +1,6 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect, notFound } from "next/navigation";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import { CalendarDays, Users, Trophy, Plus } from "lucide-react";

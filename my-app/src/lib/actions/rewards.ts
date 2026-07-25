@@ -1,7 +1,7 @@
 "use server";
 
 import { logger } from "@/lib/logger"
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import { AVAILABLE_REWARDS } from "@/lib/data/rewards";
 import { resolveProfileId } from "@/lib/profile-resolver";

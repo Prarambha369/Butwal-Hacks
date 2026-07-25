@@ -1,4 +1,4 @@
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { notFound } from "next/navigation";
 import { QrCode, ArrowLeft, Users, Printer } from "lucide-react";
 import Link from "next/link";

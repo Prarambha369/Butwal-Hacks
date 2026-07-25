@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { createClient } from "@/utils/supabase/server"
+import { createClient } from "@/utils/supabase"
 
 // Fetches events from Supabase + checks Auth0 session at request time.
 export const dynamic = "force-dynamic";

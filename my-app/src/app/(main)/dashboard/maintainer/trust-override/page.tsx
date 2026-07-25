@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { ShieldCheck } from "lucide-react";
 import TrustOverridePanel from "@/components/dashboard/maintainer/trust-override-panel";
 import type { Metadata } from "next";

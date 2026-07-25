@@ -6,7 +6,7 @@ vi.mock("@/lib/auth0", () => ({
   auth0: { getSession: vi.fn() },
 }));
 
-vi.mock("@/utils/supabase/service", () => ({
+vi.mock("@/utils/supabase", () => ({
   createServiceClient: vi.fn(),
 }));
 
@@ -15,7 +15,7 @@ vi.mock("@/lib/logger", () => ({
 }));
 
 vi.mock("@/lib/cache", () => ({
-  bustProfileCache: vi.fn(),
+  bustCache: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({
@@ -29,12 +29,12 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
-import { bustProfileCache } from "@/lib/cache";
+import { createServiceClient } from "@/utils/supabase";
+import { bustCache } from "@/lib/cache";
 
 const mockedGetSession = auth0.getSession as ReturnType<typeof vi.fn>;
 const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>;
-const mockedBustProfileCache = bustProfileCache as ReturnType<typeof vi.fn>;
+const mockedBustCache = bustCache as ReturnType<typeof vi.fn>;
 
 // ─── Mock Database Builder ───────────────────────────────────────────────────
 
@@ -207,7 +207,8 @@ describe("revokeTrustMarker", () => {
     // requireMaintainer uses .single() as terminal — need a Once for it
     db.single
       .mockResolvedValueOnce({ data: { role: "maintainer", email: "admin@butwalhacks.com" }, error: null }) // requireMaintainer
-      .mockResolvedValueOnce({ data: { profile_id: "profile-uuid" }, error: null }); // bustMarkerProfileCache
+      .mockResolvedValueOnce({ data: { profile_id: "profile-uuid" }, error: null }) // bustMarkerProfileCache: marker lookup
+      .mockResolvedValueOnce({ data: { bh_id: "BH-24-001" }, error: null }); // bustMarkerProfileCache: bh_id lookup
 
     const { revokeTrustMarker } = await import("../admin");
     const result = await revokeTrustMarker("marker-1", "Violated community guidelines");
@@ -218,7 +219,7 @@ describe("revokeTrustMarker", () => {
     expect(markerUpdate.is_revoked).toBe(true);
     expect(markerUpdate.revocation_reason).toBe("Violated community guidelines");
     // Should bust the profile cache
-    expect(mockedBustProfileCache).toHaveBeenCalledWith("profile-uuid");
+    expect(mockedBustCache).toHaveBeenCalledWith("profile:bh_id:BH-24-001");
   });
 });
 
@@ -241,7 +242,8 @@ describe("reinstateTrustMarker", () => {
     // requireMaintainer uses .single() as terminal
     db.single
       .mockResolvedValueOnce({ data: { role: "maintainer", email: "admin@butwalhacks.com" }, error: null }) // requireMaintainer
-      .mockResolvedValueOnce({ data: { profile_id: "profile-uuid" }, error: null }); // bustMarkerProfileCache
+      .mockResolvedValueOnce({ data: { profile_id: "profile-uuid" }, error: null }) // bustMarkerProfileCache: marker lookup
+      .mockResolvedValueOnce({ data: { bh_id: "BH-24-001" }, error: null }); // bustMarkerProfileCache: bh_id lookup
 
     const { reinstateTrustMarker } = await import("../admin");
     const result = await reinstateTrustMarker("marker-1");

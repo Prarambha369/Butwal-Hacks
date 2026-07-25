@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { Metadata } from "next";
 import { ShieldCheck, XCircle, Award, Clock, UserCheck } from "lucide-react";
 import Link from "next/link";

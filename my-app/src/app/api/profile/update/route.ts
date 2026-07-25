@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
 import { z } from 'zod';
 import { normalizeSocialUrl, validateSocialUrl, sanitizeString } from '@/lib/validation';

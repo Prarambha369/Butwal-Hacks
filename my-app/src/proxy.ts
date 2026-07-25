@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 // ─── Zone 1: Marketing Routes (butwalhacks.com) ──────────────────────────
 // Public-facing pages for visitors, SEO, and content discovery.

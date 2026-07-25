@@ -3,7 +3,6 @@ import { z } from "zod"
 import { sanitizeEmail, sanitizeString } from "@/lib/validation"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
-import { captureServerEvent } from "@/lib/analytics/server"
 
 const schema = z.object({
   name: z.string().min(2).transform(v => sanitizeString(v, 100)),
@@ -55,7 +54,6 @@ export const POST = withRateLimit(async (request: Request) => {
       email: data.email,
     });
 
-    await captureServerEvent('contact_form_submitted', 'anonymous', { has_phone: !!data.phone });
     return NextResponse.json({ ok: true })
   } catch (err) {
     if (err instanceof z.ZodError) {

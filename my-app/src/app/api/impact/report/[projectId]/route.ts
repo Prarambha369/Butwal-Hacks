@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth0 } from '@/lib/auth0';
 import { generateImpactReport } from '@/lib/actions/projects';
+import { withRateLimit } from "@/lib/rate-limiter";
 
-export async function GET(
+const GET = withRateLimit(async (
   request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
-) {
+) => {
   const session = await auth0.getSession();
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -28,4 +29,6 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+}, "user_action")
+
+export { GET }

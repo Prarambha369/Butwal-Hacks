@@ -8,7 +8,7 @@ import TeamInviteList from '@/components/dashboard/team-invite-list';
 import InviteHackerModal from '@/components/dashboard/invite-hacker-modal';
 import LinkProjectModal from '@/components/dashboard/link-project-modal';
 
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Team, TeamMember, Profile } from '@/lib/supabase-types';
 import { getAvatarUrl } from '@/lib/utils';

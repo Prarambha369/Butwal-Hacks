@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
-import { createClient } from "@/utils/supabase/server"
+import { createClient } from "@/utils/supabase"
 import { buildPageMetadata } from "@/lib/seo"
 import { initiatives, events as contentEvents, blogPosts, getRelatedByTags } from "@/lib/content"
 import RelatedLinks from "@/components/home/related-links"

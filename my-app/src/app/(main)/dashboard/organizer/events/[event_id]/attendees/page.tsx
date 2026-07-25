@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { notFound, redirect } from "next/navigation";
 import { getAvatarUrl } from "@/lib/utils";
 import { auth0 } from "@/lib/auth0";

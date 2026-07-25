@@ -54,21 +54,6 @@ function getLimiter(tier: Tier) {
 }
 
 /**
- * Determines the client IP address from the request headers.
- *
- * @param request - The request containing client IP headers
- * @returns The client IP address, or `127.0.0.1` when no address is available
- */
-function extractIp(request: Request): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
-    request.headers.get("x-vercel-forwarded-for") ??
-    "127.0.0.1"
-  );
-}
-
-/**
  * Checks whether a request is within the configured rate limit for its tier.
  *
  * @param request - The request whose client IP is evaluated.
@@ -78,7 +63,10 @@ function extractIp(request: Request): string {
 async function checkRateLimit(request: Request, tier: Tier = "user_action"): Promise<RateLimitResult> {
   const limiter = getLimiter(tier);
   if (!limiter) return { allowed: true, remaining: 999, reset: 0 };
-  const ip = extractIp(request);
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    request.headers.get("x-vercel-forwarded-for") ??
+    "127.0.0.1";
   try {
     const { success, remaining, reset } = await limiter.limit(ip);
     return { allowed: success, remaining, reset };
@@ -124,23 +112,3 @@ export function withRateLimit<
   }) as T;
 }
 
-/**
- * Wraps a request handler with a maximum request body size check.
- *
- * @param handler - The request handler to invoke when the payload is within the limit
- * @param maxBytes - Maximum allowed request body size in bytes
- * @returns A handler that responds with status `413` when the declared payload exceeds `maxBytes`
- */
-export function withPayloadLimit<T extends (request: NextRequest, ...rest: any[]) => Promise<NextResponse>>(
-  handler: T,
-  maxBytes = 1_048_576
-): T {
-  return (async (request: NextRequest, ...rest: any[]) => {
-    const rawContentLength = request.headers.get("content-length");
-    const cl = parseInt(rawContentLength ?? "0", 10);
-    if (!isNaN(cl) && cl > maxBytes) {
-      return NextResponse.json({ error: "Request body too large" }, { status: 413 });
-    }
-    return handler(request, ...rest);
-  }) as T;
-}

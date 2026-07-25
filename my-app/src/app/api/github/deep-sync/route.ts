@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
 import { revalidatePath } from "next/cache"
-import { captureServerEvent } from "@/lib/analytics/server"
 import { fetchRepoMeta } from "@/lib/github"
 
 /**
@@ -90,12 +89,6 @@ export const POST = withRateLimit(async (_req: NextRequest) => {
     const failed = results.filter((r) => r.status === "rejected").length
 
     logger.info(`[github-deep-sync] Updated ${updated}/${projects.length} projects (${failed} failed)`)
-
-    await captureServerEvent("github_deep_sync_completed", userId, {
-      updated_count: updated,
-      total_projects: projects.length,
-      failed,
-    })
 
     revalidatePath("/dashboard/hacker/projects")
     revalidatePath("/projects")

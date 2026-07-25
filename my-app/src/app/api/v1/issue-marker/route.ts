@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
 import { ghostMarkerNotificationHtml } from "@/lib/emails/ghost-marker-notification"
 import { signTrustMarker } from "@/lib/crypto/sign"
-import { bustProfileCache } from "@/lib/cache"
+import { bustCache } from "@/lib/cache"
 import { z } from "zod"
 
 // ponytail: single POST endpoint. Ghost profile creation + email are side effects
@@ -56,7 +56,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     // Check if the target email already has a profile
     const { data: targetProfile } = await supabase
       .from("profiles")
-      .select("id, full_name, auth0_user_id")
+      .select("id, bh_id, full_name, auth0_user_id")
       .eq("email", normalizedEmail)
       .maybeSingle()
 
@@ -98,7 +98,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       }
 
       // Bust Redis cache for the recipient's profile
-      await bustProfileCache(targetProfile.id);
+      await bustCache(`profile:bh_id:${targetProfile.bh_id}`);
 
       logger.info('Marker issued to known user', {
         recipient_email: normalizedEmail,

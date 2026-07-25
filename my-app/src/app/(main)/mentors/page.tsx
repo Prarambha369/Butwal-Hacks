@@ -1,4 +1,4 @@
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { GraduationCap, ExternalLink, Calendar, Users, MessageSquare } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"

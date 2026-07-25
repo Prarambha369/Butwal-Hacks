@@ -1,7 +1,7 @@
 "use server";
 
 import { logger } from "@/lib/logger";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { resolveProfileId } from "@/lib/profile-resolver";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";

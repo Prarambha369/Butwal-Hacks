@@ -1,7 +1,7 @@
 "use server";
 
 import { logger } from "@/lib/logger"
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 
 
 export async function getProjectDetails(id: string) {

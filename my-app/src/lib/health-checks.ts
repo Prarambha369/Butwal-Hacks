@@ -8,7 +8,7 @@
  * hanging on unresponsive services.
  */
 
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 export interface HealthCheck {
   name: string;

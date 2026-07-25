@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@/utils/supabase/service", () => ({
+vi.mock("@/utils/supabase", () => ({
   createServiceClient: vi.fn(),
 }));
 
@@ -8,7 +8,7 @@ vi.mock("@/lib/logger", () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
 }));
 
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 const mockedCreateServiceClient = createServiceClient as any;
 

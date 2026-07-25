@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { cn } from '@/lib/utils';
 import { RoseSpinner } from '@/components/ui/rose-loader';

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/utils/supabase'
 import { blogPosts, initiatives, events, programs, chapters } from '@/lib/content'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://butwalhacks.com'

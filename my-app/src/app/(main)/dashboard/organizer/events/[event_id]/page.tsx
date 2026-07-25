@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { notFound } from "next/navigation";
 import {
   Calendar,

@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
 import { z } from 'zod';
 import { sanitizeUrl, sanitizeString } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { withRateLimit } from '@/lib/rate-limiter';
-import { parsePagination, paginationMeta } from '@/lib/pagination';
-import { captureServerEvent } from '@/lib/analytics/server';
+
 
 const createProjectSchema = z.object({
   title: z.string().min(1).transform(v => sanitizeString(v, 200)),
@@ -33,7 +32,9 @@ export async function GET(request: Request) {
 
     const supabase = createServiceClient();
     const userId = session.user.sub;
-    const { limit, offset } = parsePagination(request);
+    const u = new URL(request.url);
+    const limit = Math.min(200, Math.max(1, parseInt(u.searchParams.get("limit") ?? "", 10) || 50));
+    const offset = Math.max(0, parseInt(u.searchParams.get("offset") ?? "", 10) || 0);
 
     // Resolve profile UUID
     const { data: profile } = await supabase
@@ -43,7 +44,7 @@ export async function GET(request: Request) {
       .single();
 
     if (!profile) {
-      return NextResponse.json({ projects: [], pagination: paginationMeta(limit, offset, 0) }, {
+      return NextResponse.json({ projects: [], pagination: { limit, offset, hasMore: false } }, {
         headers: { "Cache-Control": "private, max-age=60" },
       });
     }
@@ -73,7 +74,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       projects: projects || [],
-      pagination: paginationMeta(limit, offset, count ?? 0),
+      pagination: { limit, offset, hasMore: (count ?? 0) >= limit },
     }, {
       headers: { "Cache-Control": "private, max-age=60" },
     });
@@ -129,13 +130,6 @@ export const POST = withRateLimit(async (request: Request) => {
       await supabase.from('idempotency_keys').insert({ key: idempotencyKey });
     }
 
-    await captureServerEvent('project_created', userId, {
-      has_github_url: !!body.github_url,
-      has_demo_url: !!body.demo_url,
-      tech_stack_count: body.tech_stack?.length ?? 0,
-      has_event: !!body.event_id,
-      has_team: !!body.team_id,
-    });
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (err) {

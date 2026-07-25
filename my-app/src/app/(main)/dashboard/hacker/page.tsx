@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { getUserProjects } from "@/lib/actions/projects";
 import { auth0 } from "@/lib/auth0";
 import OnboardingTour from "@/components/dashboard/onboarding-tour";

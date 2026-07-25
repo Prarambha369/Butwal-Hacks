@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useUser } from "@auth0/nextjs-auth0/client"
 import { LogOut, User } from "lucide-react"
 import { useState, useEffect } from "react"
-import { createClient } from "@/utils/supabase/client"
+import { createClient } from "@/utils/supabase"
 
 /**
  * OrgSwitcher — Chapter selector + user menu combo.

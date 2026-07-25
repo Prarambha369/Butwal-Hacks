@@ -3,9 +3,9 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 import { logger } from '@/lib/logger'
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { revalidatePath } from 'next/cache';
-import { bustProfileCache } from '@/lib/cache';
+import { bustCache } from '@/lib/cache';
 
 async function requireMaintainer() {
   const session = await auth0.getSession();
@@ -145,7 +145,8 @@ async function bustMarkerProfileCache(markerId: string) {
       .eq('id', markerId)
       .single();
     if (marker?.profile_id) {
-      await bustProfileCache(marker.profile_id);
+      const { data: p } = await supabase.from('profiles').select('bh_id').eq('id', marker.profile_id).single();
+      if (p?.bh_id) await bustCache(`profile:bh_id:${p.bh_id}`);
     }
   } catch {
     // Graceful degradation

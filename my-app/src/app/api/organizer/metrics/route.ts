@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
-import { parsePagination, paginationMeta } from '@/lib/pagination';
+
 
 export async function GET(request: Request) {
   try {
@@ -9,7 +9,9 @@ export async function GET(request: Request) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = createServiceClient();
     const userId = session.user.sub;
-    const { limit, offset } = parsePagination(request);
+    const u = new URL(request.url);
+    const limit = Math.min(200, Math.max(1, parseInt(u.searchParams.get("limit") ?? "", 10) || 50));
+    const offset = Math.max(0, parseInt(u.searchParams.get("offset") ?? "", 10) || 0);
 
     // ponytail: Resolve profile UUID then fetch events with registration counts
     const { data: profile } = await supabase
@@ -18,7 +20,7 @@ export async function GET(request: Request) {
       .eq('auth0_user_id', userId)
       .single();
 
-    if (!profile) return NextResponse.json({ metrics: [], pagination: paginationMeta(limit, offset, 0) });
+    if (!profile) return NextResponse.json({ metrics: [], pagination: { limit, offset, hasMore: false } });
 
     const { data, error } = await supabase
       .from('events')
@@ -29,7 +31,7 @@ export async function GET(request: Request) {
     if (error) throw error;
     return NextResponse.json({
       metrics: data,
-      pagination: paginationMeta(limit, offset, data?.length ?? 0),
+      pagination: { limit, offset, hasMore: (data?.length ?? 0) >= limit },
     }, {
       headers: { "Cache-Control": "private, max-age=60" },
     });

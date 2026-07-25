@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
 import { revalidatePath } from "next/cache"
-import { captureServerEvent } from "@/lib/analytics/server"
 import { fetchRepoMeta } from "@/lib/github"
 
 // ponytail: single endpoint. Fetches public repos from GitHub API via a stored
@@ -137,11 +136,6 @@ export const POST = withRateLimit(async (_req: NextRequest) => {
     }
 
     logger.info(`[github-sync] Synced ${synced}/${repos.length} repos, meta for ${metaSynced}`)
-    await captureServerEvent('github_sync_completed', userId, {
-      synced_count: synced,
-      meta_synced: metaSynced,
-      total_repos: repos.filter((r) => !r.fork).length,
-    });
     revalidatePath("/dashboard/hacker/projects")
     revalidatePath("/projects")
 

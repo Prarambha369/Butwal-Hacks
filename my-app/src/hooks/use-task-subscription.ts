@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { TaskItem } from "@/components/tasks/task-card";
 

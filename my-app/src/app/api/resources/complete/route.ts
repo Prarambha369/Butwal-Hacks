@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
 import { z } from 'zod';
 import { sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { withRateLimit } from '@/lib/rate-limiter';
-import { captureServerEvent } from '@/lib/analytics/server';
 
 const completeResourceSchema = z.object({
   resource_id: z.string().transform(v => sanitizeUuid(v) ?? ''),
@@ -28,7 +27,6 @@ export const POST = withRateLimit(async (request: Request) => {
       .upsert({ resource_id, auth0_user_id: userId, completed_at: new Date().toISOString() });
 
     if (error) throw error;
-    await captureServerEvent('resource_completed', userId, { resource_id });
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[api/resources/complete]', err);

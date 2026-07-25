@@ -1,6 +1,6 @@
 "use server";
 
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/lib/logger";
 import { createHash, randomBytes } from "crypto";

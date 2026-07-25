@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
+import { withRateLimit } from "@/lib/rate-limiter"
 
 export const runtime = "edge"
 
@@ -19,7 +20,7 @@ const searchSchema = z.object({
   limit: z.coerce.number().int().min(1).max(20).default(4),
 })
 
-export async function POST(req: NextRequest) {
+export const POST = withRateLimit(async (req: NextRequest) => {
   try {
     const body = await req.json().catch(() => ({}))
     const parsed = searchSchema.safeParse(body)
@@ -97,4 +98,4 @@ export async function POST(req: NextRequest) {
     logger.error("[api/search] Unexpected error:", err)
     return NextResponse.json({ results: [] }, { status: 500 })
   }
-}
+}, "frequent")

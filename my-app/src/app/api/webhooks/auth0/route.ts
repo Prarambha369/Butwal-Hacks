@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
-import { captureServerEvent, identifyServerUser } from "@/lib/analytics/server"
 
 const AUTH0_WEBHOOK_SECRET = process.env.AUTH0_WEBHOOK_SECRET ?? "";
 
@@ -125,9 +124,6 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       }
 
       const bhId = (result as { bh_id: string }).bh_id
-
-      await identifyServerUser(sub, { bh_id: bhId, role: resolvedRole })
-      await captureServerEvent('user_signed_up', sub, { bh_id: bhId, role: resolvedRole })
 
       logger.info("Auth0 webhook: new profile created", {
         auth0_id: sub,

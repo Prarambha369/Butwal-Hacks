@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { ScrollText } from "lucide-react";
 import AuditLogPanel from "@/components/dashboard/maintainer/audit-log-panel";
 import type { Metadata } from "next";

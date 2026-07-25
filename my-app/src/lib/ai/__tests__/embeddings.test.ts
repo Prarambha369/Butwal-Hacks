@@ -15,7 +15,7 @@ const mockSupabase = {
   rpc: mockRpc,
 };
 
-vi.mock("@/utils/supabase/service", () => ({
+vi.mock("@/utils/supabase", () => ({
   createServiceClient: vi.fn(() => mockSupabase),
 }));
 

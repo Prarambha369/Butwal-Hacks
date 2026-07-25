@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
 import { z } from 'zod';
 import { normalizeSocialUrl, validateSocialUrl, sanitizeString } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { withRateLimit } from '@/lib/rate-limiter';
-import { captureServerEvent } from '@/lib/analytics/server';
 
 const completeProfileSchema = z.object({
   full_name: z.string().min(1).transform(v => sanitizeString(v, 100)),
@@ -34,13 +33,6 @@ export const POST = withRateLimit(async (request: Request) => {
       .eq('auth0_user_id', userId);
 
     if (error) throw error;
-    await captureServerEvent('profile_completed', userId, {
-      has_bio: !!body.bio,
-      has_github: !!body.github,
-      has_linkedin: !!body.linkedin,
-      has_website: !!body.website,
-      skills_count: body.skills?.length ?? 0,
-    });
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[api/profile/complete]', err);

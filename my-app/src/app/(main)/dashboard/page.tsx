@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { BHIDClaimCard } from "@/components/dashboard/bhid-claim-card";
 import { ToolGuideSection } from "@/components/dashboard/tool-guide-section";
 import { OnboardingSteps } from "@/components/dashboard/onboarding-steps";

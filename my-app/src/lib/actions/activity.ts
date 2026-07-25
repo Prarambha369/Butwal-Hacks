@@ -1,6 +1,6 @@
 "use server";
 
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 // ponytail: service role client bypasses RLS. The audit_logs table has no anon
 // SELECT policy and auth.uid() is null (Auth0, not Supabase Auth). Service role

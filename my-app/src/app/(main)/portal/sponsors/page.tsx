@@ -1,5 +1,5 @@
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Search, Briefcase, DollarSign, Eye, Building2, Settings, Sparkles } from "lucide-react";

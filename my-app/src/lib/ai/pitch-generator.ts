@@ -112,7 +112,7 @@ function buildPitchPrompt(input: PitchInput): string {
  */
 export async function getPitchExamples(): Promise<PitchExample[]> {
   try {
-    const { createServiceClient } = await import("@/utils/supabase/service");
+    const { createServiceClient } = await import("@/utils/supabase");
     const supabase = createServiceClient();
 
     const { data } = await supabase

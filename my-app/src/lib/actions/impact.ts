@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 
 export async function getImpactReport(reportId: string) {
   const supabase = await createClient();

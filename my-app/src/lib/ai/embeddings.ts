@@ -14,7 +14,7 @@
  * knowledge_embeddings table from src/lib/content.ts.
  */
 
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 const HF_ROUTER_URL =
   "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2";

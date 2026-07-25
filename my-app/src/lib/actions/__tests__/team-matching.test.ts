@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/auth0", () => ({ auth0: { getSession: vi.fn() } }));
-vi.mock("@/utils/supabase/service", () => ({ createServiceClient: vi.fn() }));
+vi.mock("@/utils/supabase", () => ({ createServiceClient: vi.fn() }));
 
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 const mockedGetSession = auth0.getSession as any;
 const mockedCreateServiceClient = createServiceClient as any;

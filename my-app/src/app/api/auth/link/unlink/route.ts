@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
 import { unlinkIdentity, getProviderDisplayName } from "@/lib/auth0-management";
 import { withRateLimit } from "@/lib/rate-limiter";

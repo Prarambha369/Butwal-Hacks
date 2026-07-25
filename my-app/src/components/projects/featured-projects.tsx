@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
 import { Project } from '@/lib/supabase-types';
 import { cn } from '@/lib/utils';
 import { cloudinaryUrl } from '@/lib/utils';

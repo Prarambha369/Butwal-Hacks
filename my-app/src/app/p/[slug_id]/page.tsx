@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { buildPageMetadata } from "@/lib/seo";
 import { Metadata } from "next";
 import ProfileClient from "@/components/hacker-id/profile-client";

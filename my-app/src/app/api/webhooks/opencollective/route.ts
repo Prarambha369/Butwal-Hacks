@@ -1,8 +1,7 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
-import { captureServerEvent } from "@/lib/analytics/server";
 import { withRateLimit } from "@/lib/rate-limiter";
 
 /**
@@ -148,13 +147,6 @@ export const POST = withRateLimit(async (req: NextRequest) => {
           });
         }
       }
-
-      await captureServerEvent("bounty_completed", "open_collective", {
-        bounty_id: bounty.id,
-        bounty_title: bounty.title,
-        amount: expense.amount,
-        currency: expense.currency,
-      });
 
       logger.info("[oc-webhook] Bounty paid & marked complete", {
         bountyId: bounty.id,

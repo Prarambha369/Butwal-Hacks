@@ -1,5 +1,5 @@
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { notFound, redirect } from "next/navigation";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";

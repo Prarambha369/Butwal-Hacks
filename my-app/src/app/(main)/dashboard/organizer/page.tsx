@@ -1,6 +1,6 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import OrganizerDashboardClient from "./organizer-dashboard-client";
 
 export const dynamic = "force-dynamic";

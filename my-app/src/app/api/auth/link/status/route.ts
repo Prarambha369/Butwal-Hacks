@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
 import { getLinkedIdentities } from "@/lib/auth0-management";
 import type { LinkedAccount } from "@/lib/auth0-management";

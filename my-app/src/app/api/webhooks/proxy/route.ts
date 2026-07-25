@@ -22,7 +22,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL ?? "";
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL ?? "";

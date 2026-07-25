@@ -16,7 +16,6 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   preload: true,
 });
-import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/components/language-provider";
 import { Analytics } from "@vercel/analytics/react";
 import { PostHogProvider } from "@/components/posthog-provider";
@@ -113,13 +112,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <Auth0Provider>
-          <ThemeProvider>
             <PostHogProvider>
             <div id="app-content" tabIndex={-1} className="relative flex min-h-dvh flex-col overflow-x-hidden outline-none">
               <LanguageProvider>{children}</LanguageProvider>
             </div>
             </PostHogProvider>
-          </ThemeProvider>
           <AssistantPanel />
           <CommandSearch />
         </Auth0Provider>

@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
 import { z } from 'zod';
 import { sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { withRateLimit } from '@/lib/rate-limiter';
-import { captureServerEvent } from '@/lib/analytics/server';
 
 const likeSchema = z.object({
   project_id: z.string().transform(v => sanitizeUuid(v) ?? ''),
@@ -30,7 +29,6 @@ export const POST = withRateLimit(async (request: Request) => {
     });
 
     if (error) throw error;
-    await captureServerEvent('project_liked', userId, { project_id });
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[api/projects/like]', err);

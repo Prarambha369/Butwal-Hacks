@@ -2,21 +2,30 @@
 
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
-export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
+// ponytail: no next-themes dep. Uses native classList.toggle + localStorage.
 
-  // Critical: Prevent hydration mismatch by waiting until component is mounted.
-  // This ensures the server-rendered HTML matches the initial client render.
+export function ThemeToggle() {
+  const [mounted, setMounted] = React.useState(false);
+  const [theme, setThemeState] = React.useState<"light" | "dark">("dark");
+
   React.useEffect(() => {
     setMounted(true);
+    setThemeState(
+      document.documentElement.classList.contains("dark") ? "dark" : "light",
+    );
+  }, []);
+
+  const toggle = React.useCallback(() => {
+    document.documentElement.classList.toggle("dark");
+    const isDark = document.documentElement.classList.contains("dark");
+    localStorage.setItem("bh-theme", isDark ? "dark" : "light");
+    setThemeState(isDark ? "dark" : "light");
   }, []);
 
   if (!mounted) {
-    return <div className="w-11 h-11" />; // Match min-w/min-h of rendered button to prevent layout shift
+    return <div className="w-11 h-11" />;
   }
 
   return (
@@ -24,7 +33,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       className="rounded-full min-w-[44px] min-h-[44px] transition-all duration-300 hover:scale-110"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      onClick={toggle}
     >
       {theme === "dark" ? (
         <Sun className="h-5 w-5 text-status-yellow animate-in fade-in zoom-in duration-300" />

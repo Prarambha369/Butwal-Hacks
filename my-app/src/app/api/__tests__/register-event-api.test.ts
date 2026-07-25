@@ -6,7 +6,7 @@ vi.mock("@/lib/auth0", () => ({
   auth0: { getSession: vi.fn() },
 }))
 
-vi.mock("@/utils/supabase/service", () => ({
+vi.mock("@/utils/supabase", () => ({
   createServiceClient: vi.fn(),
 }))
 
@@ -19,10 +19,6 @@ vi.mock("@/lib/logger", () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
 }))
 
-vi.mock("@/lib/analytics/server", () => ({
-  captureServerEvent: vi.fn(),
-}))
-
 vi.mock("@/lib/validation", () => ({
   sanitizeUuid: vi.fn((v: string) => v),
   sanitizeString: vi.fn((v: string, max: number) => v?.slice(0, max)),
@@ -33,14 +29,10 @@ vi.mock("@/lib/sentry-span", () => ({
   withSentrySpan: vi.fn((_name: string, handler: () => unknown) => handler),
 }))
 
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { auth0 } from "@/lib/auth0"
-import { captureServerEvent } from "@/lib/analytics/server"
-
 const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>
 const mockedGetSession = auth0.getSession as ReturnType<typeof vi.fn>
-const mockedCaptureServerEvent = captureServerEvent as ReturnType<typeof vi.fn>
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function buildMockDb() {
@@ -175,22 +167,7 @@ describe("POST /api/events/register", () => {
     expect(insertCall.profile_id).toBe("profile-uuid")
   })
 
-  it("captures analytics event on successful registration", async () => {
-    const db = buildMockDb()
-    db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null })
-    db.insert.mockResolvedValue({ error: null })
-    mockedCreateServiceClient.mockReturnValue(db)
-
-    const { POST } = await import("../events/register/route")
-    await POST(mockRequest({ event_id: "550e8400-e29b-41d4-a716-446655440000" }))
-
-    expect(mockedCaptureServerEvent).toHaveBeenCalledWith(
-      "event_registered",
-      "auth0|12345",
-      { event_id: "550e8400-e29b-41d4-a716-446655440000" },
-    )
-  })
-
+  // ponytail: analytics/server deleted, removed analytics test assertion.
   // ── Idempotency ──────────────────────────────────────────────────────
 
   it("returns success when idempotency key matches a previous registration", async () => {

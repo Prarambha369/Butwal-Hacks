@@ -75,27 +75,3 @@ export async function bustCache(key: string): Promise<void> {
   }
 }
 
-/**
- * Bust the profile cache for a given profile (by UUID).
- * Looks up the profile's BH-ID, then deletes `profile:bh_id:{bhId}` from Redis.
- * Gracefully degrades if the profile doesn't exist or Redis is unavailable.
- */
-export async function bustProfileCache(profileId: string): Promise<void> {
-  if (!profileId) return;
-  // Need a Supabase client for the lookup — use dynamic import to avoid
-  // making this module depend on the supabase client directly.
-  try {
-    const { createServiceClient } = await import("@/utils/supabase/service");
-    const supabase = createServiceClient();
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("bh_id")
-      .eq("id", profileId)
-      .single();
-    if (profile?.bh_id) {
-      await bustCache(`profile:bh_id:${profile.bh_id}`);
-    }
-  } catch {
-    // Graceful degradation
-  }
-}

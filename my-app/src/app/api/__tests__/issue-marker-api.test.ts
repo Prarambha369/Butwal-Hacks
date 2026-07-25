@@ -6,7 +6,7 @@ vi.mock("@/lib/auth0", () => ({
   auth0: { getSession: vi.fn() },
 }))
 
-vi.mock("@/utils/supabase/service", () => ({
+vi.mock("@/utils/supabase", () => ({
   createServiceClient: vi.fn(),
 }))
 
@@ -28,7 +28,7 @@ vi.mock("@/lib/crypto/sign", () => ({
 }))
 
 vi.mock("@/lib/cache", () => ({
-  bustProfileCache: vi.fn(),
+  bustCache: vi.fn(),
 }))
 
 vi.mock("@/lib/emails/ghost-marker-notification", () => ({
@@ -36,7 +36,7 @@ vi.mock("@/lib/emails/ghost-marker-notification", () => ({
 }))
 
 import { NextRequest } from "next/server"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { auth0 } from "@/lib/auth0"
 
 const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>
@@ -175,7 +175,7 @@ describe("POST /api/v1/issue-marker", () => {
 
   it("issues marker to known user and signs it", async () => {
     const { signTrustMarker } = await import("@/lib/crypto/sign")
-    const { bustProfileCache } = await import("@/lib/cache")
+    const { bustCache } = await import("@/lib/cache")
     vi.mocked(signTrustMarker).mockReturnValue("ed25519-sig-base64")
 
     const db = buildMockDb()
@@ -183,7 +183,7 @@ describe("POST /api/v1/issue-marker", () => {
       .mockResolvedValueOnce({ data: { role: "organizer" }, error: null }) // role check
       .mockResolvedValueOnce({ data: { id: "issuer-uuid" }, error: null }) // issuer ID
     db.maybeSingle.mockResolvedValue({
-      data: { id: "target-uuid", full_name: "Target User", auth0_user_id: "auth0|target" },
+      data: { id: "target-uuid", bh_id: "BH-24-001", full_name: "Target User", auth0_user_id: "auth0|target" },
       error: null,
     })
     db.single.mockResolvedValueOnce({
@@ -218,7 +218,7 @@ describe("POST /api/v1/issue-marker", () => {
     expect(signTrustMarker).toHaveBeenCalled()
 
     // Verify profile cache was busted
-    expect(bustProfileCache).toHaveBeenCalledWith("target-uuid")
+    expect(bustCache).toHaveBeenCalledWith("profile:bh_id:BH-24-001")
   })
 
   it("handles marker insert failure for known user", async () => {

@@ -1,35 +1,29 @@
 "use client";
 
 import * as React from "react";
-import {
-  ThemeProvider as NextThemesProvider,
-  useTheme,
-} from "next-themes";
 
-type ThemeProviderProps = {
-  children: React.ReactNode;
-};
+// ponytail: no next-themes dep. Uses native classList.toggle + localStorage.
+// The FOUC prevention script in layout.tsx <head> runs before React hydrates.
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
-  return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem={true}
-      disableTransitionOnChange={false}
-      storageKey="bh-theme"
-    >
-      {children}
-    </NextThemesProvider>
-  );
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
 
 export function useBhTheme() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const theme = resolvedTheme === "light" ? "light" : "dark";
+  const [theme, setThemeState] = React.useState<"light" | "dark">("dark");
 
-  return {
-    theme,
-    toggleTheme: () => setTheme(theme === "dark" ? "light" : "dark"),
-  };
+  React.useEffect(() => {
+    setThemeState(
+      document.documentElement.classList.contains("dark") ? "dark" : "light",
+    );
+  }, []);
+
+  const toggleTheme = React.useCallback(() => {
+    document.documentElement.classList.toggle("dark");
+    const isDark = document.documentElement.classList.contains("dark");
+    localStorage.setItem("bh-theme", isDark ? "dark" : "light");
+    setThemeState(isDark ? "dark" : "light");
+  }, []);
+
+  return { theme, toggleTheme };
 }

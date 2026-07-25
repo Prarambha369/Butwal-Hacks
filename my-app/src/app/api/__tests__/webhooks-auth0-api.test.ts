@@ -3,7 +3,7 @@ import { NextRequest } from "next/server"
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
-vi.mock("@/utils/supabase/service", () => ({
+vi.mock("@/utils/supabase", () => ({
   createServiceClient: vi.fn(),
 }))
 
@@ -21,7 +21,7 @@ vi.mock("@/lib/analytics/server", () => ({
   identifyServerUser: vi.fn(),
 }))
 
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 
 const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>
 

@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth0 } from '@/lib/auth0';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { z } from 'zod';
 import { sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { withRateLimit } from '@/lib/rate-limiter';
-import { captureServerEvent } from '@/lib/analytics/server';
 
 const reviewSchema = z.object({
   event_id: z.string().transform(v => sanitizeUuid(v) ?? ''),
@@ -29,7 +28,6 @@ export const POST = withRateLimit(async (request: Request) => {
       .upsert({ event_id, auth0_user_id: session.user.sub, rating });
 
     if (error) throw error;
-    await captureServerEvent('event_review_submitted', session.user.sub, { event_id, rating });
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[api/reviews]', err);

@@ -6,12 +6,12 @@ vi.mock("@/lib/auth0", () => ({
   auth0: { getSession: vi.fn() },
 }));
 
-vi.mock("@/utils/supabase/service", () => ({
+vi.mock("@/utils/supabase", () => ({
   createServiceClient: vi.fn(),
 }));
 
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 const mockedGetSession = auth0.getSession as ReturnType<typeof vi.fn>;
 const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>;

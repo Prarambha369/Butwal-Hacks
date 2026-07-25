@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { generateCertificatesPdf } from "@/lib/pdf/certificate-export";

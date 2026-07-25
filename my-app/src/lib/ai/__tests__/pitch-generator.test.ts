@@ -18,7 +18,7 @@ const mockLimit = vi.fn();
 
 const mockSupabase = { from: mockFrom };
 
-vi.mock("@/utils/supabase/service", () => ({
+vi.mock("@/utils/supabase", () => ({
   createServiceClient: vi.fn(() => mockSupabase),
 }));
 

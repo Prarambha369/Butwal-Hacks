@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
 import { logger } from '@/lib/logger';
-import { parsePagination, paginationMeta } from '@/lib/pagination';
+
 
 export async function GET(
   request: Request,
@@ -15,7 +15,9 @@ export async function GET(
     const session = await auth0.getSession();
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = createServiceClient();
-    const { limit, offset } = parsePagination(request);
+    const u = new URL(request.url);
+    const limit = Math.min(200, Math.max(1, parseInt(u.searchParams.get("limit") ?? "", 10) || 50));
+    const offset = Math.max(0, parseInt(u.searchParams.get("offset") ?? "", 10) || 0);
 
     // ponytail: Fetch registrations with profile data via Supabase join
     const { data: registrations } = await supabase
@@ -30,7 +32,7 @@ export async function GET(
 
     return NextResponse.json({
       registrations: registrations || [],
-      pagination: paginationMeta(limit, offset, registrations?.length ?? 0),
+      pagination: { limit, offset, hasMore: (registrations?.length ?? 0) >= limit },
     }, {
       headers: { "Cache-Control": "public, max-age=30, s-maxage=30" },
     });

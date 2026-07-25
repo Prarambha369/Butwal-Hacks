@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import type { Metadata } from "next"
 import { Users } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"

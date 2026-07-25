@@ -33,7 +33,7 @@ const channelMock = {
 
 // ─── Mocks ─────────────────────────────────────────────────────────
 
-vi.mock("@/utils/supabase/client", () => ({
+vi.mock("@/utils/supabase", () => ({
   createClient: vi.fn(() => ({
     channel: vi.fn(() => channelMock),
   })),
@@ -43,7 +43,7 @@ vi.mock("@auth0/nextjs-auth0/client", () => ({
   useUser: vi.fn(),
 }));
 
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase";
 import { useUser } from "@auth0/nextjs-auth0/client";
 
 const mockedCreateClient = createClient as any;

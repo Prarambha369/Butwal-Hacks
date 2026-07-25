@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, CheckCircle2, Zap, Award, FileEdit, Badge, GraduationCap } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { cn } from '@/lib/utils';
 import { CardSkeleton } from '@/components/ui/skeleton';

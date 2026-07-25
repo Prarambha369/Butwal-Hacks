@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import NextDynamic from "next/dynamic";
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 // ponytail: Command palette uses native dialog with no extra deps (no cmdk/kbar).
 // g+key shortcuts work via a simple useEffect keydown listener.

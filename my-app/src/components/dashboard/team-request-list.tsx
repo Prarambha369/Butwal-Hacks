@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Check, X, UserPlus } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
 import { getAvatarUrl } from '@/lib/utils';
 
 

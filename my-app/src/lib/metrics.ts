@@ -5,8 +5,8 @@
  * instead of duplicating identical Supabase count queries.
  */
 
-import { createServiceClient } from "@/utils/supabase/service"
-import { createClient } from "@/utils/supabase/server"
+import { createServiceClient } from "@/utils/supabase"
+import { createClient } from "@/utils/supabase"
 
 export interface YearMetrics {
   year: number

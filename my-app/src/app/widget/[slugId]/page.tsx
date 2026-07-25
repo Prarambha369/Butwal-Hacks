@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import type { Metadata } from "next";
 import { WidgetPresenceDot } from "@/components/widget/widget-presence-dot";
 

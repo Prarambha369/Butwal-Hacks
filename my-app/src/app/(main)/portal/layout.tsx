@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import NextDynamic from "next/dynamic";
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 export const dynamic = "force-dynamic";
 

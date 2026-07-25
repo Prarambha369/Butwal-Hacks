@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { Users, Plus, ChevronRight, UserPlus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

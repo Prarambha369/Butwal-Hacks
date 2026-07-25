@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/utils/supabase/server"
+import { createClient } from "@/utils/supabase"
 
 /**
  * Open Badges 3.0 — Badge Assertion

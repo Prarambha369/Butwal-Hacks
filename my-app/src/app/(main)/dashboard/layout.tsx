@@ -1,6 +1,6 @@
 import { auth0 } from "@/lib/auth0"
 import { redirect } from "next/navigation"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 
 export const dynamic = "force-dynamic";
 

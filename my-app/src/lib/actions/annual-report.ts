@@ -1,6 +1,6 @@
 "use server";
 
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 export interface AnnualReportData {
   year: number;

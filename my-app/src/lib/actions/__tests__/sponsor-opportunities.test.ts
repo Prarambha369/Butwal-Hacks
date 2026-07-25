@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/auth0", () => ({ auth0: { getSession: vi.fn() } }));
-vi.mock("@/utils/supabase/service", () => ({ createServiceClient: vi.fn() }));
+vi.mock("@/utils/supabase", () => ({ createServiceClient: vi.fn() }));
 vi.mock("@/lib/logger", () => ({ logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() } }));
 vi.mock("@/lib/validation", () => ({
   sanitizeString: vi.fn((s: string, max: number) => s.slice(0, max)),
@@ -9,7 +9,7 @@ vi.mock("@/lib/validation", () => ({
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 const mockedGetSession = auth0.getSession as any;
 const mockedCreateServiceClient = createServiceClient as any;

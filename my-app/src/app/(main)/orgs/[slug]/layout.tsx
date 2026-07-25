@@ -1,7 +1,7 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { OrgSwitcher } from "@/components/org-switcher";
 import {
   LayoutDashboard,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase";
 import { Activity, Clock, ScrollText, ArrowUp } from "lucide-react";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 

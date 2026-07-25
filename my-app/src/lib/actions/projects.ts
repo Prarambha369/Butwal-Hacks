@@ -1,7 +1,7 @@
 "use server";
 
 import { logger } from "@/lib/logger"
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import type { ProjectCategory } from "@/lib/supabase-types";
 import { resolveProfileId } from "@/lib/profile-resolver";

@@ -10,7 +10,7 @@ import { RoseSpinner } from '@/components/ui/rose-loader';
 import { submitProject } from '@/lib/actions/projects';
 import { toast } from 'sonner';
 import posthog from 'posthog-js';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
 import { useUser } from '@auth0/nextjs-auth0/client';
 
 import { CloudinaryUpload } from '@/components/cloudinary-upload';

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Code2, Calendar, MapPin, Users } from "lucide-react";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { events as staticEvents, getEventBySlug } from "@/lib/content";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";

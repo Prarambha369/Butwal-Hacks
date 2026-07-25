@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
 import { z } from 'zod';
 import { sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { withRateLimit } from '@/lib/rate-limiter';
 import { withSentrySpan } from '@/lib/sentry-span';
-import { captureServerEvent } from '@/lib/analytics/server';
 
 const registerSchema = z.object({
   event_id: z.string().transform(v => sanitizeUuid(v) ?? ''),
@@ -57,7 +56,6 @@ export const POST = withSentrySpan("POST /api/events/register", withRateLimit(as
       await supabase.from('idempotency_keys').insert({ key: idempotencyKey });
     }
 
-    await captureServerEvent('event_registered', userId, { event_id });
 
     logger.info('Event registration completed', { event_id, auth0_user_id: userId });
 
