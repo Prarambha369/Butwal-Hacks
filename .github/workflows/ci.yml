@@ -20,7 +20,7 @@ jobs:
         working-directory: my-app
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
           cache: npm
@@ -37,7 +37,7 @@ jobs:
         working-directory: my-app
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
           cache: npm
@@ -54,7 +54,7 @@ jobs:
         working-directory: my-app
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
           cache: npm
@@ -72,7 +72,7 @@ jobs:
         working-directory: my-app
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
           cache: npm
@@ -121,7 +121,7 @@ jobs:
         working-directory: my-app
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
           cache: npm
@@ -149,7 +149,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
       - name: Install dependencies
@@ -227,7 +227,7 @@ jobs:
           CHANGED=$(git diff --name-only ${{ github.event.before }} HEAD | grep -c 'my-app/src/lib/content.ts' || true)
           echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         if: steps.changed.outputs.changed != '0'
         with:
           node-version: 20
@@ -254,7 +254,7 @@ jobs:
         working-directory: my-app
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
           cache: npm
