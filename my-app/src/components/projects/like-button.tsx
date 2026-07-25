@@ -74,15 +74,7 @@ export default function LikeButton({ projectId, initialLikes = 0 }: LikeButtonPr
       if (result.success) {
         toast.success(prevLiked ? 'Removed like' : 'Project liked!');
 
-        // Award XP to project owner (simulation: award to first member of team)
-        if (!prevLiked) {
-          const { awardXP } = await import('@/lib/actions/xp');
-          const { data: project } = await supabase.from('projects').select('team_id').eq('id', projectId).single();
-          if (project?.team_id) {
-            const { data: captain } = await supabase.from('team_members').select('profile_id').eq('team_id', project.team_id).single();
-            if (captain) await awardXP(captain.profile_id, 5, 'Project Like Received');
-          }
-        }
+        // ponytail: XP award removed — handled by a separate trigger if needed
       }
     } catch (error: unknown) {
       // revert optimistic update
