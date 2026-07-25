@@ -23,8 +23,6 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: my-app/package-lock.json
       - run: npm ci --legacy-peer-deps
       - name: Lint
         run: npm run lint
@@ -40,8 +38,6 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: my-app/package-lock.json
       - run: npm ci --legacy-peer-deps
       - name: npm Audit
         run: npm audit --legacy-peer-deps --audit-level=high
@@ -57,8 +53,6 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: my-app/package-lock.json
       - run: npm ci --legacy-peer-deps
       - name: Typecheck
         run: npx tsc --noEmit
@@ -75,8 +69,6 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: my-app/package-lock.json
       - run: npm ci --legacy-peer-deps
 
       - name: Check for secrets
@@ -124,8 +116,6 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: my-app/package-lock.json
       - run: npm ci --legacy-peer-deps
       - name: Tests
         run: npx vitest run
@@ -231,8 +221,6 @@ jobs:
         if: steps.changed.outputs.changed != '0'
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: my-app/package-lock.json
 
       - run: npm ci --legacy-peer-deps
         if: steps.changed.outputs.changed != '0'
@@ -257,8 +245,6 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: my-app/package-lock.json
       - run: npm ci --legacy-peer-deps
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
