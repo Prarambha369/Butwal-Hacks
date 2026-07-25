@@ -267,7 +267,7 @@ function findUnusedDependencies(allFiles) {
   ]);
 
   const allSourceFiles = allFiles.filter(f => 
-    (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mjs") || f.endsWith(".js")) &&
+    (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mjs") || f.endsWith(".js") || f.endsWith(".css")) &&
     !f.includes("node_modules") &&
     !f.includes(".next")
   );
@@ -276,36 +276,39 @@ function findUnusedDependencies(allFiles) {
   const allImports = new Set();
   for (const file of allSourceFiles) {
     const content = readFileSync(file, "utf-8");
+    // JS/TS imports: import/require/from patterns
     const bareImportPattern = /from\s+["']([^\.][^"']*)["']|require\(["']([^\.][^"']*)["']\)|import\s+["']([^\.][^"']*)["']/g;
-    const matches = content.matchAll(bareImportPattern);
-    for (const match of matches) {
-      // Group 1, 2, or 3 depending on pattern
+    for (const match of content.matchAll(bareImportPattern)) {
       const bare = match[1] || match[2] || match[3];
       if (bare) {
-        // Get the package name (handle scoped packages @scope/pkg and sub-imports @scope/pkg/sub)
         const parts = bare.split("/");
         const pkgName = bare.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
         allImports.add(pkgName);
       }
     }
-  }
-
-  // Also check config files
-  for (const cfg of ["next.config.ts", "eslint.config.mjs", "postcss.config.mjs", "tailwind.config.ts"]) {
-    const cfgPath = join(PROJECT_ROOT, "my-app", cfg);
-    if (existsSync(cfgPath)) {
-      const content = readFileSync(cfgPath, "utf-8");
-      const matches = content.matchAll(/require\(["']([^\.][^"']*)["']\)|from\s+["']([^\.][^"']*)["']/g);
-      for (const match of matches) {
-        const bare = match[1] || match[2];
-        if (bare) {
-          const parts = bare.split("/");
-          const pkgName = bare.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
-          allImports.add(pkgName);
-        }
+    // CSS @import: @import "package-name" or @import 'package-name'
+    const cssImportPattern = /@import\s+["']([^"'\/\.][^"']*)["']/g;
+    for (const match of content.matchAll(cssImportPattern)) {
+      const pkg = match[1];
+      const parts = pkg.split("/");
+      const pkgName = pkg.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
+      allImports.add(pkgName);
+    }
+    // Config file plugin keys: "@scope/pkg": {} or 'pkg': {}
+    const configKeyPattern = /["']([@a-zA-Z][^"'\/]*\/[^"'\/:\.]+|[a-zA-Z][^"'\/:\.-]+-\S+?)["']\s*:/g;
+    for (const match of content.matchAll(configKeyPattern)) {
+      const key = match[1];
+      // Only flag it if it looks like a package name (has a / or looks like a known config key)
+      if (key.includes("/") || key.includes("-")) {
+        allImports.add(key);
       }
     }
   }
+
+  // Config files are now scanned inline above (the allSourceFiles filter
+  // already includes .mjs files, and config keys are caught by the
+  // configKeyPattern regex in the main loop). This explicit block is no
+  // longer needed since postcss.config.mjs is included in allSourceFiles.
 
   // Check each dep — if never imported in any source file, flag it
   for (const dep of allDeps) {
