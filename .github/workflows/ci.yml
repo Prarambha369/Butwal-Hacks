@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
       - name: Lint
         run: npm run lint
 
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
       - name: npm Audit
         run: npm audit --legacy-peer-deps --audit-level=high
 
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
       - name: Typecheck
         run: npx tsc --noEmit
 
@@ -69,7 +69,7 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
 
       - name: Check for secrets
         id: check-secrets
@@ -116,7 +116,7 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
       - name: Tests
         run: npx vitest run
 
@@ -128,7 +128,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
         working-directory: my-app
       - name: Audit for leaked secrets
         run: node .github/actions/secrets-audit/audit.mjs
@@ -143,7 +143,7 @@ jobs:
         with:
           node-version: 20
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
         working-directory: my-app
       - name: Verify M2M Management API access
         run: node ../scripts/verify-auth0-m2m.mjs
@@ -176,7 +176,7 @@ jobs:
           echo "$DIFF" >> $GITHUB_OUTPUT
           echo "DIFF_EOF" >> $GITHUB_OUTPUT
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
         working-directory: my-app
       - name: AI Code Review
         if: steps.diff.outputs.diff != ''
@@ -193,7 +193,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
         working-directory: my-app
       - name: Check for dead code
         run: node .github/actions/ponytail-audit/audit.mjs
@@ -222,7 +222,7 @@ jobs:
         with:
           node-version: 20
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
         if: steps.changed.outputs.changed != '0'
 
       - name: Seed knowledge embeddings
@@ -245,7 +245,7 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
       - name: Run E2E tests

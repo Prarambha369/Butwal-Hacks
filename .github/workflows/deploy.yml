@@ -41,7 +41,7 @@ jobs:
         with:
           node-version: 20
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
 
       - name: Seed knowledge embeddings
         run: npx tsx scripts/seed-embeddings.ts
