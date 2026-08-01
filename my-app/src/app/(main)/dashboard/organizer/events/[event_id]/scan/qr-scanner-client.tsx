@@ -58,50 +58,6 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
     setBarcodeSupported(supported);
   }, []);
 
-  // Camera management
-  const startCamera = useCallback(async () => {
-    setCameraError(null);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } },
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-      setCameraActive(true);
-      startScanLoop();
-    } catch (err) {
-      const msg =
-        err instanceof DOMException && err.name === "NotAllowedError"
-          ? "Camera permission denied. Allow camera access or use manual entry."
-          : "Could not access camera. Use manual entry below.";
-      setCameraError(msg);
-      toast.error(msg);
-    }
-  }, []);
-
-  const stopCamera = useCallback(() => {
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current);
-      scanIntervalRef.current = null;
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
-    setCameraActive(false);
-    setScanning(false);
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, [stopCamera]);
-
   const performCheckin = useCallback(
     async (registrationId: string) => {
       try {
@@ -190,6 +146,50 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
       processFrame();
     }, 1500);
   }, [processFrame]);
+
+  // Camera management
+  const startCamera = useCallback(async () => {
+    setCameraError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      setCameraActive(true);
+      startScanLoop();
+    } catch (err) {
+      const msg =
+        err instanceof DOMException && err.name === "NotAllowedError"
+          ? "Camera permission denied. Allow camera access or use manual entry."
+          : "Could not access camera. Use manual entry below.";
+      setCameraError(msg);
+      toast.error(msg);
+    }
+  }, [startScanLoop]);
+
+  const stopCamera = useCallback(() => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setCameraActive(false);
+    setScanning(false);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, [stopCamera]);
 
   // Manual BH-ID check-in
   const handleManualCheckin = useCallback(async () => {

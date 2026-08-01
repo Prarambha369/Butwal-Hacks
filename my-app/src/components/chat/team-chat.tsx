@@ -98,6 +98,27 @@ export default function TeamChat({ className }: TeamChatProps) {
     }
   }, [activeTeamId, fetchMessages]);
 
+  function scrollToBottom() {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setNewMessageCount(0);
+  }
+
+  /** Append a message to the list and auto-scroll if near the bottom. */
+  function appendAndScroll(newMsg: ChatMessage) {
+    setMessages((prev) => [...prev, newMsg]);
+    requestAnimationFrame(() => {
+      const el = listRef.current;
+      if (el) {
+        const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 200;
+        if (isNearBottom) {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        } else {
+          setNewMessageCount((n) => n + 1);
+        }
+      }
+    });
+  }
+
   // Subscribe to real-time messages:
   // 1. Broadcast channel — carries messages with profile data embedded (no N+1)
   // 2. postgres_changes — fallback for reliability; uses profile cache
@@ -215,27 +236,6 @@ export default function TeamChat({ className }: TeamChatProps) {
       e.preventDefault();
       handleSend();
     }
-  }
-
-  function scrollToBottom() {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    setNewMessageCount(0);
-  }
-
-  /** Append a message to the list and auto-scroll if near the bottom. */
-  function appendAndScroll(newMsg: ChatMessage) {
-    setMessages((prev) => [...prev, newMsg]);
-    requestAnimationFrame(() => {
-      const el = listRef.current;
-      if (el) {
-        const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 200;
-        if (isNearBottom) {
-          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        } else {
-          setNewMessageCount((n) => n + 1);
-        }
-      }
-    });
   }
 
   const activeTeam = teams.find((t) => t.id === activeTeamId);

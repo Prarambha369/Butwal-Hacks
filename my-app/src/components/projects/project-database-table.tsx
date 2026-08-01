@@ -37,6 +37,22 @@ const PAGE_SIZES = [5, 10, 20, 50] as const
 const MAX_VISIBLE_PAGES = 5
 const SEARCH_DEBOUNCE_MS = 300
 
+// Sort icon — module scope so it isn't recreated on every render
+function SortIcon({
+  columnKey,
+  sortKey,
+  sortDir,
+}: {
+  columnKey: SortKey
+  sortKey: SortKey
+  sortDir: SortDir
+}) {
+  if (sortKey !== columnKey) return <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />
+  return sortDir === "asc"
+    ? <ArrowUp className="h-3 w-3 text-primary-red" />
+    : <ArrowDown className="h-3 w-3 text-primary-red" />
+}
+
 export default function ProjectDatabaseTable({
   initialProjects,
   initialTotalCount,
@@ -217,13 +233,6 @@ export default function ProjectDatabaseTable({
     return <span className={cn("text-xs font-medium px-2 py-0.5 rounded-md", colors)}>{label}</span>
   }
 
-  // Sort icon
-  const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
-    if (sortKey !== columnKey) return <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />
-    return sortDir === "asc"
-      ? <ArrowUp className="h-3 w-3 text-primary-red" />
-      : <ArrowDown className="h-3 w-3 text-primary-red" />
-  }
 
   // Due date formatting
   const formatDate = (dateStr: string) => {
@@ -317,14 +326,14 @@ export default function ProjectDatabaseTable({
           onClick={() => handleSort("title")}
         >
           <span>Name</span>
-          <SortIcon columnKey="title" />
+          <SortIcon columnKey="title" sortKey={sortKey} sortDir={sortDir} />
         </div>
         <div
           className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 cursor-pointer hover:text-primary select-none"
           onClick={() => handleSort("category")}
         >
           <span>Status</span>
-          <SortIcon columnKey="category" />
+          <SortIcon columnKey="category" sortKey={sortKey} sortDir={sortDir} />
         </div>
         <div className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
           <span>Tags</span>
@@ -337,7 +346,7 @@ export default function ProjectDatabaseTable({
           onClick={() => handleSort("created_at")}
         >
           <span>Due</span>
-          <SortIcon columnKey="created_at" />
+          <SortIcon columnKey="created_at" sortKey={sortKey} sortDir={sortDir} />
         </div>
       </div>
 

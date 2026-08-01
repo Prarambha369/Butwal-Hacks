@@ -117,7 +117,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
       const { url } = await res.json();
 
       // Redirect the user to Auth0 for secondary authentication
-      window.location.href = url;
+      window.location.assign(url);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to link account";
       setStatus({ type: "error", message });

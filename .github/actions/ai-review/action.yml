@@ -32,9 +32,9 @@ jobs:
         if: steps.diff.outputs.diff != ''
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PR_DIFF: ${{ steps.diff.outputs.diff }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          node .github/actions/ai-review/review.mjs \
-            "${{ steps.diff.outputs.diff }}" \
-            "${{ github.event.pull_request.title }}" \
-            "${{ github.event.pull_request.body }}" \
-            "${{ github.event.pull_request.number }}"
+          node .github/actions/ai-review/review.mjs "$PR_DIFF" "$PR_TITLE" "$PR_BODY" "$PR_NUMBER"

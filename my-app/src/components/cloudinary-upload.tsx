@@ -144,10 +144,6 @@ export function CloudinaryUpload({
   const xhrRef = useRef<XMLHttpRequest | null>(null);
   const prevExternalFileRef = useRef<File | null>(null);
 
-  // Collect metadata once at render time (stable across retries)
-  const metadataRef = useRef({ entityType, bhId, eventSlug, projectId, uploaderAuth0Id });
-  metadataRef.current = { entityType, bhId, eventSlug, projectId, uploaderAuth0Id };
-
   // Watch externalFile prop — when a new file arrives from CameraCapture,
   // open the crop dialog for it
   useEffect(() => {
@@ -187,7 +183,7 @@ export function CloudinaryUpload({
     setUploadSpeed(0);
     pendingBlobRef.current = blob;
     try {
-      const url = await uploadToCloudinary(blob, metadataRef.current, (p) => {
+      const url = await uploadToCloudinary(blob, { entityType, bhId, eventSlug, projectId, uploaderAuth0Id }, (p) => {
         setUploadProgress(p.pct);
         setUploadSpeed(p.speedKBps);
       }, xhrRef);
@@ -205,7 +201,7 @@ export function CloudinaryUpload({
       setUploadProgress(0);
       setUploadSpeed(0);
     }
-  }, [onUpload, onError]);
+  }, [onUpload, onError, entityType, bhId, eventSlug, projectId, uploaderAuth0Id]);
 
   const handleCropConfirm = useCallback((croppedBlob: Blob) => {
     setCropFile(null);
