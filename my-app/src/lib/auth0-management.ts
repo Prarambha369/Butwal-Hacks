@@ -61,13 +61,19 @@ async function getManagementToken(): Promise<string> {
     return cachedToken.access_token;
   }
 
-  const res = await fetch(`https://${domain}/oauth/token`, {
+  // Token must be requested from the tenant domain (not the custom domain) so the
+  // JWT `iss` matches what the Management API expects (custom-domain tokens get
+  // rejected with 401 "Bad issuer").
+  const audience = process.env.AUTH0_MANAGEMENT_API_AUDIENCE ?? `https://${domain}/api/v2/`;
+  const mgmtBase = new URL(audience).origin;
+
+  const res = await fetch(`${mgmtBase}/oauth/token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       client_id: clientId,
       client_secret: clientSecret,
-      audience: `https://${domain}/api/v2/`,
+      audience,
       grant_type: "client_credentials",
     }),
   });
