@@ -48,7 +48,7 @@ npm run build
 .
 ├── my-app/                 # Next.js application
 │   ├── src/
-│   │   ├── app/            # App Router pages and API routes (85 pages, 44 API route handlers)
+│   │   ├── app/            # App Router pages and API routes (91 pages, 51 API route handlers)
 │   │   ├── components/     # React components
 │   │   ├── hooks/          # Custom React hooks
 │   │   ├── lib/            # Business logic, content, utilities
@@ -56,11 +56,19 @@ npm run build
 │   ├── public/             # Static assets
 │   └── .env.example        # Environment template
 ├── supabase/
-│   └── migrations/         # 82 database migrations
-├── docs/                   # Architecture, design system, threat model
+│   └── migrations/         # 66 database migrations
+├── docs/                   # Consolidated architecture & engineering reference
 ├── .github/                # CI workflows, issue templates, PR template
 └── vercel.json             # Deployment config
 ```
+
+## Documentation
+
+All architecture and engineering documentation lives in one consolidated file: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+It covers: architecture overview & 9-zone routing, architectural decisions (ADRs), codebase overview & route map, API reference, authentication, security architecture, threat model, platform constraints, deployment, coding standards, testing strategy, error handling, performance budget, Cloudinary metadata, design system, and user stories.
+
+Visual design and product direction are documented separately in [`DESIGN.md`](DESIGN.md) and [`PRODUCT.md`](PRODUCT.md).
 
 ## License
 

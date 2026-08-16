@@ -55,7 +55,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
     {
       id: "hacker",
       title: "Hacker",
-      description: "Participate in hackathons, submit projects, earn trust markers, and build your reputation.",
+      description: "Normal User",
       icon: <User className="w-6 h-6" />,
       color: "text-status-green",
       dot: "bg-status-green",
@@ -68,7 +68,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
     {
       id: "maintainer",
       title: "Maintainer",
-      description: "Manage users, review access requests, oversee trust markers, and configure the platform.",
+      description: "Butwal Hacks Personnel",
       icon: <ShieldCheck className="w-6 h-6" />,
       color: "text-primary-red",
       dot: "bg-primary-red",
@@ -85,7 +85,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
     {
       id: "organizer",
       title: "Organizer",
-      description: "Create and manage hackathon events, issue trust markers to participants, and manage teams.",
+      description: "Event Manager",
       icon: <CalendarDays className="w-6 h-6" />,
       color: "text-status-yellow",
       dot: "bg-status-yellow",
@@ -98,7 +98,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
     {
       id: "sponsor",
       title: "Sponsor",
-      description: "Discover hackers, post bounties, manage your company profile, and recruit talent.",
+      description: "Event Funders",
       icon: <Building2 className="w-6 h-6" />,
       color: "text-status-blue",
       dot: "bg-status-blue",

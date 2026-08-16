@@ -23,7 +23,5 @@
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.25.0"
   },
-  "devDependencies": {
-    "@types/swagger-ui-react": "^5.18.0"
-  }
+  "devDependencies": {}
 }

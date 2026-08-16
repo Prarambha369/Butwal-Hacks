@@ -34,7 +34,7 @@ const ALL_DASHBOARDS: RoleEntry[] = [
     dot: "bg-status-green",
     badge: "bg-status-green/10 text-status-green border-status-green/20",
     badgeText: "Hacker",
-    description: "Hackathons, projects, profile",
+    description: "Normal User",
   },
   {
     id: "organizer",
@@ -43,7 +43,7 @@ const ALL_DASHBOARDS: RoleEntry[] = [
     dot: "bg-status-yellow",
     badge: "bg-status-yellow/10 text-status-yellow border-status-yellow/20",
     badgeText: "Organizer",
-    description: "Events, markers, teams",
+    description: "Event Manager",
   },
   {
     id: "maintainer",
@@ -52,7 +52,7 @@ const ALL_DASHBOARDS: RoleEntry[] = [
     dot: "bg-primary-red",
     badge: "bg-primary-red/10 text-primary-red border-primary-red/20",
     badgeText: "Maintainer",
-    description: "Users, audit, site config",
+    description: "Butwal Hacks Personnel",
   },
   {
     id: "sponsor",
@@ -61,7 +61,7 @@ const ALL_DASHBOARDS: RoleEntry[] = [
     dot: "bg-status-blue",
     badge: "bg-status-blue/10 text-status-blue border-status-blue/20",
     badgeText: "Sponsor",
-    description: "Talent, bounties, analytics",
+    description: "Event Funders",
   },
   {
     id: "lead",
@@ -70,7 +70,7 @@ const ALL_DASHBOARDS: RoleEntry[] = [
     dot: "bg-status-orange",
     badge: "bg-status-orange/10 text-status-orange border-status-orange/20",
     badgeText: "Lead",
-    description: "Chapter, members, events",
+    description: "Chapter Lead",
   },
 ];
 

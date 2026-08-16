@@ -44,11 +44,11 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const ALL_ROLES = [
-  { value: "hacker", label: "Hacker", desc: "Standard participant who joins events and submits projects" },
-  { value: "organizer", label: "Organizer", desc: "Can create and manage events, issue trust markers" },
-  { value: "maintainer", label: "Maintainer", desc: "Full system access — users, audit, site config" },
-  { value: "sponsor", label: "Sponsor", desc: "Talent discovery, bounty management, company profile" },
-  { value: "lead", label: "Lead", desc: "Chapter lead with local event and member management" },
+  { value: "hacker", label: "Hacker", desc: "Normal User" },
+  { value: "organizer", label: "Organizer", desc: "Event Manager" },
+  { value: "maintainer", label: "Maintainer", desc: "Butwal Hacks Personnel" },
+  { value: "sponsor", label: "Sponsor", desc: "Event Funders" },
+  { value: "lead", label: "Lead", desc: "Chapter Lead" },
 ];
 
 
