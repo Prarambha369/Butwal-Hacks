@@ -13,6 +13,15 @@ import TypographyBlocks from '@/components/home/typography-blocks';
 import FeaturesCTA from '@/components/home/features-cta';
 import ContactCTA from '@/components/sections/ContactCTA';
 import Footer from '@/components/sections/Footer';
+import { buildPageMetadata } from '@/lib/seo';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Butwal Hacks — The Pulse of Innovation in Western Nepal",
+  description:
+    "A youth-led nonprofit building structured pathways from learning to building to launching real-world technology initiatives in Western Nepal. Free hackathons, mentorship, and verified credentials.",
+  path: "/",
+});
 
 export const dynamic = "force-static";
 

@@ -90,15 +90,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }}
           />
           <SafeJsonLd data={jsonLd} />
-          {/* hreflang for Nepali */}
-          <link rel="alternate" hrefLang="ne" href={`${baseUrl}/ne`} />
+          {/* hreflang — en + x-default only; no /ne route exists to point at */}
           <link rel="alternate" hrefLang="en" href={baseUrl} />
           <link rel="alternate" hrefLang="x-default" href={baseUrl} />
 
           {/* ══ Favicon / Icons ══ */}
+          {/* Legacy + Windows: multi-size ICO, then explicit PNG sizes so
+              Chrome/Edge/Firefox pick the sharpest match instead of the ICO */}
           <link rel="icon" href="/favicon.ico" sizes="any" />
+          <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+          <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+          <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+          <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
           <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+          {/* iOS home screen (180x180, no transparency, no rounded corners applied by Apple) */}
           <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+          {/* Android / Chrome installable */}
+          <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+          <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
           <link rel="manifest" href="/manifest.webmanifest" />
           <meta name="theme-color" content="#FE0000" />
           <meta name="apple-mobile-web-app-title" content="Butwal Hacks" />

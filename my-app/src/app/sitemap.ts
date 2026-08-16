@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { createClient } from '@/utils/supabase'
+import { createServiceClient } from '@/utils/supabase'
 import { blogPosts, initiatives, events, programs, chapters } from '@/lib/content'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://butwalhacks.com'
@@ -18,7 +18,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/community`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/chapters`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/initiatives`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${siteUrl}/programs`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/gallery`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/sitemap`, lastModified: today, changeFrequency: 'monthly', priority: 0.8 },
 
@@ -74,7 +73,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ─── Dynamic: Chapters ────────────────────────────────────
   for (const chapter of chapters) {
     entries.push({
-      url: `${siteUrl}/chapters#${chapter.slug}`,
+      url: `${siteUrl}/chapters/${chapter.slug}`,
       lastModified: today,
       changeFrequency: 'monthly',
       priority: 0.6,
@@ -93,7 +92,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // ─── Dynamic: DB-driven routes ────────────────────────────
   try {
-    const supabase = await createClient()
+    // Service client: anon RLS policies would silently block public reads,
+    // leaving DB-backed URLs out of the sitemap. Best-effort; falls back to
+    // static entries if env is missing.
+    const supabase = createServiceClient()
 
     // Events from DB
     const { data: dbEvents } = await supabase
