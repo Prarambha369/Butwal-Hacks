@@ -56,9 +56,9 @@ export const roleConfig: Record<Role, RoleStyle> = {
     activeClass: "bg-primary-red/8 text-primary-red font-semibold border border-primary-red/20",
   },
   lead: {
-    dot: "bg-status-purple",
-    badge: "bg-status-purple/10 text-status-purple border border-status-purple/20",
+    dot: "bg-status-teal",
+    badge: "bg-status-teal/10 text-status-teal border border-status-teal/20",
     badgeText: "lead",
-    activeClass: "bg-status-purple/8 text-status-purple font-semibold border border-status-purple/20",
+    activeClass: "bg-status-teal/8 text-status-teal font-semibold border border-status-teal/20",
   },
 }

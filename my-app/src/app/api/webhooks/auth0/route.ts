@@ -94,7 +94,10 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       const update: Record<string, unknown> = { email, full_name: name?.trim() || null };
 
       if (resolvedRole !== existingProfile.role) {
-        const oldRank = ROLE_RANK.indexOf(existingProfile.role ?? "hacker");
+        // Unknown/invalid existing roles are treated as lowest precedence so a
+        // valid resolvedRole can always correct them (indexOf would return -1).
+        const oldRankRaw = ROLE_RANK.indexOf(existingProfile.role ?? "hacker");
+        const oldRank = oldRankRaw === -1 ? ROLE_RANK.length : oldRankRaw;
         const newRank = ROLE_RANK.indexOf(resolvedRole);
         if (newRank !== -1 && newRank < oldRank) {
           update.role = resolvedRole;
