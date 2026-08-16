@@ -216,8 +216,11 @@ function findUnusedSrcFiles(allFiles) {
     }
   }
 
+  // ALWAYS_SKIP paths are relative to the app dir (my-app/), e.g. "src/proxy.ts".
+  // SRC_DIR is my-app/src, so resolve against the app root, not SRC_DIR itself.
+  const APP_DIR = dirname(SRC_DIR);
   for (const skip of ALWAYS_SKIP) {
-    const full = join(SRC_DIR, skip);
+    const full = join(APP_DIR, skip);
     if (existsSync(full)) entrySet.add(full);
   }
 
@@ -325,13 +328,16 @@ function findDeadExports(allFiles) {
   const srcFiles = allFiles.filter(f => 
     f.startsWith(SRC_DIR) && (f.endsWith(".ts") || f.endsWith(".tsx")) &&
     !f.endsWith(".d.ts") &&
-    !f.includes("/node_modules/") &&
-    !f.includes("/__tests__/")
+    !f.includes("/node_modules/")
   );
+
+  // Test files are excluded from export analysis but their imports still count
+  // as usage (an export used only by its own unit tests is not dead code).
+  const nonTestSrc = srcFiles.filter(f => !f.includes("/__tests__/"));
 
   // Build export map: exported_name -> file
   const exports = new Map();
-  for (const file of srcFiles) {
+  for (const file of nonTestSrc) {
     const content = readFileSync(file, "utf-8");
     const exportMatches = content.matchAll(/export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class|let|var)\s+(\w+)/g);
     for (const match of exportMatches) {
@@ -371,18 +377,24 @@ function findDeadExports(allFiles) {
   for (const [name, files] of exports) {
     if (files.length > 1) continue; // Probably a re-export
     if (name.startsWith("_")) continue; // Convention for internal
-    if (["default", "metadata", "dynamic", "generateMetadata", "generateStaticParams"].includes(name)) continue; // Next.js conventions
+    if (["default", "metadata", "dynamic", "generateMetadata", "generateStaticParams", "proxy", "config"].includes(name)) continue; // Next.js middleware conventions
 
     const importers = imported.get(name);
     if (!importers || importers.length === 0) {
       // The export exists in one file and is never imported elsewhere
       const file = files[0];
       const rel = relative(PROJECT_ROOT, file);
-      if (file.includes("/__tests__/")) continue;
       if (file.includes("/node_modules/")) continue;
       // Only flag non-page files (pages use exports implicitly)
       const base = basename(file);
       if (NEXTJS_ENTRY_PATTERNS.includes(base)) continue;
+      // An export referenced within its own file (helper called by the entry
+      // function, etc.) is not dead — count intra-file usage beyond the
+      // declaration line itself.
+      // Export names are identifiers (\\w+), so no regex escaping needed.
+      const ownContent = readFileSync(file, "utf-8");
+      const usageCount = (ownContent.match(new RegExp(`\\b${name}\\b`, "g")) || []).length;
+      if (usageCount > 1) continue; // declaration + at least one call/reference
 
       findings.push({ type: "dead_export", path: `${rel} → ${name}()`, severity: "WARNING" });
     }

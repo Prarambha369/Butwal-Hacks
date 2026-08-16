@@ -35,25 +35,6 @@ export function createClient() {
 }
 
 /**
- * Server-side Supabase client.
- * Uses the ANON key so that RLS policies are enforced.
- * ponytail: supabase-js communicates via PostgREST HTTP API, NOT direct DB
- * connections. PgBouncer connection pooling is irrelevant here.
- */
-export function createServerClient() {
-  return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    }
-  )
-}
-
-/**
  * Service role Supabase client (bypasses RLS).
  * Use only in trusted server contexts.
  */
