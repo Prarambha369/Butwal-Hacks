@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/utils/supabase';
 
-export const revalidate = 3600; // Cache 1 hour
+// Dynamic route: the ics is cached via the Cache-Control header below,
+// and forcing revalidate here would prerender it at build time, requiring
+// DB access during `next build`. See https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config
+// for route segment config semantics.
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const db = createServiceClient();
