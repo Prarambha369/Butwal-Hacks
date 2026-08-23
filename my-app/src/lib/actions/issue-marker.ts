@@ -8,6 +8,8 @@ import { signTrustMarker } from "@/lib/crypto/sign";
 import { resolveProfileId } from "@/lib/profile-resolver";
 import { bustCache } from "@/lib/cache";
 
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL ?? "";
+
 export async function issueTrustMarker(input: {
   email: string;
   title: string;
@@ -49,6 +51,41 @@ export async function issueTrustMarker(input: {
         .from("trust_markers")
         .update({ crypto_signature: signature })
         .eq("id", marker.id)
+    }
+
+    // ── Discord notification ──────────────────────────────
+    if (DISCORD_WEBHOOK_URL) {
+      try {
+        const profile = await supabase
+          .from("profiles")
+          .select("full_name, bh_id")
+          .eq("id", issuerId)
+          .single();
+
+        const issuerName = profile.data?.full_name || "Unknown";
+        const issuerBhId = profile.data?.bh_id || "";
+
+        await fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            embeds: [{
+              title: "🏅 Trust Marker Issued",
+              description: `**${title}**\nIssued to \`${input.email}\` by ${issuerName} (${issuerBhId})`,
+              color: 0x6744b4,
+              fields: [
+                { name: "Type", value: input.type, inline: true },
+                { name: "Marker ID", value: marker.id.slice(0, 8), inline: true },
+              ],
+              timestamp: new Date().toISOString(),
+            }],
+          }),
+          signal: AbortSignal.timeout(5000),
+        });
+        logger.info("[issue-marker] Discord notification sent for", marker.id);
+      } catch (err) {
+        logger.warn("[issue-marker] Discord notification failed:", err);
+      }
     }
 
     revalidatePath("/dashboard/organizer");
