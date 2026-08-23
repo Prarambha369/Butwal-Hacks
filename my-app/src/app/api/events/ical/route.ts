@@ -24,8 +24,8 @@ export async function GET() {
       'BEGIN:VEVENT',
       `SUMMARY:${event.title}`,
       `DTSTART:${new Date(event.start_date).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'}`,
-      `DESCRIPTION:${event.summary}`,
-      `LOCATION:${event.location}`,
+      `DESCRIPTION:${event.description ?? ""}`,
+      `LOCATION:${event.location ?? ""}`,
       'END:VEVENT'
     ].join('\r\n')),
     'END:VCALENDAR'
