@@ -5,8 +5,7 @@ import { buildPageMetadata } from "@/lib/seo"
 import { Book, FileText, Code, Video, ExternalLink } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Resources",
-  description: "Learning resources, guides, and materials from Butwal Hacks community initiatives and programs.",
+  title: "Resources",    description: "Workshop guides, starter templates, code examples, and session recordings from Butwal Hacks programs for builders in Lumbini.",
   path: "/resources",
 })
 
@@ -67,8 +66,7 @@ export default function ResourcesPage() {
           <Book className="w-12 h-12 text-primary mx-auto mb-4" />
           <h1 className="text-4xl font-bold font-heading text-primary mb-4">Resources</h1>
           <p className="text-lg text-secondary max-w-2xl mx-auto">
-            Access learning materials, documentation, and resources from Butwal Hacks community initiatives. 
-            Resources and guides from our community workshops and programs.
+            Guides, tutorials, and docs from our workshops and community initiatives.
           </p>
         </div>
 
@@ -132,7 +130,7 @@ export default function ResourcesPage() {
             >
               <div>
                 <h3 className="font-semibold text-primary">MDN Web Docs</h3>
-                <p className="text-sm text-secondary">Comprehensive web development documentation</p>
+                <p className="text-sm text-secondary">Web development reference from the MDN team</p>
               </div>
               <ExternalLink className="w-5 h-5 text-secondary group-hover:text-primary transition-colors" />
             </a>

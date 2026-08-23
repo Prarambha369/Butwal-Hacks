@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
-import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter"
+import { withRateLimit } from "@/lib/rate-limiter"
+import { bustCache } from "@/lib/cache"
 
 /**
  * POST /api/certificates/extract
@@ -13,7 +15,7 @@ import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter"
  * Request body: { cloudinaryUrl: string }
  * Response: { success: true, marker: { id, title, description, type } }
  */
-export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
+export const POST = withRateLimit(async (req: NextRequest) => {
   try {
     const session = await auth0.getSession()
     if (!session?.user) {
@@ -21,9 +23,20 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
     }
     const userId = session.user.sub
 
-    const { cloudinaryUrl } = await req.json()
-    if (!cloudinaryUrl || typeof cloudinaryUrl !== "string") {
-      return NextResponse.json({ error: "cloudinaryUrl is required" }, { status: 400 })
+    const extractSchema = z.object({
+      cloudinaryUrl: z.string().url("cloudinaryUrl must be a valid URL"),
+    })
+
+    let cloudinaryUrl: string
+    try {
+      const body = await req.json()
+      const parsed = extractSchema.parse(body)
+      cloudinaryUrl = parsed.cloudinaryUrl
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return NextResponse.json({ error: "cloudinaryUrl is required and must be a valid URL" }, { status: 400 })
+      }
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
     }
 
     const apiKey = process.env.GROQ_API_KEY
@@ -103,7 +116,7 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
     // Resolve profile UUID for the current user
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id")
+      .select("id, bh_id")
       .eq("auth0_user_id", userId)
       .single()
 
@@ -141,6 +154,9 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
       return NextResponse.json({ error: "Failed to save certificate as trust marker" }, { status: 500 })
     }
 
+    // Bust Redis cache for the user's profile
+    await bustCache(`profile:bh_id:${profile.bh_id}`);
+
     logger.info(`[certificates/extract] Created trust_marker ${marker.id} for user ${userId}: ${safeTitle}`)
 
     return NextResponse.json({
@@ -158,4 +174,4 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
     logger.error("[certificates/extract] Unexpected error:", err)
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
-}), "sensitive")
+}, "sensitive")

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { auth0 } from "@/lib/auth0";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { createServiceClient } from "@/utils/supabase";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import { Users, Shield, CalendarDays } from "lucide-react";
@@ -26,7 +26,7 @@ export default async function OrgMembersPage({ params }: PageProps) {
 
   if (!userId) redirect("/sign-in");
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: chapter } = await supabase
     .from("chapters")
@@ -75,7 +75,7 @@ export default async function OrgMembersPage({ params }: PageProps) {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-primary truncate">{profile.full_name ?? "Unknown"}</span>
                     {isMemberAdmin && (
-                      <span className="flex items-center gap-1 text-[10px] font-medium text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-full">
+                      <span className="flex items-center gap-1 text-[10px] font-medium text-status-yellow bg-status-yellow/10 px-2 py-0.5 rounded-full">
                         <Shield className="w-3 h-3" /> Admin
                       </span>
                     )}

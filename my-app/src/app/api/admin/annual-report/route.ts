@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
 import { getYearMetrics } from "@/lib/metrics";
+import { withRateLimit } from "@/lib/rate-limiter";
 
 /**
  * GET /api/admin/annual-report
@@ -18,7 +19,7 @@ import { getYearMetrics } from "@/lib/metrics";
  * Upgrade path: Add PDF export via Puppeteer/Playwright for downloadable reports.
  */
 
-export async function GET(request: Request) {
+export const GET = withRateLimit(async (request: Request) => {
   try {
     const session = await auth0.getSession();
     if (!session?.user) {
@@ -49,9 +50,11 @@ export async function GET(request: Request) {
 
     const report = await getYearMetrics(year, true);
 
-    return NextResponse.json(report);
+    return NextResponse.json(report, {
+      headers: { "Cache-Control": "private, max-age=3600" },
+    });
   } catch (err) {
     logger.error("[annual-report] Error:", err);
     return NextResponse.json({ error: "Failed to generate report" }, { status: 500 });
   }
-}
+}, "user_action")

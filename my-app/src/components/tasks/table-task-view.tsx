@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTaskSubscription } from "@/hooks/use-task-subscription"
 import TaskDetailDrawer from "./task-detail-drawer"
 import type { TaskItem } from "./task-card"
 
@@ -10,6 +11,7 @@ interface FilterParams {
   searchQuery?: string
   priority?: string
   assignee?: string
+  status?: string
 }
 
 interface TableTaskViewProps {
@@ -66,6 +68,9 @@ export default function TableTaskView({ workspaceId, initialTasks, teamMembers =
   const [editingCell, setEditingCell] = useState<{ id: string; key: string } | null>(null)
   const [newTaskTitle, setNewTaskTitle] = useState("")
 
+  // ─── Real-time subscription ─────────────────────────────────────
+  const { markPending } = useTaskSubscription({ workspaceId, setTasks })
+
   // ─── Sorting ────────────────────────────────────────────────────
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -86,6 +91,9 @@ export default function TableTaskView({ workspaceId, initialTasks, teamMembers =
           return false
         }
         if (filters.assignee && t.assignee_id !== filters.assignee) {
+          return false
+        }
+        if (filters.status && t.status !== filters.status) {
           return false
         }
         return true
@@ -118,6 +126,7 @@ export default function TableTaskView({ workspaceId, initialTasks, teamMembers =
 
   // ─── Inline Edit ────────────────────────────────────────────────
   const handleCellUpdate = async (id: string, key: string, value: unknown) => {
+    markPending(id)
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, [key]: value } : t)))
 
     try {
@@ -137,6 +146,7 @@ export default function TableTaskView({ workspaceId, initialTasks, teamMembers =
   }
 
   const handleDeleteTask = async (id: string) => {
+    markPending(id)
     setTasks((prev) => prev.filter((t) => t.id !== id))
     try {
       const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" })
@@ -162,6 +172,7 @@ export default function TableTaskView({ workspaceId, initialTasks, teamMembers =
       updated_at: new Date().toISOString(),
     }
 
+    markPending(tempId)
     setTasks((prev) => [...prev, newTask])
     setNewTaskTitle("")
 
@@ -177,7 +188,14 @@ export default function TableTaskView({ workspaceId, initialTasks, teamMembers =
       })
       if (!res.ok) throw new Error("Failed to create")
       const { task } = await res.json()
-      setTasks((prev) => prev.map((t) => (t.id === tempId ? task : t)))
+      markPending(task.id)
+      setTasks((prev) => {
+        const withoutTemp = prev.filter((t) => t.id !== tempId)
+        if (withoutTemp.some((t) => t.id === task.id)) {
+          return withoutTemp
+        }
+        return [...withoutTemp, task]
+      })
     } catch {
       setTasks((prev) => prev.filter((t) => t.id !== tempId))
     }
@@ -412,6 +430,7 @@ export default function TableTaskView({ workspaceId, initialTasks, teamMembers =
           task={selectedTask}
           onClose={() => setSelectedTask(null)}
           onUpdate={async (id, updates) => {
+            markPending(id)
             setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)))
             try {
               const res = await fetch(`/api/tasks/${id}`, {

@@ -1,5 +1,13 @@
 import ProjectGrid from '@/components/projects/project-grid';
 import FeaturedProjects from '@/components/projects/featured-projects';
+import { buildPageMetadata } from '@/lib/seo';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Project Showcase",
+  description: "Explore the innovations built by our community of hackers in Lumbini Province — hackathon projects, open-source work, and real-world builds.",
+  path: "/projects",
+});
 
 export default function ProjectsPage() {
   return (

@@ -19,10 +19,10 @@ interface Payout {
 }
 
 const STATUS_CONFIG = {
-  pending: { icon: Clock, color: "text-yellow-400", bg: "bg-yellow-500/10", label: "Pending" },
-  approved: { icon: CheckCircle2, color: "text-blue-400", bg: "bg-blue-500/10", label: "Approved" },
-  paid: { icon: DollarSign, color: "text-green-400", bg: "bg-green-500/10", label: "Paid" },
-  cancelled: { icon: Ban, color: "text-red-400", bg: "bg-red-500/10", label: "Cancelled" },
+  pending: { icon: Clock, color: "text-status-yellow", bg: "bg-status-yellow/10", label: "Pending" },
+  approved: { icon: CheckCircle2, color: "text-status-blue", bg: "bg-status-blue/10", label: "Approved" },
+  paid: { icon: DollarSign, color: "text-status-green", bg: "bg-status-green/10", label: "Paid" },
+  cancelled: { icon: Ban, color: "text-status-red", bg: "bg-status-red/10", label: "Cancelled" },
 } as const;
 
 export default function PayoutsClient({ payouts }: { payouts: Payout[] }) {

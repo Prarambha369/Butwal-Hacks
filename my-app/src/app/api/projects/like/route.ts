@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server';
-import { createAuthenticatedClient } from '@/utils/supabase/server';
+import { createServiceClient } from '@/utils/supabase';
+import { auth0 } from '@/lib/auth0';
 import { z } from 'zod';
 import { sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
-import { withRateLimit, withPayloadLimit } from '@/lib/rate-limiter';
-import { captureServerEvent } from '@/lib/analytics/server';
+import { withRateLimit } from '@/lib/rate-limiter';
 
 const likeSchema = z.object({
   project_id: z.string().transform(v => sanitizeUuid(v) ?? ''),
 }).refine(d => d.project_id.length > 0, { message: 'Invalid project ID' });
 
-export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
+export const POST = withRateLimit(async (request: Request) => {
   try {
-    const authClient = await createAuthenticatedClient();
-    if (!authClient) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const { supabase, userId } = authClient;
+    const session = await auth0.getSession();
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createServiceClient();
+    const userId = session.user.sub;
     const raw = await request.json();
     const parsed = likeSchema.safeParse(raw);
     if (!parsed.success) {
@@ -28,10 +29,9 @@ export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
     });
 
     if (error) throw error;
-    await captureServerEvent('project_liked', userId, { project_id });
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[api/projects/like]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}), "frequent") // ponytail: Uses Auth0 `userId` in RPC call, removed Supabase Auth.
+}, "frequent") // ponytail: Uses Auth0 `userId` in RPC call, removed Supabase Auth.

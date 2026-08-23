@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Check, X, Mail } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
 import { useUser } from "@auth0/nextjs-auth0/client";
 
 import { RoseSpinner } from '@/components/ui/rose-loader';
@@ -95,7 +95,18 @@ export default function TeamInviteList({ onUpdate }: TeamInviteListProps) {
   };
 
   if (loading) return <div className="flex justify-center p-4"><RoseSpinner size="sm" /></div>;
-  if (invites.length === 0 && !error) return null;
+  if (invites.length === 0 && !error) {
+    return (
+      <div className="p-6 rounded-xl bg-surface-hover border border-border mb-8">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+          <Mail className="w-4 h-4" /> Pending Invitations
+        </h3>
+        <p className="mt-3 text-xs text-muted-foreground font-mono opacity-60 text-center">
+          No pending invitations.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 p-6 rounded-xl bg-surface-hover border border-border mb-8">

@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
-import { Upload, X, Loader2, Crop as CropIcon, RefreshCw, Ban } from "lucide-react";
+import { useRef, useState, useCallback, useEffect } from "react";
+import { Upload, X, Loader2, Crop as CropIcon, RefreshCw, Ban, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import ImageCropDialog from "@/components/image-crop-dialog";
@@ -13,7 +13,8 @@ export type CloudinaryEntityType =
   | "event_banner"
   | "project_cover"
   | "blog_cover"
-  | "gallery_photo";
+  | "gallery_photo"
+  | "certificate";
 
 interface CloudinaryUploadProps {
   onUpload: (url: string) => void;
@@ -27,6 +28,10 @@ interface CloudinaryUploadProps {
   eventSlug?: string;
   projectId?: string;
   uploaderAuth0Id?: string;
+
+  // When set, opens the crop dialog for this file (used by CameraCapture)
+  externalFile?: File | null;
+  onOpenCamera?: () => void;
 }
 
 interface UploadProgress {
@@ -126,6 +131,8 @@ export function CloudinaryUpload({
   eventSlug,
   projectId,
   uploaderAuth0Id,
+  externalFile,
+  onOpenCamera,
 }: CloudinaryUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -135,10 +142,16 @@ export function CloudinaryUpload({
   const [cropFile, setCropFile] = useState<File | null>(null);
   const pendingBlobRef = useRef<Blob | null>(null);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
+  const prevExternalFileRef = useRef<File | null>(null);
 
-  // Collect metadata once at render time (stable across retries)
-  const metadataRef = useRef({ entityType, bhId, eventSlug, projectId, uploaderAuth0Id });
-  metadataRef.current = { entityType, bhId, eventSlug, projectId, uploaderAuth0Id };
+  // Watch externalFile prop — when a new file arrives from CameraCapture,
+  // open the crop dialog for it
+  useEffect(() => {
+    if (externalFile && externalFile !== prevExternalFileRef.current) {
+      prevExternalFileRef.current = externalFile;
+      setCropFile(externalFile);
+    }
+  }, [externalFile]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -170,7 +183,7 @@ export function CloudinaryUpload({
     setUploadSpeed(0);
     pendingBlobRef.current = blob;
     try {
-      const url = await uploadToCloudinary(blob, metadataRef.current, (p) => {
+      const url = await uploadToCloudinary(blob, { entityType, bhId, eventSlug, projectId, uploaderAuth0Id }, (p) => {
         setUploadProgress(p.pct);
         setUploadSpeed(p.speedKBps);
       }, xhrRef);
@@ -188,7 +201,7 @@ export function CloudinaryUpload({
       setUploadProgress(0);
       setUploadSpeed(0);
     }
-  }, [onUpload, onError]);
+  }, [onUpload, onError, entityType, bhId, eventSlug, projectId, uploaderAuth0Id]);
 
   const handleCropConfirm = useCallback((croppedBlob: Blob) => {
     setCropFile(null);
@@ -220,6 +233,7 @@ export function CloudinaryUpload({
 
   const handleCropCancel = useCallback(() => {
     setCropFile(null);
+    prevExternalFileRef.current = null;
     if (inputRef.current) inputRef.current.value = "";
   }, []);
 
@@ -244,74 +258,92 @@ export function CloudinaryUpload({
           )}
         </div>
       ) : (
-        <button
-          type="button"
-          disabled={uploading}
-          onClick={() => inputRef.current?.click()}
-          className={cn(
-            "w-full h-32 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2",
-            "text-secondary hover:text-primary hover:border-primary-red/50 transition-all",
-            uploading && "opacity-50 cursor-not-allowed",
-          )}
-        >
-          {uploading ? (
-            <div className="flex flex-col items-center gap-2 w-full px-6">
-              <Loader2 className="w-6 h-6 animate-spin" />
-              <span className="text-xs font-medium">Uploading {uploadProgress}%</span>
-              {uploadSpeed > 0 && (
-                <span className="text-[10px] font-mono text-secondary">
-                  {uploadSpeed < 1000
-                    ? `${uploadSpeed} KB/s`
-                    : `${(uploadSpeed / 1024).toFixed(1)} MB/s`}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => inputRef.current?.click()}
+            className={cn(
+              "flex-1 h-32 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2",
+              "text-secondary hover:text-primary hover:border-primary-red/50 transition-all",
+              uploading && "opacity-50 cursor-not-allowed",
+            )}
+          >
+            {uploading ? (
+              <div className="flex flex-col items-center gap-2 w-full px-6">
+                <Loader2 className="w-6 h-6 animate-spin" />
+                <span className="text-xs font-medium">Uploading {uploadProgress}%</span>
+                {uploadSpeed > 0 && (
+                  <span className="text-[10px] font-mono text-secondary">
+                    {uploadSpeed < 1000
+                      ? `${uploadSpeed} KB/s`
+                      : `${(uploadSpeed / 1024).toFixed(1)} MB/s`}
+                  </span>
+                )}
+                <div className="w-full h-1.5 rounded-full bg-surface/10 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-bh-red-500 transition-all duration-200 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAbort}
+                  className="px-2 py-1 rounded-lg bg-surface/10 hover:bg-primary-red/20 text-secondary hover:text-primary-red text-[10px] font-medium transition-all flex items-center gap-1"
+                >
+                  <Ban className="w-3 h-3" /> Cancel
+                </button>
+              </div>
+            ) : uploadError ? (
+              <div className="flex flex-col items-center gap-2 w-full px-6">
+                <div className="w-8 h-8 rounded-full bg-primary-red/20 flex items-center justify-center">
+                  <X className="w-4 h-4 text-primary-red" />
+                </div>
+                <span className="text-xs text-primary-red font-medium text-center max-w-[200px]">{uploadError}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleRetry}
+                    className="px-3 py-1.5 rounded-lg bg-bh-red-600 hover:bg-primary-red text-primary text-xs font-bold transition-all flex items-center gap-1"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Retry
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDismissError}
+                    className="px-3 py-1.5 rounded-lg bg-surface/10 hover:bg-surface/20 text-secondary text-xs font-medium transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <Upload className="w-6 h-6" />
+                <span className="text-xs font-medium">{label}</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface/10 border border-border text-[10px] text-secondary font-mono">
+                  <CropIcon className="w-3 h-3" /> {entityType === "avatar" ? "1:1" : "16:9"} — crop after select
                 </span>
-              )}
-              <div className="w-full h-1.5 rounded-full bg-surface/10 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-bh-red-500 transition-all duration-200 ease-out"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleAbort}
-                className="px-2 py-1 rounded-lg bg-surface/10 hover:bg-primary-red/20 text-secondary hover:text-primary-red text-[10px] font-medium transition-all flex items-center gap-1"
-              >
-                <Ban className="w-3 h-3" /> Cancel
-              </button>
-            </div>
-          ) : uploadError ? (
-            <div className="flex flex-col items-center gap-2 w-full px-6">
-              <div className="w-8 h-8 rounded-full bg-primary-red/20 flex items-center justify-center">
-                <X className="w-4 h-4 text-primary-red" />
-              </div>
-              <span className="text-xs text-primary-red font-medium text-center max-w-[200px]">{uploadError}</span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleRetry}
-                  className="px-3 py-1.5 rounded-lg bg-bh-red-600 hover:bg-primary-red text-primary text-xs font-bold transition-all flex items-center gap-1"
-                >
-                  <RefreshCw className="w-3 h-3" /> Retry
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDismissError}
-                  className="px-3 py-1.5 rounded-lg bg-surface/10 hover:bg-surface/20 text-secondary text-xs font-medium transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <Upload className="w-6 h-6" />
-              <span className="text-xs font-medium">{label}</span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface/10 border border-border text-[10px] text-secondary font-mono">
-                <CropIcon className="w-3 h-3" /> {entityType === "avatar" ? "1:1" : "16:9"} — crop after select
+              </>
+            )}
+          </button>
+
+          {/* Camera button - available only when no current image and not uploading */}
+          {!uploading && !uploadError && onOpenCamera && (
+            <button
+              type="button"
+              onClick={onOpenCamera}
+              className="w-16 h-32 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 text-secondary hover:text-primary hover:border-primary-red/50 transition-all shrink-0"
+              aria-label="Take a photo"
+              title="Take a photo"
+            >
+              <Camera className="w-5 h-5" />
+              <span className="text-[9px] font-medium leading-tight text-center">
+                Camera
               </span>
-            </>
+            </button>
           )}
-        </button>
+        </div>
       )}
 
       {/* Crop dialog — aspect ratio adapts to entity type (1:1 for avatars, 16:9 for banners/covers) */}

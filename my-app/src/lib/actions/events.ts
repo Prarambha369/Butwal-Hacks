@@ -1,9 +1,9 @@
 "use server";
 
 import { logger } from "@/lib/logger"
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
-import { sanitizeString, sanitizeTitle, sanitizeDescription } from "@/lib/validation";
+import { sanitizeString } from "@/lib/validation";
 import { resolveProfileId } from "@/lib/profile-resolver";
 
 interface CreateEventInput {
@@ -25,8 +25,8 @@ export async function createEvent(input: CreateEventInput) {
     const { data, error } = await supabase
       .from("events")
       .insert({
-        title: sanitizeTitle(input.title),
-        description: sanitizeDescription(input.description),
+        title: sanitizeString(input.title, 200),
+        description: sanitizeString(input.description, 2000),
         start_date: input.start_date,
         end_date: input.end_date,
         location: input.location ?? null,
@@ -69,8 +69,8 @@ export async function createChapterEvent(input: CreateChapterEventInput, orgSlug
     const { data, error } = await supabase
       .from("events")
       .insert({
-        title: sanitizeTitle(input.title),
-        description: sanitizeDescription(input.description),
+        title: sanitizeString(input.title, 200),
+        description: sanitizeString(input.description, 2000),
         start_date: input.start_date,
         end_date: input.end_date,
         location: input.location ?? null,

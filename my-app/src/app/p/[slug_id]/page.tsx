@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { createServiceClient } from "@/utils/supabase";
 import { buildPageMetadata } from "@/lib/seo";
 import { Metadata } from "next";
 import ProfileClient from "@/components/hacker-id/profile-client";
 import { getUserProjects } from "@/lib/actions/projects";
+import { getProfileUnlockedSkills } from "@/lib/actions/skill-trees";
 
 // ISR: cache profile for 60s, revalidate on next request if stale.
 // Gives static speed for recruiters browsing profiles while keeping
@@ -16,7 +17,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug_id } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProfilePage({ params }: Props) {
   const { slug_id } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: profile, error } = await supabase
     .from("profiles")
@@ -61,10 +62,11 @@ export default async function ProfilePage({ params }: Props) {
   }
 
   const projects = await getUserProjects(profile.id);
+  const skillData = await getProfileUnlockedSkills(profile.id);
 
   return (
     <main className="min-h-dvh bg-background pt-24 pb-12 px-6 md:px-20">
-      <ProfileClient profile={profile} projects={projects} />
+      <ProfileClient profile={profile} projects={projects} unlockedSkills={skillData.unlockedSkills} totalSkillCount={skillData.totalSkills} />
     </main>
   );
 }

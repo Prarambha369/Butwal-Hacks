@@ -1,4 +1,4 @@
-name: 🐛 Bug Report
+name: Bug Report
 description: Create a report to help us fix a problem in the codebase
 title: "[BUG]: "
 labels: ["bug", "priority:medium"]

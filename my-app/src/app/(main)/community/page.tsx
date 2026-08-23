@@ -14,7 +14,7 @@ import { CommunityCTA } from "@/components/community/community-cta"
 export const metadata: Metadata = buildPageMetadata({
   title: "Community — Butwal Hacks",
   description:
-    "Join 500+ builders, mentors, and organizers in Butwal's youth tech community. Participate in hackathons, ship projects, and earn verifiable trust markers.",
+    "Builders, mentors, and organizers in Butwal's youth tech community. Participate in hackathons, ship projects, and earn verifiable trust markers.",
   path: "/community",
 })
 
@@ -34,7 +34,7 @@ export default function CommunityPage() {
         member: {
           "@type": "Organization",
           name: "Butwal Hacks Community",
-          description: "500+ builders, mentors, and organizers",
+          description: "Builders, mentors, and organizers building the future of tech in Nepal",
         },
       }} />
 

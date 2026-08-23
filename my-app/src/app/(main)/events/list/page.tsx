@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 
 import Link from "next/link";
 import { CalendarDays, ArrowRight, MapPin } from "lucide-react";
@@ -96,7 +96,13 @@ export default async function EventsListPage() {
             )})
           ) : (
             <div className="col-span-full py-20 text-center space-y-4">
-              <p className="text-muted-foreground font-mono">No events found in the database.</p>
+              <div className="w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center mx-auto">
+                <CalendarDays className="w-8 h-8 text-muted-foreground opacity-40" />
+              </div>
+              <p className="text-lg font-bold text-primary">No events yet</p>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                No events found in the database. Events will appear here once they are created.
+              </p>
             </div>
           )}
         </div>

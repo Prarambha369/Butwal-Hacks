@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
 import { withRateLimit } from "@/lib/rate-limiter";
 import crypto from "crypto";
@@ -52,7 +52,9 @@ export async function GET() {
 
     if (error) throw error;
 
-    return NextResponse.json({ keys: keys ?? [] });
+    return NextResponse.json({ keys: keys ?? [] }, {
+      headers: { "Cache-Control": "private, max-age=30" },
+    });
   } catch (err) {
     logger.error("[api-keys] GET error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

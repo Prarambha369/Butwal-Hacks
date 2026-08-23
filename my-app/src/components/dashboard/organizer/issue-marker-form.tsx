@@ -123,7 +123,7 @@ export function IssueMarkerForm() {
       <div className="flex justify-end pt-4">          <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex items-center gap-2 rounded-lg bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-deep-red disabled:opacity-50"
+          className={`inline-flex items-center gap-2 rounded-lg bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-deep-red ${isSubmitting ? 'bh-btn-disabled' : ''}`}
         >
           {isSubmitting ? (
             <>

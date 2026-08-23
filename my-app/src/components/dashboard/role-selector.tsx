@@ -15,6 +15,7 @@ import {
   Mail,
   Send,
 } from "lucide-react";
+import { toast } from "sonner";
 import { selectRole, requestRoleUpgrade } from "@/lib/actions/role-selection";
 
 interface RoleOption {
@@ -54,7 +55,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
     {
       id: "hacker",
       title: "Hacker",
-      description: "Participate in hackathons, submit projects, earn trust markers, and build your reputation.",
+      description: "Normal User",
       icon: <User className="w-6 h-6" />,
       color: "text-status-green",
       dot: "bg-status-green",
@@ -67,7 +68,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
     {
       id: "maintainer",
       title: "Maintainer",
-      description: "Manage users, review access requests, oversee trust markers, and configure the platform.",
+      description: "Butwal Hacks Personnel",
       icon: <ShieldCheck className="w-6 h-6" />,
       color: "text-primary-red",
       dot: "bg-primary-red",
@@ -84,7 +85,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
     {
       id: "organizer",
       title: "Organizer",
-      description: "Create and manage hackathon events, issue trust markers to participants, and manage teams.",
+      description: "Event Manager",
       icon: <CalendarDays className="w-6 h-6" />,
       color: "text-status-yellow",
       dot: "bg-status-yellow",
@@ -97,7 +98,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
     {
       id: "sponsor",
       title: "Sponsor",
-      description: "Discover hackers, post bounties, manage your company profile, and recruit talent.",
+      description: "Event Funders",
       icon: <Building2 className="w-6 h-6" />,
       color: "text-status-blue",
       dot: "bg-status-blue",
@@ -138,6 +139,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
     const result = await selectRole(formData);
     if (result?.error) {
       setError(result.error);
+      toast.error(result.error);
       setIsSubmitting(false);
       setSelectedRole(null);
     }
@@ -166,6 +168,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
       setRequestMessage("");
     } else {
       setRequestError(result.error ?? "Failed to submit request.");
+      toast.error(result.error ?? "Failed to submit request.");
     }
     setRequestSubmitting(false);
   }, [showRequestForm, requestMessage]);
@@ -238,7 +241,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
                 <button
                   type="submit"
                   disabled={requestSubmitting || requestMessage.trim().length < 10}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all ${requestSubmitting || requestMessage.trim().length < 10 ? 'bh-btn-disabled' : ''}`}
                 >
                   {requestSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

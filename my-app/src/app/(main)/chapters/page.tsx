@@ -30,9 +30,9 @@ const statusConfig: Record<string, { label: string; dot: string }> = {
 }
 
 const gradientPairs: Record<string, string> = {
-  "bhawani-secondary-school": "from-sky-500/20 to-blue-600/10 border-sky-500/30",
-  "adarsha-secondary-school": "from-emerald-500/20 to-teal-600/10 border-emerald-500/30",
-  "butwal-multiple-campus": "from-primary-red/15 to-red-700/10 border-primary-red/25",
+  "bhawani-secondary-school": "from-status-blue/20 to-status-blue/10 border-status-blue/30",
+  "adarsha-secondary-school": "from-status-green/20 to-status-green/10 border-status-green/30",
+  "butwal-multiple-campus": "from-primary-red/15 to-primary-red/10 border-primary-red/25",
 }
 
 function ChapterCard({ chapter, index }: { chapter: Chapter; index: number }) {
@@ -155,8 +155,8 @@ export default function ChaptersPage() {
         <section className="relative overflow-hidden border-b border-border/20" aria-label="Chapters Hero">
           {/* Decorative blobs */}
           <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary-red/10 blur-[120px] pointer-events-none" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-emerald-500/10 blur-[100px] pointer-events-none" />
-          <div className="absolute top-1/2 left-1/3 w-60 h-60 rounded-full bg-sky-500/10 blur-[80px] pointer-events-none" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-status-green/10 blur-[100px] pointer-events-none" />
+          <div className="absolute top-1/2 left-1/3 w-60 h-60 rounded-full bg-status-blue/10 blur-[80px] pointer-events-none" />
 
           <div className="relative mx-auto max-w-6xl px-4 py-16 md:py-24">
             <Breadcrumbs
@@ -192,10 +192,6 @@ export default function ChaptersPage() {
                   <p className="text-3xl font-black text-primary-red">{totalMembers}+</p>
                   <p className="text-xs text-muted-foreground/60 mt-0.5">Community Members</p>
                 </div>
-                <div>
-                  <p className="text-3xl font-black text-primary-red">12+</p>
-                  <p className="text-xs text-muted-foreground/60 mt-0.5">Events Hosted</p>
-                </div>
               </div>
             </div>
           </div>
@@ -222,7 +218,7 @@ export default function ChaptersPage() {
           <FadeIn className="mx-auto max-w-6xl px-4">
             <div className="text-center mb-14">
               <div className="flex items-center justify-center gap-2 mb-4">
-                <div className="w-1.5 h-1.5 rounded-full bg-bh-red-500 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-bh-red-500" />
                 <div className="w-1.5 h-1.5 rounded-full bg-primary-red/60" />
                 <div className="w-1.5 h-1.5 rounded-full bg-primary-red/30" />
               </div>

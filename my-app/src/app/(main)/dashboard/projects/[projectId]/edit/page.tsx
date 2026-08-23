@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/utils/supabase';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import type { Metadata } from 'next';

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, Plus, Users } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function CreateTeamPage() {
   const router = useRouter();
@@ -38,10 +39,12 @@ export default function CreateTeamPage() {
         return;
       }
 
+      toast.success("Team created successfully!");
       router.push(`/teams/${data.team.id}`);
       router.refresh();
     } catch {
       setError("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
       setSubmitting(false);
     }
   };
@@ -97,7 +100,7 @@ export default function CreateTeamPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-full bg-primary-red px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`inline-flex items-center gap-2 rounded-full bg-primary-red px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95 ${submitting ? 'bh-btn-disabled' : ''}`}
               >
                 {submitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

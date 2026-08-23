@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, CheckCircle, AlertCircle, LogIn } from "lucide-react"
+import { CheckCircle, AlertCircle, LogIn } from "lucide-react"
 import { useUser } from "@auth0/nextjs-auth0/client"
 import { cn } from "@/lib/utils"
+import { RoseSpinner } from "@/components/ui/rose-loader";
 
 interface Props {
   eventId: string
@@ -58,7 +59,7 @@ export default function EventRegisterButton({ eventId, eventSlug }: Props) {
         disabled
         className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-surface/20 text-muted-foreground font-bold text-sm transition-all cursor-not-allowed"
       >
-        <Loader2 className="w-5 h-5 animate-spin" />
+        <RoseSpinner size="sm" />
         Checking...
       </button>
     )
@@ -79,7 +80,7 @@ export default function EventRegisterButton({ eventId, eventSlug }: Props) {
         )}
       >
         {state === "loading" ? (
-          <Loader2 className="w-5 h-5 animate-spin" />
+          <RoseSpinner size="sm" />
         ) : state === "registered" ? (
           <CheckCircle className="w-5 h-5" />
         ) : state === "error" ? (

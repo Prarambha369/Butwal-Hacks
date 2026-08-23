@@ -1,6 +1,6 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { ArrowLeft } from "lucide-react";
 import OpportunityForm from "../../opportunity-form";
 import { notFound } from "next/navigation";

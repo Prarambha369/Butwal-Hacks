@@ -1,7 +1,7 @@
 "use server";
 
 import { logger } from "@/lib/logger"
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import type { ProjectCategory } from "@/lib/supabase-types";
 import { resolveProfileId } from "@/lib/profile-resolver";
@@ -239,6 +239,142 @@ export async function deleteProject(projectId: string) {
   revalidatePath('/dashboard/hacker/projects');
 
   return { success: true };
+}
+
+export interface PaginatedResult<T> {
+  data: T[]
+  totalCount: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+export interface ProjectListItem {
+  id: string
+  title: string
+  description: string | null
+  tech_stack: string[]
+  category: string | null
+  created_at: string
+  profile_name: string | null
+  profile_initials: string
+}
+
+/**
+ * Fetch a paginated, filtered, and sorted list of projects for the current user.
+ * All heavy lifting (filtering, sorting, counting) happens on the server via Supabase.
+ */
+export async function getPaginatedProjects(params: {
+  profileId: string
+  teamIds: string[]
+  page?: number
+  pageSize?: number
+  search?: string
+  category?: string
+  sortKey?: "title" | "category" | "created_at"
+  sortDir?: "asc" | "desc"
+}): Promise<PaginatedResult<ProjectListItem>> {
+  const {
+    profileId,
+    teamIds,
+    page = 0,
+    pageSize = 10,
+    search = "",
+    category = "",
+    sortKey = "created_at",
+    sortDir = "desc",
+  } = params
+
+  const supabase = createServiceClient()
+
+  // Build the base query
+  let query = supabase
+    .from("projects")
+    .select(`
+      id,
+      title,
+      description,
+      tech_stack,
+      category,
+      created_at,
+      profile:profiles(full_name)
+    `, { count: "exact" })
+
+  // Guard empty teamIds — team_id.in.() is invalid PostgREST syntax
+  if (teamIds.length > 0) {
+    query = query.or(`profile_id.eq.${profileId},team_id.in.(${teamIds.join(",")})`)
+  } else {
+    query = query.eq("profile_id", profileId)
+  }
+
+  // Apply filters
+  if (search.trim()) {
+    query = query.ilike("title", `%${search.trim()}%`)
+  }
+  if (category) {
+    query = query.eq("category", category)
+  }
+
+  // Apply sorting — only sort by columns that exist in the projects table
+  const sortColumnMap: Record<string, string> = {
+    title: "title",
+    category: "category",
+    created_at: "created_at",
+  }
+  const column = sortColumnMap[sortKey] || "created_at"
+  query = query.order(column, { ascending: sortDir === "asc" })
+
+  // Apply pagination
+  const from = page * pageSize
+  const to = from + pageSize - 1
+  query = query.range(from, to)
+
+  const { data, error, count } = await query
+
+  if (error) {
+    logger.error("Error fetching paginated projects:", error)
+    return { data: [], totalCount: 0, page, pageSize, totalPages: 0 }
+  }
+
+  // Transform to ProjectListItem with profile initials
+  type RawProject = {
+    id: string
+    title: string
+    description: string | null
+    tech_stack: string[]
+    category: string | null
+    created_at: string
+    profile: { full_name: string | null } | { full_name: string | null }[] | null
+  }
+
+  const transformed: ProjectListItem[] = ((data || []) as RawProject[]).map((p) => {
+    const profileData = Array.isArray(p.profile) ? p.profile[0] : p.profile
+    const profileName = profileData?.full_name || null
+    const initials = profileName
+      ? profileName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+      : "??"
+    return {
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      tech_stack: p.tech_stack || [],
+      category: p.category,
+      created_at: p.created_at,
+      profile_name: profileName,
+      profile_initials: initials,
+    }
+  })
+
+  const totalCount = count ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+
+  return {
+    data: transformed,
+    totalCount,
+    page,
+    pageSize,
+    totalPages,
+  }
 }
 
 export async function getFeaturedProjects(limit = 3) {

@@ -1,0 +1,10 @@
+reviews:
+  path_filters:
+    - "!**/*.lock"
+    - "!**/package-lock.json"
+    - "!**/pnpm-lock.yaml"
+    - "!**/migrations/*.sql"
+    - "!**/public/**"
+    - "!**/node_modules/**"
+    - "!**/*.md"
+    - "!**/.github/**"

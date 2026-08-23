@@ -44,6 +44,14 @@ vi.mock("@hello-pangea/dnd", () => ({
   ),
 }));
 
+// ─── Mock useTaskSubscription ────────────────────────────────────
+vi.mock("@/hooks/use-task-subscription", () => ({
+  useTaskSubscription: () => ({
+    markPending: vi.fn(),
+    isPending: vi.fn().mockReturnValue(false),
+  }),
+}));
+
 // ─── Test Data ───────────────────────────────────────────────────
 
 const mockTeamMembers = [

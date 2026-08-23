@@ -13,7 +13,12 @@
  * Environment variables required:
  *   AUTH0_M2M_CLIENT_ID     — Client ID of the Butwal Hacks CI M2M app
  *   AUTH0_M2M_CLIENT_SECRET — Client Secret of the Butwal Hacks CI M2M app
- *   AUTH0_DOMAIN            — Auth0 tenant domain (e.g., butwal.jp.auth0.com)
+ *   AUTH0_DOMAIN            — Auth0 tenant domain (e.g., auth.butwalhacks.com)
+ *
+ * Environment variables optional:
+ *   AUTH0_MANAGEMENT_API_AUDIENCE — Management API audience (the tenant's real
+ *     API identifier, e.g. https://butwal.jp.auth0.com/api/v2/). Defaults to
+ *     https://<AUTH0_DOMAIN>/api/v2/ when unset.
  *
  * Exit codes:
  *   0 — All checks passed
@@ -24,6 +29,9 @@
 
 const REQUIRED_ENV_VARS = ["AUTH0_M2M_CLIENT_ID", "AUTH0_M2M_CLIENT_SECRET", "AUTH0_DOMAIN"];
 
+/**
+ * Validates that all required Auth0 environment variables are configured.
+ */
 function checkEnv() {
   const missing = REQUIRED_ENV_VARS.filter((name) => !process.env[name]);
   if (missing.length > 0) {
@@ -32,7 +40,7 @@ function checkEnv() {
     console.error("To set them up in your local environment:");
     console.error("  export AUTH0_M2M_CLIENT_ID=<your-m2m-client-id>");
     console.error("  export AUTH0_M2M_CLIENT_SECRET=<your-m2m-client-secret>");
-    console.error("  export AUTH0_DOMAIN=butwal.jp.auth0.com");
+    console.error("  export AUTH0_DOMAIN=auth.butwalhacks.com");
     console.error("");
     console.error("In GitHub Actions, add these as repository secrets:");
     console.error("  https://github.com/Prarambha369/Butwal-Hacks/settings/secrets/actions");
@@ -42,11 +50,15 @@ function checkEnv() {
 
 async function getManagementToken() {
   const { AUTH0_M2M_CLIENT_ID, AUTH0_M2M_CLIENT_SECRET, AUTH0_DOMAIN } = process.env;
-  const audience = `https://${AUTH0_DOMAIN}/api/v2/`;
+  const audience = process.env.AUTH0_MANAGEMENT_API_AUDIENCE ?? `https://${AUTH0_DOMAIN}/api/v2/`;
+  // Token must be requested from the tenant domain (not the custom domain) so the
+  // JWT `iss` matches what the Management API expects (custom-domain tokens get
+  // rejected with 401 "Bad issuer").
+  const mgmtBase = new URL(audience).origin;
 
-  console.log(`🔑 Requesting Management API token from ${AUTH0_DOMAIN}...`);
+  console.log(`🔑 Requesting Management API token from ${mgmtBase}...`);
 
-  const response = await fetch(`https://${AUTH0_DOMAIN}/oauth/token`, {
+  const response = await fetch(`${mgmtBase}/oauth/token`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
@@ -76,12 +88,13 @@ async function getManagementToken() {
 
 async function verifyToken(token) {
   const { AUTH0_DOMAIN } = process.env;
-  const audience = `https://${AUTH0_DOMAIN}/api/v2/`;
+  const audience = process.env.AUTH0_MANAGEMENT_API_AUDIENCE ?? `https://${AUTH0_DOMAIN}/api/v2/`;
+  const mgmtBase = new URL(audience).origin;
 
   console.log(`🔍 Verifying token against Management API...`);
 
   // Fetch first page of clients to verify the token works
-  const response = await fetch(`${audience}clients?per_page=50&page=0`, {
+  const response = await fetch(`${mgmtBase}/api/v2/clients?per_page=50&page=0`, {
     headers: {
       authorization: `Bearer ${token}`,
     },

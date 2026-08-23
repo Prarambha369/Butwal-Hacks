@@ -15,7 +15,7 @@ const faqs: FAQItem[] = [
     id: "who-can-join",
     question: "Who can join?",
     answer:
-      "Any student or young technologist in Nepal. You don't need to know how to code — we welcome designers, hardware tinkerers, writers, and anyone curious about technology. If you're in Butwal, Pokhara, Kathmandu, or anywhere in Nepal, you belong here.",
+      "Any student or young technologist in Nepal. You don't need to know how to code — we welcome designers, hardware tinkerers, writers, and anyone curious about technology. If you're anywhere in Nepal, you belong here.",
   },
   {
     id: "donations",
@@ -33,7 +33,7 @@ const faqs: FAQItem[] = [
     id: "events",
     question: "When and where are events?",
     answer:
-      "We host events across Nepal through our chapter system. Butwal chapter hosts regular HackDays and workshops. Pokhara and Kathmandu chapters run quarterly hackathons. Check our Events page for the latest schedule, or join your local chapter.",
+      "We host events in Butwal and surrounding regions. Our chapter network is launching soon — in the meantime, all events are organized centrally. Check our Events page for the latest schedule, or reach out if you want to help start a chapter in your city.",
   },
   {
     id: "nonprofit-status",

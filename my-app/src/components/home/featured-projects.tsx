@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, ArrowUpRight } from 'lucide-react'
+import { Heart, ArrowUpRight, Monitor } from 'lucide-react'
 import { cloudinaryUrl } from '@/lib/utils'
 
 interface FeaturedProject {
@@ -13,7 +13,22 @@ interface FeaturedProject {
 }
 
 export default function FeaturedProjects({ projects }: { projects: FeaturedProject[] }) {
-  if (projects.length === 0) return null
+  if (projects.length === 0) {
+    return (
+      <section className="py-16 md:py-24 bg-surface border-b border-border">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center">
+              <Monitor className="w-8 h-8 text-muted-foreground opacity-20" />
+            </div>
+            <p className="text-sm text-muted-foreground font-mono opacity-60">
+              No community projects to feature yet. The first builds will appear here.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   // Bento layout: pick the most-liked project as the hero (spans 2 cols)
   const sorted = [...projects].sort((a, b) => {

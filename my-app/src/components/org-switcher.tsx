@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useUser } from "@auth0/nextjs-auth0/client"
 import { LogOut, User } from "lucide-react"
 import { useState, useEffect } from "react"
-import { createClient } from "@/utils/supabase/client"
+import { createClient } from "@/utils/supabase"
 
 /**
  * OrgSwitcher — Chapter selector + user menu combo.
@@ -44,14 +44,14 @@ export function OrgSwitcher() {
       </div>
       <Link
         href="/dashboard"
-        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-border bg-surface/30 hover:bg-surface/50 transition-all"
+        className="flex min-w-[44px] min-h-[44px] items-center justify-center rounded-full border-2 border-border bg-surface/30 hover:bg-surface/50 transition-all"
         aria-label="Dashboard"
       >
         <User className="h-4 w-4 text-primary" />
       </Link>
       <a
         href="/auth/logout"
-        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-border bg-surface/30 hover:bg-surface/50 transition-all"
+        className="flex min-w-[44px] min-h-[44px] items-center justify-center rounded-full border-2 border-border bg-surface/30 hover:bg-surface/50 transition-all"
         aria-label="Sign out"
       >
         <LogOut className="h-4 w-4 text-primary" />

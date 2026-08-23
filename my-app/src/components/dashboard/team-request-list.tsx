@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Check, X, UserPlus } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
+import { getAvatarUrl } from '@/lib/utils';
 
 
 import { RoseSpinner } from '@/components/ui/rose-loader';
@@ -72,7 +73,18 @@ export default function TeamRequestList({ teamId, onUpdate }: TeamRequestListPro
   };
 
   if (loading) return <div className="flex justify-center p-4"><RoseSpinner size="sm" /></div>;
-  if (requests.length === 0 && !error) return null;
+  if (requests.length === 0 && !error) {
+    return (
+      <div className="p-6 rounded-xl bg-surface-hover border border-border">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+          <UserPlus className="w-4 h-4" /> Join Requests
+        </h3>
+        <p className="mt-3 text-xs text-muted-foreground font-mono opacity-60 text-center">
+          No pending requests.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 p-6 rounded-xl bg-surface-hover border border-border">
@@ -91,10 +103,11 @@ export default function TeamRequestList({ teamId, onUpdate }: TeamRequestListPro
             <div className="flex items-center gap-3">
               <div className="relative w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/10">
                 <Image 
-                  src={req.profiles?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${req.profiles?.full_name}`} 
+                  src={getAvatarUrl(req.profiles?.avatar_url, req.profiles?.full_name)}
                   alt={req.profiles?.full_name || 'Hacker'}
                   fill
                   className="object-cover"
+                  unoptimized={!req.profiles?.avatar_url}
                 />
               </div>
               <div>

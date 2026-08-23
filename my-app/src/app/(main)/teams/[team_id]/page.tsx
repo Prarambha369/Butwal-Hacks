@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/utils/supabase';
 import TeamPortfolio from '@/components/teams/team-portfolio';
 import RelatedLinks from '@/components/home/related-links';
 import { blogPosts, initiatives, getRelatedByTags } from '@/lib/content';

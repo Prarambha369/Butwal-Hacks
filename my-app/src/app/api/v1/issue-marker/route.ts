@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
-import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter"
-import { posthogLog } from "@/lib/posthog-logger"
+import { withRateLimit } from "@/lib/rate-limiter"
 import { ghostMarkerNotificationHtml } from "@/lib/emails/ghost-marker-notification"
 import { signTrustMarker } from "@/lib/crypto/sign"
+import { bustCache } from "@/lib/cache"
+import { z } from "zod"
 
 // ponytail: single POST endpoint. Ghost profile creation + email are side effects
 // in the same handler. If email volume grows, move to a background queue.
 
-export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
+const IssueMarkerSchema = z.object({
+  email: z.string().min(1).transform((v) => v.trim().toLowerCase()),
+  title: z.string().min(1).max(200).transform((v) => v.trim()),
+  description: z.string().max(2000).transform((v) => v.trim()).nullable().default(null),
+  type: z.string().default("achievement"),
+});
+
+export const POST = withRateLimit(async (req: NextRequest) => {
   try {
     const session = await auth0.getSession()
     if (!session?.user) {
@@ -30,15 +38,14 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
       return NextResponse.json({ error: "Forbidden — organizer or maintainer role required" }, { status: 403 });
     }
 
-    const { email, title, description, type } = await req.json()
+    const raw = await req.json()
+    const parsed = IssueMarkerSchema.safeParse(raw)
 
-    if (!email || !title) {
-      return NextResponse.json({ error: "email and title are required" }, { status: 400 })
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid request: email and title are required" }, { status: 400 })
     }
 
-    const normalizedEmail = email.trim().toLowerCase()
-    const safeTitle = title.trim().slice(0, 200)
-    const safeDescription = description?.trim().slice(0, 2000) || null
+    const { email: normalizedEmail, title: safeTitle, description: safeDescription, type } = parsed.data
     // ponytail: Resolve profile UUID for issuer_id FK
     const { data: issuer } = await supabase
       .from("profiles")
@@ -49,7 +56,7 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
     // Check if the target email already has a profile
     const { data: targetProfile } = await supabase
       .from("profiles")
-      .select("id, full_name, auth0_user_id")
+      .select("id, bh_id, full_name, auth0_user_id")
       .eq("email", normalizedEmail)
       .maybeSingle()
 
@@ -90,7 +97,10 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
           .eq("id", marker.id)
       }
 
-      posthogLog.info('Marker issued to known user', {
+      // Bust Redis cache for the recipient's profile
+      await bustCache(`profile:bh_id:${targetProfile.bh_id}`);
+
+      logger.info('Marker issued to known user', {
         recipient_email: normalizedEmail,
         marker_title: safeTitle,
         marker_type: type || 'achievement',
@@ -197,7 +207,7 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
 
     logger.info(`[issue-marker] Created ghost marker ${marker.id} for ${normalizedEmail}`)
 
-    posthogLog.info('Ghost marker issued', {
+    logger.info('Ghost marker issued', {
       marker_id: marker.id,
       recipient_email: normalizedEmail,
       marker_title: safeTitle,
@@ -215,10 +225,10 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
       signed: !!signature,
     })
   } catch (err) {
-    posthogLog.error('Issue marker failed', {
+    logger.error('Issue marker failed', {
       error: err instanceof Error ? err.message : String(err),
     });
     logger.error("[issue-marker] unexpected error:", err)
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
-}), "sensitive")
+}, "sensitive")

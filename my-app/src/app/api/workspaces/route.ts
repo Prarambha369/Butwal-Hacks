@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
+import { withRateLimit } from "@/lib/rate-limiter"
 import { z } from "zod"
 
 // ─── Validation Schema ────────────────────────────────────────────────
@@ -8,7 +9,6 @@ import { z } from "zod"
 const CreateWorkspaceSchema = z.object({
   team_id: z.string().uuid(),
   name: z.string().min(1).max(100),
-  description: z.string().max(500).default(""),
 })
 
 // ─── Helpers ──────────────────────────────────────────────────────────
@@ -19,7 +19,7 @@ async function verifyTeamAccess(profileId: string, teamId: string) {
     .from("team_members")
     .select("id")
     .eq("team_id", teamId)
-    .eq("user_id", profileId)
+    .eq("profile_id", profileId)
     .maybeSingle()
   return !!membership
 }
@@ -66,12 +66,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ workspaces })
+  return NextResponse.json({ workspaces }, {
+    headers: { "Cache-Control": "private, max-age=60" },
+  })
 }
 
 // ─── POST /api/workspaces ─────────────────────────────────────────────
 
-export async function POST(request: NextRequest) {
+export const POST = withRateLimit(async (request: NextRequest) => {
   const session = await auth0.getSession()
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -106,7 +108,6 @@ export async function POST(request: NextRequest) {
     .insert({
       team_id: parsed.data.team_id,
       name: parsed.data.name,
-      description: parsed.data.description || null,
     })
     .select()
     .single()
@@ -116,4 +117,4 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ workspace }, { status: 201 })
-}
+}, "user_action")

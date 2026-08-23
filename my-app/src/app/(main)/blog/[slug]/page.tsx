@@ -61,7 +61,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         {/* Featured Image */}
         <div className="relative aspect-video w-full overflow-hidden rounded-xl mb-12 border border-border/30 bg-surface">
           <Image 
-            src={post.cover_image || "https://images.unsplash.com/photo-1517245386807-bb43f82c-crop&q=80&w=1200"} 
+            src={post.cover_image || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=1200"} 
             alt={post.title} 
             fill
             className="object-cover transition-transform duration-500 hover:scale-[1.02]"
@@ -93,33 +93,35 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         {/* Article Content */}
         <div className="space-y-8 text-lg leading-relaxed text-text-body">
           <p>{post.excerpt}</p>
-          
-          <h2 className="text-2xl font-bold text-primary leading-[1.2]">The Decentralization Thesis</h2>
+
+          {post.body.map((paragraph, i) => (
+            <p key={i}>{paragraph}</p>
+          ))}
+
+          <h2 className="text-2xl font-bold text-primary leading-[1.2]">Build where the problem lives</h2>
           <p>
-            We believe that the proximity to the problem is the greatest catalyst for 
-            the solution. By building a regional hub in Butwal, we are creating a 
-            space where builders don&apos;t just learn to code—they learn to solve.
+            Butwal is where rural and urban Nepal meet. The problems here are real — 
+            and the people who live with them should be the ones building the solutions. 
+            We run hackathons in the communities they serve, not in a Kathmandu co-working space.
           </p>
           
           <div className="p-6 rounded-xl border border-primary-red/30 bg-primary-red/5 my-8">
             <p className="italic text-primary font-medium">
-              &quot;The goal is not to create more developers, but to create more problem-solvers 
-              who happen to use code as their primary tool.&quot;
+              &quot;Builders who understand the problem because they live it — that&apos;s who we need.&quot;
             </p>
           </div>
 
-          <h2 className="text-2xl font-bold text-primary leading-[1.2]">Infrastructure as a Service</h2>
+          <h2 className="text-2xl font-bold text-primary leading-[1.2]">What we provide</h2>
           <p>
-            Through our fellowships and hackathons, we provide the high-bandwidth 
-            internet, mentorship, and community that youth in the region often lack. 
-            This removes the friction from the creative process.
+            Internet, mentorship, a venue, and food — everything a student needs to show up and build for 48 hours. 
+            No registration fees, no experience required, no fine print.
           </p>
 
           <div className="bg-surface p-6 rounded-xl border border-border font-mono text-sm leading-loose overflow-x-auto">
-            <span className="text-status-blue">const</span> <span className="text-status-yellow">innovation</span> = (youth, tools) =&gt; {'{'} <br />
-            &nbsp;&nbsp;<span className="text-muted-foreground">{/* Decentralize education */}</span> <br />
-            &nbsp;&nbsp;<span className="text-status-blue">return</span> youth.empower(tools).build(region.lumbini); <br />
-            {'}'};
+            <span className="text-status-blue">function</span> buildProject(student, weekend) {'{'} <br />
+            &nbsp;&nbsp;<span className="text-muted-foreground">{"// Internet, mentorship, food — that's it"}</span> <br />
+            &nbsp;&nbsp;<span className="text-status-blue">return</span> student.ship(weekend); <br />
+            {'}'}
           </div>
         </div>
       </div>

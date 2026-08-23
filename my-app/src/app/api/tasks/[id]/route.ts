@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
-import { checkRateLimit } from "@/lib/rate-limiter"
+import { createServiceClient } from "@/utils/supabase"
+import { withRateLimit } from "@/lib/rate-limiter"
 import { z } from "zod"
 
 // ─── Validation Schema ──────────────────────────────────────────────────
@@ -42,30 +42,22 @@ async function verifyTaskAccess(profileId: string, taskId: string) {
     .from("team_members")
     .select("id")
     .eq("team_id", (task.workspace as any).team_id)
-    .eq("user_id", profileId)
+    .eq("profile_id", profileId)
     .maybeSingle()
 
   return membership ? task : null
 }
 
-// ─── PATCH /api/tasks/[id] ──────────────────────────────────────────────
+/**
+ * Updates an accessible task with validated fields and returns the updated task.
+ *
+ * @returns A response containing the updated task or an error status.
+ */
 
-export async function PATCH(
+async function handlePatch(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Rate limit: 10 tasks updates per minute (frequent tier)
-  const rateLimitResult = await checkRateLimit(request, "frequent")
-  if (!rateLimitResult.allowed) {
-    return NextResponse.json({ error: "Too many requests" }, {
-      status: 429,
-      headers: {
-        "Retry-After": String(rateLimitResult.reset),
-        "X-RateLimit-Remaining": String(rateLimitResult.remaining),
-      },
-    })
-  }
-
   const session = await auth0.getSession()
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -103,16 +95,16 @@ export async function PATCH(
 
   // If status changed and no explicit position, append to the end of the new column
   if (parsed.data.status && parsed.data.position === undefined) {
-    const { data: lastTask } = await db
-      .from("tasks")
-      .select("position")
-      .eq("workspace_id", task.workspace_id)
-      .eq("status", parsed.data.status)
-      .order("position", { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const { data: nextPosition, error: posError } = await db.rpc("get_next_task_position", {
+      p_workspace_id: task.workspace_id,
+      p_status: parsed.data.status,
+    })
 
-    updateData.position = (lastTask?.position ?? -1) + 1
+    if (posError || typeof nextPosition !== "number") {
+      return NextResponse.json({ error: "Failed to allocate task position" }, { status: 500 })
+    }
+
+    updateData.position = nextPosition
   }
 
   const { data: updated, error } = await db
@@ -129,9 +121,16 @@ export async function PATCH(
   return NextResponse.json({ task: updated })
 }
 
-// ─── DELETE /api/tasks/[id] ─────────────────────────────────────────────
+export const PATCH = withRateLimit(handlePatch, "frequent");
 
-export async function DELETE(
+/**
+ * Deletes a task after authenticating the user and verifying task access.
+ *
+ * @param params - Route parameters containing the task identifier.
+ * @returns A success response or an error response when authentication, access verification, or deletion fails.
+ */
+
+async function handleDelete(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -165,3 +164,5 @@ export async function DELETE(
 
   return NextResponse.json({ success: true })
 }
+
+export const DELETE = withRateLimit(handleDelete, "frequent");

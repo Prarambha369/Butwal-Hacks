@@ -31,12 +31,11 @@ export default function ContactPage() {
         <EnhancedContactForm />
       </section>
 
-      {/* Map placeholder — replace with an actual embed when address is confirmed */}
-      <section className="relative my-20 h-96 w-full bg-gradient-to-r from-bh-red-600/20 to-bh-red-500/20 overflow-hidden rounded-xl">
+      <section className="relative my-20 h-96 w-full bg-gradient-to-r from-primary-red/10 to-deep-red/10 overflow-hidden rounded-xl border border-border">
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-primary">📍 Visit Us in Butwal</h3>
-            <p className="mt-2 text-secondary">Rupandehi District, Nepal</p>
+          <div className="text-center space-y-2">
+            <h3 className="text-2xl font-bold text-primary">Visit Us in Butwal</h3>
+            <p className="text-muted-foreground">Rupandehi District, Nepal</p>
           </div>
         </div>
       </section>

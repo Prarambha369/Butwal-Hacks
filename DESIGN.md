@@ -1,6 +1,6 @@
 ---
 name: Butwal Hacks
-description: A nonprofit youth technology initiative in Butwal, Nepal — ORCID-style verification and hackathon management platform. Flat Kloner.app foundation with selective red glow accents.
+description: ORCID-style verification and hackathon management platform for Nepal's youth tech community. Flat, layered Kloner.app aesthetic with selective red glow on CTAs and verified trust markers.
 colors:
   primary: "#FE0000"
   primary-deep: "#B10000"
@@ -9,43 +9,48 @@ colors:
   light-red-soft: "#ffb9b9"
   bg-base-light: "#F7F7F8"
   surface-light: "#FFFFFF"
-  surface-hover-light: "#F3F4F6"
+  surface-hover-light: "#F0F0F2"
   border-light: "#E5E5E5"
-  text-muted-light: "#8B8B8B"
-  text-secondary-light: "#5C5C5C"
-  text-body-light: "#2C2C2C"
+  text-muted-light: "#888888"
+  text-secondary-light: "#666666"
+  text-body-light: "#333333"
   text-primary-light: "#1F1F1F"
-  bg-base-dark: "#121212"
-  surface-dark: "#1E1E1E"
-  surface-hover-dark: "#2A2A2A"
-  border-dark: "#333333"
-  text-muted-dark: "#6B6B6B"
-  text-secondary-dark: "#A3A3A3"
-  text-body-dark: "#D4D4D4"
-  text-primary-dark: "#F5F5F5"
-  status-green: "#22C55E"
-  status-blue: "#3B82F6"
-  status-teal: "#14B8A6"
-  status-yellow: "#EAB308"
-  status-orange: "#F97316"
-  status-red: "#EF4444"
-  glow-red: "0 0 20px rgba(254, 0, 0, 0.25)"
-  glow-red-soft: "0 0 12px rgba(254, 0, 0, 0.15)"
+  bg-base-dark: "#1a1a1a"
+  surface-dark: "#2a2a2a"
+  surface-hover-dark: "#3a3a3a"
+  border-dark: "#4a4a4a"
+  text-muted-dark: "#7a7a7a"
+  text-secondary-dark: "#909090"
+  text-body-dark: "#cccccc"
+  text-primary-dark: "#f0f0f0"
+  status-green: "#16A34A"
+  status-blue: "#2563EB"
+  status-teal: "#0D9488"
+  status-yellow: "#CA8A04"
+  status-orange: "#EA580C"
+  status-red: "#DC2626"
 typography:
   display:
     fontFamily: "'DM Sans', 'Inter', sans-serif"
     fontWeight: 800
     lineHeight: 1.08
+    fontSize: "clamp(2rem, 5vw, 3.5rem)"
   body:
     fontFamily: "'DM Sans', 'Inter', sans-serif"
     fontWeight: 400
     lineHeight: 1.625
+    fontSize: "0.9375rem"
   label:
     fontFamily: "'JetBrains Mono', monospace"
     fontWeight: 700
     letterSpacing: "0.12em"
     textTransform: "uppercase"
-    fontSize: "10px"
+    fontSize: "0.625rem"
+  title:
+    fontFamily: "'DM Sans', 'Inter', sans-serif"
+    fontWeight: 700
+    lineHeight: 1.25
+    fontSize: "1rem"
 rounded:
   card: "12px"
   input: "8px"
@@ -53,30 +58,27 @@ rounded:
   pill: "9999px"
   badge: "6px"
 spacing:
-  section: "4rem / 6rem (md)"
+  section: "5rem"
   card-padding: "1.5rem"
   grid-gap: "1.5rem"
-shadows:
-  sm: "0 1px 2px rgba(0, 0, 0, 0.04)"
-  md: "0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04)"
-  lg: "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04)"
-  xl: "0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)"
 components:
   button-primary:
     backgroundColor: "{colors.primary}"
     textColor: "#FFFFFF"
     rounded: "{rounded.button}"
     padding: "0.625rem 1.5rem"
+    fontWeight: 700
   button-primary-hover:
     backgroundColor: "{colors.primary-deep}"
+    boxShadow: "0 0 20px rgba(254, 0, 0, 0.2)"
   button-pill:
     backgroundColor: "{colors.primary}"
     textColor: "#FFFFFF"
     rounded: "{rounded.pill}"
-    padding: "0.625rem 1.5rem"
-    hover:
-      boxShadow: "{glow-red}"
-      backgroundColor: "{colors.primary-deep}"
+    padding: "0.75rem 2rem"
+    fontWeight: 700
+  button-pill-hover:
+    backgroundColor: "{colors.primary-deep}"
   button-secondary:
     backgroundColor: "transparent"
     border: "1px solid {border-light}"
@@ -91,201 +93,199 @@ components:
     backgroundColor: "{surface-light}"
     border: "1px solid {border-light}"
     rounded: "{rounded.card}"
+    padding: "{spacing.card-padding}"
+  card-hover:
+    backgroundColor: "{surface-light}"
+    border: "1px solid {border-light}"
+    rounded: "{rounded.card}"
+    padding: "{spacing.card-padding}"
   input:
     backgroundColor: "{surface-light}"
     border: "1px solid {border-light}"
     rounded: "{rounded.input}"
-    focus:
-      borderColor: "{colors.primary}"
-      boxShadow: "0 0 0 2px rgba(254, 0, 0, 0.15)"
-  badge-red:
+    padding: "0.5rem 0.75rem"
+  badge:
     backgroundColor: "rgba(254, 0, 0, 0.08)"
     textColor: "{colors.primary}"
     rounded: "{rounded.badge}"
+    fontSize: "0.6875rem"
+    fontWeight: 600
 ---
 
-# Design System: Butwal Hacks (Hybrid Kloner.app)
+# Design System: Butwal Hacks
 
 ## 1. Overview
 
 **Creative North Star: "The Builder's Workbench"**
 
-Butwal Hacks is a flat, crisp, structured SaaS platform inspired by Kloner.app. The design prioritizes clarity and hierarchy over decoration — solid white cards, crisp 1px borders, and a single assertive red accent that earns its place by being used sparingly.
+Butwal Hacks is a flat, layered SaaS platform built for Nepal's hacker community — a workbench with everything a builder needs and nothing they don't. The design prioritizes clarity, hierarchy, and earned familiarity over ornament.
 
-The system rejects dark glassmorphism, backdrop-blur surfaces, liquid glass effects, and anything that looks like a 2023-era AI startup. Instead, it builds depth through luminance contrast (dark text on white, light text on dark), subtle hover states, and a signature red glow reserved exclusively for primary actions and verified credentials.
+Surfaces are solid white or light gray (`#F7F7F8` / `#FFFFFF`). Borders are crisp 1px (`#E5E5E5`). Depth comes from tonal layering — lighter content areas, slightly darker sidebars and panels — not from shadows or blur. A single assertive red accent (`#FE0000`) earns its place by being used sparingly on primary actions and verified credentials only.
+
+The system rejects dark glassmorphism, backdrop-blur surfaces, liquid glass effects, gradient text, and anything that reads as a 2023-era AI startup. Instead, it builds trust through precision: consistent component vocabulary, exacting spacing, and a visual system that mirrors the cryptographic rigor of the trust marker engine underneath.
 
 **Key Characteristics:**
-- **Flat-by-default** — surfaces are solid white (or dark charcoal), 1px borders, no backdrop-blur
-- **Single accent discipline** — Butwal Red (`#FE0000`) is the only accent. It appears on ≤10% of any screen
-- **Selective glow** — the red glow (`--bh-glow-red`) appears only on primary CTA hover and verified trust markers
-- **Mono confidence** — JetBrains Mono for labels, badges, metadata signals "this is technical, precise"
-- **Dark mode via CSS variables** — light and dark themes are true luminance inversions of each other
+- **Layered-by-default** — depth through background lightness changes, not shadows or glass
+- **Single accent discipline** — Butwal Red is the only accent; appears on ≤10% of any screen
+- **Selective glow** — red glow appears only on primary CTA hover and verified trust markers
+- **Mono confidence** — JetBrains Mono for badges, metadata, IDs signals "this is technical, precise"
+- **Responsive grid** — `repeat(auto-fit, minmax(280px, 1fr))` for adaptive layouts; no breakpoint-specific grid overrides
 
 ## 2. Colors: The Builder's Palette
 
+A restrained neutral foundation with a single high-commitment red accent. Status colors are signal, not decoration.
+
 ### Primary
 - **Butwal Red** (`#FE0000`): The single accent. Used for primary CTAs, trust markers (verified), and critical action buttons. Never decorative.
-- **Deep Red** (`#B10000`): Hover state of primary red.
-- **Dark Red** (`#7b0000`): Backgrounds for destructive panels.
-- **Light Red** (`#ff7c7c`) / **Light Red Soft** (`#ffb9b9`): Used at low opacity for subtle backgrounds.
+- **Deep Red** (`#B10000`): Hover state of primary buttons.
+- **Dark Red** (`#7b0000`): Backgrounds for destructive or high-severity panels.
+- **Light Red** (`#ff7c7c`) / **Light Red Soft** (`#ffb9b9`): Used at low opacity for subtle backgrounds and badges.
 
-### Light Mode Neutrals
-- **Bg Base** (`#F7F7F8`): Page background. Very light gray.
+### Light Mode Neutral Scale
+- **Bg Base** (`#F7F7F8`): Page background. Very light gray — the canvas.
 - **Surface** (`#FFFFFF`): Cards, sidebars, section backgrounds. Pure white.
-- **Surface Hover** (`#F3F4F6`): Hover state for interactive surfaces.
+- **Surface Hover** (`#F0F0F2`): Hover state for interactive surfaces.
 - **Border** (`#E5E5E5`): Structural lines, dividers, container edges.
-- **Text Muted** (`#8B8B8B`): Secondary info, timestamps, placeholder text.
-- **Text Secondary** (`#5C5C5C`): Nav links, metadata (~6.3:1 on white ✅).
-- **Text Body** (`#2C2C2C`): Primary reading text (~13.5:1 on white ✅).
-- **Text Primary** (`#1F1F1F`): Headings, emphasized text (~16.5:1 on white ✅).
+- **Border Light** (`#EBEBEB`): Lighter dividers for nested groupings.
+- **Text Muted** (`#888888`): Secondary info, timestamps, placeholder text. 4.8:1 on white ✅.
+- **Text Secondary** (`#666666`): Nav links, metadata. 6.9:1 on white ✅.
+- **Text Body** (`#333333`): Primary reading text. 12.8:1 on white ✅.
+- **Text Primary** (`#1F1F1F`): Headings, emphasized text. 16.5:1 on white ✅.
 
-### Dark Mode Neutrals (strict luminance inversion)
-- **Bg Base** (`#121212`): Page background. Near-black.
-- **Surface** (`#1E1E1E`): Cards, sidebars.
-- **Surface Hover** (`#2A2A2A`): Hover state.
-- **Border** (`#333333`): Dividers, edges.
-- **Text Muted** (`#6B6B6B`): Secondary info.
-- **Text Secondary** (`#A3A3A3`): Nav links (~5.1:1 on #1E1E1E ✅).
-- **Text Body** (`#D4D4D4`): Reading text.
-- **Text Primary** (`#F5F5F5`): Headings.
+### Dark Mode Neutral Scale (luminance inversion)
+- **Bg Base** (`#1a1a1a`): Page background.
+- **Surface** (`#2a2a2a`): Cards, sidebars.
+- **Surface Hover** (`#3a3a3a`): Hover state.
+- **Border** (`#4a4a4a`): Dividers, edges.
+- **Text Muted** (`#7a7a7a`): Secondary info. 4.8:1 on #2a2a2a ✅.
+- **Text Body** (`#cccccc`): Reading text.
+- **Text Primary** (`#f0f0f0`): Headings.
 
 ### Status Colors
-- Green (`#22C55E`): Success, online presence
-- Blue (`#3B82F6`): Information, pending
-- Teal (`#14B8A6`): Alternative accent for event UI
-- Yellow (`#EAB308`): Warnings, pending review
-- Orange (`#F97316`): Bounty levels, rewards
-- Red (`#EF4444`): Destructive actions, errors
+- **Green** (`#16A34A` light / `#4ADE80` dark): Success, online presence, verified.
+- **Blue** (`#2563EB` / `#60A5FA`): Information, pending, links.
+- **Teal** (`#0D9488` / `#2DD4BF`): Alternative accent for event UI.
+- **Yellow** (`#CA8A04` / `#FACC15`): Warnings, pending review badges.
+- **Orange** (`#EA580C` / `#FB923C`): Bounty levels, rewards, medium severity.
+- **Red** (`#DC2626` / `#F87171`): Destructive actions, errors, high severity.
+
+### Surface Inverse
+- **Surface Inverse** (`#1F1F1F` light / `#333333` dark): Dark background for CTAs and code blocks in light mode; lighter panel in dark mode.
 
 ### Glow Tokens
-- **Hackathon Glow** (`--bh-glow-red`): `0 0 20px rgba(254,0,0,0.25)` (light) / `0 0 30px rgba(254,0,0,0.35)` (dark). Used on primary pill buttons hover and verified trust markers hover.
-- **Soft Glow** (`--bh-glow-red-soft`): `0 0 12px rgba(254,0,0,0.15)` (light) / `0 0 16px rgba(254,0,0,0.2)` (dark). Used on verified trust markers at rest.
+- **Red Glow** (`--bh-glow-red`): `0 0 20px rgba(254,0,0,0.2)` light / `0 0 30px rgba(254,0,0,0.45)` dark. Primary pill buttons on hover and verified trust markers on hover.
+- **Soft Red Glow** (`--bh-glow-red-soft`): `0 0 12px rgba(254,0,0,0.12)` light / `0 0 16px rgba(254,0,0,0.25)` dark. Verified trust markers at rest.
+
+### Named Rules
+**The Single Accent Rule.** Butwal Red is the only accent. Status colors carry meaning (green = success, blue = info), not decoration. If a color can't justify its role in one sentence, it's decorative — remove it.
 
 ## 3. Typography
 
-**Body Font:** DM Sans (with Inter + system sans-serif fallback). CSS variable `--font-sans`.
-**Mono Font:** JetBrains Mono (with monospace fallback). CSS variable `--font-mono`.
+**Body Font:** DM Sans (warm geometric sans, with Inter + system sans-serif fallback). Self-hosted via `next/font/google`.
+**Mono Font:** JetBrains Mono (coding monospace with distinct punctuation). Self-hosted via `next/font/google`.
 
-Fonts are self-hosted via `next/font/google` with `display: swap` and `preload: true`.
+**Character:** DM Sans carries the warm, human feel of a community platform without sacrificing legibility. JetBrains Mono signals technical precision — badges, IDs, metadata. The pairing is purpose-based: human content in DM Sans, machine data in mono.
 
 ### Hierarchy
-- **Display** (800, `text-4xl`–`text-7xl` clamp): Hero headlines. Leading of 1.08. Color: `text-primary`.
-- **Title** (700, `text-lg`–`text-2xl`): Card titles, modal headers. Color: `text-primary`.
-- **Body** (400, `text-base` with 1.625 line-height): Paragraphs, descriptions. Max width 65-75ch. Color: `text-text-body`.
-- **Label/Mono** (700, `text-[10px]`, 0.12em tracking, uppercase): Badges, trust markers, metadata, IDs. JetBrains Mono. CSS: `font-mono text-[10px] font-bold uppercase tracking-[0.12em]`.
+- **Display** (800, `clamp(2rem, 5vw, 3.5rem)`, 1.08 line-height): Hero headlines only. Using `text-wrap: balance`. Color: `text-primary`.
+- **Title** (700, `1rem` / `text-base`, 1.25 line-height): Card titles, modal headers, section headings. Color: `text-primary`.
+- **Body** (400, `0.9375rem` / `text-[15px]`, 1.625 line-height): Paragraphs, descriptions, list items. Max width 65–75ch for prose. Color: `text-body`.
+- **Label/Mono** (700, `0.625rem` / `text-[10px]`, 0.12em tracking, uppercase): Badges, timestamps, metadata, BH-IDs, API keys. JetBrains Mono. Color: `text-muted`.
 
-## 4. Elevation & Depth
+### Named Rules
+**The Mono Data Rule.** Any text that represents a technical identifier (BH-ID, date, task name, API key) uses JetBrains Mono. Any text meant to be read as prose uses DM Sans. If in doubt, DM Sans wins.
 
-The system uses a **flat-by-default** approach. Shadows appear only as a response to interaction:
+## 4. Elevation
 
-- **Card at rest**: Solid white (`bg-surface`) with 1px border (`border-border`). No shadow.
-- **Card hover**: Subtle shadow (`shadow-md` / `0 4px 6px -1px rgba(0,0,0,0.06)`) + slight lift (`hover:-translate-y-0.5`).
-- **Interactive card hover**: Same as card hover + red border highlight (`border-color: rgba(254,0,0,0.3)`).
-- **Primary button hover**: Red glow (`box-shadow: var(--bh-glow-red)`).
+The system uses a **layered** model — depth is communicated through background lightness changes rather than shadows or glass effects.
 
-**No backdrop-blur. No glass effects on surfaces. No parallax on decorative elements.**
+- **Content surface** (`bg-base`, `#F7F7F8`): The page background. Lightest layer.
+- **Card surface** (`bg-surface`, `#FFFFFF`): Cards, sidebars, modals. One step lighter than bg-base.
+- **Hover state** (`bg-surface-hover`, `#F0F0F2`): Interactive surfaces on hover. One step darker than surface.
+- **Inverse surface** (`bg-surface-inverse`, `#1F1F1F`): Dark panels in light mode, lighter panels in dark mode. Contrasts against the normal surface stack.
+
+**No shadows at rest.** Shadows appear only as interaction feedback on hover states:
+- **Card hover**: `box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06)` (light) — subtle, wide, diffused.
+- **Modal/overlay**: `box-shadow: 0 20px 25px -5px rgba(0,0,0,0.08)` — deeper for floating layers.
+- **Primary button hover**: Red glow replaces shadow (`0 0 20px rgba(254,0,0,0.2)`).
+
+**No backdrop-blur. No glass effects. No parallax.** The layered tonal approach is the only depth system.
+
+### Named Rules
+**The Flat-At-Rest Rule.** Every surface is flat until the user interacts with it. Shadows and glows are responses to hover, focus, or active states only. At rest, the interface is a set of crisp planes distinguished by lightness alone.
 
 ## 5. Components
 
-### Cards (`bh-card`, `.bh-card-hover`, `.bh-card-interactive`)
-- Solid white (or dark charcoal) surface.
-- 1px crisp border (`border-border`).
-- 12px border radius (`rounded-xl` / `0.75rem`).
-- No shadow at rest. On hover: subtle shadow + slight translateY lift.
-- Interactive variant adds red border highlight on hover.
+### Cards (`bh-card`, `bh-card-hover`, `bh-card-interactive`)
+- **Shape:** Gently rounded corners (12px / `rounded-xl`).
+- **Background:** Solid white (`bg-surface`).
+- **Border:** 1px crisp (`border-border`).
+- **Shadow at rest:** None.
+- **Hover treatment:** Subtle shadow (`shadow-md` / `0 4px 6px -1px rgba(0,0,0,0.06)`) + slight lift (`hover:-translate-y-0.5`).
+- **Internal padding:** `1.5rem` (p-6).
+- **Interactive variant:** Hover also adds `border-primary-red/30` border highlight.
 
 ### Buttons
-| Variant | Class | Style | Hover |
-|---------|-------|-------|-------|
-| **Primary** | `bh-btn-primary` | Red background, white text, 8px radius | Deep red |
-| **Pill (Primary)** | `bh-btn-pill` | Red background, white text, `rounded-full` | Deep red + red glow shadow |
-| **Secondary** | `bh-btn-secondary` | Transparent, 1px border, 8px radius | Surface hover fill |
-| **Ghost** | `bh-btn-ghost` | Text only, 8px radius | Surface hover fill |
-| **Outline Pill** | `bh-btn-outline-pill` | Transparent, 1px border, `rounded-full` | Surface hover fill |
+All buttons share `cursor-pointer`, `select-none`, `font-bold`, `transition-all duration-200`, and `active:scale-[0.97]` for tactile press feedback.
 
-All buttons have `active:scale-[0.97]` for tactile press feedback.
+| Variant | Shape | Rest State | Hover | Focus |
+|---------|-------|------------|-------|-------|
+| **Primary** (`bh-btn-primary`) | 8px radius | `bg-primary-red`, white text | `bg-deep-red` | `ring-2 ring-primary-red ring-offset-2` |
+| **Pill** (`bh-btn-pill`) | `rounded-full` | `bg-primary-red`, white text, 0.75rem 2rem padding | `bg-deep-red` + red glow shadow | same ring |
+| **Secondary** (`bh-btn-secondary`) | 8px radius | Transparent, 1px `border-border`, `text-primary` | `bg-surface-hover` | same ring |
+| **Ghost** (`bh-btn-ghost`) | 8px radius | Transparent, `text-secondary` | `bg-surface-hover` | same ring |
 
-### Inputs (`bh-input`, `.bh-input-sm`, `.bh-select`, `.bh-textarea`)
-- White surface with 1px border, 8px radius.
-- On focus: red border + red ring glow (`box-shadow: 0 0 0 2px rgba(254,0,0,0.15)`).
-- Placeholder: `text-muted` (`#8B8B8B`).
+All buttons have `disabled:opacity-50 disabled:cursor-not-allowed`. Pill variant adds `font-bold` for emphasis.
 
-### Badges
-| Variant | Class | Style |
-|---------|-------|-------|
-| Red | `bh-badge-red` | `rgba(254,0,0,0.08)` bg, red text |
-| Green | `bh-badge-green` | `rgba(34,197,94,0.08)` bg, green text |
-| Blue | `bh-badge-blue` | `rgba(59,130,246,0.08)` bg, blue text |
-| Yellow | `bh-badge-yellow` | `rgba(234,179,8,0.1)` bg, yellow text |
-| Gray | `bh-badge-gray` | Surface hover bg, secondary text |
+### Inputs (`bh-input`, `bh-textarea`, `bh-select`)
+- **Shape:** Gently rounded corners (8px).
+- **Rest:** White `bg-surface`, 1px `border-border`, `text-primary` value, `text-muted` placeholder.
+- **Focus:** Red border + `box-shadow: 0 0 0 2px rgba(254,0,0,0.15)` ring.
+- **Disabled:** `opacity-50`, `cursor-not-allowed`.
+- **Error:** Red border + red tint bg + red text message below.
+
+### Badges (`bh-badge-*`)
+- **Shape:** 6px rounded corners.
+- **Font:** JetBrains Mono, `text-[11px]`, `font-semibold`, `uppercase`, `tracking-wide`.
+- **Red badge** (`bh-badge-red`): `rgba(254,0,0,0.08)` bg, `text-primary-red`.
+- **Green badge** (`bh-badge-green`): `rgba(22,163,74,0.08)` bg, `text-status-green`.
+- **Blue badge** (`bh-badge-blue`): `rgba(37,99,235,0.08)` bg, `text-status-blue`.
+- **Yellow badge** (`bh-badge-yellow`): `rgba(202,138,4,0.1)` bg, `text-status-yellow`.
+- **Gray badge** (`bh-badge-gray`): `bg-surface-hover`, `text-muted`.
 
 ### Trust Markers
-Three states, each with a dedicated utility class:
+Three visual tiers:
 
-- **Verified** (`bh-trust-marker-verified`): Red border (30% opacity), red tint bg, red text, soft red glow. Glows brighter on hover.
-- **Self-reported** (`bh-trust-marker-self-reported`): Standard border, surface hover bg, secondary text. No glow.
-- **Revoked** (`bh-trust-marker-revoked`): Grey border (30% opacity), grey tint bg, muted text, strikethrough.
+- **Verified** — Red border (30% opacity), red tint bg, red text, soft red glow at rest (`--bh-glow-red-soft`), brighter on hover (`--bh-glow-red`).
+- **Self-reported** — Standard `border-border`, `bg-surface-hover`, `text-secondary`. No glow.
+- **Revoked** — Gray border (30% opacity), gray tint bg, `text-muted`, `line-through`.
 
-All trust markers use JetBrains Mono uppercase, 11px font, 0.05em letter-spacing, `rounded-full`.
+All trust markers use JetBrains Mono, `text-[11px]`, `font-bold`, `uppercase`, `tracking-[0.05em]`, `rounded-full`.
 
 ### Navigation
-- **Navbar**: Sticky, solid `bg-surface`, 1px bottom border on scroll. Red BH icon logo in deep red background.
-- **Nav links**: Secondary text color, medium weight. Hover: primary text + surface hover bg.
-- **Dashboard sidebar**: Solid surface, active state via red left border or red dot indicator.
-- **Mobile**: Hamburger with overlay panel, fade + translate transition.
+- **Top Navbar**: Sticky, `bg-surface`, 1px `border-b border-border` on scroll. Red BH logo icon in `bg-deep-red` square. Nav links in `text-secondary`/`hover:text-primary`/`hover:bg-surface-hover`.
+- **Dashboard Sidebar**: Fixed `w-56`, `bg-surface`, `border-r border-border`. Active nav item highlighted with red dot indicator and `font-semibold`. Role badge at top displays current role color.
+- **Mobile**: Hamburger button (`md:hidden`) opens slide-in overlay with `shadow-xl`.
 
 ## 6. Do's and Don'ts
 
 ### Do:
-- **Do** use `bh-card` as the primary container pattern for all card-like sections
+- **Do** use `bg-surface` / `border-border` / `rounded-xl` as the standard card recipe
 - **Do** use `bh-btn-pill` (`rounded-full`) for primary CTAs — the red glow appears on hover
-- **Do** reserve Butwal Red (`#FE0000`) exclusively for CTAs, trust markers, and verified badges — never for decorative borders
-- **Do** use JetBrains Mono uppercase for all badges, labels, timestamps, and metadata
-- **Do** use `focus-visible:ring-2 ring-primary-red/40 ring-offset-2 rounded-lg` as the global focus indicator
-- **Do** use the `custom-scrollbar` utility for scrollable sections
-- **Do** use `border-border` for all structural lines — `#E5E5E5` light, `#333333` dark
-- **Do** use `text-text-body` for body copy — `#2C2C2C` light, `#D4D4D4` dark
+- **Do** reserve Butwal Red (`#FE0000`) exclusively for CTAs, trust markers, and verified badges
+- **Do** use JetBrains Mono uppercase for all badges, labels, timestamps, BH-IDs, and metadata
+- **Do** use `focus-visible:ring-2 ring-primary-red ring-offset-2` as the global focus indicator
+- **Do** layer depth through tonal background changes (lighter content, darker sidebars)
+- **Do** use `text-body` for body copy (`#333333` light / `#cccccc` dark)
+- **Do** use `text-muted` for placeholders, timestamps, and secondary metadata
 
 ### Don't:
 - **Don't** use `backdrop-blur` — no glass effects on any surface
-- **Don't** use inline `style={{}}` for colors — use `var(--bh-*)` or Tailwind classes
-- **Don't** use more than one accent — Butwal Red is the only accent. Status colors are signal, not decoration
-- **Don't** use box shadows on cards at rest — surfaces should appear flat until hovered
-- **Don't** use DM Sans for metadata or badges — JetBrains Mono is for technical precision
+- **Don't** use inline `style={{}}` for colors — use `var(--bh-*)` CSS properties or Tailwind classes
+- **Don't** use more than one accent on a screen — Butwal Red is the single accent; status colors are signal, not decoration
+- **Don't** use box shadows on cards at rest — shadows are hover-interaction feedback only
+- **Don't** use DM Sans for badges, IDs, or metadata — JetBrains Mono is for technical precision
 - **Don't** use gradient text, parallax effects, or animated cursor-tracking elements
-- **Don't** apply shadows and borders together on the same element — pick one (1px border OR shadow, not both)
-
-## 7. CSS Custom Properties (Token Reference)
-
-All design tokens are defined as CSS custom properties in `globals.css`:
-
-```css
-:root {
-  --bh-primary-red: #FE0000;
-  --bh-deep-red: #B10000;
-  --bh-dark-red: #7b0000;
-  --bh-bg-base: #F7F7F8;
-  --bh-surface: #FFFFFF;
-  --bh-surface-hover: #F3F4F6;
-  --bh-border: #E5E5E5;
-  --bh-text-muted: #8B8B8B;
-  --bh-text-secondary: #5C5C5C;
-  --bh-text-body: #2C2C2C;
-  --bh-text-primary: #1F1F1F;
-  --bh-glow-red: 0 0 20px rgba(254, 0, 0, 0.25);
-  --bh-glow-red-soft: 0 0 12px rgba(254, 0, 0, 0.15);
-}
-
-.dark {
-  /* Luminance inversion of :root values */
-  --bh-bg-base: #121212;
-  --bh-surface: #1E1E1E;
-  --bh-border: #333333;
-  --bh-text-primary: #F5F5F5;
-  --bh-glow-red: 0 0 30px rgba(254, 0, 0, 0.35);
-}
-```
-
-Tailwind v4 `@theme` directives map these to utility classes (`bg-surface`, `text-primary`, `border-border`, etc.). See `globals.css` for the complete mapping.
-
-All utility classes (`bh-card`, `bh-btn-primary`, `bh-input`, `bh-badge-*`, `bh-trust-marker-*`, etc.) are defined in `globals.css` `@layer utilities`.
+- **Don't** use `border-left` or `border-right` greater than 1px as a colored accent stripe on cards — never intentional
+- **Don't** use the hero-metric template (big number, small label, gradient accent) — SaaS cliché
+- **Don't** recreate the Kloner.app look exactly — the hybrid approach (flat foundation + layered depth + selective glow) is the brand

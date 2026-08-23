@@ -21,7 +21,7 @@ function CertificateCard({ cert }: CertificateCardProps) {
     },
     NotVerified: {
       label: 'Pending',
-      color: 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20',
+      color: 'text-status-yellow bg-status-yellow/10 border-status-yellow/20',
       icon: <AlertCircle size={12} strokeWidth={3} />,
       watermark: 'Pending',
     },
@@ -43,7 +43,7 @@ function CertificateCard({ cert }: CertificateCardProps) {
       >
         {/* Watermark */}
         <div 
-          className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.02] opacity-[0.03] select-none overflow-hidden"
+          className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] select-none overflow-hidden"
           style={{ transform: 'rotate(-12deg)' }}
         >
           <span className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-primary whitespace-nowrap">
@@ -123,7 +123,7 @@ function CertificateCard({ cert }: CertificateCardProps) {
                 <div className="space-y-4">
                   <div className="p-4 rounded-lg bg-surface-hover border border-border space-y-2">
                     <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Verification Status</p>
-                    <p className={`font-bold ${cert.verified === 'Verified' ? 'text-primary-red' : 'text-yellow-500'}`}>
+                    <p className={`font-bold $                      {cert.verified === 'Verified' ? 'text-primary-red' : 'text-status-yellow'}`}>
                       {cert.verified === 'Verified' ? 'OFFICIALLY VERIFIED' : 'PENDING / UNVERIFIED'}
                     </p>
                   </div>

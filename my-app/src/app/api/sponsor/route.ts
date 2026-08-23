@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { sanitizeName, sanitizeEmail, sanitizeString } from "@/lib/validation"
+import { sanitizeEmail, sanitizeString } from "@/lib/validation"
 import { logger } from "@/lib/logger"
-import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter"
-import { captureServerEvent } from "@/lib/analytics/server"
-import { posthogLog } from "@/lib/posthog-logger"
+import { withRateLimit } from "@/lib/rate-limiter"
 
 const schema = z.object({
-  name: z.string().min(2).transform(v => sanitizeName(v)),
+  name: z.string().min(2).transform(v => sanitizeString(v, 100)),
   email: z.string().email().transform(v => sanitizeEmail(v) ?? v),
-  company: z.string().min(1).transform(v => sanitizeName(v)),
+  company: z.string().min(1).transform(v => sanitizeString(v, 100)),
   tier: z.string().min(1).transform(v => sanitizeString(v, 50)),
   message: z.string().optional().transform(v => v ? sanitizeString(v, 2000) : v),
 })
 
-export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
+export const POST = withRateLimit(async (request: Request) => {
   try {
     const body = await request.json()
     const data = schema.parse(body)
@@ -49,22 +47,21 @@ export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
       logger.info("[sponsor inquiry]", { to: CONTACT_EMAIL, from: data.email, company: data.company, tier: data.tier })
     }
 
-    posthogLog.info("Sponsor inquiry submitted", {
+    logger.info("Sponsor inquiry submitted", {
       company: data.company,
       tier: data.tier,
       email: data.email,
     });
 
-    await captureServerEvent('sponsor_inquiry_submitted', 'anonymous', { tier: data.tier });
     return NextResponse.json({ ok: true })
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid form data" }, { status: 400 })
     }
-    posthogLog.error("Sponsor inquiry failed", {
+    logger.error("Sponsor inquiry failed", {
       error: err instanceof Error ? err.message : String(err),
     });
     logger.error("[sponsor route]", err)
     return NextResponse.json({ error: "Failed to send inquiry" }, { status: 500 })
   }
-}), "public_form")
+}, "public_form")

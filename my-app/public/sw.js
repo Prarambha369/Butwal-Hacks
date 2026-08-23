@@ -1,4 +1,4 @@
-const CACHE = "bh-cache-v3"
+const CACHE = "bh-cache-v4"
 const STATIC_ASSETS = [
   "/",
   "/offline",
@@ -10,6 +10,7 @@ const STATIC_ASSETS = [
 // ponytail: max 50 images cached to avoid quota issues
 const IMAGE_CACHE_MAX = 50
 const IMAGE_CACHE = "bh-images-v1"
+const API_CACHE = "bh-api-v1"
 
 // Install: cache shell, skip waiting
 self.addEventListener("install", (event) => {
@@ -23,13 +24,16 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE && k !== IMAGE_CACHE).map((k) => caches.delete(k))),
+      Promise.all(
+        keys
+          .filter((k) => k !== CACHE && k !== IMAGE_CACHE && k !== API_CACHE)
+          .map((k) => caches.delete(k)),
+      ),
     ).then(() => self.clients.claim()),
   )
 })
 
-// Fetch: network-first for pages+api, cache-first for static assets,
-// stale-while-revalidate for images
+// Fetch: strategy dispatch by request type
 self.addEventListener("fetch", (event) => {
   const { request } = event
   const url = new URL(request.url)
@@ -48,11 +52,22 @@ self.addEventListener("fetch", (event) => {
 
   // Stale-while-revalidate for images (PNG, JPG, WebP, etc.)
   if (url.pathname.match(/\.(png|jpg|jpeg|gif|webp|avif)$/)) {
-    event.respondWith(staleWhileRevalidate(request))
+    event.respondWith(staleWhileRevalidate(request, IMAGE_CACHE))
     return
   }
 
-  // Network-first for pages and API requests
+  // Stale-while-revalidate for read-only API endpoints (GET)
+  // Exclude the signature endpoint since it needs fresh server-side auth
+  if (
+    url.pathname.startsWith("/api/") &&
+    !url.pathname.startsWith("/api/cloudinary-signature") &&
+    !url.pathname.startsWith("/api/csp-violation")
+  ) {
+    event.respondWith(staleWhileRevalidate(request, API_CACHE))
+    return
+  }
+
+  // Network-first for pages and remaining requests
   event.respondWith(
     fetch(request)
       .then((response) => {
@@ -75,45 +90,42 @@ self.addEventListener("fetch", (event) => {
 })
 
 /**
- * Stale-while-revalidate strategy for images.
+ * Stale-while-revalidate strategy.
  * Serves from cache immediately, then updates the cache in the background.
- * Evicts oldest entries when over IMAGE_CACHE_MAX.
+ * For image caches, evicts oldest entries when over the max limit.
  */
-async function staleWhileRevalidate(request: Request): Promise<Response> {
-  const cache = await caches.open(IMAGE_CACHE)
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName)
   const cached = await cache.match(request)
 
-  // Clone the request for the network fetch
   const networkFetch = fetch(request.clone())
     .then((response) => {
       if (response.ok) {
         cache.put(request, response.clone())
-        // Evict old entries if over limit
-        trimCache(cache, IMAGE_CACHE_MAX)
+        if (cacheName === IMAGE_CACHE) {
+          trimCache(cache, IMAGE_CACHE_MAX)
+        }
       }
       return response
     })
     .catch(() => cached || new Response("", { status: 503 }))
 
-  // If we have a cached version, return it immediately
   if (cached) {
     // Don't await — fire and forget the revalidation
     networkFetch
     return cached
   }
 
-  // Otherwise wait for the network
   return networkFetch
 }
 
 /**
  * Evict oldest entries from a cache until it's under maxItems.
  */
-async function trimCache(cache: Cache, maxItems: number): Promise<void> {
+async function trimCache(cache, maxItems) {
   const keys = await cache.keys()
   if (keys.length <= maxItems) return
 
-  // Delete oldest entries sequentially to avoid batch rejection on error
   const toDelete = keys.slice(0, keys.length - maxItems)
   for (const key of toDelete) {
     try {
@@ -124,9 +136,56 @@ async function trimCache(cache: Cache, maxItems: number): Promise<void> {
   }
 }
 
-// Listen for update messages from the client
+// ─── Periodic Background Sync ─────────────────────────────────────
+// ponytail: periodicSync is experimental; wrap in feature check.
+// Falls back silently if the browser doesn't support it.
+self.addEventListener("periodicsync", (event) => {
+  if (event.tag === "bh-content-update") {
+    event.waitUntil(backgroundUpdate())
+  }
+})
+
+async function backgroundUpdate() {
+  try {
+    // Warm the API cache for key endpoints
+    const endpoints = [
+      "/api/profiles/featured",
+      "/api/events/upcoming",
+    ]
+    const cache = await caches.open(API_CACHE)
+
+    const results = await Promise.allSettled(
+      endpoints.map(async (url) => {
+        const res = await fetch(url, { cache: "no-cache" })
+        if (res.ok) {
+          await cache.put(new Request(url), res.clone())
+        }
+        return res
+      }),
+    )
+
+    // Notify all clients that background update completed
+    const clientsList = await self.clients.matchAll()
+    for (const client of clientsList) {
+      client.postMessage({
+        type: "BACKGROUND_UPDATE",
+        success: results.every((r) => r.status === "fulfilled"),
+      })
+    }
+  } catch {
+    // ponytail: background sync failure is non-fatal
+  }
+}
+
+// Listen for messages from the client
 self.addEventListener("message", (event) => {
-  if (event.data === "SKIP_WAITING") {
-    self.skipWaiting()
+  switch (event.data) {
+    case "SKIP_WAITING":
+      self.skipWaiting()
+      break
+    case "REGISTER_PERIODIC_SYNC":
+      // Client asked us to register periodic sync
+      // (Only works if the site has been added to home screen)
+      break
   }
 })

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter";
+import { withRateLimit } from "@/lib/rate-limiter";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 
@@ -9,12 +9,18 @@ import { logger } from "@/lib/logger";
  * Public endpoint — lists active bounty opportunities.
  * No auth required. Returns only is_active = true, is_bounty = true.
  */
-export const GET = withRateLimit(async (_req: NextRequest) => {
+export const GET = withRateLimit(async (req: NextRequest) => {
   try {
-    const { getPublicOpportunities } = await import("@/lib/actions/sponsor-opportunities");
-    const bounties = await getPublicOpportunities({ is_bounty: true });
+    const u = new URL(req.url);
+    const page = parseInt(u.searchParams.get("page") ?? "", 10) || 1;
+    const per_page = parseInt(u.searchParams.get("per_page") ?? "", 10) || 20;
 
-    return NextResponse.json({ bounties });
+    const { getPublicOpportunities } = await import("@/lib/actions/sponsor-opportunities");
+    const result = await getPublicOpportunities({ is_bounty: true, page, per_page });
+
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": "public, max-age=120, s-maxage=120" },
+    });
   } catch (err) {
     logger.error("[api/bounties] GET error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
@@ -27,7 +33,7 @@ export const GET = withRateLimit(async (_req: NextRequest) => {
  * Sponsor-only — creates a new bounty opportunity.
  * Requires authenticated sponsor session.
  */
-export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
+export const POST = withRateLimit(async (req: NextRequest) => {
   try {
     const session = await auth0.getSession();
     if (!session?.user) {
@@ -61,4 +67,4 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
     logger.error("[api/bounties] POST error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-}), "sensitive");
+}, "sensitive");

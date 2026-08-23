@@ -1,12 +1,13 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { Calendar, ArrowRight } from "lucide-react"
+import { Calendar, ArrowRight, Sparkles } from "lucide-react"
 
 import Breadcrumbs from "@/components/breadcrumbs"
 import { getInitiativeBySlug, initiatives, events, blogPosts, getRelatedByTags } from "@/lib/content"
 import { buildPageMetadata } from "@/lib/seo"
 import RelatedLinks from "@/components/home/related-links"
+import AuthAwareCta from "@/components/auth-aware-cta"
 
 type InitiativeDetailPageProps = {
   params: Promise<{ slug: string }>
@@ -71,6 +72,23 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
             <p key={detail}>{detail}</p>
           ))}
         </div>
+
+        {/* Get Involved CTA */}
+        {initiative.status === "active" && (
+          <div className="mt-10 p-8 rounded-xl border border-primary-red/20 bg-primary-red/[0.02] text-center space-y-4">
+            <Sparkles className="mx-auto h-8 w-8 text-primary-red" />
+            <h2 className="text-2xl font-bold font-heading text-primary">Get Involved</h2>
+            <p className="text-secondary max-w-md mx-auto">
+              This initiative is active and looking for contributors. Sign up to participate in events and projects.
+            </p>
+            <AuthAwareCta
+              actionHref="/dashboard/hacker"
+              actionLabel="Get Started"
+              returnTo={`/initiatives/${initiative.slug}`}
+              variant="primary"
+            />
+          </div>
+        )}
 
         {/* Related Events Section */}
         {relatedEvents.length > 0 && (

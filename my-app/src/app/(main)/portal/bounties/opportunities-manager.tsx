@@ -139,7 +139,7 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
                   </span>
                 )}
                 {opp.is_remote && (
-                  <span className="text-[10px] text-secondary/60">🌐 Remote</span>
+                  <span className="text-[10px] text-secondary/60">Remote</span>
                 )}
               </div>
 

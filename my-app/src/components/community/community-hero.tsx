@@ -1,8 +1,15 @@
+"use client";
+
 import Link from "next/link"
 import { ArrowUpRight, Users } from "lucide-react"
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { APP_URL } from "@/lib/constants";
 import { communityStats } from "@/lib/content"
 
 export function CommunityHero() {
+  const { user, isLoading } = useUser();
+  const isSignedIn = !!user;
+
   return (
     <section
       className="relative overflow-hidden border-b border-border/20"
@@ -23,25 +30,49 @@ export function CommunityHero() {
             <h1 className="text-5xl md:text-7xl font-black tracking-tight text-primary leading-[1.05]">
               Where Builders
               <br />
-              <span className="text-primary-red">Meet Opportunity</span>
+              <span className="text-primary-red">Build Together</span>
             </h1>
             <p className="mt-6 text-lg md:text-xl text-secondary leading-relaxed max-w-xl">
-              Butwal Hacks is more than events — it&apos;s a growing community of students, developers,
-              designers, and mentors building the future of tech in Lumbini Province, Nepal.
+              Students, developers, and mentors across Lumbini Province.
+              We run hackathons, share projects, and help each other ship.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                href="/sign-up"
-                className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-6 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
-              >
-                Join the Community <ArrowUpRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/explore"
-                className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-surface/30 px-6 py-3 text-sm font-bold text-primary hover:bg-surface/50 transition-all"
-              >
-                Explore Members <Users className="w-4 h-4" />
-              </Link>
+              {isLoading ? (
+                <>
+                  <div className="h-12 w-44 rounded-full bg-surface-hover animate-pulse" />
+                  <div className="h-12 w-40 rounded-full bg-surface-hover animate-pulse" />
+                </>
+              ) : isSignedIn ? (
+                <>
+                  <Link
+                    href={`${APP_URL}/dashboard`}
+                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-6 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+                  >
+                    Your Dashboard <ArrowUpRight className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    href="/explore"
+                    className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-surface/30 px-6 py-3 text-sm font-bold text-primary hover:bg-surface/50 transition-all"
+                  >
+                    Explore Members <Users className="w-4 h-4" />
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href={`${APP_URL}/auth/login?screen_hint=signup`}
+                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-6 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+                  >
+                    Join the Community <ArrowUpRight className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    href="/explore"
+                    className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-surface/30 px-6 py-3 text-sm font-bold text-primary hover:bg-surface/50 transition-all"
+                  >
+                    Explore Members <Users className="w-4 h-4" />
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 

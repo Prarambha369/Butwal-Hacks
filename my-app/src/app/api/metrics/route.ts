@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { logger } from "@/lib/logger";
 
@@ -13,6 +13,8 @@ import { logger } from "@/lib/logger";
  * Returns:
  *   { total_hackers, total_events, total_projects, total_trust_markers }
  */
+export const revalidate = 86400; // 24 hours
+
 export const GET = withRateLimit(async () => {
   try {
     const db = createServiceClient();
@@ -45,6 +47,8 @@ export const GET = withRateLimit(async () => {
       total_events: totalEvents ?? 0,
       total_projects: totalProjects ?? 0,
       total_trust_markers: totalTrustMarkers ?? 0,
+    }, {
+      headers: { "Cache-Control": "public, max-age=86400, s-maxage=86400" },
     });
   } catch (error) {
     logger.warn("[metrics] Failed to fetch aggregate stats:", error);

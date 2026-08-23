@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 import WorkDashboardClient from "../../hacker/work/work-dashboard-client"
 
 export const dynamic = "force-dynamic"
@@ -88,6 +88,7 @@ export default async function OrganizerWorkPage() {
           workspaceId={firstWorkspace.id}
           initialTasks={tasks.data || []}
           teamMembers={members}
+          workspaces={workspaces.data || []}
         />
       ) : (
         <div className="bh-card p-12 text-center">

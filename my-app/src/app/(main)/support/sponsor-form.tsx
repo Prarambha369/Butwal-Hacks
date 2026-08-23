@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react"
-import { Mail, MapPin, Phone } from "lucide-react"
+import { Mail, MapPin } from "lucide-react"
 
 export function SponsorForm() {
   const [formState, setFormState] = useState<"idle" | "submitting" | "success" | "error">("idle")
@@ -42,35 +42,34 @@ export function SponsorForm() {
         </p>
         <ul className="mt-7 space-y-4 text-sm text-secondary">
           <li className="inline-flex items-center gap-3"><Mail className="h-4 w-4 text-primary" /> hello@butwalhacks.com</li>
-          <li className="inline-flex items-center gap-3"><Phone className="h-4 w-4 text-primary" /> +977 980-0000000</li>
           <li className="inline-flex items-center gap-3"><MapPin className="h-4 w-4 text-primary" /> Butwal, Rupandehi, Nepal</li>
         </ul>
       </div>
 
       <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-surface p-6" aria-label="Sponsor inquiry form">
         {formState === "success" && (
-          <div className="mb-4 rounded-lg border border-green-600/50 bg-green-950/20 p-3 text-sm text-green-700 text-status-green">
+          <div className="mb-4 rounded-lg border border-status-green/30 bg-status-green/10 p-3 text-sm text-status-green">
             Inquiry sent! We&apos;ll be in touch within 2 business days.
           </div>
         )}
         {formState === "error" && (
-          <div className="mb-4 rounded-lg border border-red-600/50 bg-red-950/20 p-3 text-sm text-red-700 text-primary-red">
+          <div className="mb-4 rounded-lg border border-primary-red/30 bg-primary-red/10 p-3 text-sm text-primary-red">
             {formError}
           </div>
         )}
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="text-sm text-secondary">
             Full Name
-            <input required name="name" type="text" placeholder="John Doe" className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
+            <input required name="name" type="text" placeholder="Your full name" className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
           </label>
           <label className="text-sm text-secondary">
             Company Email
-            <input required name="email" type="email" placeholder="john@company.com" className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
+            <input required name="email" type="email" placeholder="you@company.com" className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
           </label>
         </div>
         <label className="mt-4 block text-sm text-secondary">
           Company Name
-          <input required name="company" type="text" placeholder="Tech Innovations Inc." className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
+          <input required name="company" type="text" placeholder="Your organization name" className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
         </label>
         <label className="mt-4 block text-sm text-secondary">
           Interested Tier
@@ -85,12 +84,12 @@ export function SponsorForm() {
         </label>
         <label className="mt-4 block text-sm text-secondary">
           Message
-          <textarea name="message" rows={4} placeholder="How can we help?" className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
+          <textarea name="message" rows={4} placeholder="Tell us about your partnership interests..." className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary" />
         </label>
         <button
           type="submit"
           disabled={formState === "submitting" || formState === "success"}
-          className="mt-5 w-full rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`mt-5 w-full rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 ${formState === "submitting" || formState === "success" ? 'bh-btn-disabled' : ''}`}
         >
           {formState === "submitting" ? "Sending..." : "Send Inquiry"}
         </button>

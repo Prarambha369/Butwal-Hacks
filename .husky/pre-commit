@@ -1,0 +1,38 @@
+#!/bin/sh
+# Pre-commit hook: check for orphaned dev servers, scan for secrets, then lint.
+# Activate with: git config core.hooksPath .husky/
+
+# ── Check for orphaned next-server processes ──────────────────────────────
+NEXT_PIDS=$(pgrep -f '[n]ext.*dev' 2>/dev/null || true)
+if [ -n "$NEXT_PIDS" ]; then
+  echo "Warning: next dev server(s) still running (PID(s): $(echo $NEXT_PIDS | tr '\n' ' '))"
+  echo "   Port 3000 may be occupied. Run: kill $NEXT_PIDS"
+  echo "   (Non-blocking -- continuing with commit...)"
+fi
+
+PORT_PID=$(lsof -ti:3000 2>/dev/null || true)
+if [ -n "$PORT_PID" ]; then
+  echo "Warning: Port 3000 is in use by PID $PORT_PID"
+  echo "   To free it: kill $PORT_PID"
+  echo "   (Non-blocking -- continuing with commit...)"
+fi
+
+# ── Secrets audit ─────────────────────────────────────────────────────────
+# Scans all tracked files for hardcoded keys. Same scanner the CI
+# secrets-audit job uses. Catches secrets before they reach a commit.
+node .github/actions/secrets-audit/audit.mjs
+if [ $? -ne 0 ]; then
+  echo "Commit blocked: secrets detected in tracked files."
+  exit 1
+fi
+
+# ── Run ESLint on staged .ts/.tsx files ──────────────────────────────────
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.tsx?$' || true)
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+REPO_PREFIX="my-app/"
+STRIPPED=$(echo "$STAGED_FILES" | sed "s|^$REPO_PREFIX||")
+cd my-app && npx eslint --max-warnings 0 $STRIPPED
