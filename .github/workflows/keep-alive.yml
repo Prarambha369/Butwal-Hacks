@@ -1,0 +1,37 @@
+name: Keep Alive
+
+on:
+  schedule:
+    # Every 3 days at 06:00 UTC
+    - cron: "0 6 */3 * *"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping:
+    name: Ping Health Endpoint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping /api/keep-alive
+        run: |
+          echo "Pinging https://app.butwalhacks.com/api/keep-alive ..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://app.butwalhacks.com/api/keep-alive")
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ keep-alive ping successful (HTTP $STATUS)"
+          else
+            echo "⚠️ keep-alive ping returned HTTP $STATUS"
+            exit 1
+          fi
+
+      - name: Ping /api/health
+        run: |
+          echo "Pinging https://app.butwalhacks.com/api/health ..."
+          RESPONSE=$(curl -s "https://app.butwalhacks.com/api/health")
+          echo "$RESPONSE" | python3 -m json.tool 2>/dev/null || echo "$RESPONSE"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://app.butwalhacks.com/api/health")
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ health check successful (HTTP $STATUS)"
+          else
+            echo "⚠️ health check returned HTTP $STATUS"
+            exit 1
+          fi
