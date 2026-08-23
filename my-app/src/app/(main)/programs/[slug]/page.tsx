@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import { getProgramBySlug, blogPosts, initiatives, getRelatedByTags, programs } from '@/lib/content';
 import ProgramDetailClient from '@/components/programs/program-detail-client';
 import RelatedLinks from '@/components/home/related-links';
+import { buildPageMetadata } from '@/lib/seo';
+import type { Metadata } from 'next';
 
 export const dynamic = "force-static";
 
@@ -14,6 +16,26 @@ export function generateStaticParams() {
 type Props = {
   params: Promise<{ slug: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const program = getProgramBySlug(slug);
+
+  if (!program) {
+    return buildPageMetadata({
+      title: "Program Not Found",
+      description: "The requested program does not exist.",
+      path: `/programs/${slug}`,
+    });
+  }
+
+  return buildPageMetadata({
+    title: `${program.title} — Butwal Hacks`,
+    description: program.tagline,
+    path: `/programs/${slug}`,
+    keywords: program.tags,
+  });
+}
 
 export default async function ProgramDetailPage({ params }: Props) {
   const { slug } = await params;

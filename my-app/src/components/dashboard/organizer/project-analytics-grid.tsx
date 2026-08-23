@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Eye, Heart, MessageSquare, BarChart3 } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
 
 import { CardSkeleton, TableSkeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';

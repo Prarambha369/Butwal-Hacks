@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/utils/supabase';
 
 export async function GET(
   request: NextRequest,
@@ -29,5 +29,7 @@ export async function GET(
       role: profile.role,
       xp: profile.xp,
     },
+  }, {
+    headers: { "Cache-Control": "public, max-age=300, s-maxage=600" },
   });
 }

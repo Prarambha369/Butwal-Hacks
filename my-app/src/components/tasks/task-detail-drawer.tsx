@@ -57,7 +57,7 @@ export default function TaskDetailDrawer({ task, onClose, onUpdate, onDelete, te
           <div className="flex items-center gap-2">
             <button
               onClick={handleDelete}
-              className="text-muted-foreground hover:text-status-red transition-colors p-1"
+              className="text-muted-foreground hover:text-status-red transition-colors min-w-[44px] min-h-[44px] p-1 flex items-center justify-center"
               title="Delete task"
             >
               <Trash2 className="h-4 w-4" />
@@ -65,7 +65,7 @@ export default function TaskDetailDrawer({ task, onClose, onUpdate, onDelete, te
           </div>
           <button
             onClick={onClose}
-            className="text-muted-foreground hover:text-primary transition-colors p-1"
+            className="text-muted-foreground hover:text-primary transition-colors min-w-[44px] min-h-[44px] p-1 flex items-center justify-center"
           >
             <X className="h-5 w-5" />
           </button>

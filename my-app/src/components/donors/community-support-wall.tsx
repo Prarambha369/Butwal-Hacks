@@ -1,11 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card"
 
 const communitySupport = [
-  { name: "Ramesh K.", message: "Keep up the amazing work! 🚀", amount: "NPR 2,500" },
+  { name: "Ramesh K.", message: "Keep up the amazing work!", amount: "NPR 2,500" },
   { name: "Anjali D.", message: "So proud of this initiative!", amount: "NPR 5,000" },
   { name: "Tech Enthusiasts Club", message: "Building the future together.", amount: "NPR 7,500" },
   { name: "Bishal M.", message: "Education is the key to progress.", amount: "NPR 3,000" },
-  { name: "Maya S.", message: "Thank you for empowering our youth!", amount: "NPR 4,000" },
+  { name: "Maya S.", message: "Thank you for supporting our youth!", amount: "NPR 4,000" },
   { name: "CodeCrafters Nepal", message: "Excited to see Nepal's tech scene grow.", amount: "NPR 8,000" },
 ]
 

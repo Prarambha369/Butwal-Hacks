@@ -1,10 +1,10 @@
 "use server";
 
 import { logger } from "@/lib/logger"
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import { auth0 } from "@/lib/auth0";
-import { sanitizeString, sanitizeTitle } from "@/lib/validation";
+import { sanitizeString } from "@/lib/validation";
 
 interface CreateOpportunityInput {
   title: string;
@@ -52,7 +52,7 @@ export async function createOpportunity(input: CreateOpportunityInput) {
 
     const { error } = await supabase.from("sponsor_opportunities").insert({
       sponsor_profile_id: sponsorProfileId,
-      title: sanitizeTitle(input.title),
+      title: sanitizeString(input.title, 200),
       description: sanitizeString(input.description, 5000),
       type: input.type,
       compensation: input.compensation ? sanitizeString(input.compensation, 200) : "",
@@ -98,7 +98,7 @@ export async function updateOpportunity(id: string, input: CreateOpportunityInpu
     const { error } = await supabase
       .from("sponsor_opportunities")
       .update({
-        title: sanitizeTitle(input.title),
+        title: sanitizeString(input.title, 200),
         description: sanitizeString(input.description, 5000),
         type: input.type,
         compensation: input.compensation ? sanitizeString(input.compensation, 200) : "",
@@ -199,9 +199,30 @@ export async function getSponsorOpportunities() {
 
 // ── Get public opportunities (active only) ─────────────────────────
 
-export async function getPublicOpportunities(options?: { type?: string; is_bounty?: boolean }) {
+export async function getPublicOpportunities(options?: {
+  type?: string;
+  is_bounty?: boolean;
+  page?: number;
+  per_page?: number;
+}) {
   try {
     const supabase = createServiceClient();
+    const page = Math.max(1, options?.page ?? 1);
+    const perPage = Math.min(100, Math.max(1, options?.per_page ?? 20));
+    const offset = (page - 1) * perPage;
+
+    // Get total count for pagination metadata
+    let countQuery = supabase
+      .from("sponsor_opportunities")
+      .select("*", { count: "exact", head: true })
+      .eq("is_active", true);
+
+    if (options?.type) countQuery = countQuery.eq("type", options.type);
+    if (options?.is_bounty !== undefined) countQuery = countQuery.eq("is_bounty", options.is_bounty);
+
+    const { count } = await countQuery;
+
+    // Fetch paginated results
     let query = supabase
       .from("sponsor_opportunities")
       .select(`
@@ -219,10 +240,21 @@ export async function getPublicOpportunities(options?: { type?: string; is_bount
     if (options?.type) query = query.eq("type", options.type);
     if (options?.is_bounty !== undefined) query = query.eq("is_bounty", options.is_bounty);
 
-    const { data } = await query.order("created_at", { ascending: false });
-    return data || [];
+    const { data } = await query
+      .order("created_at", { ascending: false })
+      .range(offset, offset + perPage - 1);
+
+    return {
+      data: data || [],
+      pagination: {
+        page,
+        perPage,
+        total: count ?? 0,
+        totalPages: count ? Math.ceil(count / perPage) : 0,
+      },
+    };
   } catch {
-    return [];
+    return { data: [], pagination: { page: 1, perPage: 20, total: 0, totalPages: 0 } };
   }
 }
 

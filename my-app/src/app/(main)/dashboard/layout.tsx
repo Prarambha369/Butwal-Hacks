@@ -1,6 +1,6 @@
 import { auth0 } from "@/lib/auth0"
 import { redirect } from "next/navigation"
-import { createServiceClient } from "@/utils/supabase/service"
+import { createServiceClient } from "@/utils/supabase"
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +16,14 @@ export default async function DashboardLayout({
   }
 
   const userId = session.user.sub
+  const userEmail = session.user.email || `${userId}@placeholder.butwalhacks.com`
+  const emailVerified = session.user.email_verified === true
+
+  // Auto-promote @butwalhacks.com verified emails to maintainer
+  const initialRole =
+    userEmail.endsWith("@butwalhacks.com") && emailVerified
+      ? "maintainer"
+      : "hacker"
 
   // Ensure a profile exists — webhook may not have fired (local dev, first signup)
   const db = createServiceClient()
@@ -30,9 +38,9 @@ export default async function DashboardLayout({
     // on concurrent signups (migration 086_atomic_bh_id_generation).
     const { error: rpcError } = await db.rpc('create_profile_with_bh_id', {
       p_auth0_user_id: userId,
-      p_email: session.user.email || `${userId}@placeholder.butwalhacks.com`,
+      p_email: userEmail,
       p_full_name: session.user.name || 'New Hacker',
-      p_role: 'hacker',
+      p_role: initialRole,
     })
 
     if (rpcError) {
@@ -44,9 +52,9 @@ export default async function DashboardLayout({
         auth0_user_id: userId,
         slug_id: bhId,
         bh_id: bhId,
-        email: session.user.email || `${userId}@placeholder.butwalhacks.com`,
+        email: userEmail,
         full_name: session.user.name || 'New Hacker',
-        role: 'hacker',
+        role: initialRole,
         is_claimed: true,
       })
     }

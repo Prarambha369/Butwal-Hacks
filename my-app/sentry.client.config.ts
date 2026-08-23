@@ -9,6 +9,7 @@
  * Docs: https://docs.sentry.io/platforms/javascript/guides/nextjs/
  */
 import * as Sentry from "@sentry/nextjs";
+import { replayIntegration } from "@sentry/browser";
 
 const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
@@ -18,7 +19,7 @@ Sentry.init({
   // Performance monitoring (automatic instrumentation via browserTracingIntegration)
   integrations: [
     Sentry.browserTracingIntegration(),
-    Sentry.replayIntegration({
+    replayIntegration({
       // Lower sampling for privacy — captures enough for debugging without
       // recording full user sessions in a community setting.
       maskAllText: true,

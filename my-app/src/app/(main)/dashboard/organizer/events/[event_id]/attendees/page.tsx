@@ -1,6 +1,7 @@
 import Image from "next/image";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { notFound, redirect } from "next/navigation";
+import { getAvatarUrl } from "@/lib/utils";
 import { auth0 } from "@/lib/auth0";
 import { Users, ExternalLink, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
@@ -117,10 +118,11 @@ export default async function AttendeesPage({ params }: Props) {
                         <div className="flex items-center gap-3">
                           <div className="relative w-8 h-8 overflow-hidden rounded-full bg-surface-hover border border-border">
                             <Image 
-                              src={p?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p?.full_name}`} 
+                              src={getAvatarUrl(p?.avatar_url, p?.full_name)}
                               alt={p?.full_name || 'Hacker'}
                               fill
                               className="object-cover"
+                              unoptimized={!p?.avatar_url}
                             />
                           </div>
                           <span className="text-sm font-semibold text-primary">{p?.full_name || 'Unknown'}</span>

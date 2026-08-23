@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { createServiceClient } from "@/utils/supabase";
 import type { Metadata } from "next";
+import { WidgetPresenceDot } from "@/components/widget/widget-presence-dot";
 
 type Props = {
   params: Promise<{ slugId: string }>;
@@ -18,6 +19,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 /**
  * /widget/[slugId] — embeddable BH-ID verification widget.
+ *
+ * Fetches the profile server-side, then passes `auth0_user_id` to a lightweight
+ * client component that uses the Realtime presence channel for the live dot.
+ * This way the green dot reflects actual online status even in embedded iframes.
  *
  * Variants (via ?variant=):
  *   card    (default) Full Liquid Glass identity card with trust markers
@@ -42,12 +47,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function WidgetPage({ params, searchParams }: Props) {
   const { slugId } = await params;
   const { variant } = await searchParams;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: profile, error } = await supabase
     .from("profiles")
     .select(`
-      full_name, bh_id, role, xp, bio, avatar_url,
+      full_name, bh_id, role, xp, bio, avatar_url, auth0_user_id,
       trust_markers (
         id, title, description, type, is_revoked,
         issuer:profiles!trust_markers_issuer_id_fkey ( full_name )
@@ -105,7 +110,7 @@ export default async function WidgetPage({ params, searchParams }: Props) {
           }
         `}</style>
         <div className="wb">
-          <span className="wb-dot" />
+          <WidgetPresenceDot auth0UserId={profile.auth0_user_id} size="sm" />
           <span className="wb-txt">Verified</span>
           <span className="wb-id">{profile.bh_id}</span>
         </div>
@@ -165,9 +170,9 @@ export default async function WidgetPage({ params, searchParams }: Props) {
             </div>
           </div>
 
-          {/* Live dot */}
-          <span className="wc-dot-parent">
-            <span className="wc-dot-child" />
+          {/* Live presence dot — margin-left:auto pushes it to the right edge */}
+          <span style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
+            <WidgetPresenceDot auth0UserId={profile.auth0_user_id} size="md" />
           </span>
         </div>
       </>
@@ -391,16 +396,7 @@ export default async function WidgetPage({ params, searchParams }: Props) {
               gap: 6,
             }}
           >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: "#4CAF50",
-                flexShrink: 0,
-                boxShadow: "0 0 6px rgba(76,175,80,.5)",
-              }}
-            />
+            <WidgetPresenceDot auth0UserId={profile.auth0_user_id} size="sm" />
             <span className="wc-s" style={{ fontSize: 10 }}>
               {hasTrust
                 ? `Verified with ${activeMarkers.length} trust marker${activeMarkers.length !== 1 ? "s" : ""}`

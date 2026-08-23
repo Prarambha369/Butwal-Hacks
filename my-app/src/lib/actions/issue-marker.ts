@@ -1,11 +1,12 @@
 "use server";
 
 import { logger } from "@/lib/logger";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import { sanitizeString } from "@/lib/validation";
 import { signTrustMarker } from "@/lib/crypto/sign";
 import { resolveProfileId } from "@/lib/profile-resolver";
+import { bustCache } from "@/lib/cache";
 
 export async function issueTrustMarker(input: {
   email: string;
@@ -81,7 +82,11 @@ export async function claimTrustMarker(token: string) {
 
     if (error) throw error;
 
-    revalidatePath("/dashboard");
+    // Bust Redis cache for the claiming user's profile
+  const { data: p } = await supabase.from("profiles").select("bh_id").eq("id", profileId).single();
+  if (p?.bh_id) await bustCache(`profile:bh_id:${p.bh_id}`);
+
+  revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
     logger.error("Error claiming trust marker:", error);

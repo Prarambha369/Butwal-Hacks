@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth0 } from "@/lib/auth0"
-import { createServiceClient } from "@/utils/supabase/service"
-import { checkRateLimit } from "@/lib/rate-limiter"
+import { createServiceClient } from "@/utils/supabase"
+import { withRateLimit } from "@/lib/rate-limiter"
 import { z } from "zod"
+
 
 // ─── Validation Schemas ────────────────────────────────────────────────
 
@@ -48,7 +49,7 @@ async function verifyWorkspaceAccess(profileId: string, workspaceId: string) {
     .from("team_members")
     .select("id")
     .eq("team_id", workspace.team_id)
-    .eq("user_id", profileId)
+    .eq("profile_id", profileId)
     .maybeSingle()
 
   return !!membership
@@ -84,10 +85,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 })
   }
 
+  const u = new URL(request.url);
+  const limit = Math.min(200, Math.max(1, parseInt(u.searchParams.get("limit") ?? "", 10) || 50));
+  const offset = Math.max(0, parseInt(u.searchParams.get("offset") ?? "", 10) || 0);
+
   const db = createServiceClient()
   let query = db
     .from("tasks")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("workspace_id", parsed.data.workspace_id)
     .order("position", { ascending: true })
 
@@ -98,30 +103,28 @@ export async function GET(request: NextRequest) {
     query = query.eq("assignee_id", parsed.data.assignee_id)
   }
 
-  const { data: tasks, error } = await query
+  const { data: tasks, error, count } = await query.range(offset, offset + limit - 1)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ tasks })
+  return NextResponse.json({
+    tasks: tasks ?? [],
+    pagination: { limit, offset, hasMore: (count ?? 0) >= limit },
+  }, {
+    headers: { "Cache-Control": "private, max-age=30" },
+  })
 }
 
-// ─── POST /api/tasks ────────────────────────────────────────────────────
+/**
+ * Creates a task in an accessible workspace.
+ *
+ * @param request - The incoming request containing the task details.
+ * @returns A response containing the created task, or an error response when authentication, validation, access, or persistence fails.
+ */
 
-export async function POST(request: NextRequest) {
-  // Rate limit: 30 tasks per minute per IP (bulk tier)
-  const rateLimitResult = await checkRateLimit(request, "bulk")
-  if (!rateLimitResult.allowed) {
-    return NextResponse.json({ error: "Too many requests" }, {
-      status: 429,
-      headers: {
-        "Retry-After": String(rateLimitResult.reset),
-        "X-RateLimit-Remaining": String(rateLimitResult.remaining),
-      },
-    })
-  }
-
+async function handlePost(request: NextRequest) {
   const session = await auth0.getSession()
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -147,17 +150,15 @@ export async function POST(request: NextRequest) {
 
   const db = createServiceClient()
 
-  // Get the next position for this status column
-  const { data: lastTask } = await db
-    .from("tasks")
-    .select("position")
-    .eq("workspace_id", parsed.data.workspace_id)
-    .eq("status", parsed.data.status)
-    .order("position", { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  // Atomic position generation via Postgres RPC (advisory-lock guarded)
+  const { data: nextPosition, error: posError } = await db.rpc("get_next_task_position", {
+    p_workspace_id: parsed.data.workspace_id,
+    p_status: parsed.data.status,
+  })
 
-  const nextPosition = (lastTask?.position ?? -1) + 1
+  if (posError || typeof nextPosition !== "number") {
+    return NextResponse.json({ error: "Failed to allocate task position" }, { status: 500 })
+  }
 
   const { data: task, error } = await db
     .from("tasks")
@@ -180,3 +181,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ task }, { status: 201 })
 }
+
+export const POST = withRateLimit(handlePost, "bulk");

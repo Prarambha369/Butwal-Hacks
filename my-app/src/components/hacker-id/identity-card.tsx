@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Copy, Check, Github, Linkedin, Twitter, Globe, Trophy } from 'lucide-react';
 import { logger } from '@/lib/logger';
-import { cloudinaryUrl, cn } from '@/lib/utils';
+import { cloudinaryUrl, cn, getAvatarUrl } from '@/lib/utils';
 import { HackerProfile } from '@/lib/supabase-types';
 import { usePresence } from '@/hooks/use-presence';
 import { LiveDot } from '@/components/hacker-id/live-dot';
+import AvatarPreviewModal from '@/components/dashboard/hacker/avatar-preview-modal';
 
 interface IdentityCardProps {
   profile: HackerProfile;
@@ -16,6 +17,7 @@ interface IdentityCardProps {
 export default function IdentityCard({ profile }: IdentityCardProps) {
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showAvatarPreview, setShowAvatarPreview] = useState(false);
 
   React.useEffect(() => {
     setMounted(true);
@@ -37,7 +39,7 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
   if (!mounted) return <div className="h-80 w-full bh-card animate-pulse" />;
   const isOnline = !!(profile.auth0_user_id && onlineIds.has(profile.auth0_user_id))
 
-  const isOrganizer = profile.role === 'Organizer';
+  const isOrganizer = profile.role === 'organizer';
   const hasGoldBorder = profile.trustMarkers?.some(tm => tm.title === 'Golden Profile Border');
 
   return (
@@ -65,20 +67,28 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
           
           {/* Avatar with Concentric Ring */}
           <div className="relative mx-auto md:mx-0">
-            <div className={`
-              p-1 rounded-full transition-all duration-500
-              ${isOrganizer || hasGoldBorder ? 'bg-primary-red ring-4 ring-primary-red/20 shadow-[0_0_20px_rgba(254,0,0,0.2)]' : 'bg-background/20 ring-4 ring-glass'}
-            `}>
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-background shadow-inner bg-background">
-                <Image 
-                  src={profile.avatar} 
-                  alt={profile.name} 
-                  width={160} 
-                  height={160} 
-                  className="w-full h-full object-cover"
-                />
+            <button
+              type="button"
+              onClick={() => setShowAvatarPreview(true)}
+              className="text-left cursor-pointer"
+              aria-label="Preview avatar"
+            >
+              <div className={`
+                p-1 rounded-full transition-all duration-500
+                ${isOrganizer || hasGoldBorder ? 'bg-primary-red ring-4 ring-primary-red/20 shadow-[0_0_20px_rgba(254,0,0,0.2)]' : 'bg-background/20 ring-4 ring-glass'}
+              `}>
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-background shadow-inner bg-background transition-transform group-hover:scale-105">
+                  <Image 
+                    src={getAvatarUrl(profile.avatar, profile.name)}
+                    alt={profile.name} 
+                    width={160} 
+                    height={160} 
+                    className="w-full h-full object-cover"
+                    unoptimized={!profile.avatar}
+                  />
+                </div>
               </div>
-            </div>
+            </button>
             {/* Live presence dot — visible on the avatar rim */}
             <div className="absolute -bottom-0.5 -right-0.5 z-20">
               <LiveDot online={isOnline} size="lg" />
@@ -161,6 +171,16 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Avatar Preview Modal */}
+      {showAvatarPreview && (
+        <AvatarPreviewModal
+          avatarUrl={profile.avatar || null}
+          seed={profile.name || null}
+          fullName={profile.name || null}
+          onClose={() => setShowAvatarPreview(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { notFound, redirect } from "next/navigation";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
@@ -43,7 +43,7 @@ export default async function ClaimPage({ params }: ClaimPageProps) {
             <div
               className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-4 bg-status-yellow/15 border border-status-yellow/40"
             >
-              <span className="text-2xl" role="img" aria-label="Expired">⏰</span>
+              <div className="w-6 h-6 rounded-full bg-status-yellow/30" />
             </div>
             <h1 className="text-xl font-bold text-primary">Link Expired</h1>
             <p className="text-sm text-secondary mt-2 leading-relaxed">
@@ -64,7 +64,7 @@ export default async function ClaimPage({ params }: ClaimPageProps) {
             <div
               className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-4 bg-status-green/15 border border-status-green/40"
             >
-              <span className="text-2xl" role="img" aria-label="Claimed">✅</span>
+              <div className="w-6 h-6 rounded-full bg-status-green/30" />
             </div>
             <h1 className="text-xl font-bold text-primary">Already Claimed</h1>
             <p className="text-sm text-secondary mt-2 leading-relaxed">
@@ -99,7 +99,7 @@ export default async function ClaimPage({ params }: ClaimPageProps) {
             <div
               className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-4 bg-primary-red/15 border border-primary-red/40"
             >
-              <span className="text-2xl" role="img" aria-label="Error">❌</span>
+              <div className="w-6 h-6 rounded-full bg-primary-red/30" />
             </div>
             <h1 className="text-xl font-bold text-primary">Claim Failed</h1>
             <p className="text-sm text-secondary mt-2 leading-relaxed">

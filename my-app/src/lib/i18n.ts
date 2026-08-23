@@ -64,6 +64,12 @@ const translations: Record<string, { en: string; ne: string }> = {
   'footer.resources': { en: 'Resources', ne: 'स्रोतहरू' },
   'footer.about': { en: 'About Butwal Hacks', ne: 'बुटवल ह्याक्सको बारेमा' },
 
+  /* ── Footer sitemap groups ── */
+  'footer.events_projects': { en: 'Events & Projects', ne: 'घटनाहरू र परियोजनाहरू' },
+  'footer.community': { en: 'Community', ne: 'समुदाय' },
+  'footer.learn_resources': { en: 'Learn & Resources', ne: 'सिक्नुहोस् र स्रोतहरू' },
+  'footer.about_section': { en: 'About', ne: 'बारेमा' },
+
   /* ── Footer links ── */
   'footer.upcoming_events': { en: 'Upcoming Events', ne: 'आगामी घटनाहरू' },
   'footer.hackathon_guidelines': { en: 'Hackathon Guidelines', ne: 'ह्याकाथन दिशानिर्देशहरू' },
@@ -78,6 +84,26 @@ const translations: Record<string, { en: string; ne: string }> = {
   'footer.team_board': { en: 'Team & Board', ne: 'टोली र बोर्ड' },
   'footer.open_collective': { en: 'Open Collective', ne: 'ओपन कलेक्टिभ' },
   'footer.contact_us': { en: 'Contact Us', ne: 'हामीलाई सम्पर्क गर्नुहोस्' },
+  'footer.all_events': { en: 'All Events', ne: 'सबै घटनाहरू' },
+  'footer.event_list': { en: 'Event List', ne: 'घटना सूची' },
+  'footer.event_gallery': { en: 'Event Gallery', ne: 'घटना ग्यालेरी' },
+  'footer.featured_projects': { en: 'Featured Projects', ne: 'विशेष परियोजनाहरू' },
+  'footer.initiatives': { en: 'Initiatives', ne: 'पहलहरू' },
+  'footer.community_hub': { en: 'Community Hub', ne: 'समुदाय केन्द्र' },
+  'footer.explore_members': { en: 'Explore Members', ne: 'सदस्यहरू अन्वेषण गर्नुहोस्' },
+  'footer.chapters': { en: 'Chapters', ne: 'अध्यायहरू' },
+  'footer.opportunities': { en: 'Opportunities', ne: 'अवसरहरू' },
+  'footer.sponsor_portal': { en: 'Sponsor Portal', ne: 'प्रायोजक पोर्टल' },
+  'footer.blog_insights': { en: 'Blog & Insights', ne: 'ब्लग र अन्तरदृष्टि' },
+  'footer.resources_page': { en: 'Resources', ne: 'स्रोतहरू' },
+  'footer.documentation': { en: 'Documentation', ne: 'कागजातहरू' },
+  'footer.donors': { en: 'Donors', ne: 'दाताहरू' },
+  'footer.annual_report': { en: 'Annual Report', ne: 'वार्षिक प्रतिवेदन' },
+  'footer.about_us': { en: 'About Us', ne: 'हाम्रो बारेमा' },
+  'footer.philosophy': { en: 'Philosophy', ne: 'दर्शन' },
+  'footer.sponsor_prospectus': { en: 'Sponsor Prospectus', ne: 'प्रायोजक प्रस्तावना' },
+  'footer.transparency': { en: 'Transparency', ne: 'पारदर्शिता' },
+  'footer.governance': { en: 'Governance', ne: 'शासन' },
 
   /* ── Footer brand / tagline ── */
   'footer.brand_statement': { en: 'Student-run, community-funded.', ne: 'विद्यार्थी-संचालित, समुदाय-वित्तपोषित।' },
@@ -97,6 +123,7 @@ const translations: Record<string, { en: string; ne: string }> = {
   'footer.terms': { en: 'Terms', ne: 'सर्तहरू' },
   'footer.cookies': { en: 'Cookies', ne: 'कुकीज' },
   'footer.legal': { en: 'Legal', ne: 'कानुनी' },
+  'footer.sitemap': { en: 'Sitemap', ne: 'साइटम्याप' },
 
   /* ── Error pages ── */
   'error.unexpected': { en: 'An unexpected error occurred while processing your request. Our maintainers have been notified.', ne: 'तपाईंको अनुरोध प्रशोधन गर्दा एउटा अप्रत्याशित त्रुटि भयो। हाम्रो मर्मतकर्ताहरूलाई सूचित गरिएको छ।' },
@@ -127,6 +154,18 @@ const translations: Record<string, { en: string; ne: string }> = {
   'dashboard.projects': { en: 'Projects', ne: 'परियोजनाहरू' },
   'dashboard.analytics': { en: 'Analytics', ne: 'विश्लेषण' },
   'dashboard.welcome': { en: 'Welcome back', ne: 'फेरि स्वागत छ' },
+  'dashboard.hub': { en: 'Dashboard Hub', ne: 'ड्यासबोर्ड हब' },
+  'dashboard.welcome_heading': { en: 'Welcome to Butwal Hacks', ne: 'बुटवल ह्याक्समा स्वागत छ' },
+  'dashboard.hub_description': { en: 'This is your central hub. Claim your identity, complete your onboarding, and explore every tool available to you.', ne: 'यो तपाईंको केन्द्रीय हब हो। आफ्नो पहिचान दावी गर्नुहोस्, आफ्नो अनबोर्डिङ पूरा गर्नुहोस्, र तपाईंलाई उपलब्ध हरेक उपकरण अन्वेषण गर्नुहोस्।' },
+  'dashboard.ready_build': { en: 'Ready to start building?', ne: 'निर्माण सुरु गर्न तयार हुनुहुन्छ?' },
+  'dashboard.ready_description': { en: 'Head to your role-specific dashboard to access all your tools, track progress, and manage your projects.', ne: 'तपाईंका सबै उपकरणहरू पहुँच गर्न, प्रगति ट्र्याक गर्न, र तपाईंका परियोजनाहरू व्यवस्थापन गर्न आफ्नो भूमिका-विशिष्ट ड्यासबोर्डमा जानुहोस्।' },
+  'dashboard.go_to_role': { en: 'Go to {role} Dashboard', ne: '{role} ड्यासबोर्डमा जानुहोस्' },
+  'dashboard.explore_community': { en: 'Explore the Community', ne: 'समुदाय अन्वेषण गर्नुहोस्' },
+  'dashboard.quick_start': { en: 'Quick Start', ne: 'द्रुत सुरुवात' },
+  'dashboard.onboarding': { en: 'Onboarding', ne: 'अनबोर्डिङ' },
+  'dashboard.stats': { en: 'Stats & Activity', ne: 'तथ्यांक र गतिविधि' },
+  'dashboard.tool_guide': { en: 'Tool Guide', ne: 'उपकरण गाइड' },
+  'dashboard.bh_id_card': { en: 'BH-ID Identity Card', ne: 'BH-आईडी पहिचान कार्ड' },
 
   /* ── Status labels ── */
   'status.active': { en: 'Active', ne: 'सक्रिय' },
@@ -136,6 +175,11 @@ const translations: Record<string, { en: string; ne: string }> = {
   'status.success': { en: 'Success', ne: 'सफल' },
   'status.verified': { en: 'Verified', ne: 'प्रमाणित' },
   'status.unverified': { en: 'Unverified', ne: 'अप्रमाणित' },
+  'status.upcoming': { en: 'Upcoming', ne: 'आगामी' },
+  'status.ongoing': { en: 'Ongoing', ne: 'जारी' },
+  'status.registered': { en: 'Registered', ne: 'दर्ता भयो' },
+  'status.available': { en: 'Available', ne: 'उपलब्ध' },
+  'status.unavailable': { en: 'Unavailable', ne: 'अनुपलब्ध' },
 
   /* ── Form actions ── */
   'form.create': { en: 'Create', ne: 'सिर्जना गर्नुहोस्' },
@@ -156,7 +200,7 @@ const translations: Record<string, { en: string; ne: string }> = {
   'feedback.send': { en: 'Send Feedback', ne: 'प्रतिक्रिया पठाउनुहोस्' },
   'feedback.sending': { en: 'Sending...', ne: 'पठाउँदै...' },
   'feedback.thank_you': { en: 'Thank you!', ne: 'धन्यवाद!' },
-  'feedback.thanks_note': { en: 'Your feedback helps shape the future of Butwal Hacks.', ne: 'तपाईंको प्रतिक्रियाले बुटवल ह्याक्सको भविष्यलाई आकार दिन मद्दत गर्छ।' },
+  'feedback.thanks_note': { en: 'We read every piece of feedback — it goes straight to the maintainers.', ne: 'हामी हरेक प्रतिक्रिया पढ्छौं — यो सीधै मर्मतकर्ताहरूमा जान्छ।' },
   'feedback.category_bug': { en: 'Bug', ne: 'त्रुटि' },
   'feedback.category_feature': { en: 'Feature', ne: 'सुविधा' },
   'feedback.category_improve': { en: 'Improve', ne: 'सुधार' },
@@ -176,6 +220,11 @@ const translations: Record<string, { en: string; ne: string }> = {
   'team.leave': { en: 'Leave', ne: 'छोड्नुहोस्' },
   'team.create_team': { en: 'Create Team', ne: 'टोली सिर्जना गर्नुहोस्' },
   'team.member_count': { en: '{count} member(s)', ne: '{count} सदस्य(हरू)' },
+  'team.my_teams': { en: 'My Teams', ne: 'मेरो टोलीहरू' },
+  'team.no_teams': { en: 'No teams yet', ne: 'अहिलेसम्म कुनै टोली छैन' },
+  'team.pending_invites': { en: 'Pending Invitations', ne: 'पर्खिरहेको निमन्त्रणाहरू' },
+  'team.find_teammates': { en: 'Find Teammates', ne: 'टोली साथीहरू खोज्नुहोस्' },
+  'team.new_team': { en: 'New Team', ne: 'नयाँ टोली' },
 
   /* ── Common empty / placeholder states ── */
   'empty.no_projects': { en: 'No projects yet', ne: 'अहिलेसम्म कुनै परियोजना छैन' },
@@ -192,6 +241,16 @@ const translations: Record<string, { en: string; ne: string }> = {
   'profile.certificates': { en: 'Certificates', ne: 'प्रमाणपत्रहरू' },
   'profile.photos': { en: 'Photos', ne: 'फोटोहरू' },
   'profile.edit_profile': { en: 'Edit Profile', ne: 'प्रोफाइल सम्पादन गर्नुहोस्' },
+  'profile.view_profile': { en: 'View Profile', ne: 'प्रोफाइल हेर्नुहोस्' },
+  'profile.bio': { en: 'Bio', ne: 'परिचय' },
+  'profile.member_since': { en: 'Member since {date}', ne: '{date} देखि सदस्य' },
+  'profile.xp_points': { en: '{xp} XP', ne: '{xp} अंक' },
+  'profile.no_bio': { en: 'No bio yet.', ne: 'अहिलेसम्म कुनै परिचय छैन।' },
+  'profile.link_account': { en: 'Link Account', ne: 'खाता लिङ्क गर्नुहोस्' },
+  'profile.upload_avatar': { en: 'Upload Avatar', ne: 'अवतार अपलोड गर्नुहोस्' },
+  'profile.remove_avatar': { en: 'Remove', ne: 'हटाउनुहोस्' },
+  'profile.adjust_photo': { en: 'Adjust Profile Photo', ne: 'प्रोफाइल फोटो समायोजन गर्नुहोस्' },
+  'profile.apply_upload': { en: 'Apply & Upload', ne: 'लागू गर्नुहोस् र अपलोड गर्नुहोस्' },
 
   /* ── Auth pages ── */
   'auth.welcome': { en: 'Welcome to Butwal Hacks', ne: 'बुटवल ह्याक्समा स्वागत छ' },
@@ -199,6 +258,10 @@ const translations: Record<string, { en: string; ne: string }> = {
   'auth.sign_in_github': { en: 'Sign in with GitHub', ne: 'GitHub मार्फत साइन इन गर्नुहोस्' },
   'auth.sign_in_google': { en: 'Sign in with Google', ne: 'Google मार्फत साइन इन गर्नुहोस्' },
   'auth.claim_marker': { en: 'Sign in to claim this marker and add it to your Butwal Hacks profile.', ne: 'यो मार्कर दावी गर्न र आफ्नो बुटवल ह्याक्स प्रोफाइलमा थप्न साइन इन गर्नुहोस्।' },
+  'auth.login': { en: 'Log In', ne: 'लग इन' },
+  'auth.logout': { en: 'Log Out', ne: 'लग आउट' },
+  'auth.sign_up': { en: 'Sign Up', ne: 'साइन अप' },
+  'auth.return_to_login': { en: 'Return to Login', ne: 'लगइनमा फर्कनुहोस्' },
 
   /* ── Time / relative dates ── */
   'time.just_now': { en: 'Just now', ne: 'अहिले मात्र' },
@@ -224,6 +287,16 @@ const translations: Record<string, { en: string; ne: string }> = {
   'action.print': { en: 'Print', ne: 'प्रिन्ट गर्नुहोस्' },
   'action.filter': { en: 'Filter', ne: 'फिल्टर' },
   'action.sort': { en: 'Sort', ne: 'क्रमबद्ध गर्नुहोस्' },
+  'action.go_to_dashboard': { en: 'Go to Dashboard', ne: 'ड्यासबोर्डमा जानुहोस्' },
+  'action.explore_projects': { en: 'Explore Projects', ne: 'परियोजनाहरू अन्वेषण गर्नुहोस्' },
+  'action.view_all_events': { en: 'All Events', ne: 'सबै घटनाहरू' },
+  'action.related_initiatives': { en: 'Related Initiatives', ne: 'सम्बन्धित पहलहरू' },
+  'action.continue_reading': { en: 'Continue Reading', ne: 'पढ्न जारी राख्नुहोस्' },
+  'action.active_initiative': { en: 'Active Initiative', ne: 'सक्रिय पहल' },
+  'action.register_now': { en: 'Register Now', ne: 'अहिले दर्ता गर्नुहोस्' },
+  'action.add_to_calendar': { en: 'Add to Calendar', ne: 'पात्रोमा थप्नुहोस्' },
+  'action.cookie_policy': { en: 'Cookie Policy', ne: 'कुकी नीति' },
+  'action.sitemap': { en: 'Sitemap', ne: 'साइटम्याप' },
 
   /* ── Search / Command Palette ── */
   'search.placeholder': { en: 'Search hackers, projects, events...', ne: 'ह्याकरहरू, परियोजनाहरू, घटनाहरू खोज्नुहोस्...' },
@@ -247,6 +320,25 @@ const translations: Record<string, { en: string; ne: string }> = {
   'pwa.update_desc': { en: 'A new version is ready', ne: 'नयाँ संस्करण तयार छ' },
   'pwa.refresh_button': { en: 'Refresh', ne: 'ताजा गर्नुहोस्' },
   'pwa.dismiss': { en: 'Dismiss', ne: 'खारेज गर्नुहोस्' },
+
+  /* ── Camera Capture ── */
+  'camera.take_photo': { en: 'Take Photo', ne: 'फोटो खिच्नुहोस्' },
+  'camera.cancel': { en: 'Cancel', ne: 'रद्द गर्नुहोस्' },
+  'camera.capture': { en: 'Capture', ne: 'क्याप्चर गर्नुहोस्' },
+  'camera.accessing': { en: 'Accessing camera...', ne: 'क्यामेरा पहुँच गर्दै...' },
+  'camera.error.denied': { en: 'Camera access denied. Please allow camera permissions in your browser settings.', ne: 'क्यामेरा पहुँच अस्वीकृत। कृपया आफ्नो ब्राउजर सेटिङहरूमा क्यामेरा अनुमतिहरू अनुमति दिनुहोस्।' },
+  'camera.error.not_found': { en: 'No camera found on this device.', ne: 'यो यन्त्रमा कुनै क्यामेरा फेला परेन।' },
+  'camera.error.generic': { en: 'Could not access the camera.', ne: 'क्यामेरा पहुँच गर्न सकिएन।' },
+  'camera.flip': { en: 'Flip camera', ne: 'क्यामेरा पल्टाउनुहोस्' },
+  'camera.retry': { en: 'Try Again', ne: 'पुनः प्रयास गर्नुहोस्' },
+  'camera.close': { en: 'Close', ne: 'बन्द गर्नुहोस्' },
+
+  /* ── Offline Data ── */
+  'offline.cached_data': { en: 'Cached Data', ne: 'क्यास गरिएको डाटा' },
+  'offline.entries_count': { en: '{n} items cached', ne: '{n} वस्तुहरू क्यास गरिएको' },
+  'offline.last_sync': { en: 'Last synced', ne: 'पछिल्लो सिन्क' },
+  'offline.available_offline': { en: 'Available offline', ne: 'अफलाइन उपलब्ध' },
+  'offline.updated_ago': { en: 'Updated {n} ago', ne: '{n} पहिले अद्यावधिक गरिएको' },
 };
 
 export function t(key: string, locale: Locale = 'en'): string {

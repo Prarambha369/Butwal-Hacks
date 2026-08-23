@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { Building2, Globe, MapPin, Hash, Save } from "lucide-react";
+import { Building2, Globe, MapPin, Hash, Save, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { upsertSponsorProfile } from "@/lib/actions/sponsor-profile";
 import { TagInput } from "@/components/ui/tag-input";
+import { getSocialLinkError, normalizeSocialUrl } from "@/lib/validation";
 
 interface InitialData {
   companyName: string;
@@ -29,11 +30,23 @@ export default function SponsorCompanyForm({
   const [locations, setLocations] = useState<string[]>(initialData.locations);
   const [industries, setIndustries] = useState<string[]>(initialData.industries);
   const [saving, setSaving] = useState(false);
+  const [websiteError, setWebsiteError] = useState<string | null>(null);
+  const [logoUrlError, setLogoUrlError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyName.trim()) {
       toast.error("Company name is required");
+      return;
+    }
+
+    // Validate URLs before submitting
+    const websiteErr = companyWebsite.trim() ? getSocialLinkError('website', companyWebsite) : null;
+    const logoErr = companyLogoUrl.trim() ? normalizeSocialUrl(companyLogoUrl) === null ? 'Enter a valid logo URL (e.g., https://example.com/logo.png)' : null : null;
+    setWebsiteError(websiteErr);
+    setLogoUrlError(logoErr);
+    if (websiteErr || logoErr) {
+      toast.error("Please fix the URL errors before saving");
       return;
     }
 
@@ -103,11 +116,20 @@ export default function SponsorCompanyForm({
         <input
           type="url"
           value={companyWebsite}
-          onChange={(e) => setCompanyWebsite(e.target.value)}
+          onChange={(e) => {
+            setCompanyWebsite(e.target.value);
+            if (websiteError) setWebsiteError(null);
+          }}
           placeholder="https://your-company.com"
-          className="mt-1.5 w-full rounded-xl bg-surface/10 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary/50 focus:border-bh-red-500/50 focus:outline-none transition-all"
+          className={`mt-1.5 w-full rounded-xl bg-surface/10 border px-4 py-2.5 text-sm text-primary placeholder:text-secondary/50 focus:outline-none transition-all ${websiteError ? 'border-primary-red/50 focus:border-primary-red' : 'border-border focus:border-bh-red-500/50'}`}
           maxLength={2048}
         />
+        {websiteError && (
+          <p className="mt-1 text-xs text-primary-red flex items-center gap-1">
+            <AlertCircle size={12} />
+            {websiteError}
+          </p>
+        )}
       </div>
 
       {/* Logo URL */}
@@ -118,11 +140,20 @@ export default function SponsorCompanyForm({
         <input
           type="url"
           value={companyLogoUrl}
-          onChange={(e) => setCompanyLogoUrl(e.target.value)}
+          onChange={(e) => {
+            setCompanyLogoUrl(e.target.value);
+            if (logoUrlError) setLogoUrlError(null);
+          }}
           placeholder="https://res.cloudinary.com/.../logo.png"
-          className="mt-1.5 w-full rounded-xl bg-surface/10 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary/50 focus:border-bh-red-500/50 focus:outline-none transition-all"
+          className={`mt-1.5 w-full rounded-xl bg-surface/10 border px-4 py-2.5 text-sm text-primary placeholder:text-secondary/50 focus:outline-none transition-all ${logoUrlError ? 'border-primary-red/50 focus:border-primary-red' : 'border-border focus:border-bh-red-500/50'}`}
           maxLength={2048}
         />
+        {logoUrlError && (
+          <p className="mt-1 text-xs text-primary-red flex items-center gap-1">
+            <AlertCircle size={12} />
+            {logoUrlError}
+          </p>
+        )}
       </div>
 
       {/* Description */}

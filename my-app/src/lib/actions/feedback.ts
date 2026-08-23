@@ -1,9 +1,8 @@
 "use server";
 
 import { logger } from "@/lib/logger"
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { sanitizeString } from "@/lib/validation";
-import { captureServerEvent } from "@/lib/analytics/server";
 
 interface SubmitFeedbackInput {
   category: "bug" | "feature" | "improvement" | "other";
@@ -63,13 +62,6 @@ export async function submitFeedback(input: SubmitFeedbackInput) {
       });
 
     if (error) throw error;
-
-    // Capture feedback event to PostHog
-    await captureServerEvent("feedback_submitted", rateLimitKey, {
-      category: input.category,
-      message_length: message.length,
-      is_authenticated: !!input.auth0_id,
-    });
 
     return { success: true };
   } catch (error) {

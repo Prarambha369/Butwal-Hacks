@@ -15,7 +15,7 @@ const diamondDonors: DonorData[] = [
     amount: "NPR 50,000+",
     type: "Corporate",
     date: "January 2026",
-    message: "Proud to support the next generation of innovators in Butwal.",
+    message: "Supporting tech builders in Butwal.",
   },
 ]
 
@@ -32,7 +32,7 @@ const platinumDonors: DonorData[] = [
     amount: "NPR 30,000",
     type: "Corporate",
     date: "December 2025",
-    message: "Investing in Nepal's tech talent ecosystem.",
+    message: "Backing Nepal's next generation of builders.",
   },
 ]
 
@@ -117,7 +117,7 @@ export function RecognitionTiers() {
       <div className="mt-10">
         <div className="mb-4 flex items-center gap-3">
           <div className="rounded-lg bg-primary/10 px-3 py-1.5">
-            <span className="text-sm font-bold text-primary">💎 Diamond</span>
+            <span className="text-sm font-bold text-primary">Diamond</span>
           </div>
           <span className="text-xs text-secondary">NPR 50,000+</span>
         </div>
@@ -132,7 +132,7 @@ export function RecognitionTiers() {
       <div className="mt-10">
         <div className="mb-4 flex items-center gap-3">
           <div className="rounded-lg bg-secondary/10 px-3 py-1.5">
-            <span className="text-sm font-bold text-secondary">🏆 Platinum</span>
+            <span className="text-sm font-bold text-secondary">Platinum</span>
           </div>
           <span className="text-xs text-secondary">NPR 25,000 - 49,999</span>
         </div>
@@ -147,7 +147,7 @@ export function RecognitionTiers() {
       <div className="mt-10">
         <div className="mb-4 flex items-center gap-3">
           <div className="rounded-lg bg-status-yellow/20 px-3 py-1.5">
-            <span className="text-sm font-bold text-status-yellow">⭐ Gold</span>
+            <span className="text-sm font-bold text-status-yellow">Gold</span>
           </div>
           <span className="text-xs text-secondary">NPR 10,000 - 24,999</span>
         </div>

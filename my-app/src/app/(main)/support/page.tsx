@@ -7,29 +7,28 @@ import { buildPageMetadata } from "@/lib/seo"
 import { SponsorForm } from "./sponsor-form"
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Sponsor Prospectus",
-  description:
-    "Butwal Hacks Sponsor Prospectus for institutional partners: audience impact, partnership tiers, transparency, and direct inquiry.",
+  title: "Sponsor Prospectus",    description:
+    "Reach student builders in Lumbini. Sponsor Butwal Hacks with community, silver, gold, or platinum tiers — resume database access, workshop rights, and full financial transparency. Get in touch.",
   path: "/support",
 })
 
 const metrics = [
   {
     icon: Users,
-    value: "500+",
-    label: "Active Students & Builders",
-    note: "Verified participants from colleges and engineering schools in the region.",
+    value: "Growing",
+    label: "Student Builders",
+    note: "Students and young developers building real projects across Lumbini Province.",
   },
   {
     icon: Rocket,
-    value: "20+",
-    label: "Projects Shipped Yearly",
-    note: "Real-world MVPs addressing local challenges in education, tourism, and civic life.",
+    value: "Real",
+    label: "Projects That Matter",
+    note: "MVPs addressing local challenges in education, tourism, and civic life.",
   },
   {
     icon: MapPin,
-    value: "80%",
-    label: "Local Participation",
+    value: "Local",
+    label: "Community Roots",
     note: "Deep engagement across Butwal, Bhairahawa, and surrounding Lumbini corridor communities.",
   },
 ]
@@ -46,11 +45,11 @@ export default function SupportPage() {
               Sponsorship Open 2026
             </p>
             <h1 className="mt-5 text-5xl font-bold font-heading leading-[0.95] tracking-tight text-primary sm:text-6xl">
-              Partner with the <span className="text-primary">Next Generation</span> of Builders
+              Sponsor <span className="text-primary">Student Builders</span> in Nepal
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-secondary sm:text-lg">
-              Supporting youth across Lumbini through code, community, and innovation. Join Nepal&apos;s most impactful
-              district-led tech initiative and reach bright minds building practical solutions for real-world problems.
+              Building youth-driven tech across Lumbini. Butwal Hacks is a district-led initiative connecting sponsors
+              with top student talent building software that solves real local problems.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <a
@@ -75,8 +74,8 @@ export default function SupportPage() {
               <p className="mt-2 text-sm text-secondary">Aligned with the 77 Hacks vision and district-wide youth enablement.</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-border bg-background p-3">
-                  <p className="text-xs uppercase tracking-wide text-secondary">Annual Reach</p>
-                  <p className="mt-1 text-xl font-bold text-primary">500+ builders</p>
+                  <p className="text-xs uppercase tracking-wide text-secondary">Focus</p>
+                  <p className="mt-1 text-xl font-bold text-primary">Student builders</p>
                 </div>
                 <div className="rounded-lg border border-border bg-background p-3">
                   <p className="text-xs uppercase tracking-wide text-secondary">Active Programs</p>
@@ -96,8 +95,8 @@ export default function SupportPage() {
             talent is distributed evenly, but opportunity is not.
           </p>
           <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-secondary sm:text-lg">
-            Sponsorship bridges this gap between youth potential and execution capacity by investing in mentorship,
-            practical programs, and open community infrastructure.
+            Sponsorship turns potential into skill: mentorships, programs, and community infrastructure
+            that students actually use.
           </p>
         </div>
       </section>
@@ -135,7 +134,7 @@ export default function SupportPage() {
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-4xl font-bold font-heading tracking-tight text-primary">Partnership Tiers</h2>
           <p className="mx-auto mt-2 max-w-3xl text-center text-sm text-secondary">
-            Scalable involvement options designed for organizations of all sizes.
+            Four partnership levels — from logo placement to main stage keynote.
           </p>
           <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface">
             <table className="w-full min-w-[760px] text-left text-sm">
@@ -192,8 +191,8 @@ export default function SupportPage() {
                 Transparency First
               </p>
               <p className="mt-2 text-sm text-secondary">
-                We operate as a high-trust nonprofit. Sponsor contributions are tracked and reported through public
-                annual documentation.
+                We&apos;re a registered nonprofit. Every sponsor contribution is tracked and published in our
+                annual public report.
               </p>
             </div>
             <Link

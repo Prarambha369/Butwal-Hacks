@@ -67,11 +67,11 @@ export default async function ImpactReportPage({ params }: Props) {
             </div>
             <div className="flex justify-center gap-4">
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface/10 border border-border text-xs font-medium">
-                <CheckCircle2 className="w-4 h-4 text-green-400" />
+                <CheckCircle2 className="w-4 h-4 text-status-green" />
                 GitHub Verified
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface/10 border border-border text-xs font-medium">
-                <Globe className="w-4 h-4 text-blue-400" />
+                <Globe className="w-4 h-4 text-status-blue" />
                 Global Reach
               </div>
             </div>
@@ -80,9 +80,9 @@ export default async function ImpactReportPage({ params }: Props) {
 
         {/* Detailed Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <MetricCard label="Views" value={metrics.views} icon={<TrendingUp className="w-5 h-5" />} color="text-blue-400" />
+          <MetricCard label="Views" value={metrics.views} icon={<TrendingUp className="w-5 h-5" />} color="text-status-blue" />
           <MetricCard label="Likes" value={metrics.likes} icon={<Award className="w-5 h-5" />} color="text-primary-red" />
-          <MetricCard label="Comments" value={metrics.comments} icon={<Calendar className="w-5 h-5" />} color="text-teal-400" />
+          <MetricCard label="Comments" value={metrics.comments} icon={<Calendar className="w-5 h-5" />} color="text-status-teal" />
         </div>
 
         {/* Verification Section */}

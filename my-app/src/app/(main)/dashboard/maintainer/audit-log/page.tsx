@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { ScrollText } from "lucide-react";
 import AuditLogPanel from "@/components/dashboard/maintainer/audit-log-panel";
 import type { Metadata } from "next";
@@ -66,7 +66,7 @@ export default async function AuditLogPage(props: {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 space-y-8">
       <div className="space-y-1">
         <div className="flex items-center gap-2.5 mb-1">
           <ScrollText className="w-5 h-5 text-primary-red" />

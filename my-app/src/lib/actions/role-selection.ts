@@ -1,12 +1,12 @@
 "use server";
 
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logger } from "@/lib/logger";
 
-const ALLOWED_ROLES = ["hacker", "organizer", "maintainer", "sponsor"] as const;
+const ALLOWED_ROLES = ["hacker", "organizer", "maintainer", "sponsor", "lead"] as const;
 type Role = (typeof ALLOWED_ROLES)[number];
 
 /**

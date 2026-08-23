@@ -1,9 +1,8 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
-import { captureServerEvent } from "@/lib/analytics/server";
-import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter";
+import { withRateLimit } from "@/lib/rate-limiter";
 
 /**
  * POST /api/webhooks/opencollective
@@ -31,7 +30,7 @@ import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter";
  *   }
  * }
  */
-export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
+export const POST = withRateLimit(async (req: NextRequest) => {
   try {
     // ── Payload size check ────────────────────────────────────
     const rawLength = req.headers.get("content-length");
@@ -149,13 +148,6 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
         }
       }
 
-      await captureServerEvent("bounty_completed", "open_collective", {
-        bounty_id: bounty.id,
-        bounty_title: bounty.title,
-        amount: expense.amount,
-        currency: expense.currency,
-      });
-
       logger.info("[oc-webhook] Bounty paid & marked complete", {
         bountyId: bounty.id,
         title: bounty.title,
@@ -167,4 +159,4 @@ export const POST = withRateLimit(withPayloadLimit(async (req: NextRequest) => {
     logger.error("[oc-webhook] Error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-}), "bulk");
+}, "bulk");

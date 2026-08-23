@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { sanitizeName, sanitizeEmail, sanitizeDescription } from "@/lib/validation"
+import { sanitizeEmail, sanitizeString } from "@/lib/validation"
 import { logger } from "@/lib/logger"
-import { withRateLimit, withPayloadLimit } from "@/lib/rate-limiter"
-import { captureServerEvent } from "@/lib/analytics/server"
-import { posthogLog } from "@/lib/posthog-logger"
+import { withRateLimit } from "@/lib/rate-limiter"
 
 const schema = z.object({
-  name: z.string().min(2).transform(v => sanitizeName(v)),
+  name: z.string().min(2).transform(v => sanitizeString(v, 100)),
   email: z.string().email().transform(v => sanitizeEmail(v) ?? v),
   phone: z.string().optional().transform(v => v ? v.replace(/[<>"'&]/g, "").trim().slice(0, 30) : v),
-  subject: z.string().min(5).transform(v => sanitizeName(v)),
-  message: z.string().min(10).transform(v => sanitizeDescription(v)),
+  subject: z.string().min(5).transform(v => sanitizeString(v, 100)),
+  message: z.string().min(10).transform(v => sanitizeString(v, 2000)),
 })
 
-export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
+export const POST = withRateLimit(async (request: Request) => {
   try {
     const body = await request.json()
     const data = schema.parse(body)
@@ -50,22 +48,21 @@ export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
       logger.info("[contact]", { to: CONTACT_EMAIL, from: data.email, subject: data.subject })
     }
 
-    posthogLog.info("Contact form submitted", {
+    logger.info("Contact form submitted", {
       subject: data.subject,
       has_phone: !!data.phone,
       email: data.email,
     });
 
-    await captureServerEvent('contact_form_submitted', 'anonymous', { has_phone: !!data.phone });
     return NextResponse.json({ ok: true })
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid form data" }, { status: 400 })
     }
-    posthogLog.error("Contact form failed", {
+    logger.error("Contact form failed", {
       error: err instanceof Error ? err.message : String(err),
     });
     logger.error("[contact route]", err)
     return NextResponse.json({ error: "Failed to send message" }, { status: 500 })
   }
-}), "public_form")
+}, "public_form")

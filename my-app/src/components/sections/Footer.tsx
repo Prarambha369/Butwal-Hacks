@@ -4,47 +4,48 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useLanguage } from '@/components/language-provider';
+import { t } from '@/lib/i18n';
 
 const sitemapGroups = [
   {
-    label: 'Events & Projects',
+    labelKey: 'footer.events_projects',
     links: [
-      { name: 'All Events', href: '/events' },
-      { name: 'Event List', href: '/events/list' },
-      { name: 'Event Gallery', href: '/gallery' },
-      { name: 'Featured Projects', href: '/projects' },
-      { name: 'Initiatives', href: '/initiatives' },
+      { nameKey: 'footer.all_events', href: '/events' },
+      { nameKey: 'footer.event_list', href: '/events/list' },
+      { nameKey: 'footer.event_gallery', href: '/gallery' },
+      { nameKey: 'footer.featured_projects', href: '/projects' },
+      { nameKey: 'footer.initiatives', href: '/initiatives' },
     ],
   },
   {
-    label: 'Community',
+    labelKey: 'footer.community',
     links: [
-      { name: 'Community Hub', href: '/community' },
-      { name: 'Explore Members', href: '/explore' },
-      { name: 'Chapters', href: '/chapters' },
-      { name: 'Opportunities', href: '/opportunities' },
-      { name: 'Sponsor Portal', href: '/portal/sponsors' },
+      { nameKey: 'footer.community_hub', href: '/community' },
+      { nameKey: 'footer.explore_members', href: '/explore' },
+      { nameKey: 'footer.chapters', href: '/chapters' },
+      { nameKey: 'footer.opportunities', href: '/opportunities' },
+      { nameKey: 'footer.sponsor_portal', href: '/portal/sponsors' },
     ],
   },
   {
-    label: 'Learn & Resources',
+    labelKey: 'footer.learn_resources',
     links: [
-      { name: 'Blog & Insights', href: '/blog' },
-      { name: 'Resources', href: '/resources' },
-      { name: 'Documentation', href: '/docs' },
-      { name: 'Donors', href: '/donors' },
-      { name: 'Annual Report', href: '/annual-report' },
+      { nameKey: 'footer.blog_insights', href: '/blog' },
+      { nameKey: 'footer.resources_page', href: '/resources' },
+      { nameKey: 'footer.documentation', href: '/docs' },
+      { nameKey: 'footer.donors', href: '/donors' },
+      { nameKey: 'footer.annual_report', href: '/annual-report' },
     ],
   },
   {
-    label: 'About',
+    labelKey: 'footer.about_section',
     links: [
-      { name: 'About Us', href: '/about' },
-      { name: 'Philosophy', href: '/philosophy' },
-      { name: 'Sponsor Prospectus', href: '/support' },
-      { name: 'Transparency', href: '/transparency' },
-      { name: 'Governance', href: '/governance' },
-      { name: 'Contact Us', href: '/contact' },
+      { nameKey: 'footer.about_us', href: '/about' },
+      { nameKey: 'footer.philosophy', href: '/philosophy' },
+      { nameKey: 'footer.sponsor_prospectus', href: '/support' },
+      { nameKey: 'footer.transparency', href: '/transparency' },
+      { nameKey: 'footer.governance', href: '/governance' },
+      { nameKey: 'footer.contact_us', href: '/contact' },
     ],
   },
 ];
@@ -58,13 +59,13 @@ function LanguageToggle() {
   }, []);
 
   if (!mounted) {
-    return <div className="w-9 h-9" />;
+    return <div className="min-w-[44px] min-h-[44px]" />;
   }
 
   return (
     <button
       onClick={() => setLocale(locale === 'en' ? 'ne' : 'en')}
-      className="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold tracking-tight text-muted-foreground hover:text-primary hover:bg-surface-hover transition-all duration-300 active:scale-95"
+      className="flex min-w-[44px] min-h-[44px] items-center justify-center rounded-full text-[11px] font-bold tracking-tight text-muted-foreground hover:text-primary hover:bg-surface-hover transition-all duration-300 active:scale-95"
       aria-label={locale === 'en' ? 'Switch to Nepali' : 'Switch to English'}
     >
       {locale === 'en' ? 'EN' : 'ने'}
@@ -74,6 +75,7 @@ function LanguageToggle() {
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const { locale } = useLanguage();
 
   return (
     <footer className="w-full border-t border-border bg-background">
@@ -81,28 +83,28 @@ export default function Footer() {
         {/* Brand Statement */}
         <div className="mb-16 text-center space-y-4">
           <p className="text-2xl md:text-4xl font-bold text-primary">
-            Student-run, community-funded.
+            {t('footer.brand_statement', locale)}
           </p>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-xl mx-auto">
-            A youth-led nonprofit organizing free hackathons, hands-on workshops, and project-based learning for students across Lumbini Province, Nepal.
+            {t('footer.brand_description', locale)}
           </p>
         </div>
 
         {/* Sitemap Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-10 mb-16">
           {sitemapGroups.map((group) => (
-            <div key={group.label} className="space-y-5">
+            <div key={group.labelKey} className="space-y-5">
               <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                {group.label}
+                {t(group.labelKey, locale)}
               </h2>
               <ul className="space-y-3">
                 {group.links.map((link) => (
-                  <li key={link.name}>
+                  <li key={link.nameKey}>
                     <Link
                       href={link.href}
                       className="text-sm text-muted-foreground hover:text-primary-red transition-colors"
                     >
-                      {link.name}
+                      {t(link.nameKey, locale)}
                     </Link>
                   </li>
                 ))}
@@ -117,7 +119,7 @@ export default function Footer() {
             Butwal<span className="text-primary-red">Hacks</span>
           </span>
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.3em] text-primary-red mt-3">
-            Learn. Build. Ship.
+            {t('footer.ignite_unite_lead', locale)}
           </p>
         </div>
 
@@ -125,7 +127,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-3">
             <p className="text-xs font-mono text-muted-foreground/60 text-center md:text-left">
-              &copy; {currentYear} Butwal Hacks. A community-led collective funded via Open Collective.
+              {t('footer.copyright', locale).replace('{year}', String(currentYear))}
             </p>
             <div className="flex items-center gap-3">
               <ThemeToggle />
@@ -134,16 +136,16 @@ export default function Footer() {
           </div>
           <div className="flex items-center gap-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
             <Link href="/legal/privacy" className="hover:text-primary-red transition-colors">
-              Privacy
+              {t('footer.privacy', locale)}
             </Link>
             <Link href="/legal/terms" className="hover:text-primary-red transition-colors">
-              Terms
+              {t('footer.terms', locale)}
             </Link>
             <Link href="/cookie-policy" className="hover:text-primary-red transition-colors">
-              Cookies
+              {t('footer.cookies', locale)}
             </Link>
             <Link href="/sitemap" className="hover:text-primary-red transition-colors">
-              Sitemap
+              {t('footer.sitemap', locale)}
             </Link>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useUser } from "@auth0/nextjs-auth0/client"
-import { createClient } from "@/utils/supabase/client"
+import { createClient } from "@/utils/supabase"
 import { useSyncExternalStore } from "react"
 import type { RealtimeChannel } from "@supabase/supabase-js"
 

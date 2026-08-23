@@ -71,8 +71,20 @@ coverage/
 .amazonq/
 .claude/
 .junie/
+.goose/
+.agents/
 .audit.json
 
+# AI-generated instruction files
+AGENT_MASTER_FIX.md
+AGENT_PROMPT_PURGE_VIBE_CODE.md
+COMPREHENSIVE_FIX_PROMPT.md
+
+# Generated audit and debt reports
+docs/ai-writing-signs.md
+docs/ponytail-debt-ledger.md
+my-app/AUDIT-REMAINING.md
+my-app/TECHNICAL-DEBT.md
 
 # Playwright browsers (locally downloaded)
 /chrome/
@@ -86,8 +98,18 @@ lint_output.txt
 dev_log.txt
 q
 
+# Static analysis tool output
+strix_runs/
+
+# Playwright test results
+test-results/
+
 # Temporary scripts
 tmp/
 
 # Turbopack cache (not currently used, but guard against it)
 .turbo/
+
+# Stray or generated files
+my-app/c.txt
+my-app/.npmrc

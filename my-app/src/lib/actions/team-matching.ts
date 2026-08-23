@@ -1,7 +1,7 @@
 "use server";
 
 import { auth0 } from "@/lib/auth0";
-import { createServiceClient } from "@/utils/supabase/service";
+import { createServiceClient } from "@/utils/supabase";
 
 /**
  * AI Team Matching — find potential teammates based on shared skills,

@@ -1,7 +1,7 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
+import { createServiceClient } from "@/utils/supabase";
 import { OrgSwitcher } from "@/components/org-switcher";
 import {
   LayoutDashboard,
@@ -18,13 +18,9 @@ interface OrgLayoutProps {
 export default async function OrgLayout({ children, params }: OrgLayoutProps) {
   const { slug } = await params;
   const session = await auth0.getSession();
-  const userId = session?.user?.sub;
+  const userId = session?.user?.sub ?? "none";
 
-  if (!userId) {
-    redirect("/sign-in");
-  }
-
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Fetch chapter details
   const { data: chapter } = await supabase

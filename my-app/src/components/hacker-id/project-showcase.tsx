@@ -1,6 +1,7 @@
 "use client";
 
 import { Project } from '@/lib/supabase-types';
+import { Code2 } from 'lucide-react';
 import ContributionCard from './contribution-card';
 
 interface ProjectShowcaseProps {
@@ -13,9 +14,7 @@ export default function ProjectShowcase({ projects, isProfileView = false }: Pro
     return (
       <div className="bh-card p-12 text-center space-y-4">
         <div className="w-16 h-16 bg-surface-hover rounded-full flex items-center justify-center mx-auto">
-          <svg className="w-8 h-8 text-muted-foreground opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-          </svg>
+          <Code2 className="w-8 h-8 text-muted-foreground opacity-20" />
         </div>
         <p className="text-muted-foreground font-mono text-sm opacity-60">
           No projects shipped yet. The compiler awaits.

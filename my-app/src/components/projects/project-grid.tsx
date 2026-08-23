@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Search, Filter, Code2, ExternalLink, Github, ShieldCheck, Heart, Tags } from 'lucide-react';
 import { RoseSpinner } from '@/components/ui/rose-loader';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
 import type { Project } from '@/lib/supabase-types';
 import { cn, cloudinaryUrl } from '@/lib/utils';
 import Link from 'next/link';
@@ -19,15 +19,15 @@ const PAGE_SIZE = 24;
 
 /** Map categories to accent colors for the filter pills */
 const CATEGORY_COLORS: Record<string, string> = {
-  'Web App': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  'Mobile App': 'bg-sky-500/20 text-sky-400 border-sky-500/30',
-  'AI/ML': 'bg-green-500/20 text-green-400 border-green-500/30',
-  'Data Science': 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-  'Blockchain': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  'Hardware/IoT': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  'DevOps/Tools': 'bg-pink-500/20 text-pink-400 border-pink-500/30',
-  'Game Dev': 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-  'Open Source Tool': 'bg-teal-500/20 text-teal-400 border-teal-500/30',
+  'Web App': 'bg-status-blue/20 text-status-blue border-status-blue/30',
+  'Mobile App': 'bg-status-teal/20 text-status-teal border-status-teal/30',
+  'AI/ML': 'bg-status-green/20 text-status-green border-status-green/30',
+  'Data Science': 'bg-status-green/20 text-status-green border-status-green/30',
+  'Blockchain': 'bg-status-orange/20 text-status-orange border-status-orange/30',
+  'Hardware/IoT': 'bg-status-yellow/20 text-status-yellow border-status-yellow/30',
+  'DevOps/Tools': 'bg-status-red/20 text-status-red border-status-red/30',
+  'Game Dev': 'bg-status-blue/20 text-status-blue border-status-blue/30',
+  'Open Source Tool': 'bg-status-teal/20 text-status-teal border-status-teal/30',
   'Other': 'bg-surface-hover text-muted-foreground border-border',
 };
 
@@ -164,7 +164,7 @@ export default function ProjectGrid() {
                 className="bg-transparent text-xs font-bold outline-none cursor-pointer hover:text-primary-red transition-colors"
               >
                 <option value="newest" className="bg-background">Newest</option>
-                <option value="trending" className="bg-background">Trending 🔥</option>
+                <option value="trending" className="bg-background">Trending</option>
                 <option value="top" className="bg-background">Top Rated</option>
               </select>
             </div>
@@ -172,7 +172,7 @@ export default function ProjectGrid() {
             <button 
               onClick={() => setSelectedTech(null)}
               className={cn(
-                "px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
+                "inline-flex items-center px-3 min-h-[44px] rounded-full text-xs font-medium transition-all whitespace-nowrap",
                 !selectedTech ? "bg-bh-red-500 text-primary" : "bg-surface-hover text-muted-foreground hover:bg-background/20"
               )}
             >
@@ -183,7 +183,7 @@ export default function ProjectGrid() {
                 key={tech}
                 onClick={() => setSelectedTech(tech)}
                 className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
+                  "inline-flex items-center px-3 min-h-[44px] rounded-full text-xs font-medium transition-all whitespace-nowrap",
                   selectedTech === tech ? "bg-bh-red-500 text-primary" : "bg-surface-hover text-muted-foreground hover:bg-background/20"
                 )}
               >
@@ -201,7 +201,7 @@ export default function ProjectGrid() {
             <button
               onClick={() => setSelectedCategory(null)}
               className={cn(
-                "px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
+                "inline-flex items-center px-3 min-h-[44px] rounded-full text-xs font-medium transition-all whitespace-nowrap",
                 !selectedCategory ? "bg-bh-red-500 text-primary" : "bg-surface-hover text-muted-foreground hover:bg-background/20"
               )}
             >
@@ -212,7 +212,7 @@ export default function ProjectGrid() {
                 key={cat}
                 onClick={() => setSelectedCategory(cat === selectedCategory ? null : cat)}
                 className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap border",
+                  "inline-flex items-center px-3 min-h-[44px] rounded-full text-xs font-medium transition-all whitespace-nowrap border",
                   selectedCategory === cat
                     ? CATEGORY_COLORS[cat]
                     : "bg-surface-hover border-border text-muted-foreground hover:bg-background/20"
@@ -258,12 +258,12 @@ export default function ProjectGrid() {
                     )}
                     <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       {project.github_url && (
-                        <a href={project.github_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-background/50 text-primary hover:bg-background/80 transition-colors">
+                        <a href={project.github_url} target="_blank" rel="noopener noreferrer" className="min-w-[44px] min-h-[44px] p-2 rounded-full bg-background/50 text-primary hover:bg-background/80 transition-colors flex items-center justify-center">
                           <Github className="w-4 h-4" />
                         </a>
                       )}
                       {project.demo_url && (
-                        <a href={project.demo_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-background/50 text-primary hover:bg-background/80 transition-colors">
+                        <a href={project.demo_url} target="_blank" rel="noopener noreferrer" className="min-w-[44px] min-h-[44px] p-2 rounded-full bg-background/50 text-primary hover:bg-background/80 transition-colors flex items-center justify-center">
                           <ExternalLink className="w-4 h-4" />
                         </a>
                       )}
@@ -303,7 +303,7 @@ export default function ProjectGrid() {
                           key={tech}
                           onClick={() => setSelectedTech(tech === selectedTech ? null : tech)}
                           className={cn(
-                            "px-2 py-0.5 rounded-md border text-[10px] font-medium transition-all",
+                            "inline-flex items-center px-2 min-h-[44px] rounded-md border text-[10px] font-medium transition-all",
                             selectedTech === tech
                               ? "bg-primary-red/20 border-primary-red/50 text-primary-red"
                               : "bg-surface-hover border-border text-muted-foreground hover:bg-background/20"

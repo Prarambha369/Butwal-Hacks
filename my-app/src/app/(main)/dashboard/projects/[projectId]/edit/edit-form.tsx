@@ -11,7 +11,7 @@ import { RoseSpinner } from '@/components/ui/rose-loader';
 import { updateProject } from '@/lib/actions/projects';
 import { toast } from 'sonner';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase';
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
 
 const projectSchema = z.object({
@@ -94,7 +94,7 @@ export default function EditProjectForm({ project }: { project: ProjectData }) {
         coverImage: coverImage || undefined,
       });
       if (result.success) {
-        toast.success("Project updated successfully! ✅");
+        toast.success("Project updated successfully!");
         router.push('/dashboard/hacker/projects');
         router.refresh();
       }
@@ -198,7 +198,7 @@ export default function EditProjectForm({ project }: { project: ProjectData }) {
             <label className="text-sm font-medium text-secondary ml-1">Tech Stack (Press Enter to add)</label>
             <div className="flex flex-wrap gap-2 p-2 bg-surface/10 border border-border rounded-xl focus-within:ring-2 focus-within:ring-[#FE0000] focus-within:outline-none transition-all">
               {techTags.map((tag, i) => (
-                <span key={i} className="px-2 py-1 bg-deep-red/20 text-primary-red text-xs rounded-lg border border-red-600/30 flex items-center gap-1">
+                <span key={i} className="px-2 py-1 bg-deep-red/20 text-primary-red text-xs rounded-lg border border-primary-red/30 flex items-center gap-1">
                   {tag}
                   <button 
                     type="button" 

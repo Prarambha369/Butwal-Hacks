@@ -2,13 +2,6 @@
 
 import { cn } from "@/lib/utils";
 
-interface RoseLoaderProps {
-  size?: "fullscreen" | "lg" | "md" | "sm";
-  className?: string;
-  text?: string;
-  color?: string;
-}
-
 interface RoseSpinnerProps {
   size?: "lg" | "md" | "sm";
   className?: string;
@@ -45,34 +38,6 @@ function SpinnerSvg({ size, color }: { size: number; color: string }) {
         className="animate-[loader-dash_1.5s_ease-in-out_infinite]"
       />
     </svg>
-  );
-}
-
-export function RoseLoader({
-  size = "fullscreen",
-  className,
-  text = "Loading...",
-  color,
-}: RoseLoaderProps) {
-  const strokeColor = color ?? "var(--color-bh-red-500, var(--color-bh-red-500))";
-
-  if (size === "fullscreen") {
-    return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-background/80">
-        <SpinnerSvg size={64} color={strokeColor} />
-        {text && (
-          <p className="animate-pulse text-xs font-mono uppercase tracking-widest opacity-50">
-            {text}
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className={cn("flex items-center justify-center", className)}>
-      <RoseSpinner size={size} color={strokeColor} />
-    </div>
   );
 }
 

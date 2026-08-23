@@ -1,5 +1,5 @@
 
-export type Role = 'hacker' | 'organizer' | 'maintainer'
+export type Role = 'hacker' | 'organizer' | 'maintainer' | 'sponsor' | 'lead'
 
 export interface Profile {
   id: string
@@ -13,6 +13,7 @@ export interface Profile {
   avatar_url: string | null
   xp: number
   is_suspended: boolean
+  has_completed_onboarding: boolean
   created_at: string
   bh_id: string
   socials?: {
@@ -81,6 +82,7 @@ export interface Project {
   tech_stack: string[]
   category: ProjectCategory | null
   github_verified: boolean
+  github_meta: GitHubMeta | null
   created_at: string
   gallery: string[] | null
   project_likes?: { count: number }[]
@@ -142,6 +144,16 @@ export interface ApiKey {
 
 // ─── Display Types (UI-facing, not DB schema) ─────────────────
 
+export interface GitHubMeta {
+  stargazers_count: number
+  forks_count: number
+  commit_count: number
+  readme_preview: string | null
+  pushed_at: string | null
+  topics: string[]
+  language: string | null
+}
+
 export interface Certificate {
   id: string
   title: string
@@ -167,7 +179,7 @@ export interface HackerProfile {
   name: string
   avatar: string
   bannerUrl?: string
-  role: 'Organizer' | 'Hacker' | 'Mentor'
+  role: Role
   bio: string
   socials: {
     github?: string
@@ -183,6 +195,8 @@ export interface HackerProfile {
   id?: string
   /** Auth0 user ID (auth0|abc...) — used for live presence matching */
   auth0_user_id?: string
+  /** Email address — used for Gravatar fallback on the public profile */
+  email?: string
 }
 
 export interface DisplayProject {

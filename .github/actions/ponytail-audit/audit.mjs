@@ -216,8 +216,11 @@ function findUnusedSrcFiles(allFiles) {
     }
   }
 
+  // ALWAYS_SKIP paths are relative to the app dir (my-app/), e.g. "src/proxy.ts".
+  // SRC_DIR is my-app/src, so resolve against the app root, not SRC_DIR itself.
+  const APP_DIR = dirname(SRC_DIR);
   for (const skip of ALWAYS_SKIP) {
-    const full = join(SRC_DIR, skip);
+    const full = join(APP_DIR, skip);
     if (existsSync(full)) entrySet.add(full);
   }
 
@@ -267,7 +270,7 @@ function findUnusedDependencies(allFiles) {
   ]);
 
   const allSourceFiles = allFiles.filter(f => 
-    (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mjs") || f.endsWith(".js")) &&
+    (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mjs") || f.endsWith(".js") || f.endsWith(".css")) &&
     !f.includes("node_modules") &&
     !f.includes(".next")
   );
@@ -276,43 +279,45 @@ function findUnusedDependencies(allFiles) {
   const allImports = new Set();
   for (const file of allSourceFiles) {
     const content = readFileSync(file, "utf-8");
+    // JS/TS imports: import/require/from patterns
     const bareImportPattern = /from\s+["']([^\.][^"']*)["']|require\(["']([^\.][^"']*)["']\)|import\s+["']([^\.][^"']*)["']/g;
-    const matches = content.matchAll(bareImportPattern);
-    for (const match of matches) {
-      // Group 1, 2, or 3 depending on pattern
+    for (const match of content.matchAll(bareImportPattern)) {
       const bare = match[1] || match[2] || match[3];
       if (bare) {
-        // Get the package name (handle scoped packages @scope/pkg and sub-imports @scope/pkg/sub)
         const parts = bare.split("/");
         const pkgName = bare.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
         allImports.add(pkgName);
       }
     }
-  }
-
-  // Also check config files
-  for (const cfg of ["next.config.ts", "eslint.config.mjs", "postcss.config.mjs", "tailwind.config.ts"]) {
-    const cfgPath = join(PROJECT_ROOT, "my-app", cfg);
-    if (existsSync(cfgPath)) {
-      const content = readFileSync(cfgPath, "utf-8");
-      const matches = content.matchAll(/require\(["']([^\.][^"']*)["']\)|from\s+["']([^\.][^"']*)["']/g);
-      for (const match of matches) {
-        const bare = match[1] || match[2];
-        if (bare) {
-          const parts = bare.split("/");
-          const pkgName = bare.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
-          allImports.add(pkgName);
-        }
+    // CSS @import: @import "package-name" or @import 'package-name'
+    const cssImportPattern = /@import\s+["']([^"'\/\.][^"']*)["']/g;
+    for (const match of content.matchAll(cssImportPattern)) {
+      const pkg = match[1];
+      const parts = pkg.split("/");
+      const pkgName = pkg.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
+      allImports.add(pkgName);
+    }
+    // Config file plugin keys: "@scope/pkg": {} or 'pkg': {}
+    const configKeyPattern = /["']([@a-zA-Z][^"'\/]*\/[^"'\/:\.]+|[a-zA-Z][^"'\/:\.-]+-\S+?)["']\s*:/g;
+    for (const match of content.matchAll(configKeyPattern)) {
+      const key = match[1];
+      // Only flag it if it looks like a package name (has a / or looks like a known config key)
+      if (key.includes("/") || key.includes("-")) {
+        allImports.add(key);
       }
     }
   }
 
+  // ponytail: config files scanned inline via allSourceFiles + configKeyPattern
+
+  // ponytail: peer/config-only deps that static analysis can't detect
+  const ALWAYS_NEEDED = new Set(["react", "react-dom", "postcss", "happy-dom"]);
+
   // Check each dep — if never imported in any source file, flag it
   for (const dep of allDeps) {
-    if (dep === "next" || dep.startsWith("@types/") || dep === "typescript") continue; // Always needed
+    if (dep === "next" || dep.startsWith("@types/") || dep === "typescript") continue;
+    if (ALWAYS_NEEDED.has(dep)) continue;
     if (!allImports.has(dep)) {
-      // Skip peer-dependency-looking packages that are implicit
-      if (["react", "react-dom"].includes(dep)) continue;
       findings.push({ type: "unused_dep", path: `package.json → ${dep}`, severity: "WARNING" });
     }
   }
@@ -323,13 +328,16 @@ function findDeadExports(allFiles) {
   const srcFiles = allFiles.filter(f => 
     f.startsWith(SRC_DIR) && (f.endsWith(".ts") || f.endsWith(".tsx")) &&
     !f.endsWith(".d.ts") &&
-    !f.includes("/node_modules/") &&
-    !f.includes("/__tests__/")
+    !f.includes("/node_modules/")
   );
+
+  // Test files are excluded from export analysis but their imports still count
+  // as usage (an export used only by its own unit tests is not dead code).
+  const nonTestSrc = srcFiles.filter(f => !f.includes("/__tests__/"));
 
   // Build export map: exported_name -> file
   const exports = new Map();
-  for (const file of srcFiles) {
+  for (const file of nonTestSrc) {
     const content = readFileSync(file, "utf-8");
     const exportMatches = content.matchAll(/export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class|let|var)\s+(\w+)/g);
     for (const match of exportMatches) {
@@ -369,18 +377,24 @@ function findDeadExports(allFiles) {
   for (const [name, files] of exports) {
     if (files.length > 1) continue; // Probably a re-export
     if (name.startsWith("_")) continue; // Convention for internal
-    if (["default", "metadata", "dynamic", "generateMetadata", "generateStaticParams"].includes(name)) continue; // Next.js conventions
+    if (["default", "metadata", "dynamic", "generateMetadata", "generateStaticParams", "proxy", "config"].includes(name)) continue; // Next.js middleware conventions
 
     const importers = imported.get(name);
     if (!importers || importers.length === 0) {
       // The export exists in one file and is never imported elsewhere
       const file = files[0];
       const rel = relative(PROJECT_ROOT, file);
-      if (file.includes("/__tests__/")) continue;
       if (file.includes("/node_modules/")) continue;
       // Only flag non-page files (pages use exports implicitly)
       const base = basename(file);
       if (NEXTJS_ENTRY_PATTERNS.includes(base)) continue;
+      // An export referenced within its own file (helper called by the entry
+      // function, etc.) is not dead — count intra-file usage beyond the
+      // declaration line itself.
+      // Export names are identifiers (\\w+), so no regex escaping needed.
+      const ownContent = readFileSync(file, "utf-8");
+      const usageCount = (ownContent.match(new RegExp(`\\b${name}\\b`, "g")) || []).length;
+      if (usageCount > 1) continue; // declaration + at least one call/reference
 
       findings.push({ type: "dead_export", path: `${rel} → ${name}()`, severity: "WARNING" });
     }

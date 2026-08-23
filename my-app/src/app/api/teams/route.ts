@@ -1,22 +1,22 @@
 import { NextResponse } from 'next/server';
-import { createAuthenticatedClient } from '@/utils/supabase/server';
+import { createServiceClient } from '@/utils/supabase';
+import { auth0 } from '@/lib/auth0';
 import { z } from 'zod';
-import { sanitizeName, sanitizeUuid } from '@/lib/validation';
+import { sanitizeString, sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
-import { withRateLimit, withPayloadLimit } from '@/lib/rate-limiter';
-import { captureServerEvent } from '@/lib/analytics/server';
-import { posthogLog } from '@/lib/posthog-logger';
+import { withRateLimit } from '@/lib/rate-limiter';
 
 const createTeamSchema = z.object({
-  name: z.string().min(1).transform(v => sanitizeName(v)),
+  name: z.string().min(1).transform(v => sanitizeString(v, 100)),
   event_id: z.string().optional().transform(v => v ? sanitizeUuid(v) ?? v : v),
 });
 
-export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
+export const POST = withRateLimit(async (request: Request) => {
   try {
-    const authClient = await createAuthenticatedClient();
-    if (!authClient) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const { supabase, userId } = authClient;
+    const session = await auth0.getSession();
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createServiceClient();
+    const userId = session.user.sub;
 
     // ponytail: Look up profile UUID for profile_id FK
     const { data: profile } = await supabase
@@ -45,16 +45,15 @@ export const POST = withRateLimit(withPayloadLimit(async (request: Request) => {
       .insert({ team_id: team.id, profile_id: profile.id, is_captain: true });
 
     if (memberError) throw memberError;
-    await captureServerEvent('team_created', userId, { team_id: team.id, has_event: !!event_id });
 
-    posthogLog.info('Team created', { team_id: team.id, has_event: !!event_id, auth0_user_id: userId });
+    logger.info('Team created', { team_id: team.id, has_event: !!event_id, auth0_user_id: userId });
 
-    return NextResponse.json({ success: true, team });
+    return NextResponse.json({ success: true, team }, { status: 201 });
   } catch (err) {
-    posthogLog.error('Team creation failed', {
+    logger.error('Team creation failed', {
       error: err instanceof Error ? err.message : String(err),
     });
     logger.error('[api/teams]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}), "user_action") // ponytail: Uses Auth0 session, removed dependency on Supabase Auth.
+}, "user_action") // ponytail: Uses Auth0 session, removed dependency on Supabase Auth.

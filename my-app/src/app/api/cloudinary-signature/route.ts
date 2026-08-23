@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary"
 import { NextResponse } from "next/server"
+import { z } from "zod"
 import { auth0 } from "@/lib/auth0"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
@@ -49,18 +50,26 @@ export const POST = withRateLimit(async (request: Request) => {
       })
     }
 
-    // Parse optional metadata fields from request body
-    let metadata: Record<string, string> = {}
+    // Parse and validate optional metadata fields
+    const metadataSchema = z.object({
+      entity_type: z.enum(["avatar", "event_banner", "project_cover", "blog_cover", "gallery_photo"]).optional(),
+      bh_id: z.string().max(20).optional(),
+      event_slug: z.string().max(200).optional(),
+      project_id: z.string().uuid().optional(),
+      uploader_auth0_id: z.string().max(100).optional(),
+    })
+
+    const metadata: Record<string, string> = {}
     try {
       const body = await request.json()
-      const { entity_type, bh_id, event_slug, project_id, uploader_auth0_id } = body
-      metadata = { entity_type, bh_id, event_slug, project_id, uploader_auth0_id }
-      // Strip undefined values
-      for (const key of Object.keys(metadata)) {
-        if (!metadata[key]) delete metadata[key]
+      const valid = metadataSchema.parse(body)
+      for (const [key, value] of Object.entries(valid)) {
+        if (value) {
+          metadata[key] = value
+        }
       }
     } catch {
-      // No body or invalid JSON — proceed without metadata
+      // Zod error or parse failure — proceed without metadata
     }
 
     const timestamp = Math.round(Date.now() / 1000)

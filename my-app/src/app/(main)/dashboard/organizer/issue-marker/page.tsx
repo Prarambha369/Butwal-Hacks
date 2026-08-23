@@ -35,23 +35,23 @@ export default async function IssueMarkerPage() {
             </SectionHeading>
             <ul className="text-xs text-muted-foreground space-y-3">
               <li className="flex gap-2">
-                <span className="text-yellow-500">•</span>
+                <span className="text-status-yellow">•</span>
                 Markers should be tied to verifiable outcomes.
               </li>
               <li className="flex gap-2">
-                <span className="text-yellow-500">•</span>
+                <span className="text-status-yellow">•</span>
                 Always provide a clear justification in the description.
               </li>
               <li className="flex gap-2">
-                <span className="text-yellow-500">•</span>
+                <span className="text-status-yellow">•</span>
                 If the email doesn&apos;t have an account, a claim link is sent automatically.
               </li>
               <li className="flex gap-2">
-                <span className="text-yellow-500">•</span>
+                <span className="text-status-yellow">•</span>
                 Markers are immutable once claimed unless revoked by a maintainer.
               </li>
               <li className="flex gap-2">
-                <span className="text-yellow-500">•</span>
+                <span className="text-status-yellow">•</span>
                 Claim links expire after 30 days.
               </li>
             </ul>

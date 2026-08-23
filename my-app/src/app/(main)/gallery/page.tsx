@@ -1,5 +1,5 @@
 import { Calendar } from "lucide-react";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import GalleryGrid from "./gallery-grid";
@@ -10,6 +10,9 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/gallery",
 });
 
+// This page fetches photos from Supabase at request time — must be server-rendered.
+export const dynamic = "force-dynamic";
+
 export type GalleryPhoto = {
   id: string;
   url: string;
@@ -18,6 +21,8 @@ export type GalleryPhoto = {
   date: string;
   span: number;
   uploader: string | null;
+  /** Duration in seconds — only set for video entries */
+  duration?: number;
 };
 
 async function getPhotos(): Promise<GalleryPhoto[]> {

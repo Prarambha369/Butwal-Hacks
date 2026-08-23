@@ -220,7 +220,7 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-8 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all disabled:opacity-40"
+          className={`inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-8 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all ${saving ? 'bh-btn-disabled' : ''}`}
         >
           {saving ? (
             <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Saving...</>

@@ -76,7 +76,7 @@ export default function CookieConsentBanner() {
           {/* Close button */}
           <button
             onClick={handleDeny}
-            className="absolute right-3 top-3 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-surface-hover transition-colors"
+            className="absolute right-3 top-3 min-w-[44px] min-h-[44px] p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-surface-hover transition-colors flex items-center justify-center"
             aria-label="Dismiss cookie notice"
           >
             <X className="w-4 h-4" />

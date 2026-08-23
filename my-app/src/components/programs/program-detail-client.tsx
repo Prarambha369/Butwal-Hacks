@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Calendar, MapPin, Trophy, Clock, ArrowRight, ExternalLink, Code, Users, Mail, FileText, ShieldCheck, Globe, Zap, Download } from 'lucide-react';
+import { Calendar, MapPin, Trophy, Clock, Code, Users, Mail, FileText, ShieldCheck, Globe, Zap, Download, Image as ImageIcon } from 'lucide-react';
 import type { Program } from '@/lib/content';
+import AuthAwareCta from '@/components/auth-aware-cta';
 
 
 export default function ProgramDetailClient({ program }: { program: Program }) {
@@ -21,7 +22,7 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
     type: program.type,
     price: program.price,
     duration: "48 Hours",
-    banner: "https://images.unsplash.com/photo-1504384308090-c894fdbe539b?auto=format&fit=crop&q=80&w=1600",
+    banner: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=1600",
     logo: "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=200",
     hostedBy: "Butwal Hacks Foundation",
     managerEmail: "manager@butwalhacks.com",
@@ -30,29 +31,7 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
     submissions: 127,
   };
 
-  const projects = [
-    {
-      name: "Lumbini Agri-Tech",
-      desc: "AI-powered soil analysis tool for local farmers.",
-      tech: ["React", "TensorFlow", "Node.js"],
-      image: "https://images.unsplash.com/photo-1586771107445-d37d66bc7c99?auto=format&fit=crop&q=80&w=400",
-      link: "https://devpost.com"
-    },
-    {
-      name: "Butwal Transit",
-      desc: "Real-time tracking for regional transport systems.",
-      tech: ["Flutter", "Firebase", "Google Maps"],
-      image: "https://images.unsplash.com/photo-1557821552-17542dagger-crop&q=80&w=400",
-      link: "https://devpost.com"
-    },
-    {
-      name: "EduConnect Nepal",
-      desc: "Decentralized resource sharing for rural schools.",
-      tech: ["Next.js", "Solidity", "IPFS"],
-      image: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?auto=format&fit=crop&q=80&w=400",
-      link: "https://devpost.com"
-    }
-  ];
+  // Gallery shows an empty state until the event has past submissions to display
 
   const tabs = {
     overview: {
@@ -63,9 +42,9 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
             <div className="space-y-6">
               <h3 className="text-2xl font-semibold text-primary leading-[1.2]">The Mission</h3>
               <p className="text-secondary leading-relaxed">
-                The {program.title} is Butwal&apos;s premier building event. We bring together the brightest minds 
-                in the Lumbini Province to build tools that solve real-world problems—from AI-powered agriculture to accessible education platforms.
-                We focus on &quot;Localized Innovation&quot;—building tools that actually impact the streets of Butwal.
+                {program.title} is a hands-on building weekend for students across Lumbini Province. 
+                Teams design, code, and demo working projects that address local challenges — 
+                from agriculture and transit to education and public services.
               </p>
               <div className="p-6 bh-card rounded-xl border-l-4 border-primary-red transition-all hover:bg-surface-hover">
                 <h4 className="font-bold mb-2 flex items-center gap-2">
@@ -92,7 +71,7 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
               </ul>
               <div className="p-6 bh-card rounded-xl space-y-4 transition-all hover:bg-surface-hover">
                 <h4 className="font-bold flex items-center gap-2">
-                  <Globe size={18} className="text-blue-500" /> Participation Type
+                  <Globe size={18} className="text-status-blue" /> Participation Type
                 </h4>
                 <p className="text-sm text-secondary">
                   This is a <span className="text-primary font-bold">{program.type}</span> event. 
@@ -146,16 +125,9 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
             </div>
             <div className="space-y-6">
               <h3 className="text-2xl font-semibold text-primary leading-[1.2]">The Judges</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map((j) => (
-                  <div key={j} className="p-4 bh-card flex items-center gap-3 transition-all hover:bg-surface-hover">
-                    <div className="w-10 h-10 rounded-full bg-surface border border-border" />
-                    <div>
-                      <div className="text-xs font-bold">{`Judge ${j}`}</div>
-                      <div className="text-[10px] text-secondary">Industry Expert</div>
-                    </div>
-                  </div>
-                ))}
+              <div className="p-8 bh-card rounded-xl text-center space-y-3">
+                <Users size={32} className="mx-auto text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Judges will be announced closer to the event date.</p>
               </div>
             </div>
           </div>
@@ -188,9 +160,9 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { rank: "1st Place", project: "The Champion", prize: "$1,000 + Incubation", icon: "🏆" },
-              { rank: "2nd Place", project: "The Runner-up", prize: "$500 + Gear", icon: "🥈" },
-              { rank: "3rd Place", project: "The Innovator", prize: "$250 + Gear", icon: "🥉" },
+              { rank: "1st Place", project: "The Champion", prize: "$1,000 + Incubation", icon: "1st" },
+              { rank: "2nd Place", project: "The Runner-up", prize: "$500 + Gear", icon: "2nd" },
+              { rank: "3rd Place", project: "The Innovator", prize: "$250 + Gear", icon: "3rd" },
             ].map((p, i) => (
               <div key={i} className="p-8 bh-card rounded-xl text-center space-y-4 border-t-2 border-primary-red transition-all hover:bg-surface-hover">
                 <div className="text-4xl">{p.icon}</div>
@@ -203,12 +175,9 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
           
           <div className="space-y-6">
             <h3 className="text-2xl font-semibold text-primary leading-[1.2]">Our Sponsors</h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-              {[1, 2, 3, 4, 5].map(s => (
-                <div key={s} className="aspect-square bh-card rounded-xl flex items-center justify-center p-6 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer hover:bg-surface-hover">
-                  <span className="text-xs font-bold text-center">{`Sponsor ${s}`}</span>
-                </div>
-              ))}
+            <div className="p-8 bh-card rounded-xl text-center space-y-3">
+              <Users size={32} className="mx-auto text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">Sponsors will be announced closer to the event date.</p>
             </div>
           </div>
         </div>
@@ -217,22 +186,14 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
     gallery: {
       label: "Gallery",
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {projects.map((project, i) => (
-            <div key={i} className="bh-card rounded-xl p-4 group flex flex-col h-full">
-              <div className="lg-concentric-inner rounded-lg aspect-video mb-4 relative overflow-hidden">
-                <Image src={project.image} alt={project.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-              </div>
-              <h4 className="font-bold text-primary mb-2">{project.name}</h4>
-              <p className="text-xs text-secondary mb-4 flex-1">{project.desc}</p>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {project.tech.map(t => <span key={t} className="inline-flex items-center rounded-full border border-border bg-surface-hover px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-text-secondary">{t}</span>)}
-              </div>
-              <a href={project.link} target="_blank" className="flex items-center justify-center gap-2 py-2 rounded-full border border-border text-xs hover:bg-surface-hover transition-all">
-                View on Devpost <ExternalLink size={12} />
-              </a>
-            </div>
-          ))}
+        <div className="p-16 bh-card rounded-xl text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center mx-auto">
+            <ImageIcon size={32} className="text-muted-foreground/40" />
+          </div>
+          <p className="text-lg font-bold text-primary">Project Gallery</p>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            Projects submitted during this event will appear here after the hackathon concludes.
+          </p>
         </div>
       )
     },
@@ -345,9 +306,12 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
             </div>
             
             <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-4">
-              <a href="/sign-up" className="bh-btn-primary inline-flex items-center gap-2 px-8 py-3 text-base">
-                Register Now <ArrowRight size={20} />
-              </a>
+              <AuthAwareCta
+                actionHref="/dashboard/hacker"
+                actionLabel="Register Now"
+                returnTo={`/programs/${eventData.slug}`}
+                className="text-base"
+              />
               <a href="#" className="bh-btn-secondary inline-flex items-center gap-2 px-8 py-3 text-base">
                 Add to Calendar <Calendar size={18} />
               </a>

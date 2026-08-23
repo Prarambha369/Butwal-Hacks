@@ -1,5 +1,5 @@
 import { auth0 } from "@/lib/auth0";
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/utils/supabase';
 import { calculateLevel } from '@/lib/gamification/levels';
 import LevelBadge from '@/components/dashboard/level-badge';
 import { Trophy, Star, Zap, Lock, Award } from 'lucide-react';
@@ -39,12 +39,12 @@ export default async function AchievementsPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="flex-1 space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-red/10 text-[10px] font-bold text-primary-red">Gamification</span>
           <h1 className="text-3xl font-bold tracking-tight text-primary">Your Achievements</h1>
-          <p className="text-sm text-muted-foreground">Track your growth and unlock elite builder markers.</p>
+          <p className="text-sm text-muted-foreground">Track your progress and unlock new trust markers.</p>
         </div>
         <div className="bh-card px-6 py-3 flex items-center gap-4">
           <div className="text-right">
@@ -85,7 +85,7 @@ export default async function AchievementsPage() {
         <EmptyState
           icon={<Award className="w-12 h-12" />}
           title="No achievements yet"
-          description="Start building to unlock achievements. Submit your first project, join a team, and earn trust markers to climb the ranks."
+          description="Start building to unlock achievements. Submit your first project, join a team, and earn trust markers to level up."
           actions={[
             { label: "Explore events", href: "/events", variant: "primary" },
             { label: "Submit a project", href: "/dashboard/hacker/projects", variant: "secondary" },

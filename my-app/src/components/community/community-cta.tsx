@@ -1,6 +1,9 @@
+"use client";
+
+import { Mail, Sparkles } from "lucide-react"
 import Link from "next/link"
-import { ArrowUpRight, Mail, Sparkles } from "lucide-react"
 import { FadeIn } from "@/components/home/shared-primitives"
+import AuthAwareCta from "@/components/auth-aware-cta"
 
 export function CommunityCTA() {
   return (
@@ -19,12 +22,12 @@ export function CommunityCTA() {
           there&apos;s a place for you here.
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-4">
-          <Link
-            href="/sign-up"
-            className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-8 py-3.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
-          >
-            Create Your Profile <ArrowUpRight className="w-4 h-4" />
-          </Link>
+          <AuthAwareCta
+            actionHref="/dashboard/hacker"
+            actionLabel="Create Your Profile"
+            returnTo="/community"
+            className="py-3.5"
+          />
           <Link
             href="/contact"
             className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-surface/30 px-8 py-3.5 text-sm font-bold text-primary hover:bg-surface/50 transition-all"
