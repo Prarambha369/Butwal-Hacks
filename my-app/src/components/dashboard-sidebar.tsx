@@ -57,11 +57,13 @@ export default function DashboardSidebar({
   return (
     <>
       <button
+        type="button"
         className="md:hidden fixed top-4 left-4 z-50 min-w-[44px] min-h-[44px] p-2.5 rounded-lg bh-card text-text-secondary hover:text-primary bh-touch-manipulation"
         onClick={() => setMobileOpen((prev) => !prev)}
-        aria-label="Toggle sidebar"
+        aria-label={mobileOpen ? "Close sidebar" : "Open sidebar"}
+        aria-expanded={mobileOpen}
       >
-        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        {mobileOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
       </button>
 
       {mobileOpen && (

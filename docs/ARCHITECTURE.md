@@ -47,19 +47,9 @@ Browser ──► Vercel (Next.js 16) ──┬── Auth0 (Authentication)
 
 ### 9-Zone Route Architecture
 
-The application uses subdomain routing: `butwalhacks.com` serves public marketing content, while `app.butwalhacks.com` serves authenticated dashboards and API routes.
+> **Full route breakdown:** See `PRODUCT.md` §4 for the complete zone-by-zone route listing.
 
-| Zone | Routes | Subdomain | Auth Required |
-|------|--------|-----------|---------------|
-| 1. Public Marketing | `/`, `/about`, `/blog`, `/chapters`, `/community` | `butwalhacks.com` | No |
-| 2. Auth | `/sign-in`, `/sign-up`, `/auth/*` | `butwalhacks.com` | No |
-| 3. Public Profiles | `/p/[slug_id]`, `/verify/[markerId]` | `butwalhacks.com` | No |
-| 4. Hacker Dashboard | `/dashboard/hacker/*` | `app.butwalhacks.com` | Yes |
-| 5. Organizer Dashboard | `/dashboard/organizer/*` | `app.butwalhacks.com` | Yes (Organizer) |
-| 6. Maintainer Dashboard | `/dashboard/maintainer/*` | `app.butwalhacks.com` | Yes (Maintainer) |
-| 7. Organizations | `/orgs/[slug]/*` | `app.butwalhacks.com` | Yes |
-| 8. Sponsor Portal | `/portal/sponsors/*`, `/portal/bounties/*` | `app.butwalhacks.com` | Yes (Sponsor) |
-| 9. API | `/api/*` | `app.butwalhacks.com` | Varies |
+The application uses subdomain routing: `butwalhacks.com` serves public marketing content (Zone 1), while `app.butwalhacks.com` serves authenticated dashboards, profiles, and API routes (Zones 2–9). Subdomain enforcement lives in `src/proxy.ts`.
 
 ---
 
@@ -115,50 +105,20 @@ Organizer issues marker ──► /api/v1/issue-marker
 
 ### Key Design Decisions
 
-#### Why Auth0 (not Supabase Auth)?
-- Auth0 provides enterprise-grade SSO, MFA, and social login
-- Auth0 Organizations power multi-chapter support
-- Auth0 Post-Login Actions sync user data to Supabase via webhook
-- Supabase Auth is disabled; only the database layer is used
-
-#### Why Service Role Key (not RLS)?
-- RLS is disabled for simplicity at MVP stage
-- All mutations are gated by Auth0 session validation in the API route
-- The service role key is never exposed to the browser
-
-#### Design Philosophy
-The interface blends solid, grounded surfaces with selective depth effects. Cards and panels use solid backgrounds and crisp 1px borders — they feel like paper. Blur and shadow are reserved for moments that need visual separation: modal overlays, floating toasts, image captions. Butwal Red (`#FE0000`) is used sparingly for CTAs and verified trust markers — when you see red, it means something.
+> **Full decision records:** See [ADR-001 through ADR-015](#architectural-decisions-butwal-hacks) below for context, rationale, and consequences of each choice. See `PRODUCT.md` §7 for a summary table.
 
 ---
 
 ### Directory Structure
 
-```
-Butwal-Hacks/
-├── my-app/                     # Next.js application
-│   ├── src/
-│   │   ├── app/                # App Router (pages + API routes)
-│   │   │   ├── (main)/         # Public pages (home, about, blog, events...)
-│   │   │   ├── (auth)/         # Auth pages (sign-in, sign-up)
-│   │   │   ├── dashboard/      # Hacker/Organizer/Maintainer dashboards
-│   │   │   ├── p/              # Public BH-ID profiles
-│   │   │   ├── verify/         # Trust marker verification
-│   │   │   ├── widget/         # Embeddable verification widget
-│   │   │   ├── api/            # 51 route handlers
-│   │   │   ├── layout.tsx      # Root layout with metadata
-│   │   │   ├── globals.css     # Design tokens & utilities
-│   │   │   ├── sitemap.ts      # Dynamic sitemap
-│   │   │   ├── robots.ts       # robots.txt config
-│   │   │   └── manifest.ts     # PWA manifest
-│   │   ├── components/         # React components
-│   │   ├── hooks/              # Custom React hooks
-│   │   ├── lib/                # Business logic, i18n, content
-│   │   └── utils/              # Supabase client factories
-│   └── public/                 # Static assets
-├── supabase/migrations/        # 66 database migrations
-├── docs/                       # Consolidated architecture reference (ARCHITECTURE.md)
-└── .github/                    # CI workflows, issue templates
-```
+> **Full filesystem layout:** See `PRODUCT.md` §8 for the complete directory tree with annotations.
+
+Key paths for contributors:
+- `my-app/src/app/` — App Router pages and API routes
+- `my-app/src/proxy.ts` — Auth + subdomain middleware
+- `my-app/src/lib/` — Business logic, server actions, i18n
+- `supabase/migrations/` — SQL schema migrations
+- `docs/ARCHITECTURE.md` — This file
 
 ---
 
@@ -4744,82 +4704,16 @@ The Cloudinary metadata pipeline requires:
 
 ## Design System
 
+> **Canonical source:** `DESIGN.md` contains the full design system reference (colors, typography, components, tokens). `PRODUCT.md` §2 covers the design direction and rationale.
+
 The Butwal Hacks interface uses flat, solid surfaces with selective red accents. Cards have crisp 1px borders. Background blur is used for functional separation (modal overlays, status toasts, image captions) not decoration.
 
-### Colors
+### Key Rules (for contributors)
 
-#### Brand Reds
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| Primary Red | `#FE0000` | CTAs, trust markers, brand identity |
-| Deep Red | `#B10000` | Button hover states, dark red surfaces |
-| Dark Red | `#7b0000` | Deep backgrounds, destructive buttons |
-
-#### Light Mode
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| Background Base | `#F7F7F8` | Page background |
-| Surface | `#FFFFFF` | Cards, modals, inputs |
-| Surface Hover | `#F0F0F2` | Hover states |
-| Border | `#E5E5E5` | All borders, dividers |
-| Text Muted | `#888888` | Secondary text, placeholders |
-| Text Secondary | `#666666` | Body text |
-| Text Body | `#333333` | Paragraph text |
-| Text Primary | `#1F1F1F` | Headings, titles |
-
-#### Dark Mode
-
-| Token | Value |
-|-------|-------|
-| Background Base | `#1a1a1a` |
-| Surface | `#2a2a2a` |
-| Border | `#4a4a4a` |
-| Text Primary | `#f0f0f0` |
-
-### Rules
-
-#### 1. No Inline Styles for Colors
-Use Tailwind arbitrary values or CSS variable references. Never use `style={{ backgroundColor: '#FE0000' }}`.
-
-Correct: `bg-[#FE0000]` or `bg-primary-red`
-Wrong: `style={{ background: '#FE0000' }}`
-
-#### 2. Concentricity
-Inner radius equals outer radius minus padding. For example, if a card has `rounded-[20px]` and `p-4` (16px), inner content should have `rounded-[4px]`.
-
-#### 3. Trust Hierarchy
-
-| Level | Style |
-|-------|-------|
-| Verified | Red border (`border-[#FE0000]`) with red glow (`shadow-[0_0_12px_rgba(254,0,0,0.12)]`) |
-| Self-Reported | Standard border, no glow |
-| Revoked | Greyed out with strikethrough |
-
-#### 4. Typography
-
-- **DM Sans** (Inter fallback): headings, body text, labels, UI copy
-- **JetBrains Mono**: BH-IDs, dates, task names, code blocks, monospaced data
-
-#### 5. Buttons
-
-| Type | Style |
-|------|-------|
-| Primary | Solid red (`#FE0000`), white text, pill shape (`rounded-full`), glow on hover |
-| Secondary | White surface, 1px border, pill shape, no glow |
-| Ghost | Text-only, no background, pill shape |
-
-#### 6. Surfaces
-
-- Cards are solid white (`#FFFFFF`) with 1px borders (`#E5E5E5`)
-- No backdrop blur on cards, buttons, or page sections
-- Blur is acceptable for: modal overlays, status toasts, image captions over photos
-- No gradient backgrounds on page sections (gradients on hero photos are fine)
-
-#### 7. Glow Usage
-
-The red glow (`--bh-glow-red`) appears only on hover for primary CTAs and permanently on verified trust markers. Self-reported items never glow.
+1. **No inline styles for colors** — Use Tailwind classes or CSS variables. Never `style={{ backgroundColor: '#FE0000' }}`.
+2. **Red glow is earned** — `--bh-glow-red` only on primary CTAs (hover) and verified trust markers. Self-reported items never glow.
+3. **Solid surfaces** — Cards are `#FFFFFF` with 1px `#E5E5E5` borders. No backdrop blur on cards or page sections.
+4. **Trust hierarchy** — Verified = red border + glow. Self-reported = standard border. Revoked = greyed + strikethrough.
 
 ---
 

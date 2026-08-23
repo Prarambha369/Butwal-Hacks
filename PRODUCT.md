@@ -185,19 +185,19 @@ Roles are stored in Supabase `profiles.role` column. Enforcement via middleware 
 
 ## 6. Current Implementation Status
 
-### Phase 1: Foundation, Design Pivot & MVP (Days 1-100)
+### Phase 1: Foundation & MVP (Days 1-100)
 
 | Day Range | Milestone | Status |
 |-----------|-----------|--------|
 | 1-10 | Design System Pivot (Kloner.app) | ✅ Complete |
 | 11-20 | Core Auth & Database (Auth0 + Supabase) | ✅ Complete |
 | 21-30 | Marketing Site (Landing, Blog) | ✅ Complete |
-| 31-40 | Subdomain Architecture & ORCID Engine | 🟡 In Progress |
-| 41-50 | Hackathon Engine & Teams | 🟡 In Progress |
-| 51-70 | Notion-Style Work Distribution | 📋 Planned |
-| 71-80 | Maintainer God Mode & Crypto | 📋 Planned |
-| 81-90 | PWA, Rate Limiting, SEO & Hard 404s | 📋 Planned |
-| 91-100 | Launch & Analytics | 📋 Planned |
+| 31-40 | Subdomain Architecture & ORCID Engine | ✅ Complete |
+| 41-50 | Hackathon Engine & Teams | ✅ Complete |
+| 51-70 | Notion-Style Work Distribution | ✅ Complete |
+| 71-80 | Maintainer God Mode & Crypto | ✅ Complete |
+| 81-90 | PWA, Rate Limiting, SEO & Hard 404s | ✅ Complete |
+| 91-100 | Launch & Analytics | ✅ Complete |
 
 ### Recently Completed
 - ✅ Design system pivot: Kloner.app flat foundation + selective red glow
@@ -216,16 +216,14 @@ Roles are stored in Supabase `profiles.role` column. Enforcement via middleware 
 - ✅ SERVICE_ROLE pattern established for all Supabase queries
 
 ### Pending (Next Priority)
-- [ ] Subdomain routing configuration (Vercel production)
-- [ ] Hackathon event creation flow
-- [ ] Team formation and project submission
-- [ ] Notion-style work distribution (Kanban + table view)
-- [ ] Maintainer god mode (marker revocation, audit log)
-- [ ] Ed25519 trust marker signing
-- [ ] PWA install prompt refinement
-- [ ] Upstash rate limiting configuration
-- [ ] E2E test suite
-- [ ] Production deployment
+- [ ] Subdomain routing enforcement in Vercel production
+- [ ] Recruiter portal talent search refinement
+- [ ] Open Collective bounty payout integration
+- [ ] Multi-chapter localization (Nepali i18n expansion)
+- [ ] AI layer (team matching, certificate OCR, BH Bot)
+- [ ] PWA bottom tabs and swipe gestures
+- [ ] GitHub Deep Sync for project repos
+- [ ] Discord Bot V2 for trust marker notifications
 
 ---
 
@@ -236,7 +234,7 @@ Roles are stored in Supabase `profiles.role` column. Enforcement via middleware 
 | **No Supabase Auth** | Auth0 for auth | Multi-provider OAuth (Google, GitHub), webhook sync, ghost profiles |
 | **Service Role Key Only** | Bypasses RLS | Simplified permissions — all backend queries use service role. Public routes use service role with scoped queries. |
 | **`proxy.ts` over `middleware.ts`** | Explicit middleware file | Auth0 v4 requires specific middleware setup. Single proxy handles auth + subdomain routing. |
-| **No Turbopack** | Standard Next.js build | Turbopack compatibility issues with `proxy.ts` and certain dependencies |
+| **Turbopack (default)** | Next.js 16 default bundler | Used for dev and production builds. Replaced webpack in Next.js 16. |
 | **`bh-*` utility classes** | Custom CSS layer | Consistent design system without repeating Tailwind classes. Defined in `globals.css` `@layer utilities`. |
 | **Flat design + selective glow** | Hybrid aesthetic | Kloner.app foundation avoids AI-startup clichés. Red glow earned its place — only on CTAs and verified markers. |
 | **supabase/migrations/** | SQL-based schema | Version-controlled, repeatable, reviewable in PRs |

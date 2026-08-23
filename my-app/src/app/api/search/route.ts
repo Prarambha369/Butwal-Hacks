@@ -4,8 +4,6 @@ import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
 
-export const runtime = "edge"
-
 interface SearchItem {
   type: "profile" | "project" | "event"
   id: string

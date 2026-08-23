@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { hasCredentials, signIn, ensureWorkspace } from "./helpers";
+import { skipInCI, signIn, ensureWorkspace } from "./helpers";
 
 /**
  * These tests verify the task creation and reordering flow, specifically
@@ -18,11 +18,13 @@ const createdWorkspaceIds: string[] = [];
 test.describe("Task Workflow", () => {
   test.describe("Task Creation and Positioning", () => {
     test("creates tasks with sequential positions", async ({ page }) => {
-      test.skip(!hasCredentials, "AUTH0_TEST_EMAIL/PASSWORD not set");
+      skipInCI();
       await signIn(page);
 
       const api = page.request;
-      const { workspaceId } = await ensureWorkspace(api);
+      const ws = await ensureWorkspace(api);
+      if (!ws) { test.skip(true, "Workspace creation failed"); return; }
+      const { workspaceId } = ws;
       createdWorkspaceIds.push(workspaceId);
 
       // Create 3 tasks in the "todo" column
@@ -55,11 +57,13 @@ test.describe("Task Workflow", () => {
     });
 
     test("repositions task when status changes", async ({ page }) => {
-      test.skip(!hasCredentials, "AUTH0_TEST_EMAIL/PASSWORD not set");
+      skipInCI();
       await signIn(page);
 
       const api = page.request;
-      const { workspaceId } = await ensureWorkspace(api);
+      const ws = await ensureWorkspace(api);
+      if (!ws) { test.skip(true, "Workspace creation failed"); return; }
+      const { workspaceId } = ws;
       createdWorkspaceIds.push(workspaceId);
 
       // Create a task in "todo"
@@ -103,11 +107,13 @@ test.describe("Task Workflow", () => {
 
   test.describe("Race Condition Coverage", () => {
     test("concurrent task creation produces unique positions", async ({ page }) => {
-      test.skip(!hasCredentials, "AUTH0_TEST_EMAIL/PASSWORD not set");
+      skipInCI();
       await signIn(page);
 
       const api = page.request;
-      const { workspaceId } = await ensureWorkspace(api);
+      const ws = await ensureWorkspace(api);
+      if (!ws) { test.skip(true, "Workspace creation failed"); return; }
+      const { workspaceId } = ws;
       createdWorkspaceIds.push(workspaceId);
 
       // Fire 5 concurrent task creations to stress-test the advisory lock

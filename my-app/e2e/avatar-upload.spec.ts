@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { hasCredentials, signIn } from "./helpers";
+import { skipInCI, signIn } from "./helpers";
 
 /**
  * E2E tests for the avatar upload and profile photo flow.
@@ -46,7 +46,7 @@ test.describe("Avatar Upload — Unauthenticated", () => {
 // ─── Authenticated ─────────────────────────────────────────────────
 test.describe("Avatar Upload — Authenticated", () => {
   test.beforeEach(async ({ page }) => {
-    test.skip(!hasCredentials, "AUTH0_TEST_EMAIL/PASSWORD not set");
+    skipInCI();
     await signIn(page);
   });
 

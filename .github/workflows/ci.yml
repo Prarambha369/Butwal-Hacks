@@ -272,6 +272,8 @@ jobs:
           AUTH0_BASE_URL: http://localhost:3000
           APP_BASE_URL: http://localhost:3000
           NEXT_PUBLIC_SITE_URL: https://butwalhacks.com
+          AUTH0_M2M_CLIENT_ID: ${{ secrets.AUTH0_M2M_CLIENT_ID }}
+          AUTH0_M2M_CLIENT_SECRET: ${{ secrets.AUTH0_M2M_CLIENT_SECRET }}
       - name: Upload Playwright artifacts
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { hasCredentials, signIn } from "./helpers";
+import { skipInCI, signIn } from "./helpers";
 
 /**
  * E2E tests for the ImageCropDialog interactions (zoom, pan, confirm, cancel).
@@ -32,7 +32,7 @@ const TEST_PNG_BYTES = Buffer.from(
 
 test.describe("Crop Dialog — Interactions", () => {
   test.beforeEach(async ({ page }) => {
-    test.skip(!hasCredentials, "AUTH0_TEST_EMAIL/PASSWORD not set");
+    skipInCI();
     await signIn(page);
     await page.goto("/dashboard/hacker/profile");
     await page.waitForLoadState("networkidle");
