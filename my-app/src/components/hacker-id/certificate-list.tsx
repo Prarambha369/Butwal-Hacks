@@ -123,7 +123,7 @@ function CertificateCard({ cert }: CertificateCardProps) {
                 <div className="space-y-4">
                   <div className="p-4 rounded-lg bg-surface-hover border border-border space-y-2">
                     <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Verification Status</p>
-                    <p className={`font-bold $                      {cert.verified === 'Verified' ? 'text-primary-red' : 'text-status-yellow'}`}>
+                    <p className={`font-bold ${cert.verified === 'Verified' ? 'text-primary-red' : 'text-status-yellow'}`}>
                       {cert.verified === 'Verified' ? 'OFFICIALLY VERIFIED' : 'PENDING / UNVERIFIED'}
                     </p>
                   </div>

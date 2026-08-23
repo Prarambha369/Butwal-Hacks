@@ -17,13 +17,10 @@ export default async function DashboardLayout({
 
   const userId = session.user.sub
   const userEmail = session.user.email || `${userId}@placeholder.butwalhacks.com`
-  const emailVerified = session.user.email_verified === true
 
-  // Auto-promote @butwalhacks.com verified emails to maintainer
-  const initialRole =
-    userEmail.endsWith("@butwalhacks.com") && emailVerified
-      ? "maintainer"
-      : "hacker"
+  // Bootstrap role for new profiles; privileged roles must be assigned
+  // via Auth0 role sync (webhook) or admin tooling — never auto-promoted.
+  const initialRole = "hacker"
 
   // Ensure a profile exists — webhook may not have fired (local dev, first signup)
   const db = createServiceClient()
