@@ -8,6 +8,8 @@ import { signTrustMarker } from "@/lib/crypto/sign"
 import { bustCache } from "@/lib/cache"
 import { z } from "zod"
 
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL ?? ""
+
 // ponytail: single POST endpoint. Ghost profile creation + email are side effects
 // in the same handler. If email volume grows, move to a background queue.
 
@@ -107,6 +109,31 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         issuer_id: userId,
         signed: !!signature,
       });
+
+      // ── Discord notification ──────────────────────────────
+      if (DISCORD_WEBHOOK_URL) {
+        try {
+          await fetch(DISCORD_WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              embeds: [{
+                title: "🏅 Trust Marker Issued",
+                description: `**${safeTitle}**\nIssued to \`${normalizedEmail}\` (known user)`,
+                color: 0x6744b4,
+                fields: [
+                  { name: "Type", value: type || "achievement", inline: true },
+                  { name: "Marker ID", value: marker.id.slice(0, 8), inline: true },
+                ],
+                timestamp: new Date().toISOString(),
+              }],
+            }),
+            signal: AbortSignal.timeout(5000),
+          });
+        } catch (err) {
+          logger.warn("[issue-marker] Discord notification failed:", err);
+        }
+      }
 
       return NextResponse.json({
         ok: true,
@@ -216,6 +243,31 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       expires_at: expiresAt,
       signed: !!signature,
     });
+
+    // ── Discord notification ──────────────────────────────
+    if (DISCORD_WEBHOOK_URL) {
+      try {
+        await fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            embeds: [{
+              title: "👻 Ghost Marker Issued",
+              description: `**${safeTitle}**\nIssued to \`${normalizedEmail}\` (unclaimed — claim link sent)`,
+              color: 0x9B59B6,
+              fields: [
+                { name: "Type", value: type || "achievement", inline: true },
+                { name: "Marker ID", value: marker.id.slice(0, 8), inline: true },
+              ],
+              timestamp: new Date().toISOString(),
+            }],
+          }),
+          signal: AbortSignal.timeout(5000),
+        });
+      } catch (err) {
+        logger.warn("[issue-marker] Discord notification failed:", err);
+      }
+    }
 
     return NextResponse.json({
       ok: true,
