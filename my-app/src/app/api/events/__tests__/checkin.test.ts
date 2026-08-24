@@ -124,12 +124,41 @@ describe("POST /api/events/checkin", () => {
     expect(body.error).toBe("Invalid request");
   });
 
-  // ── Toggle (attended not provided) ────────────────────────────────
+  // ── Authorization ──────────────────────────────────────────────────
 
-  it("toggles attended when attended is not provided (currently false → true)", async () => {
+  it("returns 403 when caller profile is not found", async () => {
+    const db = buildMockDb();
+    db.single.mockResolvedValueOnce({ data: null, error: null }); // profile query returns null
+    mockedCreateServiceClient.mockReturnValue(db);
+    const { POST } = await import("../checkin/route");
+
+    const res = await POST(mockRequest({ registration_id: VALID_UUID }));
+    const body = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(body.error).toBe("Forbidden");
+  });
+
+  it("returns 403 when caller is neither event organizer nor maintainer", async () => {
     const db = buildMockDb();
     db.single
-      .mockResolvedValueOnce({ data: { attended: false }, error: null }) // current reg
+      .mockResolvedValueOnce({ data: { id: "caller-id", role: "hacker" }, error: null }) // caller profile
+      .mockResolvedValueOnce({ data: { attended: false, events: { organizer_id: "other-organizer-id" } }, error: null }); // reg query
+    mockedCreateServiceClient.mockReturnValue(db);
+    const { POST } = await import("../checkin/route");
+
+    const res = await POST(mockRequest({ registration_id: VALID_UUID }));
+    const body = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(body.error).toBe("Forbidden");
+  });
+
+  it("allows maintainer to check in regardless of event organizer_id", async () => {
+    const db = buildMockDb();
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller-id", role: "maintainer" }, error: null }) // caller profile
+      .mockResolvedValueOnce({ data: { attended: false, events: { organizer_id: "other-organizer-id" } }, error: null }) // reg query
       .mockResolvedValueOnce({ data: null, error: null }); // update result
     mockedCreateServiceClient.mockReturnValue(db);
     const { POST } = await import("../checkin/route");
@@ -140,16 +169,34 @@ describe("POST /api/events/checkin", () => {
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.attended).toBe(true);
-    // Should have queried current value and updated to opposite
-    expect(db.eq).toHaveBeenCalledWith("id", VALID_UUID);
+  });
+
+  // ── Toggle (attended not provided) ────────────────────────────────
+
+  it("toggles attended when caller is event organizer (currently false → true)", async () => {
+    const db = buildMockDb();
+    db.single
+      .mockResolvedValueOnce({ data: { id: "organizer-id", role: "organizer" }, error: null }) // caller profile
+      .mockResolvedValueOnce({ data: { attended: false, events: { organizer_id: "organizer-id" } }, error: null }) // reg query
+      .mockResolvedValueOnce({ data: null, error: null }); // update result
+    mockedCreateServiceClient.mockReturnValue(db);
+    const { POST } = await import("../checkin/route");
+
+    const res = await POST(mockRequest({ registration_id: VALID_UUID }));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.attended).toBe(true);
     expect(db.update).toHaveBeenCalledWith({ attended: true });
   });
 
-  it("toggles attended when attended is not provided (currently true → false)", async () => {
+  it("toggles attended when caller is event organizer (currently true → false)", async () => {
     const db = buildMockDb();
     db.single
-      .mockResolvedValueOnce({ data: { attended: true }, error: null })
-      .mockResolvedValueOnce({ data: null, error: null });
+      .mockResolvedValueOnce({ data: { id: "organizer-id", role: "organizer" }, error: null }) // caller profile
+      .mockResolvedValueOnce({ data: { attended: true, events: { organizer_id: "organizer-id" } }, error: null }) // reg query
+      .mockResolvedValueOnce({ data: null, error: null }); // update result
     mockedCreateServiceClient.mockReturnValue(db);
     const { POST } = await import("../checkin/route");
 
@@ -162,9 +209,11 @@ describe("POST /api/events/checkin", () => {
     expect(db.update).toHaveBeenCalledWith({ attended: false });
   });
 
-  it("returns 404 when registration not found for toggle", async () => {
+  it("returns 404 when registration not found for checkin", async () => {
     const db = buildMockDb();
-    db.single.mockResolvedValue({ data: null, error: null });
+    db.single
+      .mockResolvedValueOnce({ data: { id: "organizer-id", role: "organizer" }, error: null }) // caller profile
+      .mockResolvedValueOnce({ data: null, error: null }); // reg query returns null
     mockedCreateServiceClient.mockReturnValue(db);
     const { POST } = await import("../checkin/route");
 
@@ -177,12 +226,11 @@ describe("POST /api/events/checkin", () => {
 
   // ── Explicit attended value ───────────────────────────────────────
 
-  it("accepts attended: true to force check-in", async () => {
+  it("accepts attended: true to force check-in for event organizer", async () => {
     const db = buildMockDb();
-    // NOTE: Do NOT set db.update.mockResolvedValue — the chain
-    // update().eq() relies on each method returning db for chaining.
-    // The default vi.fn(() => db) keeps the chain intact. The awaited
-    // result is the mock db object with error: undefined, so no error.
+    db.single
+      .mockResolvedValueOnce({ data: { id: "organizer-id", role: "organizer" }, error: null }) // caller profile
+      .mockResolvedValueOnce({ data: { attended: false, events: { organizer_id: "organizer-id" } }, error: null }); // reg query
     mockedCreateServiceClient.mockReturnValue(db);
     const { POST } = await import("../checkin/route");
 
@@ -195,8 +243,11 @@ describe("POST /api/events/checkin", () => {
     expect(db.update).toHaveBeenCalledWith({ attended: true });
   });
 
-  it("accepts attended: false to force undo check-in", async () => {
+  it("accepts attended: false to force undo check-in for event organizer", async () => {
     const db = buildMockDb();
+    db.single
+      .mockResolvedValueOnce({ data: { id: "organizer-id", role: "organizer" }, error: null }) // caller profile
+      .mockResolvedValueOnce({ data: { attended: true, events: { organizer_id: "organizer-id" } }, error: null }); // reg query
     mockedCreateServiceClient.mockReturnValue(db);
     const { POST } = await import("../checkin/route");
 
@@ -213,7 +264,12 @@ describe("POST /api/events/checkin", () => {
 
   it("returns 500 when Supabase update fails", async () => {
     const db = buildMockDb();
-    db.update.mockResolvedValue({ error: new Error("DB failure") });
+    db.single
+      .mockResolvedValueOnce({ data: { id: "organizer-id", role: "organizer" }, error: null }) // caller profile
+      .mockResolvedValueOnce({ data: { attended: false, events: { organizer_id: "organizer-id" } }, error: null }); // reg query
+    db.update.mockReturnValueOnce({
+      eq: vi.fn().mockResolvedValueOnce({ error: new Error("DB failure") }),
+    });
     mockedCreateServiceClient.mockReturnValue(db);
     const { POST } = await import("../checkin/route");
 
@@ -224,9 +280,11 @@ describe("POST /api/events/checkin", () => {
     expect(body.error).toBe("Internal Server Error");
   });
 
-  it("returns 404 when query returns null data (treated as not found)", async () => {
+  it("returns 404 when registration query returns null data", async () => {
     const db = buildMockDb();
-    db.single.mockResolvedValue({ data: null, error: new Error("Query failed") });
+    db.single
+      .mockResolvedValueOnce({ data: { id: "organizer-id", role: "organizer" }, error: null }) // caller profile
+      .mockResolvedValueOnce({ data: null, error: new Error("Query failed") }); // reg query
     mockedCreateServiceClient.mockReturnValue(db);
     const { POST } = await import("../checkin/route");
 
