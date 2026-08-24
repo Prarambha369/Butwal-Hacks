@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase"
 
 export const dynamic = "force-dynamic"
@@ -7,19 +8,17 @@ export const dynamic = "force-dynamic"
  * GET /api/keep-alive
  *
  * Lightweight Supabase keep-alive endpoint.
- * Call this every few days to prevent the Supabase free-tier database
- * from pausing after 7 days of inactivity.
- *
- * Vercel Cron Jobs are Pro-only — on the Hobby plan, use a free external
- * cron service to hit this endpoint every 3 days:
- *   - cron-job.org (free, no account needed for basic schedules)
- *   - GitHub Actions scheduled workflow with a simple curl
- *   - UptimeRobot free tier (50 monitors, 5-min checks)
+ * Requires authentication to prevent unauthorized database enumeration.
  */
 export async function GET() {
   const start = Date.now()
 
   try {
+    const session = await auth0.getSession()
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const db = createServiceClient()
 
     // Minimal query — just enough to keep the DB warm
