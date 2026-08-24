@@ -22,29 +22,41 @@ export const POST = withRateLimit(async (request: Request) => {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
     const { registration_id, attended } = parsed.data;
-    // ponytail: If not provided, toggle — otherwise use the provided value
-    if (attended === undefined) {
-      const { data: reg } = await supabase
-        .from('event_registrations')
-        .select('attended')
-        .eq('id', registration_id)
-        .single();
-      if (!reg) return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
-      const { error } = await supabase
-        .from('event_registrations')
-        .update({ attended: !reg.attended })
-        .eq('id', registration_id);
-      if (error) throw error;
-      return NextResponse.json({ success: true, attended: !reg.attended });
+
+    // Security check: Verify caller profile and authorization (organizer or maintainer)
+    const { data: caller } = await supabase
+      .from('profiles')
+      .select('id, role')
+      .eq('auth0_user_id', session.user.sub)
+      .single();
+
+    if (!caller) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+    const { data: reg } = await supabase
+      .from('event_registrations')
+      .select('attended, events!inner(organizer_id)')
+      .eq('id', registration_id)
+      .single();
+
+    if (!reg) return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
+
+    const eventOrganizerId = (reg.events as unknown as { organizer_id: string } | null)?.organizer_id;
+    const isOrganizer = Boolean(eventOrganizerId && eventOrganizerId === caller.id);
+    const isMaintainer = caller.role === 'maintainer';
+
+    if (!isOrganizer && !isMaintainer) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    const nextAttended = attended ?? !reg.attended;
 
     const { error } = await supabase
       .from('event_registrations')
-      .update({ attended })
+      .update({ attended: nextAttended })
       .eq('id', registration_id);
 
     if (error) throw error;
-    return NextResponse.json({ success: true, attended });
+    return NextResponse.json({ success: true, attended: nextAttended });
   } catch (err) {
     logger.error('[api/events/checkin]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
