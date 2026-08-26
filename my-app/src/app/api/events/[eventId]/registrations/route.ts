@@ -19,6 +19,34 @@ export async function GET(
     const limit = Math.min(200, Math.max(1, parseInt(u.searchParams.get("limit") ?? "", 10) || 50));
     const offset = Math.max(0, parseInt(u.searchParams.get("offset") ?? "", 10) || 0);
 
+    // Verify caller profile
+    const { data: caller } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("auth0_user_id", session.user.sub)
+      .single();
+
+    if (!caller) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 403 });
+    }
+
+    // Verify event exists and check authorization (organizer or maintainer)
+    const { data: event, error: eventError } = await supabase
+      .from("events")
+      .select("organizer_id")
+      .eq("id", eventId)
+      .single();
+
+    if (eventError || !event) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    const isOrganizer = event.organizer_id === caller.id;
+    const isMaintainer = caller.role === "maintainer";
+    if (!isOrganizer && !isMaintainer) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     // ponytail: Fetch registrations with profile data via Supabase join
     const { data: registrations } = await supabase
       .from('event_registrations')
