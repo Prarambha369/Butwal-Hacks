@@ -3,6 +3,18 @@
 # Defense-in-depth for commits made with --no-verify bypassing the pre-commit hook.
 # Activate with: git config core.hooksPath .husky/
 
+# ── Block AI bot co-author trailers in recent commits ──────────────────────
+# Defense-in-depth: catches bot trailers that slipped past --no-verify.
+RECENT_COMMITS=$(git log --format='%H' origin/main..HEAD 2>/dev/null || true)
+for COMMIT in $RECENT_COMMITS; do
+  BODY=$(git log -1 --format='%b' $COMMIT)
+  if echo "$BODY" | grep -qiE 'Generated with (Codebuff|Bolt|Sentinel|Palette|Jules)|Co-Authored-By:.*(bot|codebuff|copilot-swe)'; then
+    echo "Push blocked: AI bot co-author trailer found in commit $(echo $COMMIT | head -c 8)."
+    echo "Run: git rebase -i origin/main to remove the trailer."
+    exit 1
+  fi
+done
+
 # ── Secrets audit ─────────────────────────────────────────────────────────
 # Same scanner as the pre-commit hook and CI secrets-audit job.
 node .github/actions/secrets-audit/audit.mjs

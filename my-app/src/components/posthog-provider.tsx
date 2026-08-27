@@ -62,6 +62,7 @@ function PostHogInner({ children }: { children: React.ReactNode }) {
       posthog.init(token, {
         api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
         capture_pageview: false, // we handle page views manually with pathname changes
+        defaults: "2026-05-30",
         loaded: (ph) => {
           if (process.env.NODE_ENV === "development") ph.opt_out_capturing()
         },
@@ -69,7 +70,7 @@ function PostHogInner({ children }: { children: React.ReactNode }) {
     }
   }, [consentGranted])
 
-  // Identify user when Auth0 session changes
+  // Identify user when Auth0 session changes + track signup funnel event
   useEffect(() => {
     if (isLoading || !posthog.__loaded) return
 
@@ -78,6 +79,18 @@ function PostHogInner({ children }: { children: React.ReactNode }) {
         email: user.email,
         name: user.name,
       })
+
+      // ── Funnel: track first-ever login (user_signed_up) ────────
+      // Uses localStorage to fire only once per browser, matching
+      // the server-side Auth0 webhook that creates the profile.
+      const seenKey = `bh-signed-up-${user.sub}`
+      if (!localStorage.getItem(seenKey)) {
+        localStorage.setItem(seenKey, "1")
+        posthog.capture("user_signed_up", {
+          auth0_id: user.sub,
+          email: user.email,
+        })
+      }
     } else {
       posthog.reset()
     }

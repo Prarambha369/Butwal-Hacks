@@ -143,7 +143,7 @@ export default function EventGallery() {
                 <button
                   onClick={() => setSelectedIdx((prev) => prev !== null ? Math.max(prev - 1, 0) : null)}
                   disabled={selectedIdx === 0}
-                  className="shrink-0 p-2 rounded-full bg-surface border border-border text-muted-foreground hover:text-primary transition-colors disabled:opacity-20 disabled:cursor-not-allowed z-10"
+                  className="shrink-0 p-3 min-w-[44px] min-h-[44px] rounded-full bg-surface border border-border text-muted-foreground hover:text-primary transition-colors disabled:opacity-20 disabled:cursor-not-allowed z-10"
                   aria-label="Previous photo"
                 >
                   <ChevronLeft size={24} />
@@ -176,7 +176,7 @@ export default function EventGallery() {
                 <button
                   onClick={() => setSelectedIdx((prev) => prev !== null ? Math.min(prev + 1, galleryPhotos.length - 1) : null)}
                   disabled={selectedIdx === galleryPhotos.length - 1}
-                  className="shrink-0 p-2 rounded-full bg-surface border border-border text-muted-foreground hover:text-primary transition-colors disabled:opacity-20 disabled:cursor-not-allowed z-10"
+                  className="shrink-0 p-3 min-w-[44px] min-h-[44px] rounded-full bg-surface border border-border text-muted-foreground hover:text-primary transition-colors disabled:opacity-20 disabled:cursor-not-allowed z-10"
                   aria-label="Next photo"
                 >
                   <ChevronRight size={24} />

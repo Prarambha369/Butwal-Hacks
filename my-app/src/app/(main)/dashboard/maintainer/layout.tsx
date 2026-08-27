@@ -90,7 +90,7 @@ export default async function MaintainerDashboardLayout({
   return (
     <div className="flex min-h-dvh bg-background">
       <MaintainerSidebar slugId={slugId} links={maintainerLinks} />
-      <main className="flex-1 p-8 max-w-7xl mx-auto min-h-dvh flex flex-col">
+      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto min-h-dvh flex flex-col pb-20 md:pb-0">
         <DashboardNavProvider links={maintainerLinks}>
           {children}
         </DashboardNavProvider>

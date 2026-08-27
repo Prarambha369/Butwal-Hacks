@@ -80,7 +80,7 @@ export default async function OrganizerDashboardLayout({
         slugId={slugId}
         links={organizerLinks}
       />
-      <main className="flex-1 p-8 max-w-7xl mx-auto min-h-dvh flex flex-col">
+      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto min-h-dvh flex flex-col pb-20 md:pb-0">
         <DashboardNavProvider links={organizerLinks}>
           {children}
         </DashboardNavProvider>

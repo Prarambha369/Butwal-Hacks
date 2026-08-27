@@ -39,7 +39,7 @@ const baseCSP = `
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://api.dicebear.com https://api.qrserver.com;
   font-src 'self';
-  worker-src 'self';
+  worker-src 'self' blob: data:;
   object-src 'none';
   base-uri 'self';
   form-action 'self';

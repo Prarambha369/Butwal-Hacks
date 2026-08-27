@@ -5,6 +5,7 @@ import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import { sanitizeString } from "@/lib/validation";
 import { resolveProfileId } from "@/lib/profile-resolver";
+import { notifyEventCreated } from "@/lib/discord";
 
 interface CreateEventInput {
   title: string
@@ -38,6 +39,16 @@ export async function createEvent(input: CreateEventInput) {
       .single()
 
     if (error) throw error
+
+    // ── Discord notification ──────────────────────────────
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://butwalhacks.com";
+    notifyEventCreated({
+      title: input.title,
+      startDate: input.start_date,
+      location: input.location,
+      eventUrl: `${baseUrl}/events/${data.id}`,
+      organizerName: "Organizer",
+    });
 
     revalidatePath("/dashboard/organizer/events")
     return { success: true, eventId: data.id }

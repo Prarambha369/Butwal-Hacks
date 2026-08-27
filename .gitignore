@@ -113,3 +113,4 @@ tmp/
 # Stray or generated files
 my-app/c.txt
 my-app/.npmrc
+.env*

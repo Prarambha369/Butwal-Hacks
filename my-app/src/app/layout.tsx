@@ -81,6 +81,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (        <html lang="en" suppressHydrationWarning className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
         <head>
+          {/* ══ Viewport: viewport-fit=cover enables env(safe-area-inset-*) for notched iPhones ══ */}
+          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
           {/* ══ FOUC prevention: set .dark class before React hydrates ══
              Reads localStorage (user override) or prefers-color-scheme (system),
              defaults to dark. Must run synchronously before first paint. */}
