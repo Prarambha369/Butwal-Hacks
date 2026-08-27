@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { SKILL_ICONS, type SkillWithStatus } from "@/lib/gamification/skill-trees";
+import { SKILL_ICONS, type SkillWithStatus } from "@/lib/skill-trees";
 
 interface SkillNodeProps {
   skill: SkillWithStatus;

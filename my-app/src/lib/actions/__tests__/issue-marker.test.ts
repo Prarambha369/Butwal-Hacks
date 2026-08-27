@@ -4,7 +4,7 @@ vi.mock("@/utils/supabase", () => ({ createServiceClient: vi.fn() }));
 vi.mock("@/lib/logger", () => ({ logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() } }));
 vi.mock("@/lib/validation", () => ({ sanitizeString: vi.fn((s: string, max: number) => s.slice(0, max)) }));
 vi.mock("@/lib/profile-resolver", () => ({ resolveProfileId: vi.fn() }));
-vi.mock("@/lib/crypto/sign", () => ({ signTrustMarker: vi.fn(() => "ed25519-sig-abc123") }));
+vi.mock("@/lib/crypto-sign", () => ({ signTrustMarker: vi.fn(() => "ed25519-sig-abc123") }));
 vi.mock("@/lib/cache", () => ({ bustCache: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("@/lib/discord", () => ({ notifyMarkerIssued: vi.fn(), notifyEventCreated: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));

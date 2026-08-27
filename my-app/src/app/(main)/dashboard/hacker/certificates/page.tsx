@@ -1,6 +1,6 @@
 import { auth0 } from "@/lib/auth0";
 import { createClient } from '@/utils/supabase';
-import { calculateLevel } from '@/lib/gamification/levels';
+import { calculateLevel } from '@/lib/xp-levels';
 import LevelBadge from '@/components/dashboard/level-badge';
 import { Trophy, Star, Zap, Lock, Award } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';

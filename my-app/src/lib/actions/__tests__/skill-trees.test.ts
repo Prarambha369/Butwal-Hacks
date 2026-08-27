@@ -18,7 +18,7 @@ vi.mock("@/lib/profile-resolver", () => ({
   resolveProfileId: vi.fn(),
 }));
 
-vi.mock("@/lib/gamification/skill-trees", () => {
+vi.mock("@/lib/skill-trees", () => {
   const baseSkill = {
     id: "frontend-basics",
     name: "Frontend Basics",

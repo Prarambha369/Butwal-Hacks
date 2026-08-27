@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { cn } from "@/lib/utils";
-import { calculateLevel } from "@/lib/gamification/levels";
+import { calculateLevel } from "@/lib/xp-levels";
 
 describe("cn (clsx + tailwind-merge)", () => {
   it("merges class names", () => {

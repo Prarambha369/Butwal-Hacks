@@ -12,7 +12,7 @@ import TrustMarkersList from '@/components/hacker-id/trust-markers-list';
 import { Sparkles, Loader2, Code, Copy, Check, Award } from 'lucide-react';
 import { generateProfileSummary } from '@/lib/actions/generate-profile-summary';
 import { useActionState } from 'react';
-import { SKILL_ICONS } from '@/lib/gamification/skill-trees';
+import { SKILL_ICONS } from '@/lib/skill-trees';
 import type { HackerProfile, Project } from '@/lib/supabase-types';
 
 // Extended to match both HackerProfile and additional runtime properties
