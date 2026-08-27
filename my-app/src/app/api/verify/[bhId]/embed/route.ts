@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase"
+import { withRateLimit } from "@/lib/rate-limiter"
 
 /**
  * Verify Anywhere — Embeddable verification badge.
@@ -16,10 +17,10 @@ import { createClient } from "@/utils/supabase"
  *     title="Verify BH-ID"
  *   ></iframe>
  */
-export async function GET(
+export const GET = withRateLimit(async (
   _request: NextRequest,
   { params }: { params: Promise<{ bhId: string }> },
-) {
+) => {
   const { bhId } = await params
   const supabase = await createClient()
 
@@ -113,4 +114,4 @@ export async function GET(
       "Cache-Control": "public, max-age=300, s-maxage=300",
     },
   })
-}
+}, "frequent")

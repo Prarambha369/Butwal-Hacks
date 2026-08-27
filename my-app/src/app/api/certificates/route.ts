@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
+import { withRateLimit } from '@/lib/rate-limiter';
 
 
-export async function GET(request: Request) {
+export const GET = withRateLimit(async (request: Request) => {
   try {
     const session = await auth0.getSession();
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -29,4 +30,4 @@ export async function GET(request: Request) {
   } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
+}, "frequent")

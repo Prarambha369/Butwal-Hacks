@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createServiceClient } from "@/utils/supabase";
+import { withRateLimit } from "@/lib/rate-limiter";
 import { logger } from "@/lib/logger";
 import {
   exchangeCodeForTokens,
@@ -24,7 +25,7 @@ const LINK_STATE_COOKIE = "bh_link_state";
  * Redirects to: /dashboard/hacker/profile?linked=success:PROVIDER
  *               or /dashboard/hacker/profile?linked=error:MESSAGE
  */
-export async function GET(request: Request) {
+export const GET = withRateLimit(async (request: Request) => {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const returnedState = searchParams.get("state");
@@ -190,7 +191,7 @@ export async function GET(request: Request) {
     redirectUrl.searchParams.set("linked", `error:${encodeURIComponent(message)}`);
     return NextResponse.redirect(redirectUrl);
   }
-}
+}, "sensitive")
 
 /**
  * Decode the payload of a JWT without verifying the signature.
