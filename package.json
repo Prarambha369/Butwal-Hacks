@@ -23,5 +23,10 @@
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.25.0"
   },
+  "allowScripts": {
+    "@sentry/cli": true,
+    "unrs-resolver": true,
+    "core-js": true
+  },
   "devDependencies": {}
 }
