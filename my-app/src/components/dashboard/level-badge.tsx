@@ -1,6 +1,6 @@
 "use client";
 
-import { calculateLevel } from '@/lib/gamification/levels';
+import { calculateLevel } from '@/lib/xp-levels';
 import { Trophy } from 'lucide-react';
 
 interface LevelBadgeProps {

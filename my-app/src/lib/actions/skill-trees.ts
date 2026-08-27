@@ -9,7 +9,7 @@ import {
   type SkillTreeWithStatus,
   type SkillWithStatus,
   type SkillStatus,
-} from "@/lib/gamification/skill-trees";
+} from "@/lib/skill-trees";
 
 interface Project {
   tech_stack?: string[] | null;

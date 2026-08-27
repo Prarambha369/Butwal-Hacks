@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import { sanitizeString } from "@/lib/validation";
-import { signTrustMarker } from "@/lib/crypto/sign";
+import { signTrustMarker } from "@/lib/crypto-sign";
 import { resolveProfileId } from "@/lib/profile-resolver";
 import { bustCache } from "@/lib/cache";
 import { notifyMarkerIssued } from "@/lib/discord";

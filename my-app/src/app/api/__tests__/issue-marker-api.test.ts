@@ -23,7 +23,7 @@ vi.mock("@/lib/analytics/server", () => ({
   captureServerEvent: vi.fn(),
 }))
 
-vi.mock("@/lib/crypto/sign", () => ({
+vi.mock("@/lib/crypto-sign", () => ({
   signTrustMarker: vi.fn(),
 }))
 
@@ -174,7 +174,7 @@ describe("POST /api/v1/issue-marker", () => {
   // ── Known user flow ─────────────────────────────────────────────────
 
   it("issues marker to known user and signs it", async () => {
-    const { signTrustMarker } = await import("@/lib/crypto/sign")
+    const { signTrustMarker } = await import("@/lib/crypto-sign")
     const { bustCache } = await import("@/lib/cache")
     vi.mocked(signTrustMarker).mockReturnValue("ed25519-sig-base64")
 
