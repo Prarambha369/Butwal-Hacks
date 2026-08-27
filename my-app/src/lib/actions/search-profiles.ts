@@ -3,14 +3,6 @@
 import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
 
-interface ProfileResult {
-  id: string;
-  slug_id: string;
-  bio: string | null;
-  avatar_url: string | null;
-  xp: number;
-}
-
 export interface TalentSearchResult {
   id: string;
   display_name: string;
@@ -25,6 +17,7 @@ export interface TalentSearchResult {
 export interface TalentSearchFilters {
   query?: string;
   markerType?: string;
+  skill?: string;
 }
 
 // ── Guaranteed columns from 001_initial_schema.sql ───────────────────────
@@ -37,6 +30,7 @@ export interface TalentSearchFilters {
 // looking_for_team — these may NOT be applied, so we don't depend on them.
 
 const BASE_PROFILE_COLS = "id, slug_id, bio, avatar_url, xp";
+const PROFILE_COLS_WITH_SKILLS = "id, slug_id, bio, avatar_url, xp, skills";
 
 /**
  * Search claimed hacker profiles with text and marker-type filters.
@@ -47,34 +41,42 @@ export async function searchTalent(
   limit = 50
 ): Promise<TalentSearchResult[]> {
   try {
-    const supabase = createServiceClient();
+    const supabase = createServiceClient();  // ── Step 1: Query profiles — include skills when filtering by skill
+  // This avoids a second full-table scan when skill filter is active.
+  const selectCols = filters.skill ? PROFILE_COLS_WITH_SKILLS : BASE_PROFILE_COLS;
+  let query = supabase
+    .from("profiles")
+    .select(selectCols)
+    .eq("is_claimed", true)
+    .neq("role", "maintainer")
+    .order("xp", { ascending: false })
+    .limit(limit);
 
-    // ── Step 1: Query profiles (core columns only) ─────────────────────
-    let query = supabase
-      .from("profiles")
-      .select(BASE_PROFILE_COLS)
-      .eq("is_claimed", true)
-      .neq("role", "maintainer")
-      .order("xp", { ascending: false })
-      .limit(limit);
+  if (filters.query && filters.query.trim().length >= 2) {
+    const term = `%${filters.query.trim()}%`;
+    query = query.or(`slug_id.ilike.${term},bio.ilike.${term}`);
+  }
 
-    if (filters.query && filters.query.trim().length >= 2) {
-      const term = `%${filters.query.trim()}%`;
-      query = query.or(`slug_id.ilike.${term},bio.ilike.${term}`);
-    }
+  const { data: profiles, error } = await query;
 
-    const { data: profiles, error } = await query;
+  if (error) {
+    logger.error("[search-talent] Profiles query error:", error);
+    return [];
+  }
 
-    if (error) {
-      logger.error("[search-talent] Profiles query error:", error);
-      return [];
-    }
+  if (!profiles || profiles.length === 0) return [];
 
-    if (!profiles || profiles.length === 0) return [];
+  let typedProfiles: any[] = profiles as any[];
 
-    const typedProfiles = profiles as ProfileResult[];
+  // ── Skill-based post-filter (in-memory, no extra DB call) ────────
+  if (filters.skill && filters.skill.trim().length >= 2) {
+    const skillTerm = filters.skill.trim().toLowerCase();
+    typedProfiles = typedProfiles.filter((p) =>
+      p.skills?.some((s: string) => s.toLowerCase().includes(skillTerm))
+    );
+  }
 
-    // ── Step 2: Batch-fetch trust_markers for all matched profiles ──
+  // ── Step 2: Batch-fetch trust_markers for all matched profiles ──
     const profileIds = typedProfiles.map((p) => p.id);
     const { data: markers } = await supabase
       .from("trust_markers")
