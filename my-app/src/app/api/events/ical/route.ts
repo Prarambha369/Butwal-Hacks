@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/utils/supabase';
+import { withRateLimit } from '@/lib/rate-limiter';
 
 // Dynamic route: the ics is cached via the Cache-Control header below,
 // and forcing revalidate here would prerender it at build time, requiring
@@ -7,7 +8,7 @@ import { createServiceClient } from '@/utils/supabase';
 // for route segment config semantics.
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export const GET = withRateLimit(async () => {
   const db = createServiceClient();
   const { data: events, error } = await db
     .from('events')
@@ -38,4 +39,4 @@ export async function GET() {
       'Cache-Control': 'public, max-age=3600, s-maxage=3600',
     },
   });
-}
+}, "frequent")

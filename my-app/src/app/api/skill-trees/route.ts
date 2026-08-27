@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSkillTreesWithStatus } from "@/lib/actions/skill-trees";
+import { withRateLimit } from "@/lib/rate-limiter";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -10,7 +11,7 @@ export const runtime = "nodejs";
  * Supports pagination via ?page=1&per_page=10.
  * Used by the Skill Tree UI component.
  */
-export async function GET(req: NextRequest) {
+export const GET = withRateLimit(async (req: NextRequest) => {
   try {
     const u = new URL(req.url);
     const page = parseInt(u.searchParams.get("page") ?? "", 10) || undefined;
@@ -23,4 +24,4 @@ export async function GET(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Failed to fetch skill trees" }, { status: 500 });
   }
-}
+}, "frequent")
