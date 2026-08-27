@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
+import { logger } from "@/lib/logger";
 
 // ─── Zone 1: Marketing Routes (butwalhacks.com) ──────────────────────────
 // Public-facing pages for visitors, SEO, and content discovery.
@@ -250,7 +251,7 @@ export async function requireRole(
   } catch {
     // If Supabase query fails, let the request through — the server-side
     // dashboard layouts have role guards as a secondary layer of defense.
-    console.warn("[proxy] Role query failed for", session.user.sub);
+    logger.warn("[proxy] Role query failed", { auth0_user_id: session.user.sub });
     return NextResponse.next();
   }
 }

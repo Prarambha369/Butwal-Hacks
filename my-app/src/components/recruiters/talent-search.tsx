@@ -15,6 +15,7 @@ interface TalentSearchProps {
 export default function TalentSearch({ initialResults, markerTypes }: TalentSearchProps) {
   const [query, setQuery] = useState("");
   const [selectedMarkerType, setSelectedMarkerType] = useState("");
+  const [skillFilter, setSkillFilter] = useState("");
   const [results, setResults] = useState<TalentSearchResult[]>(initialResults);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -27,6 +28,7 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
       const data = await searchTalent({
         query: query.trim() || undefined,
         markerType: selectedMarkerType || undefined,
+        skill: skillFilter.trim() || undefined,
       });
       setResults(data);
     } catch {
@@ -34,7 +36,7 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
     } finally {
       setLoading(false);
     }
-  }, [query, selectedMarkerType]);
+  }, [query, selectedMarkerType, skillFilter]);
 
   // Auto-search on mount with no filters
   useEffect(() => {
@@ -76,6 +78,19 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Skill filter */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-secondary">Skill</label>
+            <input
+              type="text"
+              value={skillFilter}
+              onChange={(e) => setSkillFilter(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && doSearch()}
+              placeholder="e.g. React, Python, IoT"
+              className="bg-surface-hover border border-border rounded-lg px-3 py-1.5 text-xs text-primary placeholder:text-secondary/40 outline-none focus:border-bh-red-500/30 transition-all w-40"
+            />
           </div>
 
           {/* Search button */}
@@ -180,6 +195,7 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
             onClick={() => {
               setQuery("");
               setSelectedMarkerType("");
+              setSkillFilter("");
             }}
             className="px-4 py-2 rounded-full bg-surface-hover border border-border text-xs font-bold text-secondary hover:text-primary transition-all"
           >
