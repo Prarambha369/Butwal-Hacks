@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { sanitizeEmail, sanitizeString } from "@/lib/validation"
+import { sanitizeEmail, sanitizeString, escapeHtml } from "@/lib/validation"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
 
@@ -34,11 +34,11 @@ export const POST = withRateLimit(async (request: Request) => {
           reply_to: data.email,
           subject: `[Contact] ${data.subject}`,
           html: `<h1 style="color:#FE0000;">New Contact Form Submission</h1>
-               <p><strong>Name:</strong> ${data.name}</p>
-               <p><strong>Email:</strong> ${data.email}</p>
-               ${data.phone ? `<p><strong>Phone:</strong> ${data.phone}</p>` : ""}
-               <p><strong>Subject:</strong> ${data.subject}</p>
-               <p><strong>Message:</strong> ${data.message}</p>`.replace(/\s{2,}/g, " "),
+               <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
+               <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
+               ${data.phone ? `<p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>` : ""}
+               <p><strong>Subject:</strong> ${escapeHtml(data.subject)}</p>
+               <p><strong>Message:</strong> ${escapeHtml(data.message)}</p>`.replace(/\s{2,}/g, " "),
           text: `Name: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone ?? "—"}\n\n${data.message}`,
         }),
       })

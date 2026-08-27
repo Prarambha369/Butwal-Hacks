@@ -20,8 +20,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ trees }, {
       headers: { "Cache-Control": "private, max-age=60" },
     });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to fetch skill trees";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Failed to fetch skill trees" }, { status: 500 });
   }
 }

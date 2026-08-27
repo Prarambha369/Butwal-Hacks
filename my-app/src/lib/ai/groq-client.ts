@@ -12,6 +12,8 @@
  *   - Total retry budget capped at 80% of caller's timeout
  */
 
+import { captureLLMCall } from "./posthog-llm";
+
 const GROQ_API_BASE = "https://api.groq.com/openai/v1/chat/completions";
 
 const MAX_RETRIES = 3;
@@ -29,6 +31,8 @@ export interface GroqOptions {
   temperature?: number;
   /** Per-call timeout (not total). default 15s. */
   timeout?: number;
+  /** Feature name for PostHog LLM observability. */
+  feature?: string;
 }
 
 export interface GroqResult {
@@ -118,11 +122,23 @@ export async function callGroq(options: GroqOptions): Promise<GroqResult> {
           throw new Error("Empty response from Groq");
         }
 
-        return {
+        const result = {
           content,
           model: json.model ?? options.model ?? "unknown",
           usage: json.usage ?? undefined,
         };
+
+        // Track LLM call for PostHog AI observability
+        captureLLMCall({
+          model: result.model,
+          input_tokens: json.usage?.prompt_tokens ?? 0,
+          output_tokens: json.usage?.completion_tokens ?? 0,
+          latency_ms: Date.now() - (deadline - retryBudgetMs),
+          success: true,
+          feature: options.feature ?? "unknown",
+        });
+
+        return result;
       }
 
       // Non-ok response — check if retryable

@@ -1,3 +1,13 @@
+/** Escape HTML entities to prevent injection in email/HTML contexts. */
+export function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
 /** Strip HTML tags, trim whitespace, limit length. */
 export function sanitizeString(input: string, maxLength = 5000): string {
   return input
