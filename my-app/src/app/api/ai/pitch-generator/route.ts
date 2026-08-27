@@ -45,7 +45,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       error: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to generate pitch" },
+      { error: "Failed to generate pitch" },
       { status: 500 }
     );
   }

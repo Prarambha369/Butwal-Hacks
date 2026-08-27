@@ -32,6 +32,7 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const scanIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -48,6 +49,39 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
   // Prevent duplicate scans — resets on page refresh (per-session dedup)
   // Privacy: Registration UUIDs are encoded directly in QR codes (no third-party data sent).
   const lastScannedRef = useRef<Set<string>>(new Set());
+
+  // Audio feedback: short beep on successful scan
+  const playBeep = useCallback((success: boolean) => {
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new AudioContext();
+      }
+      const ctx = audioCtxRef.current;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = success ? 880 : 330; // High beep for success, low for failure
+      osc.type = "sine";
+      gain.gain.value = 0.15;
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.stop(ctx.currentTime + 0.15);
+    } catch {
+      // Audio not available — silent fallback
+    }
+  }, []);
+
+  // Haptic feedback on mobile
+  const vibrate = useCallback((success: boolean) => {
+    try {
+      if (navigator.vibrate) {
+        navigator.vibrate(success ? [50] : [30, 30, 30]);
+      }
+    } catch {
+      // Haptics not available
+    }
+  }, []);
 
   // Check BarcodeDetector support
   useEffect(() => {
@@ -70,6 +104,8 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
         const data = await res.json();
 
         if (!res.ok) {
+          playBeep(false);
+          vibrate(false);
           setResults((prev) => [
             {
               id: registrationId,
@@ -83,19 +119,23 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
           return;
         }
 
+        playBeep(true);
+        vibrate(true);
         setResults((prev) => [
           {
             id: registrationId,
-            name: "Attendee",
+            name: data.attended ? "Checked in" : "Check-in removed",
             avatar: null,
             success: true,
-            message: "Checked in!",
+            message: data.attended ? "Welcome! ✓" : "Check-in undone",
           },
           ...prev,
         ]);
         setSuccessCount((c) => c + 1);
         router.refresh();
       } catch {
+        playBeep(false);
+        vibrate(false);
         setResults((prev) => [
           {
             id: registrationId,
@@ -188,6 +228,9 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
   useEffect(() => {
     return () => {
       stopCamera();
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close().catch(() => {});
+      }
     };
   }, [stopCamera]);
 
@@ -291,8 +334,8 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
             <Camera className="w-10 h-10 text-muted-foreground/30 mx-auto" />
             <p className="text-sm text-muted-foreground/60">
               {barcodeSupported
-                ? "Click 'Start Camera' to begin scanning QR codes from attendees."
-                : "QR code scanning is not available in this browser. Use the manual entry below."}
+                ? "Tap 'Start Camera' to scan QR codes. You'll hear a beep on successful check-in."
+                : "QR scanning unavailable in this browser. Use manual entry below."}
             </p>
           </div>
         )}
@@ -304,7 +347,7 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
           <Search className="w-4 h-4 text-primary-red" />
           Manual Check-in
         </h2>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <input
             type="text"
             value={manualId}
@@ -312,9 +355,23 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
             onKeyDown={(e) => {
               if (e.key === "Enter") handleManualCheckin();
             }}
-            placeholder="Paste registration UUID from the QR page..."
-            className="flex-1 bg-background/50 border border-border/30 rounded-lg px-4 py-3 outline-none text-sm transition-all focus:border-primary-red/50 focus:ring-2 focus:ring-primary-red/20"
+            placeholder="Paste registration UUID or BH-ID..."
+            className="flex-1 bg-background/50 border border-border/30 rounded-lg px-4 py-3 outline-none text-sm font-mono transition-all focus:border-primary-red/50 focus:ring-2 focus:ring-primary-red/20"
           />
+          <button
+            onClick={async () => {
+              try {
+                const text = await navigator.clipboard.readText();
+                if (text) setManualId(text.trim());
+              } catch {
+                // Clipboard not available
+              }
+            }}
+            className="px-3 py-3 rounded-lg border border-border/30 text-xs text-muted-foreground hover:bg-surface-hover transition-all shrink-0"
+            title="Paste from clipboard"
+          >
+            Paste
+          </button>
           <button
             onClick={handleManualCheckin}
             disabled={manualLoading || !manualId.trim()}
