@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { sanitizeEmail, sanitizeString } from "@/lib/validation"
+import { sanitizeEmail, sanitizeString, escapeHtml } from "@/lib/validation"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
 
@@ -33,12 +33,13 @@ export const POST = withRateLimit(async (request: Request) => {
           to: [CONTACT_EMAIL],
           reply_to: data.email,
           subject: `[Sponsor Inquiry] ${data.company} — ${data.tier}`,
+          // SECURITY: escape HTML to prevent injection in email client rendering
           html: `<h1 style="color:#FE0000;">New Sponsorship Inquiry</h1>
-               <p><strong>Name:</strong> ${data.name}</p>
-               <p><strong>Email:</strong> ${data.email}</p>
-               <p><strong>Company:</strong> ${data.company}</p>
-               <p><strong>Tier:</strong> ${data.tier}</p>
-               ${data.message ? `<p><strong>Message:</strong> ${data.message}</p>` : ""}`.replace(/\s{2,}/g, " "),
+               <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
+               <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
+               <p><strong>Company:</strong> ${escapeHtml(data.company)}</p>
+               <p><strong>Tier:</strong> ${escapeHtml(data.tier)}</p>
+               ${data.message ? `<p><strong>Message:</strong> ${escapeHtml(data.message)}</p>` : ""}`.replace(/\s{2,}/g, " "),
           text: `Name: ${data.name}\nEmail: ${data.email}\nCompany: ${data.company}\nTier: ${data.tier}\n\n${data.message ?? ""}`,
         }),
       })
