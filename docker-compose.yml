@@ -11,7 +11,7 @@
 # After starting, update .env.local:
 #   NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
 #   NEXT_PUBLIC_SUPABASE_ANON_KEY=<see docker compose logs>
-#   UPSTASH_REDIS_REST_URL=http://localhost:6379
+#   UPSTASH_REDIS_REST_URL=http://localhost:8080 (not used locally — Redis is TCP only)
 # ═══════════════════════════════════════════════════════════════════
 
 services:
@@ -85,7 +85,7 @@ services:
     image: redis:7-alpine
     container_name: bh-redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - bh-redis-data:/data
     healthcheck:

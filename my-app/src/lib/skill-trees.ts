@@ -1,6 +1,4 @@
-import { Code2, Palette, Globe, Cable, Cpu, Network, Link2, Rocket, Trophy, Zap, Layers } from "lucide-react";
-import { createElement } from "react";
-import type { ReactNode } from "react";
+// ponytail: icon string keys only — React elements live in UI components.
 
 export interface SkillCondition {
   type: "tech_count" | "tech_categories" | "github_verified" | "event_count" | "project_count" | "unique_tech_count";
@@ -66,7 +64,7 @@ export const SKILL_TREES: SkillTree[] = [
             description: "Build projects using Tailwind CSS or similar frameworks",
             icon: "palette",
             xpReward: 250,
-            conditions: { type: "tech_count", tech: "Tailwind", min_count: 2 },
+            conditions: { type: "tech_count", tech: "Tailwind CSS", min_count: 2 },
             prerequisiteIds: ["react-pro"],
           },
         ],
@@ -281,17 +279,4 @@ export interface SkillTreeWithStatus extends Omit<SkillTree, "tiers"> {
  * Shared mapping from skill icon name to Lucide React component.
  * Import this from any component that needs to render skill icons.
  */
-export const SKILL_ICONS: Record<string, ReactNode> = {
-  react: createElement(Code2, { className: "w-5 h-5" }),
-  python: createElement(Code2, { className: "w-5 h-5" }),
-  palette: createElement(Palette, { className: "w-5 h-5" }),
-  globe: createElement(Globe, { className: "w-5 h-5" }),
-  cable: createElement(Cable, { className: "w-5 h-5" }),
-  cpu: createElement(Cpu, { className: "w-5 h-5" }),
-  network: createElement(Network, { className: "w-5 h-5" }),
-  link: createElement(Link2, { className: "w-5 h-5" }),
-  rocket: createElement(Rocket, { className: "w-5 h-5" }),
-  trophy: createElement(Trophy, { className: "w-5 h-5" }),
-  zap: createElement(Zap, { className: "w-5 h-5" }),
-  layers: createElement(Layers, { className: "w-5 h-5" }),
-};
+// SKILL_ICONS removed — UI components render icons directly.

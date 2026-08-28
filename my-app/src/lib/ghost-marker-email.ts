@@ -1,14 +1,18 @@
 // ponytail: inline HTML template for Resend. No template engine needed for one email.
 
+/** Escape HTML special characters to prevent injection. */
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+}
+
 export function ghostMarkerNotificationHtml(
-  recipientEmail: string,
   issuerName: string,
   markerTitle: string,
   markerDescription: string | null,
   claimUrl: string,
 ): string {
   const descriptionHtml = markerDescription
-    ? `<p style="margin: 12px 0 0; color: #D4D4D4; line-height: 1.6;">${markerDescription}</p>`
+    ? `<p style="margin: 12px 0 0; color: #D4D4D4; line-height: 1.6;">${esc(markerDescription)}</p>`
     : ""
 
   return `<!DOCTYPE html>
@@ -28,7 +32,7 @@ export function ghostMarkerNotificationHtml(
                 You've Received a Trust Marker
               </h1>
               <p style="margin:8px 0 0;font-size:14px;color:#A3A3A3;">
-                ${issuerName} has issued you a credential on Butwal Hacks.
+                ${esc(issuerName)} has issued you a credential on Butwal Hacks.
               </p>
             </td>
           </tr>
@@ -41,7 +45,7 @@ export function ghostMarkerNotificationHtml(
                       Credential
                     </p>
                     <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#FFFFFF;">
-                      ${markerTitle}
+                      ${esc(markerTitle)}
                     </p>
                     ${descriptionHtml}
                   </td>
@@ -51,7 +55,7 @@ export function ghostMarkerNotificationHtml(
           </tr>
           <tr>
             <td style="padding:32px;">
-              <a href="${claimUrl}"
+              <a href="${esc(claimUrl)}"
                  style="display:block;text-align:center;background:#FE0000;color:#FFFFFF;text-decoration:none;font-size:14px;font-weight:700;padding:14px 24px;border-radius:9999px;">
                 Claim Your Trust Marker
               </a>
@@ -73,5 +77,4 @@ export function ghostMarkerNotificationHtml(
     </tr>
   </table>
 </body>
-</html>`
-}
+</html>`}

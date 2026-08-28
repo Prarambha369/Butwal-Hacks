@@ -1,11 +1,9 @@
 /**
- * PostHog LLM observability — captures Groq API calls for monitoring.
+ * LLM observability — captures Groq API calls for monitoring.
  *
- * ponytail: thin wrapper around posthog.capture() for LLM-specific events.
- * No extra deps — uses the existing posthog-js client.
+ * ponytail: server-safe — no browser-only posthog-js.
+ * Logs to console; posthog-provider.tsx handles client-side capture.
  */
-
-import posthog from "posthog-js";
 
 export interface LLMCallEvent {
   model: string;
@@ -17,25 +15,9 @@ export interface LLMCallEvent {
   feature: string; // "bh-bot" | "pitch-generator" | "certificate-ocr" | "team-matching"
 }
 
-/** Capture an LLM call for PostHog AI observability. */
+/** Log an LLM call. Server-safe, no external SDKs. */
 export function captureLLMCall(event: LLMCallEvent) {
-  if (!posthog.__loaded) return;
-
-  posthog.capture("llm_call", {
-    $set_once: { ai_model: event.model },
-    model: event.model,
-    input_tokens: event.input_tokens,
-    output_tokens: event.output_tokens,
-    total_tokens: event.input_tokens + event.output_tokens,
-    latency_ms: event.latency_ms,
-    success: event.success,
-    error: event.error,
-    feature: event.feature,
-    // PostHog AI observability uses these properties
-    $llm_model: event.model,
-    $llm_input_tokens: event.input_tokens,
-    $llm_output_tokens: event.output_tokens,
-    $llm_latency_ms: event.latency_ms,
-    $llm_success: event.success,
-  });
+  if (process.env.NODE_ENV === "development") {
+    console.info("[llm]", JSON.stringify(event));
+  }
 }

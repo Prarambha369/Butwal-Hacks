@@ -216,7 +216,6 @@ export const POST = withRateLimit(async (req: NextRequest) => {
           to: [normalizedEmail],
           subject: `You've received a Trust Marker from Butwal Hacks`,
           html: ghostMarkerNotificationHtml(
-            normalizedEmail,
             issuer?.full_name || "An organizer",
             safeTitle,
             safeDescription,
