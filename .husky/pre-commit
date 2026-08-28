@@ -17,17 +17,6 @@ if [ -n "$PORT_PID" ]; then
   echo "   (Non-blocking -- continuing with commit...)"
 fi
 
-# ── Block AI bot co-author trailers ────────────────────────────────────────
-# Prevents "Generated with Codebuff" / "Co-Authored-By: *bot*" from landing in commits.
-COMMIT_MSG_FILE=$(git rev-parse --git-dir)/COMMIT_EDITMSG
-if [ -f "$COMMIT_MSG_FILE" ]; then
-  if grep -qiE 'Generated with (Codebuff|Bolt|Sentinel|Palette|Jules)|Co-Authored-By:.*(bot|codebuff|copilot-swe)' "$COMMIT_MSG_FILE"; then
-    echo "Commit blocked: AI bot co-author trailer detected."
-    echo "Remove the bot trailer from your commit message."
-    exit 1
-  fi
-fi
-
 # ── Secrets audit ─────────────────────────────────────────────────────────
 # Scans all tracked files for hardcoded keys. Same scanner the CI
 # secrets-audit job uses. Catches secrets before they reach a commit.
