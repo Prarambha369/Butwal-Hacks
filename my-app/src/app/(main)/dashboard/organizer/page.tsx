@@ -1,6 +1,7 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase";
+import { formatDualDate } from "@/lib/nepali-date";
 import OrganizerDashboardClient from "./organizer-dashboard-client";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +41,7 @@ export default async function OrganizerDashboardPage() {
     return {
       id: ev.id,
       name: ev.title,
-      date: `${new Date(ev.start_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}${ev.end_date ? `-${new Date(ev.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : ""}`,
+      date: formatDualDate(new Date(ev.start_date)),
       status,
     };
   });

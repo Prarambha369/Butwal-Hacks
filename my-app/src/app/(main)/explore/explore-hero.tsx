@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Users, Code2, Zap, Trophy } from "lucide-react"
+import { Users, Code2, Calendar, Trophy } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // ─── Animated Counter ──────────────────────────────────────────────
@@ -36,7 +36,7 @@ interface ExploreHeroProps {
   totalMembers: number
   totalBuilders: number
   totalProjects: number
-  totalXp: number
+  totalEvents: number
 }
 
 // ─── Stat Items ────────────────────────────────────────────────────
@@ -45,13 +45,13 @@ const statItems = [
   { key: "members", icon: Users, label: "Members", color: "text-primary-red", bg: "bg-primary-red/10" },
   { key: "builders", icon: Code2, label: "Builders", color: "text-status-blue", bg: "bg-status-blue/10" },
   { key: "projects", icon: Trophy, label: "Projects", color: "text-status-green", bg: "bg-status-green/10" },
-  { key: "xp", icon: Zap, label: "Total XP", color: "text-status-yellow", bg: "bg-status-yellow/10", format: true },
+  { key: "events", icon: Calendar, label: "Events", color: "text-status-yellow", bg: "bg-status-yellow/10" },
 ]
 
 // ─── Main Component ────────────────────────────────────────────────
 
-export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalXp }: ExploreHeroProps) {
-  const stats = { members: totalMembers, builders: totalBuilders, projects: totalProjects, xp: totalXp }
+export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalEvents }: ExploreHeroProps) {
+  const stats = { members: totalMembers, builders: totalBuilders, projects: totalProjects, events: totalEvents }
 
   return (
     <section className="relative overflow-hidden border-b border-border/20" aria-label="Explore Hero">
@@ -85,7 +85,7 @@ export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalX
 
         {/* ── Animated Stats Grid ── */}
         <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
-          {statItems.map(({ key, icon: Icon, label, color, bg, format }) => {
+          {statItems.map(({ key, icon: Icon, label, color, bg }) => {
             const value = stats[key as keyof typeof stats]
             return (
               <div
@@ -96,11 +96,7 @@ export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalX
                   <Icon className="w-4 h-4" />
                 </div>
                 <p className={cn("text-xl md:text-2xl font-black font-mono tabular-nums", color)}>
-                  {format ? (
-                    `${(value / 1000).toFixed(1)}K`
-                  ) : (
-                    <AnimatedCounter value={value} />
-                  )}
+                  <AnimatedCounter value={value} />
                 </p>
                 <p className="text-[10px] font-bold text-muted-foreground/60 mt-0.5 uppercase tracking-wider">
                   {label}

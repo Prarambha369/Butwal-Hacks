@@ -64,7 +64,6 @@ export default async function DashboardHubPage() {
   const bhId = profile?.bh_id || profile?.slug_id || "BH-••••••";
   const role = profile?.role || "hacker";
   const fullName = profile?.full_name || "New Hacker";
-  const xp = profile?.xp || 0;
 
   const locale = 'en' as Locale; // Server component — can't use useLanguage. Falls back to 'en'.
 
@@ -89,14 +88,13 @@ export default async function DashboardHubPage() {
         </div>
 
         {/* ── Section 1: BH-ID Identity Card ── */}
-        <BHIDClaimCard bhId={bhId} role={role} fullName={fullName} xp={xp} />
+        <BHIDClaimCard bhId={bhId} role={role} fullName={fullName} />
 
         {/* ── Section 2: Stats & Activity ── */}
         <DashboardHubStats
           trustMarkerCount={trustMarkerCount ?? 0}
           projectCount={projectCount ?? 0}
           hackathonCount={hackathonCount ?? 0}
-          xp={xp}
         />
 
         {/* ── Section 3: Onboarding Steps ── */}

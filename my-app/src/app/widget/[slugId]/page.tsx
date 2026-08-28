@@ -304,14 +304,6 @@ export default async function WidgetPage({ params, searchParams }: Props) {
           >
             <div>
               <div className="wc-h" style={{ fontSize: 16, fontWeight: 800 }}>
-                {profile.xp}
-              </div>
-              <div className="wc-s" style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em" }}>
-                XP
-              </div>
-            </div>
-            <div>
-              <div className="wc-h" style={{ fontSize: 16, fontWeight: 800 }}>
                 {activeMarkers.length}
               </div>
               <div className="wc-s" style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em" }}>

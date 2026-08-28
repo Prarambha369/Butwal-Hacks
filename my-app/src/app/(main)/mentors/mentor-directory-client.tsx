@@ -56,12 +56,12 @@ function getSocialUrl(platform: string, value: string): string {
   }
 }
 
-type SortKey = "xp" | "name" | "skills"
+type SortKey = "activity" | "name" | "skills"
 
 export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
   const [search, setSearch] = useState("")
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
-  const [sortBy, setSortBy] = useState<SortKey>("xp")
+  const [sortBy, setSortBy] = useState<SortKey>("activity")
   const [showAllSkills, setShowAllSkills] = useState(false)
 
   // Extract all unique skills
@@ -93,7 +93,7 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
     })
 
     result.sort((a, b) => {
-      if (sortBy === "xp") return b.xp - a.xp
+      if (sortBy === "activity") return (b.skills?.length ?? 0) - (a.skills?.length ?? 0)
       if (sortBy === "name") return (a.full_name ?? "").localeCompare(b.full_name ?? "")
       if (sortBy === "skills") return (b.skills?.length ?? 0) - (a.skills?.length ?? 0)
       return 0
@@ -132,7 +132,7 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
             onChange={(e) => setSortBy(e.target.value as SortKey)}
             className="pl-9 pr-8 py-2.5 rounded-lg bg-surface border border-border text-xs font-medium text-primary appearance-none cursor-pointer outline-none focus:border-primary-red/50 focus:ring-2 focus:ring-primary-red/20 transition-all"
           >
-            <option value="xp">Sort by XP</option>
+            <option value="activity">Sort by Activity</option>
             <option value="name">Sort by Name</option>
             <option value="skills">Sort by Skills</option>
           </select>
@@ -237,13 +237,13 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
                   </div>
 
                   <div className="min-w-0 flex-1 space-y-2">
-                    {/* Name + XP */}
+                    {/* Name + Skills */}
                     <div>
                       <h3 className="text-sm font-bold text-primary truncate group-hover:text-primary-red transition-colors">
                         {mentor.full_name ?? "Unnamed"}
                       </h3>
                       <p className="text-[10px] font-mono text-muted-foreground/50">
-                        {mentor.xp.toLocaleString()} XP
+                        {mentor.skills?.length ?? 0} skill{(mentor.skills?.length ?? 0) !== 1 ? 's' : ''}
                       </p>
                     </div>
 

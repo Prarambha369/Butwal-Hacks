@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Key, Plus, Copy, Trash2, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDualDate } from "@/lib/nepali-date";
 import { toast } from "sonner";
 import { CardSkeleton } from "@/components/ui/skeleton";
 interface ApiKey {
@@ -261,11 +262,11 @@ export default function ApiKeysPage() {
                 <div className="flex items-center gap-4 mt-3 text-[10px] text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    Created {new Date(key.created_at).toLocaleDateString()}
+                    Created {formatDualDate(new Date(key.created_at))}
                   </span>
                   {key.last_used_at && (
                     <span className="inline-flex items-center gap-1">
-                      Last used {new Date(key.last_used_at).toLocaleDateString()}
+                      Last used {formatDualDate(new Date(key.last_used_at))}
                     </span>
                   )}
                 </div>

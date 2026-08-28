@@ -7,7 +7,7 @@ import { MemberCard } from "@/components/explorer/member-card"
 import { cn } from "@/lib/utils"
 
 const SORT_OPTIONS = [
-  { value: "xp", label: "XP (high)" },
+  { value: "activity", label: "Most Active" },
   { value: "projects", label: "Projects (high)" },
   { value: "name", label: "Name (A-Z)" },
   { value: "joined", label: "Newest" },
@@ -28,7 +28,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
   const [query, setQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
   const [role, setRole] = useState<RoleFilter>("All")
-  const [sortBy, setSortBy] = useState<SortKey>("xp")
+  const [sortBy, setSortBy] = useState<SortKey>("activity")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showFilters, setShowFilters] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)

@@ -7,8 +7,9 @@ export interface ExplorerMember {
   avatar: string
   bio: string
   skills: string[]
-  xp: number
+  xp: number // kept internally for sort signal; not displayed
   projects: number
+  events: number
   joined: string
   /** Auth0 user ID for live presence matching. */
   auth0_user_id?: string
@@ -58,21 +59,30 @@ export async function fetchExplorerMembers(
     return [];
   }
 
-  // Batch-fetch project counts for all returned profile IDs
+  // Batch-fetch project counts and event registrations for all returned profile IDs
   const profileIds = profiles.map((p: ProfileRow) => p.id);
   const projectCounts = new Map<string, number>();
+  const eventCounts = new Map<string, number>();
 
   if (profileIds.length > 0) {
-    const { data: projectAgg } = await supabase
-      .from("projects")
-      .select("profile_id")
-      .in("profile_id", profileIds);
+    const [projectAgg, eventAgg] = await Promise.all([
+      supabase.from("projects").select("profile_id").in("profile_id", profileIds),
+      supabase.from("event_registrations").select("profile_id").in("profile_id", profileIds),
+    ]);
 
-    if (projectAgg) {
+    if (projectAgg.data) {
       for (const pid of profileIds) {
         projectCounts.set(
           pid,
-          projectAgg.filter((p: { profile_id: string }) => p.profile_id === pid).length,
+          projectAgg.data.filter((p: { profile_id: string }) => p.profile_id === pid).length,
+        );
+      }
+    }
+    if (eventAgg.data) {
+      for (const pid of profileIds) {
+        eventCounts.set(
+          pid,
+          eventAgg.data.filter((e: { profile_id: string }) => e.profile_id === pid).length,
         );
       }
     }
@@ -96,6 +106,7 @@ export async function fetchExplorerMembers(
       skills: p.skills || [],
       xp: p.xp || 0,
       projects: projectCounts.get(p.id) || 0,
+      events: eventCounts.get(p.id) || 0,
       joined: p.created_at ? p.created_at.slice(0, 7) : "",
       auth0_user_id: p.auth0_user_id || undefined,
     };
@@ -106,7 +117,7 @@ export async function fetchExplorerMembers(
 
 export function getExplorerStats(members: ExplorerMember[]) {
   const total = members.length;
-  const totalXp = members.reduce((sum, m) => sum + m.xp, 0);
+  const totalEvents = members.reduce((sum, m) => sum + m.events, 0);
   const totalProjects = members.reduce((sum, m) => sum + m.projects, 0);
   const byRole = {
     Builder: members.filter((m) => m.role === "Builder").length,
@@ -115,7 +126,7 @@ export function getExplorerStats(members: ExplorerMember[]) {
     Sponsor: members.filter((m) => m.role === "Sponsor").length,
   };
 
-  return { total, totalXp, totalProjects, byRole };
+  return { total, totalEvents, totalProjects, byRole };
 }
 
 // ─── Search & Filter Utilities ────────────────────────────────────
@@ -123,7 +134,7 @@ export function getExplorerStats(members: ExplorerMember[]) {
 export type ExplorerFilters = {
   role?: ExplorerMember["role"] | "All"
   query?: string
-  sortBy?: "xp" | "projects" | "name" | "joined"
+  sortBy?: "activity" | "projects" | "name" | "joined"
 }
 
 export function filterMembers(
@@ -153,8 +164,8 @@ export function filterMembers(
   if (filters.sortBy) {
     results.sort((a, b) => {
       switch (filters.sortBy) {
-        case "xp":
-          return b.xp - a.xp;
+        case "activity":
+          return (b.projects + b.events) - (a.projects + a.events);
         case "projects":
           return b.projects - a.projects;
         case "name":
