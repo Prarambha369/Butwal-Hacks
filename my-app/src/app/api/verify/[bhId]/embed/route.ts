@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase"
 import { withRateLimit } from "@/lib/rate-limiter"
 
+/** Escape HTML special characters to prevent XSS in interpolated output. */
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+}
+
 /**
  * Verify Anywhere — Embeddable verification badge.
  *
@@ -30,6 +35,9 @@ export const GET = withRateLimit(async (
     .eq("bh_id", bhId)
     .single()
 
+  // SECURITY: escape bhId to prevent XSS in HTML response
+  const safeBhId = esc(bhId)
+
   const notFoundHtml = `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -45,7 +53,7 @@ export const GET = withRateLimit(async (
 </head>
 <body><div class="card">
   <p class="label">BH-ID Verification</p>
-  <p class="id">${bhId}</p>
+  <p class="id">${safeBhId}</p>
   <p class="msg">This BH-ID was not found in the Butwal Hacks registry.</p>
 </div></body>
 </html>`
@@ -71,7 +79,7 @@ export const GET = withRateLimit(async (
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Verify ${bhId}</title>
+<title>Verify ${safeBhId}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:transparent;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:12px}
@@ -92,14 +100,14 @@ export const GET = withRateLimit(async (
 <body><div class="card">
   <div class="header">
     <div class="logo">BH</div>
-    <div><div class="brand">Butwal Hacks</div><div class="name">${profile.full_name}</div></div>
+    <div><div class="brand">Butwal Hacks</div><div class="name">${esc(profile.full_name ?? '')}</div></div>
   </div>
   <div class="row">
-    <span class="id-badge">${profile.bh_id}</span>
+    <span class="id-badge">${esc(profile.bh_id ?? '')}</span>
     <span class="role-badge">${roleLabel}</span>
-    <span class="xp">${profile.xp} XP</span>
+    <span class="xp">${Number(profile.xp)} XP</span>
   </div>
-  ${profile.bio ? `<p style="color:#898989;font-size:12px;margin-top:10px;line-height:1.4">${profile.bio.slice(0, 120)}</p>` : ""}
+  ${profile.bio ? `<p style="color:#898989;font-size:12px;margin-top:10px;line-height:1.4">${esc(profile.bio.slice(0, 120))}</p>` : ""}
   <div class="footer">
     <span class="dot"></span>
     <span class="footer-text">Verified in real-time via butwalhacks.com</span>
