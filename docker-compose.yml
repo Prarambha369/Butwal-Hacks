@@ -9,9 +9,9 @@
 #   docker compose logs -f        # Follow logs
 #
 # After starting, update .env.local:
-#   NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+#   NEXT_PUBLIC_SUPABASE_URL=http://localhost:3000 (points to PostgREST REST API)
 #   NEXT_PUBLIC_SUPABASE_ANON_KEY=<see docker compose logs>
-#   UPSTASH_REDIS_REST_URL=http://localhost:8080 (not used locally — Redis is TCP only)
+#   UPSTASH_REDIS_REST_URL= (not used locally — Redis is TCP only, caching disabled)
 # ═══════════════════════════════════════════════════════════════════
 
 services:
