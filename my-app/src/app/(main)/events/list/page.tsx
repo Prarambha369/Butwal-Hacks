@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CalendarDays, ArrowRight, MapPin } from "lucide-react";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { buildPageMetadata } from "@/lib/seo";
+import { formatDualDate } from "@/lib/nepali-date";
 import { Metadata } from "next";
 import { logger } from "@/lib/logger";
 
@@ -80,7 +81,7 @@ export default async function EventsListPage() {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono">
                     <CalendarDays size={14} />
-                    <span>{new Date(event.start_date).toLocaleDateString()}</span>
+                    <span>{formatDualDate(new Date(event.start_date))}</span>
                   </div>
                 </div>
 
