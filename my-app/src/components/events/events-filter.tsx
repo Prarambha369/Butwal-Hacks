@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { ArrowRight, Calendar, MapPin } from "lucide-react"
+import { formatDualDate } from "@/lib/nepali-date"
 import CountdownTimer from "./countdown-timer"
 
 export interface EventItem {
@@ -102,13 +103,7 @@ function EventCard({ event, filter }: { event: EventItem; filter: FilterMode }) 
     startDate.getTime() <= now &&
     new Date(event.end_date).getTime() >= now
 
-  const formatDate = (d: Date) =>
-    d.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    })
+  const formatDate = (d: Date) => formatDualDate(d)
 
   return (
     <article className="group bh-card p-7 transition-all hover:border-primary-red/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary-red/5">
