@@ -1,3 +1,4 @@
+import crypto from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
@@ -61,10 +62,17 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       logger.error("[auth0-webhook] AUTH0_WEBHOOK_SECRET not configured - rejecting all requests");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const headerSecret = req.headers.get("x-webhook-secret");
-    if (!headerSecret || headerSecret !== AUTH0_WEBHOOK_SECRET) {
-      logger.warn("[auth0-webhook] Rejected request - invalid or missing webhook secret");
-      return NextResponse.json({ error: "Invalid webhook secret" }, { status: 401 });
+    const headerSecret = req.headers.get("x-webhook-secret") ?? ""
+    // SECURITY: constant-time comparison prevents timing attacks on webhook secret
+    const expectedBuf = Buffer.from(AUTH0_WEBHOOK_SECRET, "utf8")
+    const receivedBuf = Buffer.from(headerSecret, "utf8")
+    if (
+      !headerSecret ||
+      expectedBuf.length !== receivedBuf.length ||
+      !crypto.timingSafeEqual(expectedBuf, receivedBuf)
+    ) {
+      logger.warn("[auth0-webhook] Rejected request - invalid or missing webhook secret")
+      return NextResponse.json({ error: "Invalid webhook secret" }, { status: 401 })
     }
 
     const { sub, email, name, auth0_roles } = await req.json() as {
