@@ -7,11 +7,26 @@ import {
   ArrowRight,
   Zap,
   Loader2,
-  Code2,
+  Code2, Palette, Globe, Cable, Cpu, Network, Link2, Rocket, Trophy, Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { SKILL_ICONS, type SkillWithStatus } from "@/lib/skill-trees";
+import { type SkillWithStatus } from "@/lib/skill-trees"
+
+const SKILL_ICONS: Record<string, React.ReactNode> = {
+  react: <Code2 className="w-5 h-5" />,
+  python: <Code2 className="w-5 h-5" />,
+  palette: <Palette className="w-5 h-5" />,
+  globe: <Globe className="w-5 h-5" />,
+  cable: <Cable className="w-5 h-5" />,
+  cpu: <Cpu className="w-5 h-5" />,
+  network: <Network className="w-5 h-5" />,
+  link: <Link2 className="w-5 h-5" />,
+  rocket: <Rocket className="w-5 h-5" />,
+  trophy: <Trophy className="w-5 h-5" />,
+  zap: <Zap className="w-5 h-5" />,
+  layers: <Layers className="w-5 h-5" />,
+}
 
 interface SkillNodeProps {
   skill: SkillWithStatus;

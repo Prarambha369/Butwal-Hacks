@@ -9,10 +9,24 @@ import PhotoGallery from '@/components/hacker-id/photo-gallery';
 import OwnerActionBar from '@/components/hacker-id/owner-action-bar';
 import TrustMarkersList from '@/components/hacker-id/trust-markers-list';
 
-import { Sparkles, Loader2, Code, Copy, Check, Award } from 'lucide-react';
+import { Sparkles, Loader2, Code, Copy, Check, Award, Code2, Palette, Globe, Cable, Cpu, Network, Link2, Rocket, Trophy, Layers } from 'lucide-react';
 import { generateProfileSummary } from '@/lib/actions/generate-profile-summary';
 import { useActionState } from 'react';
-import { SKILL_ICONS } from '@/lib/skill-trees';
+
+const SKILL_ICONS: Record<string, React.ReactNode> = {
+  react: <Code2 className="w-5 h-5" />,
+  python: <Code2 className="w-5 h-5" />,
+  palette: <Palette className="w-5 h-5" />,
+  globe: <Globe className="w-5 h-5" />,
+  cable: <Cable className="w-5 h-5" />,
+  cpu: <Cpu className="w-5 h-5" />,
+  network: <Network className="w-5 h-5" />,
+  link: <Link2 className="w-5 h-5" />,
+  rocket: <Rocket className="w-5 h-5" />,
+  trophy: <Trophy className="w-5 h-5" />,
+  zap: <Layers className="w-5 h-5" />,
+  layers: <Layers className="w-5 h-5" />,
+}
 import type { HackerProfile, Project } from '@/lib/supabase-types';
 
 // Extended to match both HackerProfile and additional runtime properties
