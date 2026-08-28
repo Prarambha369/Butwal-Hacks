@@ -151,7 +151,7 @@ export default function ProfileClient({
           <div className="bh-card p-6">
             <p className="text-xs leading-relaxed text-muted-foreground mb-3">
               External organizations can embed a live verification badge on their website.
-              Visitors see the BH-ID holder&apos;s name, role, and XP in real-time.
+              Visitors see the BH-ID holder&apos;s name, role, and credentials in real-time.
             </p>
             <CopyEmbedCode bhId={profile.uniqueId} />
           </div>

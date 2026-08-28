@@ -1,7 +1,5 @@
 import { auth0 } from "@/lib/auth0";
 import { createClient } from '@/utils/supabase';
-import { calculateLevel } from '@/lib/xp-levels';
-import LevelBadge from '@/components/dashboard/level-badge';
 import { Trophy, Star, Zap, Lock, Award } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 
@@ -14,14 +12,11 @@ export default async function AchievementsPage() {
   if (!userId) return <div className="p-12 text-center">Please log in to view achievements.</div>;
 
   const supabase = await createClient();
-  const { data: profile } = await supabase
+  await supabase
     .from('profiles')
-    .select('xp')
+    .select('id')
     .eq('auth0_user_id', userId)
     .single();
-
-  const userXp = profile?.xp || 0;
-  void calculateLevel(userXp);
 
   const { data: userBadges } = await supabase
     .from('trust_markers')
@@ -32,10 +27,10 @@ export default async function AchievementsPage() {
   const anyUnlocked = unlockedBadgeIds.size > 0;
 
   const achievementList = [
-    { id: 'first-project', title: 'First Ship', desc: 'Submit your first project', icon: <Zap />, xp: 100, unlocked: unlockedBadgeIds.has('First Ship') },
-    { id: 'team-lead', title: 'Squad Leader', desc: 'Form a team of 3+ members', icon: <Star />, xp: 250, unlocked: unlockedBadgeIds.has('Squad Leader') },
-    { id: 'verified', title: 'Trust Verified', desc: 'Get GitHub verification', icon: <Trophy />, xp: 500, unlocked: unlockedBadgeIds.has('Verified Build') },
-    { id: 'impact', title: 'Community Pillar', desc: 'Reach 100 project likes', icon: <Star />, xp: 1000, unlocked: unlockedBadgeIds.has('Community Pillar') },
+    { id: 'first-project', title: 'First Ship', desc: 'Submit your first project', icon: <Zap />, unlocked: unlockedBadgeIds.has('First Ship') },
+    { id: 'team-lead', title: 'Squad Leader', desc: 'Form a team of 3+ members', icon: <Star />, unlocked: unlockedBadgeIds.has('Squad Leader') },
+    { id: 'verified', title: 'Trust Verified', desc: 'Get GitHub verification', icon: <Trophy />, unlocked: unlockedBadgeIds.has('Verified Build') },
+    { id: 'impact', title: 'Community Pillar', desc: 'Reach 100 project likes', icon: <Star />, unlocked: unlockedBadgeIds.has('Community Pillar') },
   ];
 
   return (
@@ -48,10 +43,9 @@ export default async function AchievementsPage() {
         </div>
         <div className="bh-card px-6 py-3 flex items-center gap-4">
           <div className="text-right">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Current Progress</p>
-            <p className="text-lg font-bold font-mono text-primary">{userXp} XP</p>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Credentials</p>
+            <p className="text-lg font-bold font-mono text-primary">{unlockedBadgeIds.size}</p>
           </div>
-          <LevelBadge xp={userXp} />
         </div>
       </div>
 
@@ -73,7 +67,7 @@ export default async function AchievementsPage() {
               <h3 className="text-xl font-bold mb-2">{ach.title}</h3>
               <p className="text-sm text-muted-foreground mb-6">{ach.desc}</p>
               <div className="flex items-center justify-between pt-4 border-t border-border">
-                <span className="text-xs font-mono text-muted-foreground">Reward: {ach.xp} XP</span>
+                <span className="text-[10px] font-mono text-muted-foreground">{ach.unlocked ? "✓ Earned" : "Locked"}</span>
                 {ach.unlocked && (
                   <span className="text-[10px] font-bold text-primary-red">✓ Unlocked</span>
                 )}
@@ -90,7 +84,7 @@ export default async function AchievementsPage() {
             { label: "Explore events", href: "/events", variant: "primary" },
             { label: "Submit a project", href: "/dashboard/hacker/projects", variant: "secondary" },
           ]}
-          hint="Completing achievements earns XP and unlocks trust markers"
+          hint="Start building to unlock achievements and trust markers"
         />
       )}
     </div>

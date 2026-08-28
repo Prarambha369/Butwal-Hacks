@@ -91,7 +91,6 @@ export const GET = withRateLimit(async (
   .row{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
   .id-badge{background:#121212;border:1px solid #333333;border-radius:8px;padding:4px 10px;font-family:monospace;font-size:12px;color:#D4D4D4}
   .role-badge{background:${roleColor}20;color:${roleColor};border:1px solid ${roleColor}40;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
-  .xp{color:#898989;font-size:11px;margin-left:auto}
   .footer{margin-top:12px;padding-top:10px;border-top:1px solid #65656530;display:flex;align-items:center;gap:6px}
   .dot{width:6px;height:6px;background:#4CAF50;border-radius:50%}
   .footer-text{color:#898989;font-size:10px}
@@ -105,7 +104,6 @@ export const GET = withRateLimit(async (
   <div class="row">
     <span class="id-badge">${esc(profile.bh_id ?? '')}</span>
     <span class="role-badge">${roleLabel}</span>
-    <span class="xp">${Number(profile.xp)} XP</span>
   </div>
   ${profile.bio ? `<p style="color:#898989;font-size:12px;margin-top:10px;line-height:1.4">${esc(profile.bio.slice(0, 120))}</p>` : ""}
   <div class="footer">

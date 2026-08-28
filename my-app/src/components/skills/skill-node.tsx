@@ -86,7 +86,7 @@ export default function SkillNode({ skill, treeColor }: SkillNodeProps) {
       const { unlockSkill } = await import("@/lib/actions/skill-trees");
       const result = await unlockSkill(skill.id);
       if (result.success) {
-        toast.success(`Unlocked: ${skill.name}${result.xpAwarded ? ` (+${result.xpAwarded} XP)` : ""}`);
+        toast.success(`Unlocked: ${skill.name}`);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to unlock skill";
@@ -120,9 +120,7 @@ export default function SkillNode({ skill, treeColor }: SkillNodeProps) {
             <p className={cn("text-sm font-bold", config.text)}>
               {skill.name}
             </p>
-            <p className="text-[10px] text-muted-foreground/60 font-mono">
-              {skill.xpReward} XP
-            </p>
+
           </div>
         </div>
         <div className={cn(

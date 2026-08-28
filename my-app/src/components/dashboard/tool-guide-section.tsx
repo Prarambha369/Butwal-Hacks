@@ -54,10 +54,10 @@ const toolCatalog: RoleSection[] = [
     tools: [
       {
         name: "Overview",
-        description: "Your personal command center showing XP, projects, trust markers, chapters, and activity feed.",
+        description: "Your personal command center showing projects, trust markers, and activity feed.",
         href: "/dashboard/hacker",
         icon: <LayoutDashboard className="w-4 h-4" />,
-        purpose: "Your XP, projects, trust markers, and activity feed in one place.",
+        purpose: "Your projects, trust markers, and activity feed in one place.",
         howTo: "Visit /dashboard/hacker after onboarding. Stats cards show your totals; the activity feed shows community updates.",
       },
       {
@@ -82,7 +82,7 @@ const toolCatalog: RoleSection[] = [
         description: "Submit and manage all your hackathon project submissions in one place.",
         href: "/dashboard/hacker/projects",
         icon: <Code2 className="w-4 h-4" />,
-        purpose: "Submit your work. Each project builds your portfolio and earns XP.",
+        purpose: "Submit your work. Each project builds your portfolio and earns trust markers.",
         howTo: "Click 'New Project' to submit. Add title, description, tech stack, and links. You can also sync from GitHub.",
       },
       {

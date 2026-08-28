@@ -244,7 +244,7 @@ const translations: Record<string, { en: string; ne: string }> = {
   'profile.view_profile': { en: 'View Profile', ne: 'प्रोफाइल हेर्नुहोस्' },
   'profile.bio': { en: 'Bio', ne: 'परिचय' },
   'profile.member_since': { en: 'Member since {date}', ne: '{date} देखि सदस्य' },
-  'profile.xp_points': { en: '{xp} XP', ne: '{xp} अंक' },
+  'profile.xp_points': { en: '{xp} Score', ne: '{xp} स्कोर' },
   'profile.no_bio': { en: 'No bio yet.', ne: 'अहिलेसम्म कुनै परिचय छैन।' },
   'profile.link_account': { en: 'Link Account', ne: 'खाता लिङ्क गर्नुहोस्' },
   'profile.upload_avatar': { en: 'Upload Avatar', ne: 'अवतार अपलोड गर्नुहोस्' },

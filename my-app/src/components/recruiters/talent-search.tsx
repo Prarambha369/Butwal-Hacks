@@ -140,10 +140,12 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
                     <h3 className="text-sm font-bold text-primary truncate">
                       {hacker.display_name}
                     </h3>
-                    <span className="flex items-center gap-1 text-[10px] font-mono text-primary-red shrink-0">
-                      <Award className="w-3 h-3" />
-                      {hacker.xp}
-                    </span>
+                    {hacker.trust_marker_count > 0 && (
+                      <span className="flex items-center gap-1 text-[10px] font-mono text-primary-red shrink-0">
+                        <Award className="w-3 h-3" />
+                        {hacker.trust_marker_count}
+                      </span>
+                    )}
                   </div>
                   <p className="text-[10px] font-mono text-secondary truncate">
                     {hacker.slug_id}

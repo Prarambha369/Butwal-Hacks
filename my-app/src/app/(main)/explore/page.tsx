@@ -45,7 +45,7 @@ export default async function ExplorePage() {
           totalMembers={stats.total}
           totalBuilders={stats.byRole.Builder}
           totalProjects={stats.totalProjects}
-          totalXp={stats.totalXp}
+          totalEvents={stats.totalEvents}
         />
 
         {/* ── MEMBER DIRECTORY ────────────────────────────────────── */}
