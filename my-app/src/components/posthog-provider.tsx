@@ -31,6 +31,8 @@ function PostHogInner({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams()
   // Track consent state — re-check when consent-granted event fires
   const [consentGranted, setConsentGranted] = useState(false)
+  // Track PostHog readiness — so auth effect reruns after init
+  const [phReady, setPhReady] = useState(false)
 
   // Listen for cookie consent and check initial state
   useEffect(() => {
@@ -64,9 +66,12 @@ function PostHogInner({ children }: { children: React.ReactNode }) {
         capture_pageview: false, // we handle page views manually with pathname changes
         defaults: "2026-05-30",
         loaded: (ph) => {
+          setPhReady(true)
           if (process.env.NODE_ENV === "development") ph.opt_out_capturing()
         },
       })
+    } else {
+      setPhReady(true)
     }
   }, [consentGranted])
 
@@ -94,8 +99,9 @@ function PostHogInner({ children }: { children: React.ReactNode }) {
     } else {
       posthog.reset()
     }
-  // ponytail: user.email and user.name are stable alongside user.sub — omitting from deps avoids redundant re-identify
-  }, [user?.sub, isLoading])
+  // ponytail: user.email and user.name are stable alongside user.sub
+  // phReady added so identify runs after PostHog loads even if auth loaded first
+  }, [user?.sub, isLoading, phReady])
 
   // Capture page views on route changes
   useEffect(() => {

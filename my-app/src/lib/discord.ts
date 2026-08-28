@@ -12,13 +12,22 @@ const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL ?? "";
 /** Send a rich embed to the configured Discord channel. */
 async function sendEmbed(embed: Record<string, unknown>) {
   if (!WEBHOOK_URL) return;
+  // ponytail: validate webhook URL is HTTPS Discord endpoint
+  if (!WEBHOOK_URL.startsWith("https://discord.com/api/webhooks/")) {
+    logger.warn("[discord] DISCORD_WEBHOOK_URL must be a HTTPS Discord webhook URL")
+    return
+  }
   try {
-    await fetch(WEBHOOK_URL, {
+    const res = await fetch(WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ embeds: [embed] }),
       signal: AbortSignal.timeout(5000),
-    });
+      redirect: "error",
+    })
+    if (!res.ok) {
+      logger.warn(`[discord] webhook HTTP ${res.status}`)
+    }
   } catch (err) {
     logger.warn("[discord] webhook failed:", err);
   }
