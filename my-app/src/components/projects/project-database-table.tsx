@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { ArrowUpDown, ArrowUp, ArrowDown, Plus, Search, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { formatBsDate } from "@/lib/nepali-date"
 import Link from "next/link"
 import ProjectQuickView from "./project-quick-view"
 import type { ProjectListItem } from "@/lib/actions/projects"
@@ -237,7 +238,8 @@ export default function ProjectDatabaseTable({
   // Due date formatting
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr)
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    const bs = formatBsDate(d)
+    return `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} (${bs.split(',').slice(0, 1).join('')})`
   }
 
   return (
