@@ -2,12 +2,11 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import OnboardingTour from "@/components/dashboard/onboarding-tour";
-import {
-  CalendarDays, Users, Rocket, Bell, CheckCircle2,
+import OnboardingTour from "@/components/dashboard/onboarding-tour";import { CalendarDays, Users, Rocket, Bell, CheckCircle2,
   Plus, ChevronLeft, ChevronRight,
   Calendar, ListTodo,
 } from "lucide-react";
+import { adToBs, BS_MONTH_NAMES } from "@/lib/nepali-date"
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -72,9 +71,9 @@ function CalendarGrid({ events }: { events: EventItem[] }) {
     else setMonth((m) => m + 1);
   };
 
-  const monthName = new Date(year, month).toLocaleDateString("en-US", {
-    month: "long", year: "numeric",
-  });
+  const adDate = new Date(year, month)
+  const monthBs = adToBs(adDate)
+  const monthName = `${adDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })} · ${BS_MONTH_NAMES[monthBs.month - 1]} ${monthBs.year} BS`
 
   const cells: (number | null)[] = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
