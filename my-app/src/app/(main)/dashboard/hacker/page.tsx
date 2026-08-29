@@ -77,13 +77,7 @@ export default async function HackerDashboardPage() {
           title="Hackathons"
           value={registrations?.length ?? 0}
           icon={<Trophy className="w-4 h-4 text-status-green" />}
-          desc="Events attended"
-        />
-        <MetricCard
-          title="Events"
-          value={registrations?.length ?? 0}
-          icon={<CalendarDaysIcon />}
-          desc="Registered events"
+          desc="Events registered"
         />
       </div>
 
