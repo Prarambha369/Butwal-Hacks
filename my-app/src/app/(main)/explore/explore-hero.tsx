@@ -55,12 +55,7 @@ export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalE
 
   return (
     <section className="relative overflow-hidden border-b border-border/20" aria-label="Explore Hero">
-      {/* ── Ambient Glows ── */}
-      <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary-red/[0.06] blur-[140px] pointer-events-none" />
-      <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full bg-status-blue/[0.07] blur-[120px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-status-green/[0.03] blur-[160px] pointer-events-none" />
-
-      <div className="relative mx-auto max-w-6xl px-4 py-16 md:py-20">
+      <div className="mx-auto max-w-6xl px-4 py-16 md:py-20">
         {/* ── Eyebrow ── */}
         <div className="flex justify-center mb-6">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/8 text-[10px] font-bold text-primary-red tracking-wider">
