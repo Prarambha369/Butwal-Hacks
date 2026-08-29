@@ -299,11 +299,11 @@ const translations: Record<string, { en: string; ne: string }> = {
   'action.sitemap': { en: 'Sitemap', ne: 'साइटम्याप' },
 
   /* ── Search / Command Palette ── */
-  'search.placeholder': { en: 'Search hackers, projects, events...', ne: 'ह्याकरहरू, परियोजनाहरू, घटनाहरू खोज्नुहोस्...' },
+  'search.placeholder': { en: 'Search members, projects, events...', ne: 'सदस्यहरू, परियोजनाहरू, घटनाहरू खोज्नुहोस्...' },
   'search.type_to_search': { en: 'Type at least 2 characters to search', ne: 'खोज्न कम्तीमा २ अक्षर टाइप गर्नुहोस्' },
-  'search.search_hint': { en: 'Search profiles, projects, and events', ne: 'प्रोफाइल, परियोजना, र घटनाहरू खोज्नुहोस्' },
+  'search.search_hint': { en: 'Search by name, BH-ID, skill, or project', ne: 'नाम, BH-ID, सीप, वा परियोजना खोज्नुहोस्' },
   'search.try_different': { en: 'Try a different search term', ne: 'फरक खोज शब्द प्रयास गर्नुहोस्' },
-  'search.section_hackers': { en: 'Hackers', ne: 'ह्याकरहरू' },
+  'search.section_hackers': { en: 'Members', ne: 'सदस्यहरू' },
   'search.section_projects': { en: 'Projects', ne: 'परियोजनाहरू' },
   'search.section_events': { en: 'Events', ne: 'घटनाहरू' },
   'search.kbd_navigate': { en: 'navigate', ne: 'नेभिगेट गर्नुहोस्' },
