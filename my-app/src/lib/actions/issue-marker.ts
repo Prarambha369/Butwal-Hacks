@@ -7,7 +7,7 @@ import { sanitizeString } from "@/lib/validation";
 import { signTrustMarker } from "@/lib/crypto-sign";
 import { resolveProfileId } from "@/lib/profile-resolver";
 import { bustCache } from "@/lib/cache";
-// import { notifyMarkerIssued } from "@/lib/discord"; // ponytail: disabled — team uses Slack, not Discord
+import { notifyMarkerIssued } from "@/lib/discord";
 
 export async function issueTrustMarker(input: {
   email: string;
@@ -52,21 +52,21 @@ export async function issueTrustMarker(input: {
         .eq("id", marker.id)
     }
 
-    // ── Discord notification (disabled — team uses Slack) ──
-    // const issuerProfile = await supabase
-    //   .from("profiles")
-    //   .select("full_name, bh_id")
-    //   .eq("id", issuerId)
-    //   .single();
-    //
-    // notifyMarkerIssued({
-    //   title,
-    //   type: input.type,
-    //   recipientEmail: input.email,
-    //   issuerName: issuerProfile.data?.full_name || "Unknown",
-    //   issuerBhId: issuerProfile.data?.bh_id || "",
-    //   markerId: marker.id,
-    // });
+    // ── Discord notification (community events) ──
+    const issuerProfile = await supabase
+      .from("profiles")
+      .select("full_name, bh_id")
+      .eq("id", issuerId)
+      .single();
+
+    notifyMarkerIssued({
+      title,
+      type: input.type,
+      recipientEmail: input.email,
+      issuerName: issuerProfile.data?.full_name || "Unknown",
+      issuerBhId: issuerProfile.data?.bh_id || "",
+      markerId: marker.id,
+    });
 
     revalidatePath("/dashboard/organizer");
     return { success: true, message: "Trust marker issued successfully!", signed: !!signature };
