@@ -37,7 +37,7 @@ export default async function AchievementsPage() {
     <div className="flex-1 space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-red/10 text-[10px] font-bold text-primary-red">Gamification</span>
+
           <h1 className="text-3xl font-bold tracking-tight text-primary">Your Achievements</h1>
           <p className="text-sm text-muted-foreground">Track your progress and unlock new trust markers.</p>
         </div>
@@ -79,7 +79,7 @@ export default async function AchievementsPage() {
         <EmptyState
           icon={<Award className="w-12 h-12" />}
           title="No achievements yet"
-          description="Start building to unlock achievements. Submit your first project, join a team, and earn trust markers to level up."
+          description="Start building to unlock achievements. Submit your first project, join a team, and earn trust markers."
           actions={[
             { label: "Explore events", href: "/events", variant: "primary" },
             { label: "Submit a project", href: "/dashboard/hacker/projects", variant: "secondary" },
