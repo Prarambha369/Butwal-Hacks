@@ -64,19 +64,25 @@ export default async function HackerDashboardPage() {
         <MetricCard
           title="Trust Markers"
           value={trustMarkerCount}
-          icon={<Medal className="w-4 h-4 text-primary-red" />}
+          icon={<Medal className="w-4 h-4" />}
+          iconColor="text-primary-red"
+          iconBg="bg-primary-red/10"
           desc="Verified achievements"
         />
         <MetricCard
           title="Projects Shipped"
           value={userProjects.length}
-          icon={<Code2 className="w-4 h-4 text-status-blue" />}
+          icon={<Code2 className="w-4 h-4" />}
+          iconColor="text-status-blue"
+          iconBg="bg-status-blue/10"
           desc="Total projects submitted"
         />
         <MetricCard
           title="Hackathons"
           value={registrations?.length ?? 0}
-          icon={<Trophy className="w-4 h-4 text-status-green" />}
+          icon={<Trophy className="w-4 h-4" />}
+          iconColor="text-status-green"
+          iconBg="bg-status-green/10"
           desc="Events registered"
         />
       </div>
@@ -174,18 +180,25 @@ export default async function HackerDashboardPage() {
               <Trophy className="w-4 h-4 text-status-yellow" />
               <h3 className="text-sm font-bold text-primary">Your Credentials</h3>
             </div>
-            <p className="text-[10px] text-muted-foreground font-mono">
-              Earn trust markers by participating in events and contributing to projects.
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary-red/10">
-                <Medal className="w-4 h-4 text-primary-red" />
+            {trustMarkerCount > 0 ? (
+              <div className="space-y-2">
+                {(profile?.trust_markers as { title: string; type: string }[] | undefined)
+                  ?.slice(0, 4)
+                  .map((m, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary-red shrink-0" />
+                      <span className="text-xs text-primary truncate">{m.title}</span>
+                    </div>
+                  ))}
+                {trustMarkerCount > 4 && (
+                  <p className="text-[10px] text-muted-foreground">+{trustMarkerCount - 4} more</p>
+                )}
               </div>
-              <div>
-                <p className="text-xs font-bold text-primary">{trustMarkerCount} Trust Marker{trustMarkerCount !== 1 ? "s" : ""}</p>
-                <p className="text-[10px] text-muted-foreground">Verified achievements</p>
-              </div>
-            </div>
+            ) : (
+              <p className="text-[10px] text-muted-foreground font-mono">
+                Earn trust markers by participating in events and contributing to projects.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -196,11 +209,11 @@ export default async function HackerDashboardPage() {
 
 // ─── Sub-components ────────────────────────────────────────────────
 
-function MetricCard({ title, value, icon, desc }: { title: string; value: string | number; icon: React.ReactNode; desc: string }) {
+function MetricCard({ title, value, icon, desc, iconColor = "text-primary-red", iconBg = "bg-primary-red/10" }: { title: string; value: string | number; icon: React.ReactNode; desc: string; iconColor?: string; iconBg?: string }) {
   return (
     <div className="bh-card p-4 space-y-2.5">
       <div className="flex items-center justify-between">
-        <div className="p-1.5 rounded-lg bg-surface-hover">{icon}</div>
+        <div className={`p-1.5 rounded-lg ${iconBg} ${iconColor}`}>{icon}</div>
         <span className="text-[9px] font-mono text-muted-foreground/50 uppercase tracking-wider">{title}</span>
       </div>
       <p className="text-2xl font-bold text-primary">{value}</p>

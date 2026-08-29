@@ -103,7 +103,7 @@ export default function DashboardHubStats({
       <div>
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="w-4 h-4 text-primary-red" />
-          <h2 className="text-sm font-bold text-primary">Your Progress</h2>
+          <h2 className="text-sm font-bold text-primary">Your Stats</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <StatCard
