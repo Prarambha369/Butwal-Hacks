@@ -81,7 +81,6 @@ export function adToBs(adDate: Date): BsDate {
         month--
         if (month < 1) { month = 12; year-- }
         day = bsDaysInMonth(year, month)
-        diffDays-- // skip the boundary day
       }
     }
   }
@@ -106,7 +105,15 @@ export function bsToAd(bsYear: number, bsMonth: number, bsDay: number): Date {
   }
 
   // Days from anchor month/day to target month/day
-  if (bsYear >= ANCHOR_BS.year) {
+  // Direction depends on full date, not just year
+  const targetAfterAnchor =
+    bsYear > ANCHOR_BS.year ||
+    (bsYear === ANCHOR_BS.year && (
+      bsMonth > ANCHOR_BS.month ||
+      (bsMonth === ANCHOR_BS.month && bsDay >= ANCHOR_BS.day)
+    ))
+
+  if (targetAfterAnchor) {
     for (let m = ANCHOR_BS.month; m < bsMonth; m++) {
       totalDays += bsDaysInMonth(bsYear, m)
     }

@@ -103,7 +103,7 @@ export const GET = withRateLimit(async (
   </div>
   <div class="row">
     <span class="id-badge">${esc(profile.bh_id ?? '')}</span>
-    <span class="role-badge">${roleLabel}</span>
+    <span class="role-badge">${esc(roleLabel)}</span>
   </div>
   ${profile.bio ? `<p style="color:#898989;font-size:12px;margin-top:10px;line-height:1.4">${esc(profile.bio.slice(0, 120))}</p>` : ""}
   <div class="footer">
