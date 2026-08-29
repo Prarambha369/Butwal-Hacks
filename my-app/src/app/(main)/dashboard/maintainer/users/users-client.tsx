@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { formatDualDate } from "@/lib/nepali-date";
 import { Search, Shield, Ban, Check, X, Loader2, UserCheck, ShieldCheck, UserX, Users } from "lucide-react";
 
 interface User {
@@ -227,12 +228,7 @@ export default function UsersClient({
                   )}
                   {req.created_at && (
                     <p className="text-[10px] text-muted-foreground/50">
-                      {new Date(req.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatDualDate(new Date(req.created_at))}
                     </p>
                   )}
                 </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
+import { withRateLimit } from "@/lib/rate-limiter";
 import { logger } from "@/lib/logger";
 import { getLinkedIdentities } from "@/lib/auth0-management";
 import type { LinkedAccount } from "@/lib/auth0-management";
@@ -13,7 +14,7 @@ import type { LinkedAccount } from "@/lib/auth0-management";
  *
  * Response: { linkedAccounts: LinkedAccount[] }
  */
-export async function GET() {
+export const GET = withRateLimit(async () => {
   try {
     const session = await auth0.getSession();
     if (!session?.user) {
@@ -84,4 +85,4 @@ export async function GET() {
     logger.error("[auth/link/status] Error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-}
+}, "frequent")

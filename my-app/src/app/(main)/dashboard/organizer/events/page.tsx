@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase';
 import { redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
+import { formatDualDate } from "@/lib/nepali-date";
 import Link from 'next/link';
 import { Calendar, Plus, Users, BarChart3 } from 'lucide-react';
 
@@ -64,7 +65,7 @@ export default async function OrganizerEventsPage() {
               <div className="flex items-center justify-between pt-4 border-t border-border">
                 <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
                   <Calendar size={12} />
-                  {event.start_date}
+                  {formatDualDate(new Date(event.start_date))}
                 </div>
                 <div className="flex gap-2">
                   <a href={`/dashboard/organizer/events/${event.id}/analytics`} className="p-2 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-colors" title="Analytics">

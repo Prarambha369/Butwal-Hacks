@@ -4,6 +4,7 @@ import CountdownTimer from "./countdown-timer"
 import EventRegisterButton from "./event-register-button"
 import Link from "next/link"
 import { ArrowRight, Calendar, MapPin, Clock, Users, Code2, Trophy } from "lucide-react"
+import { formatDualDate } from "@/lib/nepali-date"
 
 interface EventData {
   id: string
@@ -43,13 +44,7 @@ export default function EventDetailContent({ event }: Props) {
   const isLive = startDate <= now && endDate >= now
   const isPast = endDate < now
 
-  const formatDate = (d: Date) =>
-    d.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    })
+  const formatDate = (d: Date) => formatDualDate(d)
 
   const formatTime = (d: Date) =>
     d.toLocaleTimeString("en-US", {

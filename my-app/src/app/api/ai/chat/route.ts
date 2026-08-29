@@ -26,6 +26,17 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       return NextResponse.json({ error: "Message is required (min 2 chars)" }, { status: 400 });
     }
 
+    // ── Validate history (prevent prompt injection via role spoofing + token abuse) ──
+    // SECURITY: history is user-controlled. Cap count, validate roles, limit content size.
+    const MAX_HISTORY = 6;
+    const MAX_MSG_LEN = 500;
+    const safeHistory = Array.isArray(history)
+      ? history
+          .slice(-MAX_HISTORY)
+          .filter((m) => m && typeof m === "object" && ["user", "assistant"].includes(m.role) && typeof m.content === "string")
+          .map((m) => ({ role: m.role as "user" | "assistant", content: m.content.slice(0, MAX_MSG_LEN) }))
+      : [];
+
     // ── Retrieve relevant context via vector search ───────────
     let contextChunks: string[] = [];
     try {
@@ -78,10 +89,8 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       { role: "system", content: systemPrompt },
     ];
 
-    if (history && Array.isArray(history)) {
-      for (const msg of history.slice(-6)) {
-        messages.push({ role: msg.role, content: msg.content });
-      }
+    for (const msg of safeHistory) {
+      messages.push({ role: msg.role, content: msg.content });
     }
 
     messages.push({ role: "user", content: message });

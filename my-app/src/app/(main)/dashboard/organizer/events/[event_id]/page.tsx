@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase";
 import { notFound } from "next/navigation";
+import { formatDualDate } from "@/lib/nepali-date";
 import {
   Calendar,
   MapPin,
@@ -102,7 +103,7 @@ export default async function EventDetailsPage({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <Calendar className="w-4 h-4" />
-              <span>{new Date(event.start_date).toLocaleDateString()} - {new Date(event.end_date).toLocaleDateString()}</span>
+              <span>{formatDualDate(new Date(event.start_date))} — {formatDualDate(new Date(event.end_date))}</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <MapPin className="w-4 h-4" />

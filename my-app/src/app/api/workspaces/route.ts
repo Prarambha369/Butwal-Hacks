@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     .order("created_at", { ascending: true })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: "Failed to fetch workspaces" }, { status: 500 })
   }
 
   return NextResponse.json({ workspaces }, {
@@ -113,7 +113,7 @@ export const POST = withRateLimit(async (request: NextRequest) => {
     .single()
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: "Failed to create workspace" }, { status: 500 })
   }
 
   return NextResponse.json({ workspace }, { status: 201 })

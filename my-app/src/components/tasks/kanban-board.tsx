@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 import { useTaskSubscription } from "@/hooks/use-task-subscription"
 import TaskCard from "./task-card"
 import TaskDetailDrawer from "./task-detail-drawer"
-import { columns, getTasksByColumn, applyDragResult, createTempTask } from "@/lib/tasks/board-utils"
+import { columns, getTasksByColumn, applyDragResult, createTempTask } from "@/lib/board-utils"
 import type { TaskItem } from "./task-card"
 
 interface KanbanBoardProps {

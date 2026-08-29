@@ -21,6 +21,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/gallery`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/sitemap`, lastModified: today, changeFrequency: 'monthly', priority: 0.8 },
 
+    // ─── Tier 2.5: Community features (priority 0.75) ─────
+    { url: `${siteUrl}/mentors`, lastModified: today, changeFrequency: 'weekly', priority: 0.75 },
+    { url: `${siteUrl}/teams`, lastModified: today, changeFrequency: 'weekly', priority: 0.75 },
+
     // ─── Tier 3: Supporting pages (priority 0.7) ──────────
     { url: `${siteUrl}/about`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/support`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
@@ -141,6 +145,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       entries.push({
         url: `${siteUrl}/p/${profile.bh_id}`,
         lastModified: profile.updated_at ? new Date(profile.updated_at) : today,
+        changeFrequency: 'monthly',
+        priority: 0.5,
+      })
+    }
+
+    // Teams from DB
+    const { data: teams } = await supabase
+      .from('teams')
+      .select('id, updated_at')
+      .limit(200)
+
+    for (const team of teams ?? []) {
+      entries.push({
+        url: `${siteUrl}/teams/${team.id}`,
+        lastModified: team.updated_at ? new Date(team.updated_at) : today,
         changeFrequency: 'monthly',
         priority: 0.5,
       })

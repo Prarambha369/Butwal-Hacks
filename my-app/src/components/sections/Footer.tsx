@@ -134,7 +134,7 @@ export default function Footer() {
               <LanguageToggle />
             </div>
           </div>
-          <div className="flex items-center gap-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6 text-[11px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">
             <Link href="/legal/privacy" className="hover:text-primary-red transition-colors">
               {t('footer.privacy', locale)}
             </Link>

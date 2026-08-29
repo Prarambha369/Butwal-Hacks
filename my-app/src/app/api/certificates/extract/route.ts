@@ -24,7 +24,17 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     const userId = session.user.sub
 
     const extractSchema = z.object({
-      cloudinaryUrl: z.string().url("cloudinaryUrl must be a valid URL"),
+      // SECURITY: restrict to Cloudinary URLs only — prevents SSRF via arbitrary URLs
+      // passed to Groq vision API which fetches the image server-side.
+      cloudinaryUrl: z.string().url("cloudinaryUrl must be a valid URL").refine(
+        (url) => {
+          try {
+            const u = new URL(url)
+            return u.protocol === "https:" && u.hostname === "res.cloudinary.com"
+          } catch { return false }
+        },
+        "cloudinaryUrl must be an HTTPS Cloudinary delivery URL (https://res.cloudinary.com/...)"
+      ),
     })
 
     let cloudinaryUrl: string

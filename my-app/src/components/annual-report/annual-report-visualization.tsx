@@ -108,7 +108,7 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
           <StatCard icon={<Code2 className="w-4 h-4" />} label="Projects" value={summary.newProjects} sub={`${communityMetrics.totalProjects} total built`} />
           <StatCard icon={<Award className="w-4 h-4" />} label="Trust Markers" value={summary.trustMarkersIssued} sub="Verified achievements" />
           <StatCard icon={<ShieldCheck className="w-4 h-4" />} label="Teams" value={summary.newTeams} sub="Collaborations formed" />
-          <StatCard icon={<Zap className="w-4 h-4" />} label="XP Awarded" value={summary.totalXpAwarded.toLocaleString()} sub="Experience points" />
+          <StatCard icon={<Zap className="w-4 h-4" />} label="Contributions" value={summary.totalXpAwarded.toLocaleString()} sub="Total score" />
           <StatCard icon={<Sparkles className="w-4 h-4" />} label="Credentials" value={summary.microCredentialsAwarded} sub="Skill verifications" />
           <StatCard icon={<DollarSign className="w-4 h-4" />} label="Budget" value={financials.available ? formatCurrency(financials.received, financials.currency) : "—"} sub="Total received" />
         </div>
@@ -304,7 +304,7 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-primary">{hacker.xp.toLocaleString()}</p>
-                  <p className="text-[9px] font-mono text-muted-foreground">XP</p>
+                  <p className="text-[9px] font-mono text-muted-foreground">Score</p>
                 </div>
               </div>
             ))}

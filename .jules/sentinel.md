@@ -1,4 +1,0 @@
-## 2026-08-24 - Authorization Bypass on Service Role API Endpoints
-**Vulnerability:** Endpoints using `createServiceClient()` (which bypasses Supabase RLS) only verified `session?.user` authentication without verifying whether the user had permission/ownership for the resource (e.g. `organizer_id` or `maintainer` role in `/api/events/checkin`).
-**Learning:** Service role endpoints bypass database RLS completely, shifting all authorization responsibility to the route handler layer. Simply checking if a user is logged in is insufficient when performing service-role mutations.
-**Prevention:** Always verify caller ownership or required role (e.g., checking caller profile against resource `organizer_id` or role `maintainer`) when using `createServiceClient()` in API routes before executing mutations.

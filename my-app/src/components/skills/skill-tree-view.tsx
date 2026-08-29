@@ -17,7 +17,7 @@ import SkillNode from "@/components/skills/skill-node";
 import { logger } from "@/lib/logger";
 import type {
   SkillTreeWithStatus,
-} from "@/lib/gamification/skill-trees";
+} from "@/lib/skill-trees";
 
 const TREE_ICONS: Record<string, React.ReactNode> = {
   frontend: <Layout className="w-5 h-5" />,

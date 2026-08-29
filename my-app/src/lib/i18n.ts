@@ -244,7 +244,7 @@ const translations: Record<string, { en: string; ne: string }> = {
   'profile.view_profile': { en: 'View Profile', ne: 'प्रोफाइल हेर्नुहोस्' },
   'profile.bio': { en: 'Bio', ne: 'परिचय' },
   'profile.member_since': { en: 'Member since {date}', ne: '{date} देखि सदस्य' },
-  'profile.xp_points': { en: '{xp} XP', ne: '{xp} अंक' },
+  'profile.xp_points': { en: '{xp} Score', ne: '{xp} स्कोर' },
   'profile.no_bio': { en: 'No bio yet.', ne: 'अहिलेसम्म कुनै परिचय छैन।' },
   'profile.link_account': { en: 'Link Account', ne: 'खाता लिङ्क गर्नुहोस्' },
   'profile.upload_avatar': { en: 'Upload Avatar', ne: 'अवतार अपलोड गर्नुहोस्' },
@@ -299,11 +299,11 @@ const translations: Record<string, { en: string; ne: string }> = {
   'action.sitemap': { en: 'Sitemap', ne: 'साइटम्याप' },
 
   /* ── Search / Command Palette ── */
-  'search.placeholder': { en: 'Search hackers, projects, events...', ne: 'ह्याकरहरू, परियोजनाहरू, घटनाहरू खोज्नुहोस्...' },
+  'search.placeholder': { en: 'Search members, projects, events...', ne: 'सदस्यहरू, परियोजनाहरू, घटनाहरू खोज्नुहोस्...' },
   'search.type_to_search': { en: 'Type at least 2 characters to search', ne: 'खोज्न कम्तीमा २ अक्षर टाइप गर्नुहोस्' },
-  'search.search_hint': { en: 'Search profiles, projects, and events', ne: 'प्रोफाइल, परियोजना, र घटनाहरू खोज्नुहोस्' },
+  'search.search_hint': { en: 'Search by name, BH-ID, skill, or project', ne: 'नाम, BH-ID, सीप, वा परियोजना खोज्नुहोस्' },
   'search.try_different': { en: 'Try a different search term', ne: 'फरक खोज शब्द प्रयास गर्नुहोस्' },
-  'search.section_hackers': { en: 'Hackers', ne: 'ह्याकरहरू' },
+  'search.section_hackers': { en: 'Members', ne: 'सदस्यहरू' },
   'search.section_projects': { en: 'Projects', ne: 'परियोजनाहरू' },
   'search.section_events': { en: 'Events', ne: 'घटनाहरू' },
   'search.kbd_navigate': { en: 'navigate', ne: 'नेभिगेट गर्नुहोस्' },

@@ -283,9 +283,36 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
 
+  bot-trailer-check:
+    name: Bot Trailer Check
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check for AI bot co-author trailers
+        run: |
+          COMMITS=$(git log --format='%H' origin/main..HEAD)
+          FOUND=0
+          for SHA in $COMMITS; do
+            BODY=$(git log -1 --format='%b' $SHA)
+            if echo "$BODY" | grep -qiE 'Generated with (Codebuff|Bolt|Sentinel|Palette|Jules)|Co-Authored-By:.*(bot|codebuff|copilot-swe)'; then
+              echo "❌ AI bot trailer found in commit $(echo $SHA | head -c 8)"
+              echo "$BODY" | grep -iE 'Codebuff|bot|copilot'
+              FOUND=1
+            fi
+          done
+          if [ "$FOUND" -eq 1 ]; then
+            echo ""
+            echo "Remove bot trailers from commit messages before merging."
+            exit 1
+          fi
+          echo "✅ No AI bot trailers found."
+
   quality-gate:
     name: Quality Gate
-    needs: [lint, typecheck, build, test, security-audit, secrets-audit]
+    needs: [lint, typecheck, build, test, security-audit, secrets-audit, bot-trailer-check]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed

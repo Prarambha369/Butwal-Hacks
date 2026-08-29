@@ -57,9 +57,11 @@ export function signPayload(payload: string): string | null {
   }
 
   try {
+    // ponytail: normalize escaped newlines in env vars to actual PEM newlines
+    const key = privateKey.replace(/\\n/g, "\n")
     const sign = createSign("ed25519")
     sign.update(payload, "utf-8")
-    return sign.sign(privateKey, "base64")
+    return sign.sign(key, "base64")
   } catch (error) {
     logger.error("[crypto] signing failed:", error)
     return null
@@ -78,9 +80,11 @@ export function verifySignature(payload: string, signature: string): boolean {
   }
 
   try {
+    // ponytail: normalize escaped newlines in env vars to actual PEM newlines
+    const key = publicKey.replace(/\\n/g, "\n")
     const verify = createVerify("ed25519")
     verify.update(payload, "utf-8")
-    return verify.verify(publicKey, signature, "base64")
+    return verify.verify(key, signature, "base64")
   } catch (error) {
     logger.error("[crypto] verification failed:", error)
     return false

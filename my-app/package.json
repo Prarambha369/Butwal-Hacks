@@ -17,7 +17,6 @@
     "@auth0/nextjs-auth0": "^4.25.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^3.10.0",
-    "@sentry/browser": "^10.65.0",
     "@sentry/nextjs": "^10.65.0",
     "@supabase/supabase-js": "^2.108.2",
     "@upstash/ratelimit": "^2.0.8",
@@ -38,8 +37,7 @@
   },
   "allowScripts": {
     "@sentry/cli": true,
-    "unrs-resolver": true,
-    "core-js": true
+    "unrs-resolver": true
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

@@ -2,23 +2,14 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase";
 import { getUserProjects } from "@/lib/actions/projects";
 import { auth0 } from "@/lib/auth0";
+import { formatDualDate } from "@/lib/nepali-date";
 import OnboardingTour from "@/components/dashboard/onboarding-tour";
 
 import {
   Trophy, Clock, Users, ArrowRight,
-  Code2, Medal, TrendingUp,
+  Code2, Medal,
 } from "lucide-react";
-import { XPProgressChart, ActivityTimelineChart } from "@/components/charts/hacker-charts";
-
-// ─── Helpers ───────────────────────────────────────────────────────
-
-function calculateLevel(xp: number): { level: number; current: number; next: number; progress: number } {
-  const level = Math.floor(xp / 1000) + 1;
-  const current = xp % 1000;
-  const next = 1000;
-  const progress = Math.round((current / next) * 100);
-  return { level, current, next, progress };
-}
+import { ActivityTimelineChart } from "@/components/charts/hacker-charts";
 
 // ─── Main Page ─────────────────────────────────────────────────────
 
@@ -43,8 +34,7 @@ export default async function HackerDashboardPage() {
 
   const profileId = profile?.id;
   const userProjects = profileId ? await getUserProjects(profileId) : [];
-  const xp = profile?.xp ?? 0;
-  const { level, current, next } = calculateLevel(xp);
+
   const trustMarkerCount = (profile?.trust_markers as unknown[])?.length ?? 0;
   const fullName = profile?.full_name ?? "Hacker";
 
@@ -62,46 +52,38 @@ export default async function HackerDashboardPage() {
         {/* Welcome Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-primary">
-              Welcome back, {fullName}
-            </h1>
-            <span className="px-2 py-0.5 rounded-full bg-primary-red/10 text-primary-red text-[10px] font-mono font-bold border border-primary-red/20">
-              Level {level}
-            </span>
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">
+            Welcome back, {fullName}
+          </h1>
           <p className="text-sm text-muted-foreground">Here is your progress and upcoming opportunities.</p>
         </div>
       </div>
-
-      {/* XP Growth Chart */}
-      <XPProgressChart currentXp={xp} currentLevel={level} />
 
       {/* Performance Overview */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Trust Markers"
           value={trustMarkerCount}
-          icon={<Medal className="w-4 h-4 text-primary-red" />}
+          icon={<Medal className="w-4 h-4" />}
+          iconColor="text-primary-red"
+          iconBg="bg-primary-red/10"
           desc="Verified achievements"
         />
         <MetricCard
           title="Projects Shipped"
           value={userProjects.length}
-          icon={<Code2 className="w-4 h-4 text-status-blue" />}
+          icon={<Code2 className="w-4 h-4" />}
+          iconColor="text-status-blue"
+          iconBg="bg-status-blue/10"
           desc="Total projects submitted"
         />
         <MetricCard
           title="Hackathons"
           value={registrations?.length ?? 0}
-          icon={<Trophy className="w-4 h-4 text-status-green" />}
-          desc="Events attended"
-        />
-        <MetricCard
-          title="Global Rank"
-          value={`#${Math.max(1, 100 - level * 10)}`}
-          icon={<TrendingUp className="w-4 h-4 text-status-orange" />}
-          desc="Among all hackers"
+          icon={<Trophy className="w-4 h-4" />}
+          iconColor="text-status-green"
+          iconBg="bg-status-green/10"
+          desc="Events registered"
         />
       </div>
 
@@ -119,9 +101,6 @@ export default async function HackerDashboardPage() {
               {registrations.slice(0, 3).map((reg) => {
                 const ev = Array.isArray(reg.events) ? reg.events[0] : reg.events;
                 const startDate = new Date((ev as { start_date: string }).start_date);
-                // eslint-disable-next-line react-hooks/purity
-                const now = Date.now();
-                const daysUntil = Math.ceil((startDate.getTime() - now) / (1000 * 60 * 60 * 24));
 
                 return (
                   <div key={(ev as { id: string }).id} className="bh-card p-5 flex items-center justify-between group hover:bg-surface-hover transition-all">
@@ -133,7 +112,7 @@ export default async function HackerDashboardPage() {
                         <p className="text-sm font-bold text-primary truncate">{(ev as { title: string }).title}</p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[10px] font-mono text-muted-foreground">
-                            Starts in {daysUntil} days
+                            {formatDualDate(startDate)}
                           </span>
                         </div>
                       </div>
@@ -195,27 +174,31 @@ export default async function HackerDashboardPage() {
         <div className="lg:col-span-2 space-y-4">
           <ActivityTimelineChart />
 
-          {/* Level Rewards */}
+          {/* Credential Progress */}
           <div className="bh-card p-5 space-y-3">
             <div className="flex items-center gap-2">
               <Trophy className="w-4 h-4 text-status-yellow" />
-              <h3 className="text-sm font-bold text-primary">Level Rewards</h3>
+              <h3 className="text-sm font-bold text-primary">Your Credentials</h3>
             </div>
-            <p className="text-[10px] text-muted-foreground font-mono">
-              Reach Level {level + 1} ({next - current} XP away) to unlock the next tier.
-            </p>
-            <div className="flex -space-x-1.5">
-              {["Bronze", "Silver", "Gold", "Platinum"].map((tier, i) => (
-                <div
-                  key={tier}
-                  className={`w-8 h-8 rounded-full border-2 border-surface flex items-center justify-center text-[8px] font-bold ${
-                    i <= level - 1 ? "bg-status-yellow/20 text-status-yellow" : "bg-surface-hover text-muted-foreground/40"
-                  }`}
-                >
-                  {tier[0]}
-                </div>
-              ))}
-            </div>
+            {trustMarkerCount > 0 ? (
+              <div className="space-y-2">
+                {(profile?.trust_markers as { title: string; type: string }[] | undefined)
+                  ?.slice(0, 4)
+                  .map((m, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary-red shrink-0" />
+                      <span className="text-xs text-primary truncate">{m.title}</span>
+                    </div>
+                  ))}
+                {trustMarkerCount > 4 && (
+                  <p className="text-[10px] text-muted-foreground">+{trustMarkerCount - 4} more</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-[10px] text-muted-foreground font-mono">
+                Earn trust markers by participating in events and contributing to projects.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -226,11 +209,11 @@ export default async function HackerDashboardPage() {
 
 // ─── Sub-components ────────────────────────────────────────────────
 
-function MetricCard({ title, value, icon, desc }: { title: string; value: string | number; icon: React.ReactNode; desc: string }) {
+function MetricCard({ title, value, icon, desc, iconColor = "text-primary-red", iconBg = "bg-primary-red/10" }: { title: string; value: string | number; icon: React.ReactNode; desc: string; iconColor?: string; iconBg?: string }) {
   return (
     <div className="bh-card p-4 space-y-2.5">
       <div className="flex items-center justify-between">
-        <div className="p-1.5 rounded-lg bg-surface-hover">{icon}</div>
+        <div className={`p-1.5 rounded-lg ${iconBg} ${iconColor}`}>{icon}</div>
         <span className="text-[9px] font-mono text-muted-foreground/50 uppercase tracking-wider">{title}</span>
       </div>
       <p className="text-2xl font-bold text-primary">{value}</p>

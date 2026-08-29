@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/utils/supabase';
 import { auth0 } from '@/lib/auth0';
+import { withRateLimit } from '@/lib/rate-limiter';
 import { logger } from '@/lib/logger';
 
-export async function GET(
+export const GET = withRateLimit(async (
   request: Request,
   { params }: { params: Promise<{ eventId: string }> }
-) {
+) => {
   try {
     const { eventId } = await params;
     if (!eventId) return NextResponse.json({ error: 'Event ID required' }, { status: 400 });
@@ -66,4 +67,4 @@ export async function GET(
     logger.error('[api/events/:eventId/registrations]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
+}, "frequent")

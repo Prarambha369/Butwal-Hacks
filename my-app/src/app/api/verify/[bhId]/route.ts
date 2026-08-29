@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase';
+import { withRateLimit } from '@/lib/rate-limiter';
 
-export async function GET(
+export const GET = withRateLimit(async (
   request: NextRequest,
   { params }: { params: Promise<{ bhId: string }> }
-) {
+) => {
   const { bhId } = await params;
   const supabase = await createClient();
 
@@ -32,4 +33,4 @@ export async function GET(
   }, {
     headers: { "Cache-Control": "public, max-age=300, s-maxage=600" },
   });
-}
+}, "frequent")
