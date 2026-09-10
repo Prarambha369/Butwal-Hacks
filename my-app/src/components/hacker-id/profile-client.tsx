@@ -37,6 +37,50 @@ type ProfileClientData = HackerProfile & {
   ai_summary?: string | null;
 };
 
+/**
+ * The shape of the public profile row fetched by /p/[slug_id] and
+ * /profile/[bh_id]. Pages pass an explicit column allowlist (never `*`),
+ * then this normalizes the snake_case DB row into the camelCase
+ * HackerProfile shape the display components consume.
+ */
+export type PublicProfileRow = {
+  id?: string;
+  full_name?: string | null;
+  bh_id?: string | null;
+  role?: string | null;
+  bio?: string | null;
+  avatar_url?: string | null;
+  social_links?: Record<string, string> | null;
+  ai_summary?: string | null;
+  is_owner?: boolean;
+  trust_markers?: unknown[] | null;
+};
+
+function normalizeProfile(row: PublicProfileRow): ProfileClientData {
+  const markers = (row.trust_markers ?? []) as ProfileClientData["trustMarkers"];
+  return {
+    uniqueId: row.bh_id ?? "",
+    name: row.full_name ?? "",
+    avatar: row.avatar_url ?? "",
+    role: (row.role as ProfileClientData["role"]) ?? "hacker",
+    bio: row.bio ?? "",
+    socials: row.social_links ?? {},
+    certificates: [],
+    projects: [],
+    events: [],
+    photos: [],
+    // Both keys are consumed: IdentityCard reads trustMarkers (camel),
+    // TrustMarkersList reads trust_markers (snake).
+    trustMarkers: markers,
+    trust_markers: row.trust_markers ?? [],
+    id: row.id,
+    ai_summary: row.ai_summary ?? null,
+    // auth0_user_id deliberately NOT exposed on the public profile — the
+    // LiveDot presence dot stays offline for public viewers (privacy).
+    is_owner: row.is_owner,
+  };
+}
+
 interface UnlockedSkill {
   id: string;
   name: string;
@@ -54,11 +98,15 @@ export default function ProfileClient({
   unlockedSkills = [],
   totalSkillCount = 0,
 }: {
-  profile: ProfileClientData;
+  profile: PublicProfileRow;
   projects: Project[];
   unlockedSkills?: UnlockedSkill[];
   totalSkillCount?: number;
 }) {
+  // Normalize the DB row (snake_case) into the display shape (camelCase)
+  // once, so all child components get the fields they actually render.
+  const data = normalizeProfile(profile);
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -86,11 +134,11 @@ export default function ProfileClient({
   return (
     <main className="min-h-dvh bg-background pt-24 pb-12 px-6 md:px-20">
       <div className="max-w-5xl mx-auto space-y-12">
-        <IdentityCard profile={profile} />
-        <CertificateList certificates={profile.certificates} />
+        <IdentityCard profile={data} />
+        <CertificateList certificates={data.certificates} />
 
         {/* Trust Markers — verified achievements with GlassBadge */}
-        <TrustMarkersList markers={(profile.trust_markers || []) as import('@/lib/supabase-types').TrustMarker[]} />
+        <TrustMarkersList markers={data.trust_markers as import('@/lib/supabase-types').TrustMarker[]} />
 
         {/* Skill Trees — unlocked micro-credentials */}
         {unlockedSkills.length > 0 && (
@@ -124,13 +172,13 @@ export default function ProfileClient({
         {/* Pass isProfileView={true} to trigger the compact ContributionCard layout */}
         <ProjectShowcase projects={projects} isProfileView={true} />
         
-        <EventTimeline events={profile.events} />
-        <PhotoGallery photos={profile.photos} />
+        <EventTimeline events={data.events} />
+        <PhotoGallery photos={data.photos} />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bh-card p-6">
             <h3 className="text-xs font-black uppercase tracking-widest opacity-40 mb-4">Certificates</h3>
-            <p className="text-2xl font-bold">{profile.certificates?.length || 0}</p>
+            <p className="text-2xl font-bold">{data.certificates.length}</p>
           </div>
           <div className="bh-card p-6">
             <h3 className="text-xs font-black uppercase tracking-widest opacity-40 mb-4">Projects</h3>
@@ -138,7 +186,7 @@ export default function ProfileClient({
           </div>
           <div className="bh-card p-6">
             <h3 className="text-xs font-black uppercase tracking-widest opacity-40 mb-4">Events</h3>
-            <p className="text-2xl font-bold">{profile.events?.length || 0}</p>
+            <p className="text-2xl font-bold">{data.events.length}</p>
           </div>
         </div>
 
@@ -153,7 +201,7 @@ export default function ProfileClient({
               External organizations can embed a live verification badge on their website.
               Visitors see the BH-ID holder&apos;s name, role, and credentials in real-time.
             </p>
-            <CopyEmbedCode bhId={profile.uniqueId} />
+            <CopyEmbedCode bhId={data.uniqueId} />
           </div>
         </section>
 
@@ -164,23 +212,23 @@ export default function ProfileClient({
             <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">AI Summary</h2>
           </div>
           <div className="bh-card p-6">
-            {profile.ai_summary ? (
-              <p className="text-sm leading-relaxed text-primary/80">{profile.ai_summary}</p>
+            {data.ai_summary ? (
+              <p className="text-sm leading-relaxed text-primary/80">{data.ai_summary}</p>
             ) : (
               <p className="text-sm italic text-muted-foreground/60">
                 No AI summary yet. Generate one to give visitors a quick overview of your profile.
               </p>
             )}
-            {profile.is_owner && (
-              <GenerateSummaryForm profileId={profile.id!} />
+            {data.is_owner && (
+              <GenerateSummaryForm profileId={data.id!} />
             )}
           </div>
         </section>
       </div>
 
       {/* Owner Action Bar - Visible if current user is the profile owner and an Organizer */}
-      {profile.is_owner && (
-        <OwnerActionBar role={profile.role} />
+      {data.is_owner && (
+        <OwnerActionBar role={data.role} />
       )}
     </main>
   );
