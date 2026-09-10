@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Users, Calendar, FolderGit2, ShieldCheck } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
+import { t } from "@/lib/i18n";
 
 interface Stats {
   total_hackers: number;
@@ -50,13 +52,14 @@ function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string
 }
 
 const statItems = [
-  { key: "total_hackers", label: "Hackers", icon: Users },
-  { key: "total_events", label: "Events", icon: Calendar },
-  { key: "total_projects", label: "Projects", icon: FolderGit2 },
-  { key: "total_trust_markers", label: "Credentials", icon: ShieldCheck },
+  { key: "total_hackers", labelKey: "home.stats.members", icon: Users },
+  { key: "total_events", labelKey: "home.stats.events", icon: Calendar },
+  { key: "total_projects", labelKey: "home.stats.projects", icon: FolderGit2 },
+  { key: "total_trust_markers", labelKey: "home.stats.credentials", icon: ShieldCheck },
 ] as const;
 
 export default function LiveStatsCounter() {
+  const { locale } = useLanguage();
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState(false);
 
@@ -93,7 +96,7 @@ export default function LiveStatsCounter() {
           <div className="flex items-center justify-center gap-3 mb-12">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/8 text-[10px] font-mono font-semibold text-primary-red tracking-tight">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-red" />
-              loading platform stats
+              {t('home.stats.loading', locale)}
             </span>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -110,15 +113,14 @@ export default function LiveStatsCounter() {
   return (
     <section className="py-16 md:py-20 bg-surface border-b border-border">
       <div className="mx-auto max-w-6xl px-4">
-        <div className="flex items-center justify-center gap-3 mb-12">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/8 text-[10px] font-mono font-semibold text-primary-red tracking-tight">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-red" />
-            live from the database
-          </span>
+        <div className="flex items-center justify-center gap-3 mb-12">            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/8 text-[10px] font-mono font-semibold text-primary-red tracking-tight">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-red" />
+              {t('home.stats.live', locale)}
+            </span>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {statItems.map(({ key, label, icon: Icon }) => {
+          {statItems.map(({ key, labelKey, icon: Icon }) => {
             const value = stats?.[key as keyof Stats] ?? null;
             return (
               <div
@@ -132,7 +134,7 @@ export default function LiveStatsCounter() {
                   {value !== null ? <AnimatedNumber value={value} /> : <span className="text-muted-foreground">—</span>}
                 </p>
                 <p className="text-xs text-text-secondary font-medium uppercase tracking-wider">
-                  {label}
+                  {t(labelKey, locale)}
                 </p>
               </div>
             );

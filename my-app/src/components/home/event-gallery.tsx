@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Camera, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { events } from "@/lib/content";
+import { useLanguage } from "@/components/language-provider";
+import { t } from "@/lib/i18n";
 
 // Static gallery photos mapped to events — replace with DB photos when available
 const galleryPhotos = events.flatMap((event) => {
@@ -27,6 +29,7 @@ const galleryPhotos = events.flatMap((event) => {
 });
 
 export default function EventGallery() {
+  const { locale } = useLanguage();
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
   // Keyboard navigation for lightbox
@@ -50,17 +53,17 @@ export default function EventGallery() {
         <div className="mb-14 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div className="max-w-xl">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-primary leading-[1.1]">
-              Event Gallery
+              {t('home.gallery.title', locale)}
             </h2>
             <p className="mt-3 text-sm text-text-secondary leading-relaxed">
-              Moments captured at hackathons, game jams, and community meetups across Lumbini Province.
+              {t('home.gallery.subtitle', locale)}
             </p>
           </div>
           <Link
             href="/gallery"
             className="inline-flex items-center gap-2 text-sm font-bold text-primary-red hover:text-primary-red/80 transition-colors shrink-0"
           >
-            View full gallery
+            {t('home.gallery.view_full', locale)}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -104,16 +107,16 @@ export default function EventGallery() {
             <div className="mx-auto w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center">
               <Camera className="w-8 h-8 text-muted-foreground/40" />
             </div>
-            <p className="text-lg font-bold text-primary">No photos yet</p>
+            <p className="text-lg font-bold text-primary">{t('home.gallery.empty_title', locale)}</p>
             <p className="text-sm text-text-secondary max-w-md mx-auto">
-              Photos from events will appear here once they are uploaded. Check the full gallery for updates.
+              {t('home.gallery.empty_desc', locale)}
             </p>
             <Link
               href="/gallery"
               className="inline-flex items-center gap-2 rounded-full bg-primary-red px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all mt-4"
             >
               <Camera className="h-4 w-4" />
-              Browse gallery
+              {t('home.gallery.browse', locale)}
             </Link>
           </div>
         )}
@@ -132,7 +135,7 @@ export default function EventGallery() {
                 <button
                   onClick={() => setSelectedIdx(null)}
                   className="p-2 text-secondary hover:text-primary-red transition-colors"
-                  aria-label="Close lightbox"
+                  aria-label={t('home.gallery.close', locale)}
                 >
                   <X size={28} />
                 </button>
@@ -144,7 +147,7 @@ export default function EventGallery() {
                   onClick={() => setSelectedIdx((prev) => prev !== null ? Math.max(prev - 1, 0) : null)}
                   disabled={selectedIdx === 0}
                   className="shrink-0 p-3 min-w-[44px] min-h-[44px] rounded-full bg-surface border border-border text-muted-foreground hover:text-primary transition-colors disabled:opacity-20 disabled:cursor-not-allowed z-10"
-                  aria-label="Previous photo"
+                  aria-label={t('home.gallery.prev', locale)}
                 >
                   <ChevronLeft size={24} />
                 </button>
@@ -167,7 +170,7 @@ export default function EventGallery() {
                         onClick={() => setSelectedIdx(null)}
                         className="px-3 py-1.5 rounded-lg bg-surface/90 border border-border text-[10px] font-medium text-primary hover:text-primary-red transition-colors shrink-0"
                       >
-                        View Event
+                        {t('home.gallery.view_event', locale)}
                       </Link>
                     </div>
                   </div>
@@ -177,7 +180,7 @@ export default function EventGallery() {
                   onClick={() => setSelectedIdx((prev) => prev !== null ? Math.min(prev + 1, galleryPhotos.length - 1) : null)}
                   disabled={selectedIdx === galleryPhotos.length - 1}
                   className="shrink-0 p-3 min-w-[44px] min-h-[44px] rounded-full bg-surface border border-border text-muted-foreground hover:text-primary transition-colors disabled:opacity-20 disabled:cursor-not-allowed z-10"
-                  aria-label="Next photo"
+                  aria-label={t('home.gallery.next', locale)}
                 >
                   <ChevronRight size={24} />
                 </button>
@@ -193,7 +196,7 @@ export default function EventGallery() {
             className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-8 py-3 text-sm font-bold text-primary hover:bg-surface-hover transition-all"
           >
             <Camera className="h-4 w-4" />
-            Browse all event photos
+            {t('home.gallery.browse_all', locale)}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

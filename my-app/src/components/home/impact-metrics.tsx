@@ -2,34 +2,36 @@
 
 import { Heart, GraduationCap, Users } from "lucide-react";
 import { type ComponentType } from "react";
+import { useLanguage } from "@/components/language-provider";
+import { t } from "@/lib/i18n";
 
 type ValueCard = {
   id: string;
-  label: string;
-  description: string;
+  labelKey: string;
+  descKey: string;
 };
 
 const values: ValueCard[] = [
   {
     id: "free",
-    label: "Free for Students",
-    description: "No registration fees, no hidden costs — every event is free to attend.",
+    labelKey: "home.impact.values.free.label",
+    descKey: "home.impact.values.free.desc",
   },
   {
     id: "mentorship",
-    label: "Mentorship Built In",
-    description: "Experienced developers guide first-time hackers through workshops and build sessions.",
+    labelKey: "home.impact.values.mentorship.label",
+    descKey: "home.impact.values.mentorship.desc",
   },
   {
     id: "community",
-    label: "Community Driven",
-    description: "Built by students, for students — projects, events, and everything in between.",
+    labelKey: "home.impact.values.community.label",
+    descKey: "home.impact.values.community.desc",
   },
 ];
 
 const visibleIcons = [Heart, GraduationCap, Users];
 
-function ValueCard({ item, icon: Icon, index }: { item: ValueCard; icon: ComponentType<{ className?: string }>; index: number }) {
+function ValueCard({ item, icon: Icon, index, locale }: { item: ValueCard; icon: ComponentType<{ className?: string }>; index: number; locale: "en" | "ne" }) {
   return (
     <div
       className="bh-card p-6 text-center space-y-3 hover:-translate-y-0.5 transition-all duration-300"
@@ -42,30 +44,31 @@ function ValueCard({ item, icon: Icon, index }: { item: ValueCard; icon: Compone
       </div>
       <div>
         <p className="text-lg font-extrabold text-primary">
-          {item.label}
+          {t(item.labelKey, locale)}
         </p>
       </div>
       <p className="text-xs text-text-secondary leading-relaxed">
-        {item.description}
+        {t(item.descKey, locale)}
       </p>
     </div>
   );
 }
 
 export default function ImpactMetrics() {
+  const { locale } = useLanguage();
   return (
     <section className="py-16 md:py-20 bg-surface border-b border-border">
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex items-center justify-center gap-3 mb-12">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/8 text-[10px] font-mono font-semibold text-primary-red tracking-tight">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-red" />
-            what we stand for
+            {t("home.impact.badge", locale)}
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {values.map((item, i) => (
-            <ValueCard key={item.id} item={item} icon={visibleIcons[i] ?? Users} index={i} />
+            <ValueCard key={item.id} item={item} icon={visibleIcons[i] ?? Users} index={i} locale={locale} />
           ))}
         </div>
       </div>
