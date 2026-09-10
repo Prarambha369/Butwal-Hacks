@@ -48,16 +48,23 @@ export default async function HackerDashboardPage() {
   return (
     <>
       <OnboardingTour role="hacker" />
-      <div className="space-y-8">
+      <div className="space-y-8 pb-20">
         {/* Welcome Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-primary">
-            Welcome back, {fullName}
-          </h1>
-          <p className="text-sm text-muted-foreground">Here is your progress and upcoming opportunities.</p>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight text-primary">
+              Welcome back, {fullName}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Here is your progress and upcoming opportunities.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <p className="text-[11px] font-mono text-muted-foreground border border-border rounded-full px-2.5 py-1">
+              Not sure where to start? Complete your profile first.
+            </p>
+          </div>
         </div>
-      </div>
 
       {/* Performance Overview */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

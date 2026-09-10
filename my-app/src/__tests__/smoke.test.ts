@@ -70,6 +70,10 @@ const routes = [
   { name: "/portal/bounties/[id]/edit", path: "@/app/(main)/portal/bounties/[id]/edit/page" },
   { name: "/portal/payouts", path: "@/app/(main)/portal/payouts/page" },
 
+  // Onboarding Pages
+  { name: "/dashboard/onboarding", path: "@/app/(main)/dashboard/onboarding/page" },
+  { name: "/dashboard/sponsor-onboarding", path: "@/app/(main)/dashboard/sponsor-onboarding/page" },
+
   // Hacker Dashboard Pages
   { name: "/dashboard/hacker", path: "@/app/(main)/dashboard/hacker/page" },
   { name: "/dashboard/hacker/work", path: "@/app/(main)/dashboard/hacker/work/page", dynamic: "force-dynamic" },
