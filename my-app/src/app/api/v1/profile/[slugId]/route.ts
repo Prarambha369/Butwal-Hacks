@@ -46,7 +46,7 @@ export const GET = withRateLimit(async (
           xp,
           ai_summary,
           created_at,
-          trust_markers (
+          trust_markers!trust_markers_profile_id_fkey (
             id,
             title,
             description,
