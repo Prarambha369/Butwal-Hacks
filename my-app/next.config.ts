@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 /**
  * next.config.ts — production Next.js configuration for Butwal Hacks.
@@ -106,6 +107,14 @@ const widgetHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  // Pin the Turbopack root to the workspace root (repo root — one level up
+  // from this app dir). npm workspaces hoists `next` to the repo-root
+  // node_modules, so without an explicit root Turbopack can mis-infer (e.g.
+  // a stray package-lock.json in the user's home dir) and then refuse to
+  // compile anything, since deps outside the inferred root are blocked.
+  turbopack: {
+    root: path.resolve(process.cwd(), ".."),
+  },
 
 
 
