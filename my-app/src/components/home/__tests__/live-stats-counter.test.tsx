@@ -75,7 +75,7 @@ describe("LiveStatsCounter", () => {
     it("renders all four stat labels", async () => {
       render(<LiveStatsCounter />);
 
-      expect(await screen.findByText("Hackers")).toBeInTheDocument();
+      expect(await screen.findByText("Members")).toBeInTheDocument();
       expect(screen.getByText("Events")).toBeInTheDocument();
       expect(screen.getByText("Projects")).toBeInTheDocument();
       expect(screen.getByText("Credentials")).toBeInTheDocument();
@@ -99,7 +99,7 @@ describe("LiveStatsCounter", () => {
       render(<LiveStatsCounter />);
 
       // Wait for data to load
-      await screen.findByText("Hackers");
+      await screen.findByText("Members");
 
       // Each stat card has an icon container with bg-primary-red/10 class
       const iconContainers = document.querySelectorAll(".bg-primary-red\\/10");

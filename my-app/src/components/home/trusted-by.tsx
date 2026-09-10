@@ -5,6 +5,11 @@
  * SVGs collapsed into data-driven map (ponytail: was 17 individual functions).
  */
 
+"use client";
+
+import { useLanguage } from "@/components/language-provider";
+import { t } from "@/lib/i18n";
+
 interface CompanyLogo {
   name: string
   inner: string
@@ -95,11 +100,12 @@ const companies: CompanyLogo[] = [
 /* ─── Section Component ──────────────────────────────────────────── */
 
 export default function TrustedBy() {
+  const { locale } = useLanguage();
   return (
     <section className="border-b border-border bg-background py-12 md:py-16">
       <div className="mx-auto max-w-6xl px-4">
         <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-8">
-          Tools we actually use
+          {t('home.trusted_by.label', locale)}
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-8 md:gap-x-14 md:gap-y-10">
@@ -127,7 +133,7 @@ export default function TrustedBy() {
         </div>
 
         <p className="mt-8 text-center text-[10px] font-mono text-muted-foreground/60">
-          Student-run, open-source, built in public.
+          {t('home.trusted_by.footer', locale)}
         </p>
       </div>
     </section>

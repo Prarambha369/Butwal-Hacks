@@ -1,11 +1,14 @@
 "use client"
 
 import { Search, ArrowUpDown, Plus } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
+import { t } from "@/lib/i18n"
 
 const projects = [
   {
     name: "Nepal Earthquake Early Warning System",
-    status: { label: "In Review", color: "text-status-blue bg-status-blue/8" },
+    statusKey: "home.database.status.in_review",
+    status: { color: "text-status-blue bg-status-blue/8" },
     tags: ["Python", "IoT", "ML"],
     assignee: "AB",
     due: "Aug 15",
@@ -13,7 +16,8 @@ const projects = [
   },
   {
     name: "Community Learning Platform",
-    status: { label: "In Progress", color: "text-status-yellow bg-status-yellow/8" },
+    statusKey: "home.database.status.in_progress",
+    status: { color: "text-status-yellow bg-status-yellow/8" },
     tags: ["Next.js", "Supabase", "Tailwind"],
     assignee: "PK",
     due: "Sep 1",
@@ -21,7 +25,8 @@ const projects = [
   },
   {
     name: "Local Market Connect",
-    status: { label: "To Do", color: "text-muted-foreground bg-surface-hover" },
+    statusKey: "home.database.status.todo",
+    status: { color: "text-muted-foreground bg-surface-hover" },
     tags: ["React Native", "Firebase"],
     assignee: "SB",
     due: "Oct 10",
@@ -29,7 +34,8 @@ const projects = [
   },
   {
     name: "Disaster Response Drone UI",
-    status: { label: "Done", color: "text-status-green bg-status-green/8" },
+    statusKey: "home.database.status.done",
+    status: { color: "text-status-green bg-status-green/8" },
     tags: ["React", "Mapbox"],
     assignee: "RJ",
     due: "Jul 30",
@@ -37,7 +43,8 @@ const projects = [
   },
   {
     name: "Smart Agriculture Dashboard",
-    status: { label: "In Progress", color: "text-status-yellow bg-status-yellow/8" },
+    statusKey: "home.database.status.in_progress",
+    status: { color: "text-status-yellow bg-status-yellow/8" },
     tags: ["Vue", "D3.js", "Node"],
     assignee: "AB",
     due: "Sep 15",
@@ -46,6 +53,7 @@ const projects = [
 ]
 
 export default function DatabaseTable() {
+  const { locale } = useLanguage();
   return (
     <section className="border-b border-border bg-background py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4">
@@ -53,14 +61,14 @@ export default function DatabaseTable() {
         <div className="mb-12 max-w-xl">
           <div className="flex items-center gap-2 mb-3">
             <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-primary-red/8 text-[10px] font-mono font-semibold text-primary-red tracking-tight">
-              database
+              {t('home.database.badge', locale)}
             </span>
           </div>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-primary leading-[1.1]">
-            Every project, filterable and sortable
+            {t('home.database.title', locale)}
           </h2>
           <p className="mt-3 text-sm text-text-secondary leading-relaxed max-w-lg">
-            A table view that looks and works like a database. Filter by status, sort by priority, or search for what you need.
+            {t('home.database.subtitle', locale)}
           </p>
         </div>
 
@@ -72,38 +80,38 @@ export default function DatabaseTable() {
               <button
                 type="button"
                 className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-text-secondary hover:bg-surface-hover cursor-pointer transition-colors"
-                aria-label="Filter projects"
+                aria-label={t('home.database.aria.filter', locale)}
               >
                 <Search className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Filter</span>
+                <span>{t('home.database.filter', locale)}</span>
               </button>
               <button
                 type="button"
                 className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-text-secondary hover:bg-surface-hover cursor-pointer transition-colors"
-                aria-label="Sort projects"
+                aria-label={t('home.database.aria.sort', locale)}
               >
                 <ArrowUpDown className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Sort</span>
+                <span>{t('home.database.sort', locale)}</span>
               </button>
             </div>
             <button
               type="button"
               className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-text-secondary hover:bg-surface-hover cursor-pointer transition-colors"
-              aria-label="Create new project"
+              aria-label={t('home.database.aria.new', locale)}
             >
               <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>New</span>
+              <span>{t('home.database.new', locale)}</span>
             </button>
           </div>
 
           {/* Column Headers — hidden on mobile, shown on md+ */}
           <div className="hidden md:grid md:grid-cols-[2fr_1fr_1.5fr_0.75fr_0.75fr] border-b border-border bg-surface-hover/50">
-            {["Name", "Status", "Tags", "Lead", "Due"].map((col) => (
+            {["home.database.col.name", "home.database.col.status", "home.database.col.tags", "home.database.col.lead", "home.database.col.due"].map((col) => (
               <div
                 key={col}
                 className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"
               >
-                <span>{col}</span>
+                <span>{t(col, locale)}</span>
                 <ArrowUpDown className="h-3 w-3 opacity-40" />
               </div>
             ))}
@@ -136,7 +144,7 @@ export default function DatabaseTable() {
                   {/* Row 2: status + tags */}
                   <div className="flex items-center gap-2 pl-4">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${project.status.color}`}>
-                      {project.status.label}
+                      {t(project.statusKey, locale)}
                     </span>
                     {project.tags.map((tag) => (
                       <span
@@ -150,13 +158,13 @@ export default function DatabaseTable() {
                   {/* Row 3: lead + due */}
                   <div className="flex items-center gap-4 pl-4">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Lead</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{t('home.database.col.lead', locale)}</span>
                       <div className="h-5 w-5 rounded-full bg-surface-hover border border-border flex items-center justify-center text-[10px] font-semibold text-text-secondary font-mono">
                         {project.assignee}
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Due</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{t('home.database.col.due', locale)}</span>
                       <span className="text-xs text-text-secondary font-mono">{project.due}</span>
                     </div>
                   </div>
@@ -183,7 +191,7 @@ export default function DatabaseTable() {
                   {/* Status */}
                   <div className="px-4 py-3 flex items-center">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${project.status.color}`}>
-                      {project.status.label}
+                      {t(project.statusKey, locale)}
                     </span>
                   </div>
 
@@ -217,9 +225,9 @@ export default function DatabaseTable() {
 
           {/* Footer */}
           <div className="px-4 py-2.5 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="font-mono">{projects.length} rows</span>
+            <span className="font-mono">{t('home.database.rows', locale).replace('{n}', String(projects.length))}</span>
             <span className="opacity-30">·</span>
-            <span>Click a row to open project details →</span>
+            <span>{t('home.database.click_hint', locale)}</span>
           </div>
         </div>
       </div>
