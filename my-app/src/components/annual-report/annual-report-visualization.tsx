@@ -330,7 +330,7 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
       <div className="text-center py-6 border-t border-border">
         <p className="text-[10px] font-mono text-muted-foreground">
           Generated on {new Date(report.generatedAt).toLocaleDateString("en-US", {
-            year: "numeric", month: "long", day: "numeric",
+            year: "numeric", month: "long", day: "numeric", timeZone: "Asia/Kathmandu",
           })}
         </p>
         <p className="text-[10px] font-mono text-muted-foreground mt-1">
