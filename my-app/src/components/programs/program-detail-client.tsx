@@ -312,9 +312,6 @@ export default function ProgramDetailClient({ program }: { program: Program }) {
                 returnTo={`/programs/${eventData.slug}`}
                 className="text-base"
               />
-              <a href="#" className="bh-btn-secondary inline-flex items-center gap-2 px-8 py-3 text-base">
-                Add to Calendar <Calendar size={18} />
-              </a>
             </div>
           </div>
         </div>
