@@ -23,38 +23,29 @@ export default function ProjectAnalyticsGrid({ eventId }: { eventId: string }) {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      // Fetch projects for the event
+      // Fetch projects with real engagement counts (likes, views, comments)
+      // in a single query via embedded aggregates.
       const { data: projects, error: pError } = await supabase
         .from('projects')
-        .select('id, title')
+        .select(`
+          id, title,
+          project_likes(count),
+          project_views(count),
+          comments:project_comments(count)
+        `)
         .eq('event_id', eventId);
 
       if (pError) throw pError;
 
-      const projectStats = await Promise.all(projects?.map(async (p) => {
-        const { count: likes } = await supabase
-          .from('project_likes')
-          .select('*', { count: 'exact', head: true })
-          .eq('project_id', p.id);
-        
-        const { count: comments } = await supabase
-          .from('project_comments')
-          .select('*', { count: 'exact', head: true })
-          .eq('project_id', p.id);
-
-        // We simulate views since we haven't fully implemented the table yet
-        const views = Math.floor(Math.random() * 1000);
-
-        return {
-          id: p.id,
-          title: p.title,
-          views,
-          likes: likes || 0,
-          comments: comments || 0,
-        };
+      const projectStats = (projects ?? []).map((p) => ({
+        id: p.id,
+        title: p.title,
+        views: p.project_views?.[0]?.count ?? 0,
+        likes: p.project_likes?.[0]?.count ?? 0,
+        comments: p.comments?.[0]?.count ?? 0,
       }));
 
-      setStats(projectStats || []);
+      setStats(projectStats);
     } catch {
       toast.error('Failed to load project analytics');
     } finally {
