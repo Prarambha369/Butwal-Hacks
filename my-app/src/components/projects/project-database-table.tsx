@@ -239,7 +239,7 @@ export default function ProjectDatabaseTable({
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr)
     const bs = formatBsDate(d)
-    return `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} (${bs.split(',').slice(0, 1).join('')})`
+    return `${d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "Asia/Kathmandu" })} (${bs.split(',').slice(0, 1).join('')})`
   }
 
   return (

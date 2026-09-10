@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ArrowRight, Calendar, MapPin } from "lucide-react"
 import { formatDualDate } from "@/lib/nepali-date"
@@ -23,13 +23,20 @@ type FilterMode = "upcoming" | "past"
 export default function EventsFilter({ events }: { events: EventItem[] }) {
   const [filter, setFilter] = useState<FilterMode>("upcoming")
 
-  const now = new Date()
+  // `new Date()` at render time differs between the server (UTC) and the
+  // client (Asia/Kathmandu). Compute "now" only after mount so the
+  // upcoming/past split matches between SSR and hydration.
+  const [now, setNow] = useState<number | null>(null)
+
+  useEffect(() => {
+    setNow(Date.now())
+  }, [])
 
   const upcoming: EventItem[] = []
   const past: EventItem[] = []
   for (const e of events) {
     if (!e.is_published) continue
-    if (new Date(e.start_date) >= now) upcoming.push(e)
+    if (now === null || new Date(e.start_date).getTime() >= now) upcoming.push(e)
     else past.push(e)
   }
   upcoming.sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
@@ -96,10 +103,14 @@ export default function EventsFilter({ events }: { events: EventItem[] }) {
 }
 
 function EventCard({ event, filter }: { event: EventItem; filter: FilterMode }) {
-  const [now] = useState(() => Date.now())
+  const [now, setNow] = useState<number | null>(null)
+  useEffect(() => {
+    setNow(Date.now())
+  }, [])
   const startDate = new Date(event.start_date)
   const isLive =
     filter === "upcoming" &&
+    now !== null &&
     startDate.getTime() <= now &&
     new Date(event.end_date).getTime() >= now
 
