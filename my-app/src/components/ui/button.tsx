@@ -7,7 +7,7 @@ function Slot(props: React.ComponentProps<"button">) {
   return React.cloneElement(React.Children.only(props.children as React.ReactElement), props)
 }
 
-const BASE = "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-[400ms] ease-[cubic-bezier(0.175,0.885,0.32,1.275)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-white/20 active:scale-[0.97]";
+const BASE = "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-[350ms] ease-out active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-white/20";
 
 const VARIANT_CLASSES: Record<string, string> = {
   default:
