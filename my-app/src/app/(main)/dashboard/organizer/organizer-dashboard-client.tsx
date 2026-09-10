@@ -2,9 +2,10 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import OnboardingTour from "@/components/dashboard/onboarding-tour";import { CalendarDays, Users, Rocket, Bell, CheckCircle2,
-  Plus, ChevronLeft, ChevronRight,
-  Calendar, ListTodo,
+import OnboardingTour from "@/components/dashboard/onboarding-tour";
+import AssistantPanel from "@/components/assistant-panel";
+import { CalendarDays, Users, Rocket, Bell, CheckCircle2,
+  Plus, ChevronLeft, ChevronRight, Calendar, ListTodo, ArrowRight,
 } from "lucide-react";
 import { adToBs, BS_MONTH_NAMES } from "@/lib/nepali-date"
 
@@ -140,6 +141,15 @@ export default function OrganizerDashboardClient({ events, notices, totalEvents,
   const toggleTask = (id: string) => {
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
   };
+
+  // Force first-event interstitial when organizer has no events yet.
+  // This is the empty-dashboard gate — don't let organizers sit on an
+  // empty dashboard; push them straight into event creation.
+  if (totalEvents === 0) {
+    return (
+      <FirstEventGate />
+    );
+  }
 
   return (
     <>
@@ -332,5 +342,77 @@ export default function OrganizerDashboardClient({ events, notices, totalEvents,
         )}
       </div>
     </>
+  );
+}
+
+
+/**
+ * FirstEventGate — empty-dashboard interstitial for new organizers.
+ *
+ * Shown when totalEvents === 0. Forces the organizer into the event
+ * creation flow instead of letting them land on an empty dashboard.
+ * One primary action, one escape hatch.
+ */
+function FirstEventGate() {
+  return (
+    <div className="flex-1 flex items-center justify-center p-4 pb-20">
+      <div className="w-full max-w-xl">
+        {/* Compact top: one-line intent + primary CTA near the top */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="inline-flex w-12 h-12 rounded-full bg-status-orange/10 items-center justify-center shrink-0">
+            <CalendarDays className="w-6 h-6 text-status-orange" />
+          </div>
+          <div className="text-center sm:text-left">
+            <h1 className="text-xl font-bold text-primary">
+              Run your first event.
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+              Your first event is the fastest way to get value from this dashboard.
+            </p>
+          </div>
+        </div>
+
+        {/* Primary CTA higher, larger, and not competing with the heading */}
+        <Link
+          href="/dashboard/organizer/events/new"
+          className="block w-full sm:w-auto mx-auto sm:mx-0 mb-6 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary-red text-white text-sm font-bold hover:bg-deep-red transition-all shadow-[--bh-glow-red-soft] hover:shadow-[--bh-glow-red] active:scale-[0.97]"
+        >
+          Create Your First Event
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+
+        {/* Secondary actions — quieter, below the primary move */}
+        <div className="space-y-3">
+          <p className="text-[11px] text-muted-foreground text-center sm:text-left">
+            Not ready yet? These are also available now.
+          </p>
+          <div className="flex flex-wrap justify-center sm:justify-start gap-3">
+            <Link
+              href="/dashboard/organizer/issue-marker"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary-red transition-colors"
+            >
+              Issue a Trust Marker
+            </Link>
+            <Link
+              href="/dashboard/organizer/work"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary-red transition-colors"
+            >
+              Team Work Board
+            </Link>
+            <Link
+              href="/dashboard/organizer/api-keys"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary-red transition-colors"
+            >
+              API Keys
+            </Link>
+          </div>
+        </div>
+
+        {/* Persistent BH Bot — same assistant as other tracks */}
+        <div className="mt-8">
+          <AssistantPanel context="organizer" />
+        </div>
+      </div>
+    </div>
   );
 }
