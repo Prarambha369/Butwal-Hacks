@@ -347,8 +347,6 @@
     box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.2);
   }
 
-  }
-
   .bh-input-sm {
     width: 100%;
     padding: 0.5rem 0.75rem;
@@ -635,3 +633,4 @@
     from { opacity: 0; transform: translateX(8px); }
     to { opacity: 1; transform: translateX(0); }
   }
+}
