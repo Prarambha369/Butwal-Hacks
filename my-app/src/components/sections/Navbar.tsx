@@ -72,16 +72,14 @@ export default function Navbar() {
           {/* Left: Logo */}
           <div className="flex items-center gap-3 shrink-0">
             <Link href="/" className="flex items-center gap-3 group min-h-[44px]">
-              <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-deep-red">
-                <Image
-                  src="/logo.png"
-                  alt="Butwal Hacks"
-                  fill
-                  className="object-cover"
-                  sizes="36px"
-                  priority
-                />
-              </div>
+              <Image
+                src="/bh-mark.svg"
+                alt="Butwal Hacks"
+                width={40}
+                height={40}
+                className="h-10 w-10"
+                priority
+              />
               <span className="text-primary font-bold text-lg tracking-tight">
                 Butwal Hacks
               </span>
