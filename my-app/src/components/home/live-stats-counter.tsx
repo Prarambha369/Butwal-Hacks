@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, Calendar, FolderGit2, ShieldCheck } from "lucide-react";
+import { UsersRound, CalendarDays, FolderGit2, BadgeCheck } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
 
@@ -52,10 +52,10 @@ function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string
 }
 
 const statItems = [
-  { key: "total_hackers", labelKey: "home.stats.members", icon: Users },
-  { key: "total_events", labelKey: "home.stats.events", icon: Calendar },
-  { key: "total_projects", labelKey: "home.stats.projects", icon: FolderGit2 },
-  { key: "total_trust_markers", labelKey: "home.stats.credentials", icon: ShieldCheck },
+  { key: "total_hackers", labelKey: "home.stats.members", icon: UsersRound, color: "text-primary-red", bg: "bg-primary-red/10" },
+  { key: "total_events", labelKey: "home.stats.events", icon: CalendarDays, color: "text-status-blue", bg: "bg-status-blue/10" },
+  { key: "total_projects", labelKey: "home.stats.projects", icon: FolderGit2, color: "text-status-green", bg: "bg-status-green/10" },
+  { key: "total_trust_markers", labelKey: "home.stats.credentials", icon: BadgeCheck, color: "text-status-yellow", bg: "bg-status-yellow/10" },
 ] as const;
 
 export default function LiveStatsCounter() {
@@ -120,14 +120,14 @@ export default function LiveStatsCounter() {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {statItems.map(({ key, labelKey, icon: Icon }) => {
+          {statItems.map(({ key, labelKey, icon: Icon, color, bg }) => {
             const value = stats?.[key as keyof Stats] ?? null;
             return (
               <div
                 key={key}
                 className="bh-card p-6 text-center space-y-2 hover:-translate-y-0.5 transition-all duration-300"
               >
-                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-primary-red/10 text-primary-red">
+                <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-lg ${bg} ${color}`}>
                   <Icon className="h-5 w-5" />
                 </div>
                 <p className="text-2xl md:text-3xl font-black text-primary font-mono tabular-nums">
