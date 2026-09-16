@@ -134,7 +134,7 @@ export default function EventGallery() {
                 </p>
                 <button
                   onClick={() => setSelectedIdx(null)}
-                  className="p-2 text-secondary hover:text-primary-red transition-colors"
+                  className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-secondary hover:text-primary-red transition-colors"
                   aria-label={t('home.gallery.close', locale)}
                 >
                   <X size={28} />

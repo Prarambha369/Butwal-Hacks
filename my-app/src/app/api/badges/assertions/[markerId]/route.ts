@@ -49,7 +49,7 @@ export const GET = withRateLimit(async (
     credentialSubject: {
       id: `${siteUrl}/p/${marker.profiles?.bh_id ?? ""}`,
       type: ["AchievementSubject"],
-      name: marker.profiles?.full_name ?? "Unknown",
+      name: marker.profiles?.full_name ?? "A Mysterious Hacker",
       achievement: {
         id: `${siteUrl}/api/badges/achievements/${marker.type}`,
         type: ["Achievement"],

@@ -63,7 +63,7 @@ export async function issueTrustMarker(input: {
       title,
       type: input.type,
       recipientEmail: input.email,
-      issuerName: issuerProfile.data?.full_name || "Unknown",
+      issuerName: issuerProfile.data?.full_name || "A Mysterious Hacker",
       issuerBhId: issuerProfile.data?.bh_id || "",
       markerId: marker.id,
     });
