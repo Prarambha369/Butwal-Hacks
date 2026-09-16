@@ -73,7 +73,7 @@ export default function Navbar() {
           <div className="flex items-center gap-3 shrink-0">
             <Link href="/" className="flex items-center gap-3 group min-h-[44px]">
               <Image
-                src="/bh-mark.svg"
+                src="/favicon.svg"
                 alt="Butwal Hacks"
                 width={40}
                 height={40}

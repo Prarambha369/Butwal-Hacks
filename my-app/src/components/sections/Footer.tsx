@@ -1,7 +1,6 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useLanguage } from '@/components/language-provider';
@@ -83,13 +82,6 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-16 md:py-20 md:px-20">
         {/* Brand Statement */}
         <div className="mb-16 text-center space-y-4">
-          <Image
-            src="/bh-mark.svg"
-            alt="Butwal Hacks logo"
-            width={48}
-            height={48}
-            className="mx-auto h-12 w-12"
-          />
           <p className="text-2xl md:text-4xl font-bold text-primary">
             {t('footer.brand_statement', locale)}
           </p>
