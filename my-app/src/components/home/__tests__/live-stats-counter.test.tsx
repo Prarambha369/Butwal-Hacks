@@ -101,9 +101,16 @@ describe("LiveStatsCounter", () => {
       // Wait for data to load
       await screen.findByText("Members");
 
-      // Each stat card has an icon container with bg-primary-red/10 class
-      const iconContainers = document.querySelectorAll(".bg-primary-red\\/10");
-      expect(iconContainers.length).toBe(4);
+      // Each stat card has its own accent tile color
+      const expectedTiles = [
+        ".bg-primary-red\\/10",
+        ".bg-status-blue\\/10",
+        ".bg-status-green\\/10",
+        ".bg-status-yellow\\/10",
+      ];
+      for (const tile of expectedTiles) {
+        expect(document.querySelectorAll(tile).length).toBe(1);
+      }
     });
   });
 });

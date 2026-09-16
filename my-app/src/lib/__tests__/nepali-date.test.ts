@@ -12,7 +12,12 @@ const VERIFIED_PAIRS: Array<{ ad: [number, number, number]; bs: [number, number,
   { ad: [2025, 12, 31], bs: [2082, 9, 16] }, // trust-page dates (was wrong before)
   { ad: [2026, 4, 14], bs: [2083, 1, 1] }, // Nepali New Year 2083
   { ad: [2026, 9, 11], bs: [2083, 5, 26] }, // around current date — Bhadra
-  { ad: [2033, 4, 13], bs: [2090, 12, 31] }, // last supported day
+  { ad: [2033, 4, 14], bs: [2090, 1, 1] }, // Nepali New Year 2090
+  // Last supported day: BS 2090 Chaitra has 30 days, so 2090-12-30 =
+  // AD 2034-04-13. (2090-01-01 itself = 2033-04-14, consistent with the
+  // Apr 13/14 New Year oscillation — any pair placing 2090 in AD 2032/33
+  // is off by a full year.)
+  { ad: [2034, 4, 13], bs: [2090, 12, 30] }, // last supported day
 ]
 
 function utc(...ymd: [number, number, number]): Date {
@@ -37,7 +42,7 @@ describe("adToBs", () => {
   })
 
   it("throws for dates after the supported range", () => {
-    expect(() => adToBs(utc(2033, 4, 14))).toThrow(RangeError)
+    expect(() => adToBs(utc(2034, 4, 14))).toThrow(RangeError)
   })
 })
 
