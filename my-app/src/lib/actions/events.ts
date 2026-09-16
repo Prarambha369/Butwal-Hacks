@@ -5,6 +5,8 @@ import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import { sanitizeString } from "@/lib/validation";
 import { resolveProfileId } from "@/lib/profile-resolver";
+import { notifyEventCreated } from "@/lib/discord";
+import { SITE_URL } from "@/lib/constants";
 
 interface CreateEventInput {
   title: string
@@ -16,6 +18,34 @@ interface CreateEventInput {
   is_published?: boolean
 }
 
+// ponytail: fire-and-forget Discord announcement, failures only logged.
+// Drafts stay quiet — only published events get announced.
+async function announceEvent(opts: {
+  title: string
+  start_date: string
+  location?: string | null
+  organizerId: string
+  isPublished?: boolean
+}) {
+  if (!opts.isPublished) return
+  try {
+    const supabase = createServiceClient()
+    const { data: organizer } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", opts.organizerId)
+      .single()
+    notifyEventCreated({
+      title: opts.title,
+      startDate: opts.start_date,
+      location: opts.location,
+      eventUrl: `${SITE_URL}/events`,
+      organizerName: organizer?.full_name || "A Mysterious Hacker",
+    })
+  } catch (error) {
+    logger.warn("Error announcing event:", error)
+  }
+}
 // ponytail: Looks up profile UUID from WorkOS user ID to satisfy organizer_id FK
 export async function createEvent(input: CreateEventInput) {
   try {
@@ -38,6 +68,14 @@ export async function createEvent(input: CreateEventInput) {
       .single()
 
     if (error) throw error
+
+    announceEvent({
+      title: input.title,
+      start_date: input.start_date,
+      location: input.location,
+      organizerId: profileId,
+      isPublished: input.is_published,
+    })
 
     revalidatePath("/dashboard/organizer/events")
     return { success: true, eventId: data.id }
@@ -83,6 +121,14 @@ export async function createChapterEvent(input: CreateChapterEventInput, orgSlug
       .single()
 
     if (error) throw error
+
+    announceEvent({
+      title: input.title,
+      start_date: input.start_date,
+      location: input.location,
+      organizerId: profileId,
+      isPublished: input.is_published,
+    })
 
     revalidatePath(`/orgs/${orgSlug}/events`)
 
