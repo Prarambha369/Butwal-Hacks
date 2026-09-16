@@ -6,6 +6,9 @@ import { cn } from "@/lib/utils";
 import { formatDualDate } from "@/lib/nepali-date";
 import { toast } from "sonner";
 import { CardSkeleton } from "@/components/ui/skeleton";
+
+// metadata disabled because this page is a client component (Next.js forbids exporting metadata from client components).
+
 interface ApiKey {
   id: string;
   prefix: string;

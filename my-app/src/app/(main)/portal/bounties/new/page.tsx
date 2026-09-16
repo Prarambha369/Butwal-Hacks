@@ -2,6 +2,10 @@ import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import OpportunityForm from "../opportunity-form";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = buildPageMetadata({title: "New Bounty", description: "Create a new bounty", path: "/portal/bounties/new", keywords: []});
 
 export const dynamic = "force-dynamic";
 

@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import { getSponsorOpportunities } from "@/lib/actions/sponsor-opportunities";
 import { Plus } from "lucide-react";
 import OpportunitiesManager from "./opportunities-manager";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = buildPageMetadata({title: "Bounties", description: "Browse bounties", path: "/portal/bounties", keywords: []});
 
 export const dynamic = "force-dynamic";
 

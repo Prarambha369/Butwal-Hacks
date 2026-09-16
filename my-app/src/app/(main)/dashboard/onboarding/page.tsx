@@ -4,6 +4,10 @@ import { createServiceClient } from "@/utils/supabase";
 import { RoleSelector } from "@/components/dashboard/role-selector";
 import AssistantPanel from "@/components/assistant-panel";
 import { Sparkles, User, CalendarDays, Building2 } from "lucide-react";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "Onboarding", description: "Complete your onboarding", path: "/dashboard/onboarding", keywords: []}), robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic";
 

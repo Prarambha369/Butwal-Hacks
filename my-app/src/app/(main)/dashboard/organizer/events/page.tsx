@@ -4,7 +4,11 @@ import { auth0 } from "@/lib/auth0";
 import { formatDualDate } from "@/lib/nepali-date";
 import Link from 'next/link';
 import { Calendar, Plus, Users, BarChart3 } from 'lucide-react';
+import { buildPageMetadata } from "@/lib/seo"
 
+
+
+export const metadata = { ...buildPageMetadata({title: "Events", description: "Manage events", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
 
 export default async function OrganizerEventsPage() {
   const session = await auth0.getSession();

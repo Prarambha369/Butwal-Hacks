@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase";
 import { formatDualDate } from "@/lib/nepali-date";
 import OrganizerDashboardClient from "./organizer-dashboard-client";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "Organizer Dashboard", description: "Organizer workspace", path: "/dashboard/organizer", keywords: []}), robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic";
 

@@ -6,6 +6,9 @@ import { ArrowLeft, Loader2, Plus, Users } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
+
+// metadata disabled because this page is a client component (Next.js forbids exporting metadata from client components).
+
 export default function CreateTeamPage() {
   const router = useRouter();
   const [name, setName] = useState("");

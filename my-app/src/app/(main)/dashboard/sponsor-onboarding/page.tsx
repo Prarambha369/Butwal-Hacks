@@ -4,6 +4,10 @@ import { createServiceClient } from "@/utils/supabase";
 import AssistantPanel from "@/components/assistant-panel";
 import { Sparkles, Building2, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "Sponsor Onboarding", description: "Set up your sponsor profile", path: "/dashboard/sponsor-onboarding", keywords: []}), robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic";
 

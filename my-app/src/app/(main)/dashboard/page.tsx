@@ -9,6 +9,10 @@ import DashboardHubStats from "@/components/dashboard/dashboard-hub-stats";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { t } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "Dashboard", description: "Your Butwal Hacks dashboard overview", path: "/dashboard", keywords: []}), robots: { index: false, follow: false } };
 
 export default async function DashboardHubPage() {
   const session = await auth0.getSession();

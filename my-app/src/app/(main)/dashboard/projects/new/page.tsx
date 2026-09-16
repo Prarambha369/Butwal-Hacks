@@ -1,6 +1,10 @@
 
 
 import ProjectSubmissionForm from '@/components/projects/project-submission-form';
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "New Project", description: "Submit a new project", path: "/dashboard/projects/new", keywords: []}), robots: { index: false, follow: false } };
 
 export default function NewProjectPage() {
   return (

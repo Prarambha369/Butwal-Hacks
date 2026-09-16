@@ -4,6 +4,12 @@ import { createServiceClient } from "@/utils/supabase";
 import { ArrowLeft } from "lucide-react";
 import OpportunityForm from "../../opportunity-form";
 import { notFound } from "next/navigation";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export async function generateMetadata() {
+  return buildPageMetadata({title: "Edit Bounty", description: "Edit a bounty", path: "/portal/bounties", keywords: []});
+}
 
 export const dynamic = "force-dynamic";
 

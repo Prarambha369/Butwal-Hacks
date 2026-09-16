@@ -3,6 +3,12 @@ import { getProjectDetails } from '@/lib/actions/project-details';
 import ProjectDetailView from '@/components/projects/project-detail-view';
 import RelatedLinks from '@/components/home/related-links';
 import { blogPosts, initiatives, getRelatedByTags } from '@/lib/content';
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export async function generateMetadata() {
+  return buildPageMetadata({title: "Project", description: "View project details", path: "/projects", keywords: []});
+}
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

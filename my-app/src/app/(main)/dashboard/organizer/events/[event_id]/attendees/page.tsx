@@ -7,6 +7,12 @@ import { Users, ExternalLink, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import AttendeeExport, { type Attendee } from "@/components/dashboard/organizer/attendee-export";
 import { CheckInButton } from "./checkin-button";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export async function generateMetadata() {
+  return { ...buildPageMetadata({title: "Attendees", description: "Event attendee list", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
+}
 
 type Props = {
   params: Promise<{ event_id: string }>;
