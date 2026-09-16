@@ -2,6 +2,10 @@ import { redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
 
 import TeamManagement from '@/components/dashboard/team-management';
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "My Teams", description: "Teams you belong to", path: "/dashboard/hacker/teams", keywords: []}), robots: { index: false, follow: false } };
 
 export default async function HackerTeamsPage() {
   const session = await auth0.getSession();

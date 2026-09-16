@@ -18,6 +18,12 @@ import Link from "next/link";
 
 import { CloseEventClientButton } from "./close-event-button";
 import { CertificateExportButton } from "./certificate-export-button";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export async function generateMetadata() {
+  return { ...buildPageMetadata({title: "Event Details", description: "View event details", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
+}
 
 export default async function EventDetailsPage({
   params,

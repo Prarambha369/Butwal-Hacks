@@ -5,6 +5,10 @@ import { Users, Plus, ChevronRight, UserPlus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = buildPageMetadata({title: "Teams", description: "Browse teams", path: "/teams", keywords: []});
 
 export default async function TeamsPage() {
   const session = await auth0.getSession();

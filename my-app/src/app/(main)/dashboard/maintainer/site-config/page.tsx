@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
 import { Settings2, Construction } from "lucide-react";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "Site Config", description: "Configure site settings", path: "/dashboard/maintainer/site-config", keywords: []}), robots: { index: false, follow: false } };
 
 export default async function SiteConfigPage() {
   const session = await auth0.getSession();

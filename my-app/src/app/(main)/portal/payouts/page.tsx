@@ -3,6 +3,10 @@ import { createServiceClient } from "@/utils/supabase";
 import { redirect } from "next/navigation";
 
 import PayoutsClient from "./payouts-client";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = buildPageMetadata({title: "Payouts", description: "View payouts", path: "/portal/payouts", keywords: []});
 
 export const dynamic = "force-dynamic";
 

@@ -10,8 +10,12 @@ import {
   Code2, Medal,
 } from "lucide-react";
 import { ActivityTimelineChart } from "@/components/charts/hacker-charts";
+import { buildPageMetadata } from "@/lib/seo"
 
 // ─── Main Page ─────────────────────────────────────────────────────
+
+
+export const metadata = { ...buildPageMetadata({title: "Hacker Dashboard", description: "Your hacker workspace", path: "/dashboard/hacker", keywords: []}), robots: { index: false, follow: false } };
 
 export default async function HackerDashboardPage() {
   const supabase = await createClient();

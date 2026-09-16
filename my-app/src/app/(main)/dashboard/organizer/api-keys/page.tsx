@@ -5,6 +5,10 @@ import { ShieldCheck } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { ApiKeyList } from './api-key-list';
 import { GenerateKeyForm } from './generate-key-form';
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "API Keys", description: "Manage your API keys", path: "/dashboard/organizer/api-keys", keywords: []}), robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic";
 

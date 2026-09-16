@@ -3,6 +3,12 @@ import { createServiceClient } from '@/utils/supabase';
 
 import { getUserProjects } from '@/lib/actions/projects';
 import ProfileClient from '@/components/hacker-id/profile-client';
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export async function generateMetadata() {
+  return buildPageMetadata({title: "Profile", description: "View a user profile", path: "/profile", keywords: []});
+}
 
 export const dynamic = "force-dynamic";
 

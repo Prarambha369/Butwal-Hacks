@@ -2,6 +2,10 @@ import { auth0 } from "@/lib/auth0";
 import { createClient } from '@/utils/supabase';
 import { Trophy, Star, Zap, Lock, Award } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "Certificates", description: "Your earned certificates", path: "/dashboard/hacker/certificates", keywords: []}), robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic";
 

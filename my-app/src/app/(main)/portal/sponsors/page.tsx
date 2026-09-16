@@ -9,6 +9,10 @@ import {
   DemographicsChart,
 } from "@/components/charts/sponsor-charts";
 
+import { buildPageMetadata } from "@/lib/seo";
+
+export const metadata = buildPageMetadata({title: "Sponsors", description: "Browse sponsors", path: "/portal/sponsors", keywords: []});
+
 export const dynamic = "force-dynamic";
 
 export default async function SponsorDashboardPage() {
