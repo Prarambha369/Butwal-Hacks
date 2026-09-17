@@ -1,5 +1,6 @@
 import { Calendar } from "lucide-react";
 import { createServiceClient } from "@/utils/supabase";
+import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
@@ -66,6 +67,8 @@ async function getPhotos(): Promise<GalleryPhoto[]> {
 
 export default async function GalleryPage() {
   const photos = await getPhotos();
+  // Download gate: only signed-in users get full-quality file URLs.
+  const session = await auth0.getSession().catch(() => null);
 
   return (
     <main className="min-h-dvh bg-background pt-28 pb-20 px-6 md:px-20">
@@ -98,7 +101,7 @@ export default async function GalleryPage() {
             </div>
           </div>
         ) : (
-          <GalleryGrid photos={photos} />
+          <GalleryGrid photos={photos} canDownload={!!session?.user} />
         )}
       </div>
     </main>

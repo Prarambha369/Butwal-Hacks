@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cloudinaryUrl } from "../cloudinary-url";
+import { cloudinaryUrl, cloudinaryDownloadUrl } from "../cloudinary-url";
 
 const PLAIN = "https://res.cloudinary.com/demo/image/upload/sample.jpg";
 const VERSIONED = "https://res.cloudinary.com/demo/image/upload/v123/sample.jpg";
@@ -25,7 +25,31 @@ describe("cloudinaryUrl", () => {
   it("leaves already-transformed URLs alone", () => {
     expect(cloudinaryUrl(TRANSFORMED, 300)).toBe(TRANSFORMED);
   });
+});
 
+describe("cloudinaryDownloadUrl", () => {
+  it("inserts fl_attachment for forced best-quality download", () => {
+    expect(cloudinaryDownloadUrl(PLAIN)).toBe(
+      "https://res.cloudinary.com/demo/image/upload/fl_attachment/sample.jpg",
+    );
+  });
+
+  it("handles versioned and folder paths", () => {
+    expect(cloudinaryDownloadUrl(VERSIONED)).toContain("fl_attachment/v123/sample.jpg");
+    expect(cloudinaryDownloadUrl(FOLDER)).toContain("fl_attachment/butwal-hacks/u1/photo.jpg");
+  });
+
+  it("is idempotent and passes through non-Cloudinary URLs", () => {
+    const once = cloudinaryDownloadUrl(PLAIN);
+    expect(cloudinaryDownloadUrl(once)).toBe(once);
+    expect(cloudinaryDownloadUrl("https://images.unsplash.com/photo-123")).toBe(
+      "https://images.unsplash.com/photo-123",
+    );
+    expect(cloudinaryDownloadUrl("")).toBe("");
+  });
+});
+
+describe("cloudinaryUrl passthrough", () => {
   it("passes through videos, external URLs, and garbage", () => {
     expect(cloudinaryUrl("https://res.cloudinary.com/demo/video/upload/clip.mp4", 600))
       .toBe("https://res.cloudinary.com/demo/video/upload/clip.mp4");

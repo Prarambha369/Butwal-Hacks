@@ -6,9 +6,10 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   X, ChevronLeft, ChevronRight, Users, Play, Pause,
   Volume2, VolumeX, Filter, Camera, Video, ImageIcon,
-  ExternalLink,
+  ExternalLink, Download, LogIn,
 } from "lucide-react";
 import { getDiceBearPlaceholder } from "@/lib/utils";
+import { cloudinaryDownloadUrl } from "@/lib/cloudinary-url";
 import type { GalleryPhoto } from "./page";
 import { cloudinaryUrl } from "@/lib/cloudinary-url";
 
@@ -123,6 +124,63 @@ function VideoThumbnail({ url, alt: _alt }: { url: string; alt: string }) {
   );
 }
 
+// ─── Download control ──────────────────────────────────────────────
+// Best-quality download (stored original bytes via fl_attachment) for
+// signed-in users only. Videos stream natively — no download control.
+// Anonymous viewers get a sign-in nudge instead of the file URL.
+
+function DownloadControl({
+  url,
+  isVideo,
+  canDownload,
+  variant,
+}: {
+  url: string;
+  isVideo: boolean;
+  canDownload: boolean;
+  variant: "card" | "lightbox";
+}) {
+  if (isVideo) return null;
+  if (!canDownload) {
+    if (variant === "card") return null;
+    return (
+      <Link
+        href="/sign-in"
+        onClick={(e) => e.stopPropagation()}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 hover:text-white hover:bg-white/20 text-xs font-medium transition-all shrink-0"
+      >
+        <LogIn className="w-3.5 h-3.5" />
+        Sign in to download
+      </Link>
+    );
+  }
+  if (variant === "card") {
+    return (
+      <a
+        href={cloudinaryDownloadUrl(url)}
+        download
+        onClick={(e) => e.stopPropagation()}
+        aria-label="Download photo at full quality"
+        title="Download full quality"
+        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 text-white/80 hover:text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+      >
+        <Download className="w-4 h-4" />
+      </a>
+    );
+  }
+  return (
+    <a
+      href={cloudinaryDownloadUrl(url)}
+      download
+      onClick={(e) => e.stopPropagation()}
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 hover:text-white hover:bg-white/20 text-xs font-medium transition-all shrink-0"
+    >
+      <Download className="w-3.5 h-3.5" />
+      Download
+    </a>
+  );
+}
+
 // ─── LightboxPhoto (extends GalleryPhoto with nav fields) ──────────
 
 interface LightboxPhoto extends GalleryPhoto {
@@ -139,6 +197,7 @@ function Lightbox({
   onNext,
   hasPrev,
   hasNext,
+  canDownload,
 }: {
   photo: LightboxPhoto;
   onClose: () => void;
@@ -146,6 +205,7 @@ function Lightbox({
   onNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
+  canDownload: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isVideo = isVideoUrl(photo.url);
@@ -265,6 +325,7 @@ function Lightbox({
                     View Event
                   </Link>
                 )}
+                <DownloadControl url={photo.url} isVideo={isVideo} canDownload={canDownload} variant="lightbox" />
               </div>
             </div>
           </div>
@@ -294,19 +355,23 @@ function GalleryCard({
   photo,
   index,
   onClick,
+  canDownload,
 }: {
   photo: GalleryPhoto;
   index: number;
   onClick: () => void;
+  canDownload: boolean;
 }) {
   const isVideo = isVideoUrl(photo.url);
 
   return (
     <ScrollReveal delay={Math.min(index * 60, 300)}>
-      <button
-        onClick={onClick}
-        className="group relative overflow-hidden rounded-2xl border border-border bg-surface block w-full text-left cursor-pointer"
-      >
+      {/* Wrapper keeps valid HTML: download link is a sibling of the button, not nested inside it. */}
+      <div className="group relative">
+        <button
+          onClick={onClick}
+          className="overflow-hidden rounded-2xl border border-border bg-surface block w-full text-left cursor-pointer"
+        >
         <div className="p-1">
           <div className="relative w-full aspect-[4/3] overflow-hidden rounded-[14px]">
             {isVideo ? (
@@ -361,14 +426,16 @@ function GalleryCard({
             {isVideo ? "Video" : "Photo"}
           </span>
         </div>
-      </button>
+        </button>
+        <DownloadControl url={photo.url} isVideo={isVideo} canDownload={canDownload} variant="card" />
+      </div>
     </ScrollReveal>
   );
 }
 
 // ─── Main GalleryGrid ──────────────────────────────────────────────
 
-export default function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
+export default function GalleryGrid({ photos, canDownload }: { photos: GalleryPhoto[]; canDownload: boolean }) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [filter, setFilter] = useState<string | null>(null);
 
@@ -484,6 +551,7 @@ export default function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
               photo={photo}
               index={idx}
               onClick={() => setSelectedIdx(idx)}
+              canDownload={canDownload}
             />
           ))}
         </div>
@@ -498,6 +566,7 @@ export default function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
           onNext={handleNext}
           hasPrev={hasPrev}
           hasNext={hasNext}
+          canDownload={canDownload}
         />
       )}
     </>
