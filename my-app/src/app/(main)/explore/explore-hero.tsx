@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Users, Code2, Calendar, Trophy } from "lucide-react"
+import { UsersRound, CodeXml, CalendarDays, FolderGit2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // ─── Animated Counter ──────────────────────────────────────────────
@@ -42,10 +42,10 @@ interface ExploreHeroProps {
 // ─── Stat Items ────────────────────────────────────────────────────
 
 const statItems = [
-  { key: "members", icon: Users, label: "Members", color: "text-primary-red", bg: "bg-primary-red/10" },
-  { key: "builders", icon: Code2, label: "Builders", color: "text-status-blue", bg: "bg-status-blue/10" },
-  { key: "projects", icon: Trophy, label: "Projects", color: "text-status-green", bg: "bg-status-green/10" },
-  { key: "events", icon: Calendar, label: "Events", color: "text-status-yellow", bg: "bg-status-yellow/10" },
+  { key: "members", icon: UsersRound, label: "Members", color: "text-primary-red", bg: "bg-primary-red/10" },
+  { key: "builders", icon: CodeXml, label: "Builders", color: "text-status-blue", bg: "bg-status-blue/10" },
+  { key: "projects", icon: FolderGit2, label: "Projects", color: "text-status-green", bg: "bg-status-green/10" },
+  { key: "events", icon: CalendarDays, label: "Events", color: "text-status-yellow", bg: "bg-status-yellow/10" },
 ]
 
 // ─── Main Component ────────────────────────────────────────────────

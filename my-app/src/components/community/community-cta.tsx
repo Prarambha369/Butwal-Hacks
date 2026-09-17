@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, Sparkles } from "lucide-react"
+import { Mail, MessagesSquare } from "lucide-react"
 import Link from "next/link"
 import { FadeIn } from "@/components/home/shared-primitives"
 import AuthAwareCta from "@/components/auth-aware-cta"
@@ -13,7 +13,7 @@ export function CommunityCTA() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-primary-red/10 blur-[120px] pointer-events-none" />
 
       <FadeIn className="relative mx-auto max-w-3xl px-4 text-center">
-        <Sparkles className="w-10 h-10 text-primary-red mx-auto mb-6" />
+        <MessagesSquare className="w-10 h-10 text-primary-red mx-auto mb-6" />
         <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">
           Ready to Build?
         </h2>

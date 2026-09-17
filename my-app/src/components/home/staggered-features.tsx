@@ -1,6 +1,6 @@
 "use client";
 
-import { Fingerprint, Users, KanbanSquare, Award, Github, ArrowRight } from "lucide-react"
+import { Fingerprint, UsersRound, KanbanSquare, Medal, Github, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useLanguage } from "@/components/language-provider"
 import { t } from "@/lib/i18n"
@@ -17,7 +17,7 @@ const features = [
   {
     titleKey: "home.features.team_matching.title",
     descKey: "home.features.team_matching.desc",
-    icon: Users,
+    icon: UsersRound,
     color: "text-status-blue bg-status-blue/8",
     href: "/explore",
     span: "md:col-span-1 md:row-span-2",
@@ -33,7 +33,7 @@ const features = [
   {
     titleKey: "home.features.bounties.title",
     descKey: "home.features.bounties.desc",
-    icon: Award,
+    icon: Medal,
     color: "text-status-yellow bg-status-yellow/8",
     href: "/opportunities",
     span: "md:col-span-1 md:row-span-1",

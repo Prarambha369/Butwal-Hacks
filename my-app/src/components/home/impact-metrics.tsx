@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, GraduationCap, Users } from "lucide-react";
+import { HandHeart, GraduationCap, UsersRound } from "lucide-react";
 import { type ComponentType } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
@@ -29,9 +29,13 @@ const values: ValueCard[] = [
   },
 ];
 
-const visibleIcons = [Heart, GraduationCap, Users];
+const visibleIcons = [
+  { icon: HandHeart, color: "text-primary-red", bg: "bg-primary-red/10" },
+  { icon: GraduationCap, color: "text-status-blue", bg: "bg-status-blue/10" },
+  { icon: UsersRound, color: "text-status-green", bg: "bg-status-green/10" },
+];
 
-function ValueCard({ item, icon: Icon, index, locale }: { item: ValueCard; icon: ComponentType<{ className?: string }>; index: number; locale: "en" | "ne" }) {
+function ValueCard({ item, icon: Icon, color, bg, index, locale }: { item: ValueCard; icon: ComponentType<{ className?: string }>; color: string; bg: string; index: number; locale: "en" | "ne" }) {
   return (
     <div
       className="bh-card p-6 text-center space-y-3 hover:-translate-y-0.5 transition-all duration-300"
@@ -39,7 +43,7 @@ function ValueCard({ item, icon: Icon, index, locale }: { item: ValueCard; icon:
         transitionDelay: `${index * 100}ms`,
       }}
     >
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-primary-red/10 text-primary-red">
+      <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-lg ${bg} ${color}`}>
         <Icon className="h-5 w-5" />
       </div>
       <div>
@@ -67,9 +71,10 @@ export default function ImpactMetrics() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {values.map((item, i) => (
-            <ValueCard key={item.id} item={item} icon={visibleIcons[i] ?? Users} index={i} locale={locale} />
-          ))}
+          {values.map((item, i) => {
+            const entry = visibleIcons[i] ?? visibleIcons[0];
+            return <ValueCard key={item.id} item={item} icon={entry.icon} color={entry.color} bg={entry.bg} index={i} locale={locale} />;
+          })}
         </div>
       </div>
     </section>
