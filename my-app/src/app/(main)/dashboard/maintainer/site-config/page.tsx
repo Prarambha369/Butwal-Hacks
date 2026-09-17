@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
 import { Settings2 } from "lucide-react";
 import { buildPageMetadata } from "@/lib/seo"
-import { getSiteContentMap, EDITABLE_KEYS } from "@/lib/actions/site-content";
+import { getSiteContentMap } from "@/lib/actions/site-content";
+import { EDITABLE_KEYS } from "@/lib/site-content-keys";
 import SiteContentEditor from "./site-content-editor";
 
 
