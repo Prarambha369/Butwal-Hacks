@@ -202,6 +202,9 @@ export async function closeEvent(eventId: string) {
 }
 
 export async function submitEventFeedback(eventId: string, rating: number, comment: string) {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return { success: false, error: "Rating must be between 1 and 5" }
+  }
   try {
     const supabase = createServiceClient();
     const profileId = await resolveProfileId()
@@ -223,9 +226,48 @@ export async function submitEventFeedback(eventId: string, rating: number, comme
     return { success: true };
   } catch (error) {
     logger.error("Error submitting feedback:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "An unexpected error occurred" 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "An unexpected error occurred"
+    };
+  }
+}
+
+/**
+ * submitTestimonial — community testimonial without an event.
+ * Lands as `pending`: invisible until a maintainer approves it.
+ */
+export async function submitTestimonial(input: { quote: string; rating?: number | null }) {
+  const quote = sanitizeString(input.quote, 2000).trim();
+  if (quote.length < 10) {
+    return { success: false, error: "Please write a little more (at least 10 characters)" };
+  }
+  if (input.rating !== undefined && input.rating !== null &&
+      (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5)) {
+    return { success: false, error: "Rating must be between 1 and 5" };
+  }
+  try {
+    const supabase = createServiceClient();
+    const profileId = await resolveProfileId();
+
+    const { error } = await supabase.from("event_reviews").insert({
+      event_id: null,
+      profile_id: profileId,
+      rating: input.rating ?? null,
+      comment: quote,
+      status: "pending",
+      author_type: "member",
+    });
+
+    if (error) throw error;
+
+    revalidatePath("/community");
+    return { success: true };
+  } catch (error) {
+    logger.error("Error submitting testimonial:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "An unexpected error occurred"
     };
   }
 }

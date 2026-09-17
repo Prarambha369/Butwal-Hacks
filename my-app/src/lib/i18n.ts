@@ -471,6 +471,17 @@ const translations: Record<string, { en: string; ne: string }> = {
   'home.typography.hl4': { en: 'Bounty payouts tracked publicly via Open Collective', ne: 'ओपन कलेक्टिभ मार्फत सार्वजनिक रूपमा ट्र्याक गरिएका बाउन्टी भुक्तानीहरू' },
   'home.typography.hl5': { en: 'Task boards for hackathon project management', ne: 'ह्याकाथन परियोजना व्यवस्थापनका लागि कार्य बोर्डहरू' },
   'home.typography.read_more': { en: 'Read more about our mission →', ne: 'हाम्रो मिशनको बारेमा थप पढ्नुहोस् →' },
+
+  /* ── Community testimonials ── */
+  'community.testimonials.form.title': { en: 'Share your experience', ne: 'आफ्नो अनुभव बाँड्नुहोस्' },
+  'community.testimonials.form.desc': { en: 'A sentence or two about what Butwal Hacks meant to you. A maintainer reads every submission before it appears.', ne: 'बुटवल ह्याक्सले तपाईंलाई के दियो भन्ने एक-दुई वाक्य। देखिनुअघि हरेक प्रस्तुति मेन्टरले पढ्नुहुन्छ।' },
+  'community.testimonials.form.quote_label': { en: 'Your words', ne: 'तपाईंका शब्दहरू' },
+  'community.testimonials.form.quote_placeholder': { en: 'What changed for you here?', ne: 'यहाँ तपाईंका लागि के परिवर्तन भयो?' },
+  'community.testimonials.form.rating_label': { en: 'Rating (optional)', ne: 'मूल्याङ्कन (वैकल्पिक)' },
+  'community.testimonials.form.submit': { en: 'Send for review', ne: 'समीक्षाका लागि पठाउनुहोस्' },
+  'community.testimonials.form.sending': { en: 'Sending…', ne: 'पठाउँदै…' },
+  'community.testimonials.form.success': { en: 'Thank you — your words are with the maintainers now and will appear once approved.', ne: 'धन्यवाद — तपाईंका शब्दहरू अब मेन्टरहरूसँग छन् र स्वीकृत भएपछि देखा पर्नेछन्।' },
+  'community.testimonials.form.signin': { en: 'Sign in to share your experience.', ne: 'आफ्नो अनुभव बाँड्न साइन इन गर्नुहोस्।' },
   'common.copied': { en: 'Copied', ne: 'प्रतिलिपि भयो' },
   'common.copy': { en: 'Copy', ne: 'प्रतिलिपि गर्नुहोस्' },
 };

@@ -4,6 +4,7 @@ import type { Metadata } from "next"
 import { buildPageMetadata } from "@/lib/seo"
 import { MemberDirectory } from "@/components/member-directory"
 import { TestimonialsSection } from "@/components/testimonials"
+import TestimonialForm from "@/components/community/testimonial-form"
 import { CommunityHero } from "@/components/community/community-hero"
 import { CommunityPlatforms } from "@/components/community/community-platforms"
 import { ActiveInitiatives } from "@/components/community/active-initiatives"
@@ -60,6 +61,9 @@ export default function CommunityPage() {
 
         <LatestUpdates />
         <TestimonialsSection />
+        <div className="mx-auto max-w-6xl px-4 pb-4">
+          <TestimonialForm />
+        </div>
         <CommunityCTA />
       </main>
     </>
