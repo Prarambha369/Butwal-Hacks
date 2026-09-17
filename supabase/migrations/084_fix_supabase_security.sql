@@ -133,7 +133,8 @@ CREATE INDEX IF NOT EXISTS idx_event_registrations_event_id ON public.event_regi
 CREATE INDEX IF NOT EXISTS idx_event_registrations_profile_id ON public.event_registrations (profile_id);
 CREATE INDEX IF NOT EXISTS idx_projects_event_id ON public.projects (event_id);
 CREATE INDEX IF NOT EXISTS idx_projects_team_id ON public.projects (team_id);
-CREATE INDEX IF NOT EXISTS idx_projects_created_by ON public.projects (created_by);
+-- NOTE: dropped idx_projects_created_by — no created_by column exists on
+-- projects in any migration and no code references it.
 CREATE INDEX IF NOT EXISTS idx_project_likes_project_id ON public.project_likes (project_id);
 CREATE INDEX IF NOT EXISTS idx_project_likes_profile_id ON public.project_likes (profile_id);
 CREATE INDEX IF NOT EXISTS idx_teams_event_id ON public.teams (event_id);
@@ -148,7 +149,7 @@ CREATE INDEX IF NOT EXISTS idx_trust_markers_event_id ON public.trust_markers (e
 CREATE INDEX IF NOT EXISTS idx_certificates_profile_id ON public.certificates (profile_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_actor_id ON public.audit_logs (actor_id);
 CREATE INDEX IF NOT EXISTS idx_api_keys_profile_id ON public.api_keys (profile_id);
-CREATE INDEX IF NOT EXISTS idx_claim_tokens_profile_id ON public.claim_tokens (profile_id);
+CREATE INDEX IF NOT EXISTS idx_claim_tokens_profile_id ON public.claim_tokens (claimed_by); -- NOTE: was (profile_id); table has claimed_by (054), no profile_id;
 CREATE INDEX IF NOT EXISTS idx_notifications_profile_id ON public.notifications (profile_id);
 CREATE INDEX IF NOT EXISTS idx_photos_event_id ON public.photos (event_id);
 CREATE INDEX IF NOT EXISTS idx_photos_uploader_id ON public.photos (uploader_id);

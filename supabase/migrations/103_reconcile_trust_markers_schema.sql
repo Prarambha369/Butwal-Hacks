@@ -93,7 +93,14 @@ GRANT ALL ON public.tasks TO service_role;
 GRANT ALL ON public.claim_tokens TO service_role;
 GRANT ALL ON public.trust_markers TO service_role;
 
-COMMENT ON COLUMN public.trust_markers.evidence_url IS
-  'Legacy column from the pre-001 trust_markers design. Retained for backwards compatibility; new markers use title/description.';
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'trust_markers' AND column_name = 'evidence_url'
+  ) THEN
+    COMMENT ON COLUMN public.trust_markers.evidence_url IS
+      'Legacy column from the pre-001 trust_markers design. Retained for backwards compatibility; new markers use title/description.';
+  END IF;
+END $$;
 
 -- ═══ Done ═══════════════════════════════════════════════════════════════

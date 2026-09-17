@@ -53,6 +53,11 @@ CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_position ON tasks(workspace_id, status, position);
 
 -- ─── Row Level Security ──────────────────────────────────────────────────
+-- profiles.auth0_user_id is formally added in a later migration, but these
+-- policies need it now. IF NOT EXISTS keeps this idempotent; the UNIQUE
+-- intent from that later migration is preserved via the index below.
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS auth0_user_id TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS profiles_auth0_user_id_key ON profiles(auth0_user_id);
 ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 
@@ -63,7 +68,7 @@ CREATE POLICY "team_members_read_workspace"
     EXISTS (
       SELECT 1 FROM team_members
       WHERE team_members.team_id = workspaces.team_id
-      AND team_members.user_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
+      AND team_members.profile_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
     )
   );
 
@@ -74,7 +79,7 @@ CREATE POLICY "team_members_update_workspace"
     EXISTS (
       SELECT 1 FROM team_members
       WHERE team_members.team_id = workspaces.team_id
-      AND team_members.user_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
+      AND team_members.profile_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
     )
   );
 
@@ -86,7 +91,7 @@ CREATE POLICY "team_members_read_tasks"
       SELECT 1 FROM workspaces w
       JOIN team_members tm ON tm.team_id = w.team_id
       WHERE w.id = tasks.workspace_id
-      AND tm.user_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
+      AND tm.profile_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
     )
   );
 
@@ -98,7 +103,7 @@ CREATE POLICY "team_members_create_tasks"
       SELECT 1 FROM workspaces w
       JOIN team_members tm ON tm.team_id = w.team_id
       WHERE w.id = tasks.workspace_id
-      AND tm.user_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
+      AND tm.profile_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
     )
   );
 
@@ -110,7 +115,7 @@ CREATE POLICY "team_members_update_tasks"
       SELECT 1 FROM workspaces w
       JOIN team_members tm ON tm.team_id = w.team_id
       WHERE w.id = tasks.workspace_id
-      AND tm.user_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
+      AND tm.profile_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
     )
   );
 
@@ -122,7 +127,7 @@ CREATE POLICY "team_members_delete_tasks"
       SELECT 1 FROM workspaces w
       JOIN team_members tm ON tm.team_id = w.team_id
       WHERE w.id = tasks.workspace_id
-      AND tm.user_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
+      AND tm.profile_id = (SELECT id FROM profiles WHERE auth0_user_id = auth.jwt() ->> 'sub' LIMIT 1)
     )
   );
 
