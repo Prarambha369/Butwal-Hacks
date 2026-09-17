@@ -1,9 +1,11 @@
 -- Migration: 113_gallery_moderation
--- Purpose: Make event photos moderatable and selectable for home.
+-- Purpose: Make event photos moderatable, cover-selectable, and
+-- Cloudinary-manageable.
 --   - status: member uploads land pending, invisible until approved.
 --   - is_cover (+ partial unique index): maintainer-picked top image
---     per event; home shows covers only. Explicit flag beats
---     "latest approved wins" (deterministic, survives deletions).
+--     per event; home shows covers only.
+--   - cloudinary_public_id: added later in 114 (kept separate so
+--     applied history stays honest).
 --   - anon SELECT: public reads need table grants with RLS disabled.
 
 ALTER TABLE public.photos
@@ -12,6 +14,9 @@ ALTER TABLE public.photos
 
 ALTER TABLE public.photos
   ADD COLUMN IF NOT EXISTS is_cover BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE public.photos
+  ADD COLUMN IF NOT EXISTS cloudinary_public_id TEXT;
 
 -- One cover per event. Partial index (only true rows) keeps it cheap.
 CREATE UNIQUE INDEX IF NOT EXISTS photos_one_cover_per_event
