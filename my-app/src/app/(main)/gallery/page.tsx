@@ -1,5 +1,6 @@
 import { Calendar } from "lucide-react";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
+import { logger } from "@/lib/logger";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import GalleryGrid from "./gallery-grid";
@@ -26,17 +27,25 @@ export type GalleryPhoto = {
 };
 
 async function getPhotos(): Promise<GalleryPhoto[]> {
-  const supabase = createClient();
+  // Service client: consistent with every other server read in this app.
+  // Only approved photos are ever public; pending uploads stay invisible.
+  const supabase = createServiceClient();
 
-  const { data: photos } = await supabase
+  const { data: photos, error } = await supabase
     .from("photos")
     .select(`
       id, url, span, created_at,
       events ( id, title, slug ),
       profiles!photos_uploader_id_fkey ( full_name )
     `)
+    .eq("status", "approved")
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(100);
+
+  if (error) {
+    logger.error("Error fetching gallery photos:", error);
+    throw new Error("Could not load the gallery. Please try again later.");
+  }
 
   if (!photos) return [];
 
