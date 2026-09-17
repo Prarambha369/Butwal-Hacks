@@ -30,10 +30,10 @@ export function EventPhotosClient({
     }
   }
 
-  async function handleUpload(url: string) {
+  async function handleUpload(url: string, publicId?: string) {
     setUploadError(null);
     setNotice(null);
-    const res = await addEventPhotos(eventId, [url]);
+    const res = await addEventPhotos(eventId, [{ url, publicId }]);
     if (!res.success) {
       setUploadError(res.error ?? "Upload failed");
       return;
@@ -53,7 +53,7 @@ export function EventPhotosClient({
         <CloudinaryUpload
           entityType="gallery_photo"
           eventSlug={eventSlug}
-          onUpload={handleUpload}
+          onUploadResult={(result) => handleUpload(result.url, result.publicId)}
           onError={setUploadError}
         />
         {uploadError && <p className="text-sm text-primary-red" role="alert">{uploadError}</p>}

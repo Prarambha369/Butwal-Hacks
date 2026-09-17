@@ -77,11 +77,27 @@ export const POST = withRateLimit(async (request: Request) => {
 
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
 
+    // Gallery photos: one signed incoming transformation does four jobs —
+    // cap phone-photo dimensions, cut bytes, bake the logo watermark, and
+    // strip EXIF/GPS. One transformation per upload (~0.001 credits);
+    // delivery of the stored asset costs nothing extra. Signed, so members
+    // can neither strip the watermark nor invent their own transforms.
+    // Overlay public_id uses ":" for "/" (butwal-hacks/watermark).
+    const galleryTransformation = [
+      "w_1920,c_limit,q_auto:good",
+      "l_butwal-hacks:watermark,w_140,g_south_east,x_24,y_24,o_65",
+      "fl_layer_apply",
+    ].join("/")
+    const transformation = metadata.entity_type === "gallery_photo"
+      ? galleryTransformation
+      : undefined
+
     // Build params to sign — include metadata if present
     const paramsToSign: Record<string, string | number> = {
       timestamp,
       folder,
       ...(uploadPreset ? { upload_preset: uploadPreset } : {}),
+      ...(transformation ? { transformation } : {}),
     }
 
     // Stringified metadata for Cloudinary structured metadata
@@ -105,6 +121,7 @@ export const POST = withRateLimit(async (request: Request) => {
       apiKey,
       folder,
       ...(uploadPreset ? { uploadPreset } : {}),
+      ...(transformation ? { transformation } : {}),
       ...(metadataStr ? { metadata: metadataStr } : {}),
     })
   } catch (error) {

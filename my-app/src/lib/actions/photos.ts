@@ -71,11 +71,15 @@ async function requireEventAccess(eventId: string, maintainerOnly = false): Prom
 /**
  * Member upload: any signed-in member. Rows land pending (invisible
  * until approved). No attendance gate by design — moderation catches abuse.
+ * publicId is stored so orphaned binaries can be swept via Admin API later.
  */
-export async function addEventPhotos(eventId: string, urls: string[]) {
-  const clean = urls
-    .map((u) => u.trim())
-    .filter((u) => u.startsWith('https://'));
+export async function addEventPhotos(
+  eventId: string,
+  items: { url: string; publicId?: string }[],
+) {
+  const clean = items
+    .map((item) => ({ url: item.url.trim(), publicId: item.publicId?.trim() || null }))
+    .filter((item) => item.url.startsWith('https://'));
   if (clean.length === 0) {
     return { success: false, error: 'No valid photo URLs provided' };
   }
@@ -87,10 +91,11 @@ export async function addEventPhotos(eventId: string, urls: string[]) {
     const profileId = await resolveProfileId();
 
     const { error } = await supabase.from('photos').insert(
-      clean.map((url) => ({
+      clean.map((item) => ({
         event_id: eventId,
         uploader_id: profileId,
-        url,
+        url: item.url,
+        cloudinary_public_id: item.publicId,
         status: 'pending',
       })),
     );
