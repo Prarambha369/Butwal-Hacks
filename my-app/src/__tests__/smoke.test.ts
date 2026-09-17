@@ -221,7 +221,6 @@ const apiRoutes = [
   { name: "GET /api/organizer/metrics", path: "@/app/api/organizer/metrics/route", method: "GET" },
   { name: "GET /api/impact/report/[projectId]", path: "@/app/api/impact/report/[projectId]/route", method: "GET" },
   { name: "POST /api/resources/complete", path: "@/app/api/resources/complete/route", method: "POST" },
-  { name: "POST /api/reviews", path: "@/app/api/reviews/route", method: "POST" },
   { name: "POST /api/sponsor", path: "@/app/api/sponsor/route", method: "POST" },
   { name: "GET /api/notifications", path: "@/app/api/notifications/route", method: "GET" },
   { name: "GET/POST /api/tasks", path: "@/app/api/tasks/route", method: "GET", returns201: true, createMethod: "POST" },
