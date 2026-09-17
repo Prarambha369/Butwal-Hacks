@@ -5,6 +5,7 @@ import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
 import { bustCache } from "@/lib/cache"
+import { GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
 
 /**
  * POST /api/certificates/extract
@@ -64,7 +65,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "llama-3.2-11b-vision-preview",
+        model: GROQ_VISION_MODEL,
         messages: [
           {
             role: "user",

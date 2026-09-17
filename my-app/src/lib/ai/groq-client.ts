@@ -16,6 +16,14 @@ import { captureLLMCall } from "./posthog-llm";
 
 const GROQ_API_BASE = "https://api.groq.com/openai/v1/chat/completions";
 
+/**
+ * Live models on our Groq plan (verified against /v1/models).
+ * Single source of truth — import these instead of hardcoding IDs,
+ * so the next model retirement is a one-line change.
+ */
+export const GROQ_TEXT_MODEL = "openai/gpt-oss-20b";
+export const GROQ_VISION_MODEL = "qwen/qwen3.8-27b";
+
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 1000;
 
@@ -107,7 +115,7 @@ export async function callGroq(options: GroqOptions): Promise<GroqResult> {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: options.model ?? "llama-3.3-70b-versatile",
+          model: options.model ?? GROQ_TEXT_MODEL,
           messages: options.messages,
           max_tokens: options.maxTokens ?? 500,
           temperature: options.temperature ?? 0.7,
