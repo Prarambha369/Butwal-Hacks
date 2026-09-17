@@ -5,18 +5,21 @@ import { Mail } from 'lucide-react';
 import AuthAwareCta from '@/components/auth-aware-cta';
 import { useLanguage } from '@/components/language-provider';
 import { t } from '@/lib/i18n';
+import { useSiteContent } from '@/components/site-content';
 
 export default function ContactCTA() {
   const { locale } = useLanguage();
+  const title = useSiteContent("contact.final.title", "home.contact.final.title");
+  const subtitle = useSiteContent("contact.final.subtitle", "home.contact.final.subtitle");
   return (
     <section className="relative w-full py-20 md:py-28 bg-surface-inverse overflow-hidden">
 
       <div className="relative bh-container text-center">
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 max-w-3xl mx-auto leading-tight">
-          {t('home.contact.final.title', locale)}
+          {title}
         </h2>
         <p className="text-base md:text-lg text-white/70 mb-8 max-w-xl mx-auto">
-          {t('home.contact.final.subtitle', locale)}
+          {subtitle}
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <AuthAwareCta
