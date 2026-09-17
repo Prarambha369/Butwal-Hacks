@@ -1,5 +1,10 @@
 /**
- * Discord notification helpers.
+ * Discord notification helpers — community channel (everyone).
+ *
+ * Channel split: Discord is for the whole community (event + marker
+ * announcements); the core team (maintainers) coordinates on Slack.
+ * Do not "disable Discord because team uses Slack" — they serve
+ * different audiences.
  *
  * ponytail: direct fetch() to Discord webhooks, no bot library needed.
  * Each function is a fire-and-forget POST — failures are logged, never thrown.
