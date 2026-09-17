@@ -6,12 +6,13 @@ import Link from "next/link";
 import { Camera, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
-import { cloudinaryUrl } from "@/lib/cloudinary-url";
+import { displayPhotoUrl } from "@/lib/cloudinary-url";
 
 export interface CoverPhoto {
   url: string;
   event: string;
   slug: string | null;
+  optimize: string | null;
 }
 
 export default function EventGalleryClient({ photos }: { photos: CoverPhoto[] }) {
@@ -66,7 +67,7 @@ export default function EventGalleryClient({ photos }: { photos: CoverPhoto[] })
             >
               <div className="absolute inset-1 overflow-hidden rounded-[10px]">
                 <Image
-                  src={cloudinaryUrl(photo.url, 800)}
+                  src={displayPhotoUrl(photo.url, photo.optimize, 800)}
                   alt={photo.event}
                   fill
                   sizes="(max-width: 768px) 50vw, 33vw"
@@ -120,7 +121,7 @@ export default function EventGalleryClient({ photos }: { photos: CoverPhoto[] })
 
                 <div className="relative flex-1 h-[60vh] rounded-xl overflow-hidden shadow-lg border border-border bg-surface">
                   <Image
-                    src={cloudinaryUrl(selectedPhoto.url, 1600)}
+                    src={displayPhotoUrl(selectedPhoto.url, selectedPhoto.optimize, 1600)}
                     alt={selectedPhoto.event}
                     fill
                     className="object-contain"

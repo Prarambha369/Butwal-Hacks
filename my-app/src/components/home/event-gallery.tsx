@@ -16,6 +16,7 @@ export default async function EventGallery() {
         url: c.url,
         event: c.event_title ?? "Butwal Hacks",
         slug: c.event_slug,
+        optimize: c.optimized_transform,
       }))}
     />
   );

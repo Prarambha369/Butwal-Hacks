@@ -9,9 +9,8 @@ import {
   ExternalLink, Download, LogIn,
 } from "lucide-react";
 import { getDiceBearPlaceholder } from "@/lib/utils";
-import { cloudinaryDownloadUrl } from "@/lib/cloudinary-url";
+import { cloudinaryDownloadUrl, displayPhotoUrl } from "@/lib/cloudinary-url";
 import type { GalleryPhoto } from "./page";
-import { cloudinaryUrl } from "@/lib/cloudinary-url";
 
 // ─── Video detection ───────────────────────────────────────────────
 
@@ -277,7 +276,7 @@ function Lightbox({
               </video>
             ) : (
               <Image
-                src={cloudinaryUrl(photo.url, 1600)}
+                src={displayPhotoUrl(photo.url, photo.optimize, 1600)}
                 alt={photo.event}
                 fill
                 className="object-contain"
@@ -378,7 +377,7 @@ function GalleryCard({
               <VideoThumbnail url={photo.url} alt={photo.event} />
             ) : (
               <Image
-                src={cloudinaryUrl(photo.url, 600)}
+                src={displayPhotoUrl(photo.url, photo.optimize, 600)}
                 alt={photo.event}
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"

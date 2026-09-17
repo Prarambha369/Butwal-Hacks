@@ -23,6 +23,8 @@ export type GalleryPhoto = {
   date: string;
   span: number;
   uploader: string | null;
+  /** Maintainer-chosen delivery recipe (null = default) */
+  optimize: string | null;
   /** Duration in seconds — only set for video entries */
   duration?: number;
 };
@@ -35,7 +37,7 @@ async function getPhotos(): Promise<GalleryPhoto[]> {
   const { data: photos, error } = await supabase
     .from("photos")
     .select(`
-      id, url, span, created_at,
+      id, url, span, optimized_transform, created_at,
       events ( id, title, slug ),
       profiles!photos_uploader_id_fkey ( full_name )
     `)
@@ -61,6 +63,7 @@ async function getPhotos(): Promise<GalleryPhoto[]> {
       date: p.created_at,
       span: (p as { span?: number }).span ?? 1,
       uploader: (prof as { full_name?: string })?.full_name ?? null,
+      optimize: (p as { optimized_transform?: string }).optimized_transform ?? null,
     };
   });
 }
