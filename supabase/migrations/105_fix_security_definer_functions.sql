@@ -38,12 +38,14 @@ REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM anon, authenticated;
 -- ─── 3. Lock search_path on remaining functions ─────────────────────────
 -- SECURITY DEFINER functions with a mutable search_path are hijackable
 -- (a user-controlled schema earlier in the path can shadow built-ins).
--- ALTER FUNCTION IF EXISTS is a no-op where the function is absent.
-ALTER FUNCTION IF EXISTS public.update_workspace_timestamp() SET search_path = '';
-ALTER FUNCTION IF EXISTS public.increment_xp(uuid, integer) SET search_path = '';
-ALTER FUNCTION IF EXISTS public.get_growth_metrics() SET search_path = '';
-ALTER FUNCTION IF EXISTS public.cleanup_idempotency_keys() SET search_path = '';
-ALTER FUNCTION IF EXISTS public.handle_new_user() SET search_path = '';
+-- NOTE: plain ALTER FUNCTION (no IF EXISTS) — Postgres does not support
+-- `ALTER FUNCTION IF EXISTS ... SET`. All five functions are created by
+-- earlier migrations in this chain (012, 051, 075, 052, 002), so they exist.
+ALTER FUNCTION public.update_workspace_timestamp() SET search_path = '';
+ALTER FUNCTION public.increment_xp(uuid, integer) SET search_path = '';
+ALTER FUNCTION public.get_growth_metrics() SET search_path = '';
+ALTER FUNCTION public.cleanup_idempotency_keys() SET search_path = '';
+ALTER FUNCTION public.handle_new_user() SET search_path = '';
 
 -- ─── Notes ─────────────────────────────────────────────────────────────
 -- handle_new_user() and its trigger (m002/m006) target auth.users, which

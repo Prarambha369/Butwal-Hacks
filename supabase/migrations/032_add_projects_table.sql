@@ -1,15 +1,11 @@
 -- Day 32: Project Showcase
-CREATE TABLE projects (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  profile_id uuid REFERENCES profiles(id) ON DELETE CASCADE,
-  name text NOT NULL,
-  description text,
-  image_url text,
-  tech_stack text[],
-  github_url text,
-  demo_url text,
-  hackathon_origin text,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE INDEX idx_projects_profile_id ON projects(profile_id);
+--
+-- SKIPPED: projects table already exists from 001_initial_schema.sql.
+-- Creating it again here fails the whole chain with:
+--   ERROR: relation "projects" already exists
+-- The 001 definition is canonical (codebase uses its column names:
+-- title, cover_image). Missing 032 columns (profile_id, hackathon_origin)
+-- are backfilled by 086_consolidate_projects_schema.sql. See 086's header
+-- for the full divergence analysis. This file is kept as a no-op marker
+-- so migration numbering stays intact.
+SELECT 1;
