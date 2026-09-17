@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { withRateLimit } from "@/lib/rate-limiter";
-import { searchContent } from "@/lib/ai/embeddings";
-import { callGroq } from "@/lib/ai/groq-client";
+import { searchContent, isRagEnabled } from "@/lib/ai/embeddings";
+import { callGroq, GROQ_TEXT_MODEL } from "@/lib/ai/groq-client";
 
 /**
  * POST /api/ai/chat
@@ -38,16 +38,20 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       : [];
 
     // ── Retrieve relevant context via vector search ───────────
+    // Skipped entirely in Groq-only mode (no embedding provider):
+    // base prompt below carries the general knowledge instead.
     let contextChunks: string[] = [];
-    try {
-      const matches = await searchContent(message, { limit: 3, threshold: 0.4 });
-      contextChunks = matches.map((m) => m.content);
-    } catch (searchErr) {
-      // Vector search unavailable (not seeded, HF down, etc.) — fall through
-      // with empty context; the base prompt still provides general knowledge.
-      logger.warn("[bh-bot] Vector search failed, falling back to base context", {
-        error: searchErr instanceof Error ? searchErr.message : String(searchErr),
-      });
+    if (isRagEnabled()) {
+      try {
+        const matches = await searchContent(message, { limit: 3, threshold: 0.4 });
+        contextChunks = matches.map((m) => m.content);
+      } catch (searchErr) {
+        // Vector search unavailable — fall through with empty context;
+        // the base prompt still provides general knowledge.
+        logger.warn("[bh-bot] Vector search failed, falling back to base context", {
+          error: searchErr instanceof Error ? searchErr.message : String(searchErr),
+        });
+      }
     }
 
     // ── Build system prompt with retrieved context ───────────
@@ -102,7 +106,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         messages,
         maxTokens: 600,
         temperature: 0.7,
-        model: "llama-3.3-70b-versatile",
+        model: GROQ_TEXT_MODEL,
         timeout: 30_000,
       });
     } catch (groqErr) {

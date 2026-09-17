@@ -10,8 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "vitest run",
-    "seed:embeddings": "npx tsx --env-file=.env.local scripts/seed-embeddings.ts"
+    "test": "vitest run"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.25.0",
