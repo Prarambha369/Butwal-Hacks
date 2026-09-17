@@ -1,14 +1,20 @@
 import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
-import { Settings2, Construction } from "lucide-react";
+import { Settings2 } from "lucide-react";
 import { buildPageMetadata } from "@/lib/seo"
+import { getSiteContentMap, EDITABLE_KEYS } from "@/lib/actions/site-content";
+import SiteContentEditor from "./site-content-editor";
 
 
-export const metadata = { ...buildPageMetadata({title: "Site Config", description: "Configure site settings", path: "/dashboard/maintainer/site-config", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Site Config", description: "Edit displayed site copy", path: "/dashboard/maintainer/site-config", keywords: []}), robots: { index: false, follow: false } };
+
+export const dynamic = "force-dynamic";
 
 export default async function SiteConfigPage() {
   const session = await auth0.getSession();
   if (!session?.user) redirect("/auth/login");
+
+  const values = await getSiteContentMap();
 
   return (
     <div className="flex-1 space-y-8">
@@ -18,17 +24,11 @@ export default async function SiteConfigPage() {
           <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Settings</span>
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-primary">Site Configuration</h1>
-        <p className="text-sm text-muted-foreground">Manage global site settings and feature flags.</p>
+        <p className="text-sm text-muted-foreground">
+          Edit the copy shown on the site. Empty means today&apos;s default text.
+        </p>
       </div>
-      <div className="bh-card p-12 text-center space-y-4">
-        <div className="inline-flex p-3 rounded-lg bg-surface-hover">
-          <Construction className="w-8 h-8 text-muted-foreground" />
-        </div>
-        <div className="space-y-1">
-          <p className="text-base font-bold text-primary">Not available yet</p>
-          <p className="text-sm text-muted-foreground">Site-wide settings will be configurable from a single panel in a future release. For now, use the maintainer tools available in the sidebar.</p>
-        </div>
-      </div>
+      <SiteContentEditor keys={EDITABLE_KEYS} initialValues={values} />
     </div>
   );
 }

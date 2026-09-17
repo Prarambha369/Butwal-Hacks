@@ -4,21 +4,24 @@ import Link from "next/link"
 import AuthAwareCta from "@/components/auth-aware-cta"
 import { useLanguage } from "@/components/language-provider"
 import { t } from "@/lib/i18n"
+import { useSiteContent } from "@/components/site-content"
 
 export default function Hero() {
   const { locale } = useLanguage();
+  const title = useSiteContent("hero.title", "home.hero.title");
+  const subtext = useSiteContent("hero.subtext", "home.hero.subtext");
   return (
     <section className="relative w-full overflow-hidden bg-surface py-20 md:py-32">
       <div className="bh-container relative">
         <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
           {/* Main headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-primary leading-[1.08]">
-            {t('home.hero.title', locale)}
+            {title}
           </h1>
 
           {/* Subheading */}
           <p className="mt-6 max-w-2xl text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary">
-            {t('home.hero.subtext', locale)}
+            {subtext}
           </p>
 
           {/* CTAs */}
