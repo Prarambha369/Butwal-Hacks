@@ -48,3 +48,34 @@ export function cloudinaryUrl(url: string, width: number): string {
   const w = Math.round(width);
   return `https://res.cloudinary.com/${cloud}/image/upload/w_${w},q_auto,f_auto/${path}`;
 }
+
+/** Fixed recipe set maintainers can apply per photo. No freeform input. */
+export const OPTIMIZE_RECIPES = {
+  balanced: "q_auto,f_auto",
+  eco: "q_auto:eco,f_auto",
+  enhanced: "q_auto,f_auto,e_auto_enhance",
+} as const;
+
+export type OptimizeRecipe = keyof typeof OPTIMIZE_RECIPES;
+
+// Stored recipes are allowlist-validated before write; re-validated here
+// so a hand-edited row can never inject arbitrary transforms into URLs.
+const RECIPE_PATTERN = /^q_auto(?::(?:eco|good|best|low))?,f_auto(?:,e_auto_enhance)?$/;
+
+export function isValidRecipe(recipe: string): recipe is string {
+  return RECIPE_PATTERN.test(recipe);
+}
+
+/**
+ * Public display URL honoring a maintainer-chosen recipe.
+ * Falls back to default sized delivery for null/invalid recipes.
+ */
+export function displayPhotoUrl(url: string, recipe: string | null, width: number): string {
+  if (!recipe || !isValidRecipe(recipe)) return cloudinaryUrl(url, width);
+  if (!url || !Number.isFinite(width) || width <= 0) return url;
+  const match = CLOUDINARY_DELIVERY.exec(url);
+  if (!match) return url;
+  const [, cloud, path] = match;
+  if (TRANSFORM_SEGMENT.test(path.split("/")[0])) return url;
+  return `https://res.cloudinary.com/${cloud}/image/upload/w_${Math.round(width)},${recipe}/${path}`;
+}

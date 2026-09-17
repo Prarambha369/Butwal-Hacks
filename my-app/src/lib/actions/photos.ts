@@ -16,6 +16,7 @@ export interface GalleryPhotoRow {
   uploader_name: string | null;
   event_title: string | null;
   event_slug: string | null;
+  optimized_transform: string | null;
 }
 
 function toRow(r: Record<string, unknown>): GalleryPhotoRow {
@@ -31,11 +32,12 @@ function toRow(r: Record<string, unknown>): GalleryPhotoRow {
     uploader_name: prof?.full_name ?? null,
     event_title: ev?.title ?? null,
     event_slug: ev?.slug ?? null,
+    optimized_transform: (r.optimized_transform as string) ?? null,
   };
 }
 
 const PHOTO_SELECT = `
-  id, event_id, url, status, is_cover, created_at,
+  id, event_id, url, status, is_cover, optimized_transform, created_at,
   events ( title, slug ),
   profile:profiles!photos_uploader_id_fkey ( full_name )
 `;

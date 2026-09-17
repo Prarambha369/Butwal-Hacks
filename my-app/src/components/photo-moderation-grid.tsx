@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Check, X, Trash2, Star } from "lucide-react";
-import { cloudinaryUrl } from "@/lib/cloudinary-url";
+import { Check, X, Trash2, Star, Zap } from "lucide-react";
+import { displayPhotoUrl } from "@/lib/cloudinary-url";
 import {
   setPhotoStatus,
   setPhotoCover,
@@ -26,17 +26,22 @@ function StatusPill({ status }: { status: string }) {
 /**
  * Shared moderation grid for event photos.
  * Organizer view: per-event, approve/reject/delete (no cover toggle).
- * Maintainer view: cross-event queue + "Set as cover" (home top image).
+ * Maintainer view: cross-event queue + "Set as cover" (home top image)
+ * + "Optimize" experiment panel (via onOptimize).
  */
 export function PhotoModerationGrid({
   photos,
   showEvent = false,
   allowCover = false,
+  allowOptimize = false,
+  onOptimize,
   onChanged,
 }: {
   photos: GalleryPhotoRow[];
   showEvent?: boolean;
   allowCover?: boolean;
+  allowOptimize?: boolean;
+  onOptimize?: (photo: GalleryPhotoRow) => void;
   onChanged: () => void;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
@@ -70,13 +75,18 @@ export function PhotoModerationGrid({
         {photos.map((p) => (
           <div key={p.id} className="bh-card overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={cloudinaryUrl(p.url, 600)} alt={p.event_title ?? "Event photo"} className="aspect-video w-full object-cover" loading="lazy" />
+            <img src={displayPhotoUrl(p.url, p.optimized_transform, 600)} alt={p.event_title ?? "Event photo"} className="aspect-video w-full object-cover" loading="lazy" />
             <div className="space-y-2 p-4">
               <div className="flex items-center gap-2">
                 <StatusPill status={p.status} />
                 {p.is_cover && (
                   <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md text-status-yellow bg-status-yellow/8">
                     <Star className="h-3 w-3" /> home cover
+                  </span>
+                )}
+                {p.optimized_transform && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md text-status-green bg-status-green/8">
+                    <Zap className="h-3 w-3" /> optimized
                   </span>
                 )}
               </div>
@@ -112,6 +122,15 @@ export function PhotoModerationGrid({
                     className="inline-flex items-center gap-1 rounded-lg border border-status-yellow/30 bg-surface px-3 py-1.5 text-xs font-bold text-status-yellow hover:bg-surface-hover disabled:opacity-50"
                   >
                     <Star className="h-3.5 w-3.5" /> Set as cover
+                  </button>
+                )}
+                {allowOptimize && onOptimize && (
+                  <button
+                    type="button" disabled={busy === p.id}
+                    onClick={() => onOptimize(p)}
+                    className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-bold text-primary hover:bg-surface-hover disabled:opacity-50"
+                  >
+                    <Zap className="h-3.5 w-3.5" /> Optimize
                   </button>
                 )}
                 <button

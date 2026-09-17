@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cloudinaryUrl, cloudinaryDownloadUrl } from "../cloudinary-url";
+import { cloudinaryUrl, cloudinaryDownloadUrl, displayPhotoUrl, isValidRecipe } from "../cloudinary-url";
 
 const PLAIN = "https://res.cloudinary.com/demo/image/upload/sample.jpg";
 const VERSIONED = "https://res.cloudinary.com/demo/image/upload/v123/sample.jpg";
@@ -46,6 +46,30 @@ describe("cloudinaryDownloadUrl", () => {
       "https://images.unsplash.com/photo-123",
     );
     expect(cloudinaryDownloadUrl("")).toBe("");
+  });
+});
+
+describe("displayPhotoUrl", () => {
+  it("applies a valid stored recipe with the requested width", () => {
+    expect(displayPhotoUrl(PLAIN, "q_auto,f_auto", 600)).toBe(
+      "https://res.cloudinary.com/demo/image/upload/w_600,q_auto,f_auto/sample.jpg",
+    );
+    expect(displayPhotoUrl(PLAIN, "q_auto:eco,f_auto", 800)).toContain("w_800,q_auto:eco,f_auto/");
+    expect(displayPhotoUrl(PLAIN, "q_auto,f_auto,e_auto_enhance", 800)).toContain("e_auto_enhance");
+  });
+
+  it("falls back to default delivery for null/invalid recipes", () => {
+    expect(displayPhotoUrl(PLAIN, null, 600)).toBe(cloudinaryUrl(PLAIN, 600));
+    expect(displayPhotoUrl(PLAIN, "w_9999/e_evil", 600)).toBe(cloudinaryUrl(PLAIN, 600));
+    expect(displayPhotoUrl(PLAIN, "fl_attachment", 600)).toBe(cloudinaryUrl(PLAIN, 600));
+  });
+
+  it("validates recipes against the allowlist", () => {
+    expect(isValidRecipe("q_auto,f_auto")).toBe(true);
+    expect(isValidRecipe("q_auto:eco,f_auto,e_auto_enhance")).toBe(true);
+    expect(isValidRecipe("e_grayscale")).toBe(false);
+    expect(isValidRecipe("q_auto,f_auto/l_evil")).toBe(false);
+    expect(isValidRecipe("")).toBe(false);
   });
 });
 
