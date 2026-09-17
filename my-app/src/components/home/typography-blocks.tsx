@@ -30,10 +30,6 @@ const blocks = [
     ],
   },
   {
-    type: "paragraph",
-    contentKey: "home.typography.p4",
-  },
-  {
     type: "code",
     language: "bash",
     code: "# Get your hacker ID in seconds\ncurl -X POST https://api.butwalhacks.com/profiles \\\n  -H \"Authorization: Bearer $BH_TOKEN\" \\\n  -d '{\"name\": \"Your Name\", \"email\": \"you@example.com\"}'",

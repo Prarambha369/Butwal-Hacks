@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import AuthAwareCta from "@/components/auth-aware-cta";
 import Link from "next/link";
-import { ArrowUpRight, Sparkles, Users } from "lucide-react";
+import { ArrowUpRight, Compass, Users } from "lucide-react";
 
 interface ExploreCtaProps {
   totalMembers: number;
@@ -45,7 +45,7 @@ export function ExploreCta({ totalMembers }: ExploreCtaProps) {
         {/* Eyebrow badge */}
         <div className="flex justify-center mb-6">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/8 text-[10px] font-bold text-primary-red tracking-wider">
-            <Sparkles className="w-3 h-3" />
+            <Compass className="w-3 h-3" />
             Join the Movement
           </span>
         </div>

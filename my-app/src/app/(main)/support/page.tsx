@@ -2,7 +2,7 @@ export const dynamic = "force-static";
 
 import type { Metadata } from "next"
 import Link from "next/link"
-import { BarChart3, Mail, MapPin, Rocket, ShieldCheck, Users } from "lucide-react"
+import { BarChart3, Mail, MapPin, Target, ShieldCheck, UsersRound } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"
 import { SponsorForm } from "./sponsor-form"
 
@@ -14,19 +14,22 @@ export const metadata: Metadata = buildPageMetadata({
 
 const metrics = [
   {
-    icon: Users,
+    icon: UsersRound,
+    iconClass: "text-primary-red",
     value: "Growing",
     label: "Student Builders",
     note: "Students and young developers building real projects across Lumbini Province.",
   },
   {
-    icon: Rocket,
+    icon: Target,
+    iconClass: "text-status-blue",
     value: "Real",
     label: "Projects That Matter",
     note: "MVPs addressing local challenges in education, tourism, and civic life.",
   },
   {
     icon: MapPin,
+    iconClass: "text-status-green",
     value: "Local",
     label: "Community Roots",
     note: "Deep engagement across Butwal, Bhairahawa, and surrounding Lumbini corridor communities.",
@@ -119,7 +122,7 @@ export default function SupportPage() {
               const Icon = metric.icon
               return (
                 <article key={metric.label} className="rounded-xl border border-border bg-surface p-6">
-                  <Icon className="h-5 w-5 text-primary" />
+                  <Icon className={`h-5 w-5 ${metric.iconClass}`} />
                   <p className="mt-3 text-5xl font-bold font-heading leading-none text-primary">{metric.value}</p>
                   <h3 className="mt-2 text-base font-semibold text-primary">{metric.label}</h3>
                   <p className="mt-3 text-sm text-secondary">{metric.note}</p>

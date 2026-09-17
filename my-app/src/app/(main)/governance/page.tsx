@@ -2,7 +2,7 @@ export const dynamic = "force-static";
 
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Building2, FileText, GraduationCap, Landmark, ShieldCheck, Siren, Users } from "lucide-react"
+import { Building2, FileText, GraduationCap, Landmark, ShieldCheck, Scale, UsersRound } from "lucide-react"
 
 import Breadcrumbs from "@/components/breadcrumbs"
 import { buildPageMetadata } from "@/lib/seo"
@@ -20,7 +20,7 @@ const governanceCards = [
     description: "Provides legal oversight and handles compliance so local chapters don&apos;t have to.",
   },
   {
-    icon: Users,
+    icon: UsersRound,
     title: "Butwal Hacks Executive",
     description: "Runs day-to-day operations, manages partnerships, and keeps programs on track.",
   },
@@ -40,7 +40,7 @@ const board = [
 
 const policies = [
   {
-    icon: Siren,
+    icon: Scale,
     title: "Conflict of Interest Policy",
     description: "Rules for when personal interests intersect with organizational decisions.",
   },
