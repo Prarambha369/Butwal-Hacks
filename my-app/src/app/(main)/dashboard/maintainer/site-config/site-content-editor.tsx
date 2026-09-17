@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { Check } from "lucide-react";
-import {
-  setSiteContent,
-  type EditableKey,
-  type LocalizedText,
-} from "@/lib/actions/site-content";
+import { setSiteContent } from "@/lib/actions/site-content";
+import type {
+  EditableKey,
+  LocalizedText,
+} from "@/lib/site-content-keys";
 
 function KeyEditor({
   entry,
