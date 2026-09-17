@@ -17,7 +17,9 @@ export type CloudinaryEntityType =
   | "certificate";
 
 interface CloudinaryUploadProps {
-  onUpload: (url: string) => void;
+  onUpload?: (url: string) => void;
+  /** Full result (url + public_id) — used where the asset must be tracked later (e.g. gallery photos). */
+  onUploadResult?: (result: { url: string; publicId: string }) => void;
   onError?: (message: string) => void;
   label?: string;
   currentImage?: string;
@@ -39,13 +41,13 @@ interface UploadProgress {
   speedKBps: number;
 }
 
-/** Upload a blob/file to Cloudinary via the signed API endpoint. Returns the secure_url. */
+/** Upload a blob/file to Cloudinary via the signed API endpoint. Returns url + public_id. */
 async function uploadToCloudinary(
   blob: Blob,
   metadata: Record<string, string | undefined>,
   onProgress?: (progress: UploadProgress) => void,
   xhrRef?: { current: XMLHttpRequest | null },
-): Promise<string> {
+): Promise<{ url: string; publicId: string }> {
   // Fetch signature with metadata
   const res = await fetch("/api/cloudinary-signature", {
     method: "POST",
@@ -63,7 +65,7 @@ async function uploadToCloudinary(
     throw new Error(err.error || "Failed to get upload signature");
   }
 
-  const { signature, timestamp, cloudName, apiKey, folder, uploadPreset, metadata: metadataStr } = await res.json();
+  const { signature, timestamp, cloudName, apiKey, folder, uploadPreset, transformation, metadata: metadataStr } = await res.json();
 
   const formData = new FormData();
   formData.append("file", blob);
@@ -72,6 +74,8 @@ async function uploadToCloudinary(
   formData.append("signature", signature);
   formData.append("folder", folder);
   if (uploadPreset) formData.append("upload_preset", uploadPreset);
+  // Signed server-side: incoming transform (resize/quality/watermark for gallery).
+  if (transformation) formData.append("transformation", transformation);
   if (metadataStr) formData.append("metadata", metadataStr);
 
   // Use XHR for upload progress tracking
@@ -99,7 +103,7 @@ async function uploadToCloudinary(
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const result = JSON.parse(xhr.responseText);
-          resolve(result.secure_url as string);
+          resolve({ url: result.secure_url as string, publicId: result.public_id as string });
         } catch {
           reject(new Error("Failed to parse upload response"));
         }
@@ -123,6 +127,7 @@ async function uploadToCloudinary(
 
 export function CloudinaryUpload({
   onUpload,
+  onUploadResult,
   onError,
   label = "Upload",
   currentImage,
@@ -183,11 +188,12 @@ export function CloudinaryUpload({
     setUploadSpeed(0);
     pendingBlobRef.current = blob;
     try {
-      const url = await uploadToCloudinary(blob, { entityType, bhId, eventSlug, projectId, uploaderAuth0Id }, (p) => {
+      const result = await uploadToCloudinary(blob, { entityType, bhId, eventSlug, projectId, uploaderAuth0Id }, (p) => {
         setUploadProgress(p.pct);
         setUploadSpeed(p.speedKBps);
       }, xhrRef);
-      onUpload(url);
+      onUpload?.(result.url);
+      onUploadResult?.(result);
       pendingBlobRef.current = null;
       xhrRef.current = null;
     } catch (error) {
@@ -201,7 +207,7 @@ export function CloudinaryUpload({
       setUploadProgress(0);
       setUploadSpeed(0);
     }
-  }, [onUpload, onError, entityType, bhId, eventSlug, projectId, uploaderAuth0Id]);
+  }, [onUpload, onUploadResult, onError, entityType, bhId, eventSlug, projectId, uploaderAuth0Id]);
 
   const handleCropConfirm = useCallback((croppedBlob: Blob) => {
     setCropFile(null);
@@ -245,7 +251,7 @@ export function CloudinaryUpload({
           <Image src={currentImage} alt="Uploaded" fill className="object-cover" />
           <button
             type="button"
-            onClick={uploading ? handleAbort : () => onUpload("")}
+            onClick={uploading ? handleAbort : () => onUpload?.("")}
             className="absolute top-2 right-2 p-1 rounded-full bg-background/80 text-primary hover:bg-background/90 transition-colors"
             title={uploading ? "Cancel upload" : "Remove image"}
           >
