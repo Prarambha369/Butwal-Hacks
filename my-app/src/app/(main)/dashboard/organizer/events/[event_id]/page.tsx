@@ -12,7 +12,8 @@ import {
   GraduationCap,
   FileDown,
   QrCode,
-  ScanQrCode
+  ScanQrCode,
+  Image as ImageIcon
 } from "lucide-react";
 import Link from "next/link";
 
@@ -89,6 +90,13 @@ export default async function EventDetailsPage({
           >
             <ScanQrCode className="w-4 h-4" />
             Scan
+          </Link>
+          <Link 
+            href={`/dashboard/organizer/events/${event_id}/photos`}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-surface-hover transition-all"
+          >
+            <ImageIcon className="w-4 h-4" />
+            Photos
           </Link>
           <Link 
             href={`/dashboard/organizer/events/${event_id}/analytics`}
