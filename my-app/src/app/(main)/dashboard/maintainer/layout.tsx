@@ -19,6 +19,7 @@ import {
   Settings2,
   BookOpen,
   GraduationCap,
+  Image as ImageIcon,
 } from "lucide-react";
 
 const maintainerLinks = [
@@ -51,6 +52,12 @@ const maintainerLinks = [
     label: "Site Config",
     shortcut: "s",
     icon: <Settings2 className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/maintainer/photos",
+    label: "Photos",
+    shortcut: "p",
+    icon: <ImageIcon className="w-4 h-4" />,
   },
   {
     href: "/api-docs",
