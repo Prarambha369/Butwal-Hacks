@@ -83,7 +83,7 @@ export default function LiveStatsCounter() {
     return (
       <div className="py-16 md:py-20 bg-surface border-b border-border">
         <div className="mx-auto max-w-6xl px-4 text-center text-sm text-muted-foreground">
-          Stats temporarily unavailable
+          Numbers are napping. Back soon.
         </div>
       </div>
     );

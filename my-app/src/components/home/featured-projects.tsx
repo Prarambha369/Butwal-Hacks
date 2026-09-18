@@ -22,7 +22,7 @@ export default function FeaturedProjects({ projects }: { projects: FeaturedProje
               <Monitor className="w-8 h-8 text-muted-foreground opacity-20" />
             </div>
             <p className="text-sm text-muted-foreground font-mono opacity-60">
-              No community projects to feature yet. The first builds will appear here.
+              Nothing featured yet. The first community builds will show up here.
             </p>
           </div>
         </div>
