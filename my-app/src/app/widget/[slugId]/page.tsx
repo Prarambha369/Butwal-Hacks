@@ -52,7 +52,7 @@ export default async function WidgetPage({ params, searchParams }: Props) {
   const { data: profile, error } = await supabase
     .from("profiles")
     .select(`
-      full_name, bh_id, role, xp, bio, avatar_url, auth0_user_id,
+      full_name, bh_id, role, bio, avatar_url, auth0_user_id,
       trust_markers!trust_markers_profile_id_fkey (
         id, title, description, type, is_revoked,
         issuer:profiles!trust_markers_issuer_id_fkey ( full_name )

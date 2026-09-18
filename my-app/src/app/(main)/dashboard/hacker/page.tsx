@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createServiceClient } from "@/utils/supabase";
 import { getUserProjects } from "@/lib/actions/projects";
+import { getJourney } from "@/lib/actions/journey";
 import { auth0 } from "@/lib/auth0";
 import { formatDualDate } from "@/lib/nepali-date";
 import OnboardingTour from "@/components/dashboard/onboarding-tour";
@@ -9,7 +10,6 @@ import {
   Trophy, Clock, Users, ArrowRight,
   Code2, Medal,
 } from "lucide-react";
-import { ActivityTimelineChart } from "@/components/charts/hacker-charts";
 import { buildPageMetadata } from "@/lib/seo"
 
 // ─── Main Page ─────────────────────────────────────────────────────
@@ -38,6 +38,7 @@ export default async function HackerDashboardPage() {
 
   const profileId = profile?.id;
   const userProjects = profileId ? await getUserProjects(profileId) : [];
+  const journey = profileId ? await getJourney(profileId) : [];
 
   const trustMarkerCount = (profile?.trust_markers as unknown[])?.length ?? 0;
   const fullName = profile?.full_name ?? "Hacker";
@@ -60,7 +61,7 @@ export default async function HackerDashboardPage() {
               Welcome back, {fullName}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Here is your progress and upcoming opportunities.
+              Here is your record and upcoming opportunities.
             </p>
           </div>
           <div className="shrink-0">
@@ -181,11 +182,9 @@ export default async function HackerDashboardPage() {
           </div>
         </div>
 
-        {/* Right: Activity Timeline */}
+        {/* Right: credentials + record */}
         <div className="lg:col-span-2 space-y-4">
-          <ActivityTimelineChart />
-
-          {/* Credential Progress */}
+          {/* Your Credentials */}
           <div className="bh-card p-5 space-y-3">
             <div className="flex items-center gap-2">
               <Trophy className="w-4 h-4 text-status-yellow" />
@@ -207,7 +206,45 @@ export default async function HackerDashboardPage() {
               </div>
             ) : (
               <p className="text-[10px] text-muted-foreground font-mono">
-                Earn trust markers by participating in events and contributing to projects.
+                Trust markers appear here when organizers verify your work.
+              </p>
+            )}
+          </div>
+
+          {/* Your record — chronological, verifiable, no scores */}
+          <div className="bh-card p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-status-blue" />
+              <h3 className="text-sm font-bold text-primary">Your Record</h3>
+            </div>
+            {journey.length > 0 ? (
+              <ol className="space-y-3">
+                {journey.slice(0, 8).map((entry, i) => (
+                  <li key={`${entry.kind}-${entry.date}-${i}`} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${entry.revoked ? "bg-muted-foreground" : "bg-primary-red"}`} />
+                      {i < Math.min(journey.length, 8) - 1 && <div className="w-px flex-1 bg-border" />}
+                    </div>
+                    <div className="min-w-0 pb-1">
+                      <p className={`text-xs font-bold truncate ${entry.revoked ? "line-through text-muted-foreground" : "text-primary"}`}>
+                        {entry.href && !entry.revoked ? (
+                          <Link href={entry.href} className="hover:text-primary-red transition-colors">
+                            {entry.title}
+                          </Link>
+                        ) : (
+                          entry.title
+                        )}
+                      </p>
+                      <p className="text-[10px] font-mono text-muted-foreground">
+                        {entry.kind}{entry.detail ? ` · ${entry.detail}` : ""} · {new Date(entry.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="text-[10px] text-muted-foreground font-mono">
+                Nothing recorded yet — it fills in as you attend, ship, and get verified.
               </p>
             )}
           </div>

@@ -88,7 +88,6 @@ interface UnlockedSkill {
   icon: string;
   treeName: string;
   treeColor: string;
-  xpReward: number;
   unlockedAt: string;
 }
 

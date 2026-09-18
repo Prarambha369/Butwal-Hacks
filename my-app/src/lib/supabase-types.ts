@@ -11,7 +11,6 @@ export interface Profile {
   github_username: string | null
   bio: string | null
   avatar_url: string | null
-  xp: number
   is_suspended: boolean
   has_completed_onboarding: boolean
   created_at: string

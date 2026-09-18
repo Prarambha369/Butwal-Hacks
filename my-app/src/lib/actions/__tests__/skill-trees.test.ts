@@ -24,7 +24,6 @@ vi.mock("@/lib/skill-trees", () => {
     name: "Frontend Basics",
     description: "Build a webpage",
     icon: "🌐",
-    xpReward: 100,
     conditions: { type: "tech_categories", categories: ["Frontend"], min_count: 1 },
     prerequisiteIds: [],
   };
@@ -143,7 +142,7 @@ describe("getSkillTreesWithStatus", () => {
 describe("getSkillTreeSummary", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("returns summary with zero progress for new user", async () => {
+  it("returns summary with zero unlocks for new user", async () => {
     mockedResolveProfileId.mockResolvedValue("profile-1");
     const db = mockSupabase();
 
@@ -157,7 +156,6 @@ describe("getSkillTreeSummary", () => {
 
     expect(summary.totalSkills).toBe(1);
     expect(summary.totalUnlocked).toBe(0);
-    expect(summary.overallProgress).toBe(0);
     expect(summary.treeCount).toBe(1);
   });
 });
@@ -194,6 +192,5 @@ describe("getProfileUnlockedSkills", () => {
     expect(result.totalUnlocked).toBe(1);
     expect(result.unlockedSkills[0].name).toBe("Frontend Basics");
     expect(result.unlockedSkills[0].treeName).toBe("Web Development");
-    expect(result.unlockedSkills[0].xpReward).toBe(100);
   });
 });

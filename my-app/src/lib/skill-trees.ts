@@ -12,7 +12,6 @@ export interface SkillNode {
   name: string;
   description: string;
   icon: string;
-  xpReward: number;
   conditions: SkillCondition;
   prerequisiteIds: string[];
 }
@@ -48,7 +47,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "React Pro",
             description: "Build 3+ projects using React",
             icon: "react",
-            xpReward: 200,
             conditions: { type: "tech_count", tech: "React", min_count: 3 },
             prerequisiteIds: [],
           },
@@ -63,7 +61,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "UI Master",
             description: "Build projects using Tailwind CSS or similar frameworks",
             icon: "palette",
-            xpReward: 250,
             conditions: { type: "tech_count", tech: "Tailwind CSS", min_count: 2 },
             prerequisiteIds: ["react-pro"],
           },
@@ -78,7 +75,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "Full Stack",
             description: "Build projects using both frontend and backend technologies",
             icon: "globe",
-            xpReward: 250,
             conditions: { type: "tech_categories", categories: ["Frontend","Backend"], min_count: 2 },
             prerequisiteIds: ["react-pro"],
           },
@@ -101,7 +97,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "Pythonista",
             description: "Build 1+ project using Python",
             icon: "python",
-            xpReward: 100,
             conditions: { type: "tech_count", tech: "Python", min_count: 1 },
             prerequisiteIds: [],
           },
@@ -116,7 +111,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "API Architect",
             description: "Build 2+ projects with API or database integrations",
             icon: "cable",
-            xpReward: 200,
             conditions: { type: "tech_categories", categories: ["API","Database"], min_count: 2 },
             prerequisiteIds: ["pythonista"],
           },
@@ -140,7 +134,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "AI Explorer",
             description: "Build 1+ project using AI/ML technologies",
             icon: "cpu",
-            xpReward: 200,
             conditions: { type: "tech_count", tech: "AI", min_count: 1 },
             prerequisiteIds: [],
           },
@@ -155,7 +148,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "ML Practitioner",
             description: "Build 2+ AI/ML projects with verifiable results",
             icon: "network",
-            xpReward: 300,
             conditions: { type: "tech_count", tech: "AI", min_count: 2 },
             prerequisiteIds: ["ai-explorer"],
           },
@@ -179,7 +171,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "Git Master",
             description: "Ship 2+ GitHub-verified projects",
             icon: "link",
-            xpReward: 150,
             conditions: { type: "github_verified", min_count: 2 },
             prerequisiteIds: [],
           },
@@ -194,7 +185,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "Deployment Pro",
             description: "Deploy 2+ projects with live URLs",
             icon: "rocket",
-            xpReward: 200,
             conditions: { type: "project_count", min_count: 2 },
             prerequisiteIds: ["git-master"],
           },
@@ -218,7 +208,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "Hackathon Hero",
             description: "Participate in 3+ events",
             icon: "trophy",
-            xpReward: 150,
             conditions: { type: "event_count", min_count: 3 },
             prerequisiteIds: [],
           },
@@ -233,7 +222,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "Community Champion",
             description: "Submit 3+ projects total",
             icon: "zap",
-            xpReward: 100,
             conditions: { type: "project_count", min_count: 3 },
             prerequisiteIds: ["hackathon-hero"],
           },
@@ -248,7 +236,6 @@ export const SKILL_TREES: SkillTree[] = [
             name: "Polyglot Dev",
             description: "Use 5+ different technologies across your projects",
             icon: "layers",
-            xpReward: 300,
             conditions: { type: "unique_tech_count", min_count: 5 },
             prerequisiteIds: ["community-champion"],
           },
@@ -272,7 +259,6 @@ export interface SkillTreeWithStatus extends Omit<SkillTree, "tiers"> {
   tiers: Array<Omit<SkillTier, "skills"> & { skills: SkillWithStatus[] }>;
   unlockedCount: number;
   totalCount: number;
-  overallProgress: number;
 }
 
 /**

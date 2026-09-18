@@ -170,19 +170,11 @@ export default function SkillTreeView({ className }: SkillTreeViewProps) {
               <p className="text-xs text-muted-foreground">{activeTree.description}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs font-mono text-muted-foreground">Progress</p>
-              <p className="text-lg font-black text-primary-red">
-                {Math.round(activeTree.overallProgress)}%
+              <p className="text-xs font-mono text-muted-foreground">Verified</p>
+              <p className="text-lg font-black text-primary">
+                {activeTree.unlockedCount}<span className="text-sm font-bold text-muted-foreground">/{activeTree.totalCount}</span>
               </p>
             </div>
-          </div>
-
-          {/* Overall Progress Bar */}
-          <div className="h-2 w-full bg-surface-hover rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-primary-red to-red-400"
-              style={{ width: `${activeTree.overallProgress}%` }}
-            />
           </div>
 
           {/* Tiers */}

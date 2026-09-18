@@ -16,7 +16,6 @@ interface MentorProfile {
   avatar_url: string | null
   bio: string | null
   skills: string[] | null
-  xp: number
   cal_com_url: string | null
   socials: Record<string, string> | null
 }
@@ -26,10 +25,10 @@ export default async function MentorsPage() {
 
   const { data: mentors } = await supabase
     .from("profiles")
-    .select("bh_id, full_name, avatar_url, bio, skills, xp, cal_com_url, socials")
+    .select("bh_id, full_name, avatar_url, bio, skills, cal_com_url, socials")
     .eq("open_to_mentor", true)
     .not("bh_id", "is", null)
-    .order("xp", { ascending: false })
+    .order("full_name", { ascending: true })
     .limit(50);
 
   const list = (mentors ?? []) as unknown as MentorProfile[];
