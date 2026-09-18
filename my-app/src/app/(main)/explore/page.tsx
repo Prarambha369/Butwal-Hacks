@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import type { Metadata } from "next"
 import { Users } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"
@@ -20,7 +20,7 @@ export const metadata: Metadata = buildPageMetadata({
 })
 
 export default async function ExplorePage() {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const explorerMembers = await fetchExplorerMembers(supabase);
   const stats = getExplorerStats(explorerMembers);
 

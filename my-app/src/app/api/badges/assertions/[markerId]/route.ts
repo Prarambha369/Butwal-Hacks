@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/utils/supabase"
+import { createServiceClient } from "@/utils/supabase"
 import { withRateLimit } from "@/lib/rate-limiter"
 
 /**
@@ -16,7 +16,7 @@ export const GET = withRateLimit(async (
   { params }: { params: Promise<{ markerId: string }> },
 ) => {
   const { markerId } = await params
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { data: marker, error } = await supabase
     .from("trust_markers")

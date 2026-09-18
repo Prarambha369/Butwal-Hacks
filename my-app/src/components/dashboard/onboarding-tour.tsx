@@ -121,16 +121,13 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
 
   const analytics = useAnalytics();
 
-  // Persist completion to Supabase (fire-and-forget)
+  // Persist completion server-side (fire-and-forget)
   const saveToSupabase = useCallback(async () => {
     const sub = user?.sub;
     if (!sub) return;
     try {
-      await supabase
-        .from("profiles")
-        .update({ has_completed_onboarding: true })
-        .eq("auth0_user_id", sub);
-
+      const { completeOnboarding } = await import("@/lib/actions/profile");
+      await completeOnboarding();
       analytics.capture("profile_completed", {
         source: "onboarding_tour",
         has_completed_onboarding: true,

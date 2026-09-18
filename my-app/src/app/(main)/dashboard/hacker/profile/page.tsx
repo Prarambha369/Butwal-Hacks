@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase';
+import { createServiceClient } from '@/utils/supabase';
 import { redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
 import { User, Eye, ExternalLink } from 'lucide-react';
@@ -17,7 +17,7 @@ export default async function HackerProfileSettingsPage() {
 
   if (!userId) redirect('/sign-in');
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')

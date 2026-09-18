@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 
 import Link from "next/link";
 import { CalendarDays, ArrowRight, MapPin } from "lucide-react";
@@ -17,7 +17,7 @@ export const metadata: Metadata = buildPageMetadata({
 });
 
 export default async function EventsListPage() {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   
   const { data: events, error } = await supabase
     .from("events")

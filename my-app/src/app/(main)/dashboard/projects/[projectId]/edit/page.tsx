@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
-import { createClient } from '@/utils/supabase';
+import { createServiceClient } from '@/utils/supabase';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -30,7 +30,7 @@ export default async function EditProjectPage({
   const userId = session?.user?.sub;
   if (!userId) redirect('/sign-in');
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Resolve profile UUID
   const { data: profile } = await supabase

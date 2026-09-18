@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { getUserProjects } from "@/lib/actions/projects";
 import { auth0 } from "@/lib/auth0";
 import { formatDualDate } from "@/lib/nepali-date";
@@ -18,7 +18,7 @@ import { buildPageMetadata } from "@/lib/seo"
 export const metadata = { ...buildPageMetadata({title: "Hacker Dashboard", description: "Your hacker workspace", path: "/dashboard/hacker", keywords: []}), robots: { index: false, follow: false } };
 
 export default async function HackerDashboardPage() {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const session = await auth0.getSession();
   const userId = session?.user?.sub;
 

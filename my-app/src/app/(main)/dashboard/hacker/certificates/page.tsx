@@ -1,5 +1,5 @@
 import { auth0 } from "@/lib/auth0";
-import { createClient } from '@/utils/supabase';
+import { createServiceClient } from '@/utils/supabase';
 import { Trophy, Star, Zap, Lock, Award } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { buildPageMetadata } from "@/lib/seo"
@@ -15,7 +15,7 @@ export default async function AchievementsPage() {
 
   if (!userId) return <div className="p-12 text-center">Please log in to view achievements.</div>;
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   await supabase
     .from('profiles')
     .select('id')

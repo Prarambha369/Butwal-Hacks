@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { ShieldCheck } from "lucide-react";
 import TrustOverridePanel from "@/components/dashboard/maintainer/trust-override-panel";
 import type { Metadata } from "next";
@@ -14,7 +14,7 @@ export default async function TrustOverridePage() {
   const session = await auth0.getSession();
   if (!session?.user) redirect("/auth/login");
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Fetch all trust markers with holder and issuer profile data
   const { data: markers } = await supabase

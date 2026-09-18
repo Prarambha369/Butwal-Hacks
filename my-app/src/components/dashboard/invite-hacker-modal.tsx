@@ -18,7 +18,7 @@ interface InviteHackerModalProps {
 
 export default function InviteHackerModal({ teamId, onClose, onSuccess }: InviteHackerModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<Pick<Profile, 'id' | 'bh_id' | 'full_name' | 'avatar_url'>[]>([]);
   const [loading, setLoading] = useState(false);
   const [invitingId, setInvitingId] = useState<string | null>(null);
   const supabase = createClient();
@@ -33,7 +33,7 @@ export default function InviteHackerModal({ teamId, onClose, onSuccess }: Invite
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, bh_id, full_name, avatar_url')
         .or(`full_name.ilike.%${searchQuery}%,bh_id.ilike.%${searchQuery}%`)
         .limit(5);
 

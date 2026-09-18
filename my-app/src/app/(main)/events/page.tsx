@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { createClient } from "@/utils/supabase"
+import { createServiceClient } from "@/utils/supabase"
 
 // Fetches events from Supabase + checks Auth0 session at request time.
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export default async function EventsPage() {
   const session = await auth0.getSession();
   const isSignedIn = !!session?.user;
 
-  const supabase = createClient()
+  const supabase = createServiceClient()
 
   const { data: dbEvents } = await supabase
     .from("events")

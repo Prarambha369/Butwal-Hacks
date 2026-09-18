@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { Metadata } from "next";
 import { ShieldCheck, XCircle, Award, Clock, UserCheck } from "lucide-react";
 import Link from "next/link";
@@ -11,7 +11,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { markerId } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: marker } = await supabase
     .from("trust_markers")
@@ -45,7 +45,7 @@ function markerIcon(type: string) {
 
 export default async function VerifyMarkerPage({ params }: Props) {
   const { markerId } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: marker, error } = await supabase
     .from("trust_markers")

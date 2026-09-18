@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 export default function TeamManagement() {
   const [team, setTeam] = useState<Team | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
-  const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [profiles, setProfiles] = useState<Record<string, Pick<Profile, 'id' | 'bh_id' | 'full_name' | 'avatar_url'>>>({});
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -75,14 +75,15 @@ export default function TeamManagement() {
         .select('*')
         .eq('team_id', teamId);
 
-      // Fetch profiles for members
+      // Fetch profiles for members (safe public columns only — emails,
+      // tokens and linked accounts are never granted to the anon key).
       const memberProfileIds = membersData?.map(m => m.profile_id) || [];
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, bh_id, full_name, avatar_url')
         .in('id', memberProfileIds);
 
-      const profileMap: Record<string, Profile> = {};
+      const profileMap: Record<string, Pick<Profile, 'id' | 'bh_id' | 'full_name' | 'avatar_url'>> = {};
       profileData?.forEach(p => {
         profileMap[p.id] = p;
       });
@@ -107,28 +108,15 @@ export default function TeamManagement() {
     setError(null);
     try {
       if (!user) return;
-      if (!user) return;
 
       if (!profileUuid) { setError('Profile not loaded yet'); return; }
-      const { data: captainCheck } = await supabase
-        .from('team_members')
-        .select('is_captain')
-        .eq('team_id', team!.id)
-        .eq('profile_id', profileUuid)
-        .single();
-
-      if (!captainCheck?.is_captain) {
-        setError('Only the team captain can remove members.');
+      const { removeTeamMember } = await import('@/lib/actions/teams');
+      // Captain check runs server-side inside the action (service role).
+      const result = await removeTeamMember(team!.id, profileId);
+      if (!result.success) {
+        setError(result.error ?? 'Failed to remove member. Try again.');
         return;
       }
-
-      const { error } = await supabase
-        .from('team_members')
-        .delete()
-        .eq('team_id', team!.id)
-        .eq('profile_id', profileId);
-
-      if (error) throw error;
       setError(null);
       toast.success('Member removed from team');
       fetchTeamData();

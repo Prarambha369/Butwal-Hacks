@@ -56,3 +56,23 @@ export async function updateProfile(userId: string, updates: {
   revalidatePath(`/profile/${userId}`);
   return { success: true };
 }
+
+/**
+ * Mark onboarding tour complete for the signed-in member.
+ * Fire-and-forget from the client tour component (was a direct anon
+ * write; moved server-side ahead of the RLS lockdown).
+ */
+export async function completeOnboarding(): Promise<{ success: boolean }> {
+  const session = await auth0.getSession();
+  if (!session?.user) throw new Error("Unauthorized");
+  const supabase = createServiceClient();
+  const { error } = await supabase
+    .from('profiles')
+    .update({ has_completed_onboarding: true })
+    .eq('auth0_user_id', session.user.sub);
+  if (error) {
+    logger.error('Error completing onboarding:', error);
+    throw new Error('Failed to save onboarding state');
+  }
+  return { success: true };
+}

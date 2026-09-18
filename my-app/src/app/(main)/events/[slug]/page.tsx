@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
-import { createClient } from "@/utils/supabase"
+import { createServiceClient } from "@/utils/supabase"
 import { buildPageMetadata } from "@/lib/seo"
 import { initiatives, events as contentEvents, blogPosts, getRelatedByTags } from "@/lib/content"
 import RelatedLinks from "@/components/home/related-links"
@@ -17,7 +17,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const supabase = createClient()
+  const supabase = createServiceClient()
   const { data: event } = await supabase
     .from("events")
     .select("title, description, location")
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params
-  const supabase = createClient()
+  const supabase = createServiceClient()
 
   const { data: event } = await supabase
     .from("events")

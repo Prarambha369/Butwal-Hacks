@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { createClient } from '@/utils/supabase';
+import { createServiceClient } from '@/utils/supabase';
 import TeamPortfolio from '@/components/teams/team-portfolio';
 import RelatedLinks from '@/components/home/related-links';
 import { blogPosts, initiatives, getRelatedByTags } from '@/lib/content';
@@ -12,7 +12,7 @@ export async function generateMetadata() {
 
 export default async function TeamPortfolioPage({ params }: { params: Promise<{ team_id: string }> }) {
   const { team_id } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: team, error } = await supabase
     .from('teams')

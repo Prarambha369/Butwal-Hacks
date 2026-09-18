@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { notFound } from "next/navigation";
 import { formatDualDate } from "@/lib/nepali-date";
 import {
@@ -32,7 +32,7 @@ export default async function EventDetailsPage({
   params: Promise<{ event_id: string }>;
 }) {
   const { event_id } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: event, error } = await supabase
     .from("events")

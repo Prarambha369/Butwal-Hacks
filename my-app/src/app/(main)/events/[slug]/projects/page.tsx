@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Code2, Calendar, MapPin, Users } from "lucide-react";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { events as staticEvents, getEventBySlug } from "@/lib/content";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
@@ -29,7 +29,7 @@ export default async function EventExpoPage({ params }: Props) {
   const staticEvent = getEventBySlug(slug);
 
   // Look up the event in the DB by slug
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data: dbEvent } = await supabase
     .from("events")
     .select("id, title, slug, start_date, end_date, location, organizer_id")

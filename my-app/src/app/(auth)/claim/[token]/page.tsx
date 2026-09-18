@@ -1,5 +1,5 @@
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { notFound, redirect } from "next/navigation";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
@@ -20,7 +20,7 @@ interface ClaimPageProps {
 
 export default async function ClaimPage({ params }: ClaimPageProps) {
   const { token } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Look up the claim token
   const { data: claimRecord } = await supabase

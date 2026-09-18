@@ -31,7 +31,7 @@ export interface YearMetrics {
   }
 }
 
-export async function getYearMetrics(year: number, useServiceRole = false): Promise<YearMetrics | null> {
+export async function getYearMetrics(year: number, useServiceRole = true): Promise<YearMetrics | null> {
   try {
     const db = useServiceRole ? createServiceClient() : createClient()
     const startDate = `${year}-01-01T00:00:00Z`
