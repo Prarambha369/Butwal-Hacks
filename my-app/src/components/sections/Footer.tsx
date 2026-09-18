@@ -11,7 +11,6 @@ const sitemapGroups = [
     labelKey: 'footer.events_projects',
     links: [
       { nameKey: 'footer.all_events', href: '/events' },
-      { nameKey: 'footer.event_list', href: '/events/list' },
       { nameKey: 'footer.event_gallery', href: '/gallery' },
       { nameKey: 'footer.featured_projects', href: '/projects' },
       { nameKey: 'footer.initiatives', href: '/initiatives' },

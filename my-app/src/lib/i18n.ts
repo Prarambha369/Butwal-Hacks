@@ -85,7 +85,6 @@ const translations: Record<string, { en: string; ne: string }> = {
   'footer.open_collective': { en: 'Open Collective', ne: 'ओपन कलेक्टिभ' },
   'footer.contact_us': { en: 'Contact Us', ne: 'हामीलाई सम्पर्क गर्नुहोस्' },
   'footer.all_events': { en: 'All Events', ne: 'सबै घटनाहरू' },
-  'footer.event_list': { en: 'Event List', ne: 'घटना सूची' },
   'footer.event_gallery': { en: 'Event Gallery', ne: 'घटना ग्यालेरी' },
   'footer.featured_projects': { en: 'Featured Projects', ne: 'विशेष परियोजनाहरू' },
   'footer.initiatives': { en: 'Initiatives', ne: 'पहलहरू' },

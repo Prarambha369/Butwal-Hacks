@@ -24,7 +24,6 @@ const routes = [
   { name: "/chapters", path: "@/app/(main)/chapters/page", dynamic: "force-static" },
   { name: "/chapters/[slug]", path: "@/app/(main)/chapters/[slug]/page" },
   { name: "/events", path: "@/app/(main)/events/page" },
-  { name: "/events/list", path: "@/app/(main)/events/list/page" },
   { name: "/events/[slug]", path: "@/app/(main)/events/[slug]/page" },
   { name: "/events/[slug]/projects", path: "@/app/(main)/events/[slug]/projects/page" },
   { name: "/projects", path: "@/app/(main)/projects/page" },
@@ -44,7 +43,6 @@ const routes = [
   { name: "/transparency", path: "@/app/(main)/transparency/page" },
   { name: "/initiatives", path: "@/app/(main)/initiatives/page" },
   { name: "/initiatives/[slug]", path: "@/app/(main)/initiatives/[slug]/page" },
-  { name: "/programs/[slug]", path: "@/app/(main)/programs/[slug]/page" },
   { name: "/philosophy", path: "@/app/(main)/philosophy/page" },
   { name: "/gallery", path: "@/app/(main)/gallery/page" },
   { name: "/cookie-policy", path: "@/app/(main)/cookie-policy/page" },
@@ -165,7 +163,6 @@ describe.each(routes)("$name", ({ name: _name, path, hasGenMeta, dynamic, revali
 const loadingFiles = [
   { name: "explore page", path: "@/app/(main)/explore/loading" },
   { name: "dashboard/organizer/api-keys", path: "@/app/(main)/dashboard/organizer/api-keys/loading" },
-  { name: "programs/[slug]", path: "@/app/(main)/programs/[slug]/loading" },
   { name: "initiatives/[slug]", path: "@/app/(main)/initiatives/[slug]/loading" },
   { name: "root (app router)", path: "@/app/loading" },
 ];

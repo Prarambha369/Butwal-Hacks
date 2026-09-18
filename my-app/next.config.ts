@@ -139,6 +139,18 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // ─── Consolidation redirects (permanent, SEO-safe) ───
+  // Merged routes keep their link equity: old URLs 308 to canonical homes.
+  async redirects() {
+    return [
+      // /events/list was a near-duplicate of /events (which already has
+      // upcoming/past tabs) and leaked DRAFT events publicly.
+      { source: "/events/list", destination: "/events", permanent: true },
+      // /programs/* folded into initiatives (single completed instance).
+      { source: "/programs/annual-hackathon", destination: "/initiatives/hackathon", permanent: true },
+      { source: "/programs", destination: "/initiatives", permanent: true },
+    ]
+  },
   async headers() {
     return [
       // Widget route — must remain iframe-embeddable (verified BH-ID widgets)
