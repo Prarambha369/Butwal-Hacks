@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Calendar, ArrowRight, Sparkles } from "lucide-react"
 
 import Breadcrumbs from "@/components/breadcrumbs"
-import { getInitiativeBySlug, initiatives, events, blogPosts, getRelatedByTags } from "@/lib/content"
+import { getInitiativeBySlug, initiatives, events, blogPosts, getRelatedByTags, programs } from "@/lib/content"
 import { buildPageMetadata } from "@/lib/seo"
 import RelatedLinks from "@/components/home/related-links"
 import AuthAwareCta from "@/components/auth-aware-cta"
@@ -45,6 +45,7 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
   }
 
   const relatedEvents = events.filter((event) => event.initiativeSlug === slug)
+  const pastInstances = programs.filter((program) => program.initiativeSlug === slug)
 
   return (
     <main className="min-h-dvh bg-background">
@@ -116,6 +117,33 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
                     View event details
                     <ArrowRight className="h-4 w-4" />
                   </Link>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Past instances — dated editions of this track, folded in from /programs */}
+        {pastInstances.length > 0 && (
+          <section className="mt-12 pt-12 border-t border-border">
+            <div className="flex items-center gap-3 mb-6">
+              <Calendar className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl font-semibold font-heading text-primary">Past Editions</h2>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {pastInstances.map((program) => (
+                <article
+                  key={program.slug}
+                  className="rounded-xl border border-border bg-surface p-5"
+                >
+                  <p className="text-xs uppercase tracking-wide text-secondary mb-2">
+                    {program.dateLabel} · {program.location} · {program.price}
+                  </p>
+                  <h3 className="text-lg font-semibold text-primary mb-2">{program.title}</h3>
+                  <p className="text-sm text-secondary mb-4">{program.tagline}</p>
+                  <p className="text-sm text-secondary">
+                    Open to: {program.whoCanParticipate.join("; ")}
+                  </p>
                 </article>
               ))}
             </div>

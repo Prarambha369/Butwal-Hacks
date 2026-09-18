@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { createServiceClient } from '@/utils/supabase'
-import { blogPosts, initiatives, events, programs, chapters } from '@/lib/content'
+import { blogPosts, initiatives, events, chapters } from '@/lib/content'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://butwalhacks.com'
 const today = new Date()
@@ -51,16 +51,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: today,
       changeFrequency: 'weekly',
       priority: 0.8,
-    })
-  }
-
-  // ─── Dynamic: Programs ────────────────────────────────────
-  for (const program of programs) {
-    entries.push({
-      url: `${siteUrl}/programs/${program.slug}`,
-      lastModified: today,
-      changeFrequency: 'monthly',
-      priority: 0.7,
     })
   }
 

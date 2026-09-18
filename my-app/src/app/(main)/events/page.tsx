@@ -64,12 +64,6 @@ export default async function EventsPage() {
                   >
                     Your Dashboard <ArrowRight className="w-4 h-4" />
                   </Link>
-                  <Link
-                    href="/events/list"
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all active:scale-95"
-                  >
-                    Browse All Events
-                  </Link>
                   <a
                     href="/api/events/ical"
                     className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all active:scale-95"
@@ -84,12 +78,6 @@ export default async function EventsPage() {
                     className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
                   >
                     Join an Event <ArrowRight className="w-4 h-4" />
-                  </Link>
-                  <Link
-                    href="/events/list"
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all active:scale-95"
-                  >
-                    Browse All Events
                   </Link>
                   <a
                     href="/api/events/ical"

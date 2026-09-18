@@ -104,27 +104,16 @@ export default function GovernancePage() {
           <h2 className="text-3xl font-bold font-heading text-primary">Financial Integrity</h2>
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
             <article className="rounded-xl border border-primary/40 bg-primary p-6 text-primary-foreground">
-              <p className="text-lg font-semibold">Financial Flow 2024</p>
-              <div className="mt-6 space-y-5">
-                <div>
-                  <div className="mb-1 flex items-center justify-between text-sm font-semibold">
-                    <span>90% Programs & Projects</span>
-                    <span>NPR 4.2M</span>
-                  </div>
-                  <div className="h-3 rounded-full bg-primary-foreground/20">
-                    <div className="h-3 w-[90%] rounded-full bg-primary-foreground" />
-                  </div>
-                </div>
-                <div>
-                  <div className="mb-1 flex items-center justify-between text-sm font-semibold">
-                    <span>10% Operations</span>
-                    <span>NPR 460K</span>
-                  </div>
-                  <div className="h-3 rounded-full bg-primary-foreground/20">
-                    <div className="h-3 w-[10%] rounded-full bg-primary-foreground/80" />
-                  </div>
-                </div>
-              </div>
+              <p className="text-lg font-semibold">Live Financials</p>
+              <p className="mt-2 text-sm opacity-90">
+                Static charts go stale. Our budget is live on the transparency page, down to the last rupee.
+              </p>
+              <a
+                href="/transparency"
+                className="mt-4 inline-block rounded-full bg-primary-foreground px-5 py-2 text-sm font-bold text-primary transition-all hover:opacity-90"
+              >
+                See live numbers
+              </a>
             </article>
 
             <article className="rounded-xl border border-border bg-surface p-6">
