@@ -323,7 +323,7 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
           })}
         </p>
         <p className="text-[10px] font-mono text-muted-foreground mt-1">
-          Butwal Hacks — Nepal&apos;s student-hacker community.
+          Butwal Hacks. Nepal&apos;s student hacker community.
         </p>
       </div>
     </div>
