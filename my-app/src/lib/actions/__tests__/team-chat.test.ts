@@ -67,12 +67,12 @@ describe("sendMessage", () => {
 
   it("throws for empty message", async () => {
     const { sendMessage } = await import("../team-chat");
-    await expect(sendMessage(VALID_TEAM_ID, "")).rejects.toThrow("Message cannot be empty");
+    await expect(sendMessage(VALID_TEAM_ID, "")).rejects.toThrow("Write something first");
   });
 
   it("throws for oversized message", async () => {
     const { sendMessage } = await import("../team-chat");
-    await expect(sendMessage(VALID_TEAM_ID, "x".repeat(2001))).rejects.toThrow("too long");
+    await expect(sendMessage(VALID_TEAM_ID, "x".repeat(2001))).rejects.toThrow("under 2000 characters");
   });
 
   it("sends a message successfully", async () => {

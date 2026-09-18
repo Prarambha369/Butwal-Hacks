@@ -41,7 +41,7 @@ describe("LiveStatsCounter", () => {
       render(<LiveStatsCounter />);
 
       // Wait for the error state to render
-      const errorText = await screen.findByText("Stats temporarily unavailable");
+      const errorText = await screen.findByText("Numbers are napping. Back soon.");
       expect(errorText).toBeInTheDocument();
     });
 
@@ -50,7 +50,7 @@ describe("LiveStatsCounter", () => {
 
       render(<LiveStatsCounter />);
 
-      const errorText = await screen.findByText("Stats temporarily unavailable");
+      const errorText = await screen.findByText("Numbers are napping. Back soon.");
       expect(errorText).toBeInTheDocument();
     });
   });
