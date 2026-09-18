@@ -15,16 +15,16 @@ export default function DocsIndexPage() {
     <main className="min-h-dvh bg-background text-primary">
       
       <section className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
-        <h1 className="text-4xl font-bold font-heading tracking-tight sm:text-5xl">Technical Documentation</h1>
+        <h1 className="text-4xl font-bold font-heading tracking-tight sm:text-5xl">Docs for Contributors</h1>
         <p className="mt-4 max-w-3xl text-base text-secondary sm:text-lg">
-          Engineering-first documentation for setup, workflows, and contributor guidance.
+          Everything about working on the Butwal Hacks platform. New to code? Start with environment setup below.
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           <article className="rounded-xl border border-border bg-surface p-6">
             <h2 className="text-2xl font-bold font-heading text-primary">Environment Setup</h2>
             <p className="mt-2 text-sm text-secondary">
-              Configure your local development environment to match production standards.
+              Get the code running on your own machine, step by step. First time? Take it slow, it works.
             </p>
             <Link href="/docs/engineering/environment-setup" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
               Open guide

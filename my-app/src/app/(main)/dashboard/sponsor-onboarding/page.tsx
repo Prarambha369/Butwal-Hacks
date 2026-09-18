@@ -101,7 +101,7 @@ export default async function SponsorOnboardingPage() {
               number="1"
               current
               title="Connect Open Collective"
-              description="Butwal Hacks operates on Open Collective. Link your sponsorship so bounties and payouts flow through a transparent, auditable channel."
+              description="We run our money on Open Collective. Link your sponsorship so bounties and payouts stay public."
               href="https://opencollective.com/butwal-hacks"
               external
             />

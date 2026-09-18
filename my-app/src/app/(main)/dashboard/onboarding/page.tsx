@@ -102,6 +102,10 @@ function WelcomeSection() {
         Pick the role that fits what you want to do next. Your BH-ID travels with
         you either way, and you can change your role later or request an upgrade.
       </p>
+      <p className="text-xs text-muted-foreground/80 max-w-lg mx-auto leading-relaxed">
+        New here? Everything is free, beginners are welcome, and our community is moderated.
+        You are safe to ask basic questions.
+      </p>
 
       {/* Three destination cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-lg mx-auto text-left">
@@ -111,7 +115,7 @@ function WelcomeSection() {
           color="text-status-green"
           bg="bg-status-green/10"
           border="border-status-green/20"
-          description="Get your BH-ID, complete your profile, find teammates through AI Team Match, and submit projects."
+          description="Get your BH-ID (your Hacker ID), finish your profile, find teammates, and ship your first project."
         />
         <TrackCard
           icon={<CalendarDays className="w-5 h-5" />}
