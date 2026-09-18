@@ -44,7 +44,7 @@ export function MemberDirectory() {
             Built by <span className="text-primary-red">You</span>
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-muted-foreground text-base md:text-lg leading-relaxed">
-            From first-time hackers to experienced mentors — every role matters in building what&apos;s next.
+            From first-time hackers to experienced mentors. Every role matters in building what&apos;s next.
           </p>
         </div>
 

@@ -14,9 +14,9 @@ import { buildPageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Butwal Hacks — The Pulse of Innovation in Western Nepal",
+  title: "Butwal Hacks: Free Hackathons for Students in Nepal",
   description:
-    "A youth-led nonprofit building structured pathways from learning to building to launching real-world technology initiatives in Western Nepal. Free hackathons, mentorship, and verified credentials.",
+    "Butwal Hacks runs free hackathons, workshops, and mentorship for students across Nepal. No fees, no experience needed. Just show up and build.",
   path: "/",
 });
 
