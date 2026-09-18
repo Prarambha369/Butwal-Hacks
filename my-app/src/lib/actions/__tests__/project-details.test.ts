@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/utils/supabase", () => ({
-  createClient: vi.fn(),
+  createServiceClient: vi.fn(),
 }));
 
 vi.mock("@/lib/logger", () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
 }));
 
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 
-const mockedCreateClient = createClient as any;
+const mockedCreateServiceClient = createServiceClient as any;
 
 function buildMockDb() {
   const db: Record<string, any> = {};
@@ -24,7 +24,7 @@ describe("getProjectDetails", () => {
 
   it("returns project with related data", async () => {
     const db = buildMockDb();
-    mockedCreateClient.mockResolvedValue(db);
+    mockedCreateServiceClient.mockReturnValue(db);
 
     const mockProject = {
       id: "proj-1",
@@ -44,7 +44,7 @@ describe("getProjectDetails", () => {
 
   it("returns null when project not found", async () => {
     const db = buildMockDb();
-    mockedCreateClient.mockResolvedValue(db);
+    mockedCreateServiceClient.mockReturnValue(db);
     db.single.mockResolvedValue({ data: null, error: null });
 
     const { getProjectDetails } = await import("../project-details");
@@ -55,7 +55,7 @@ describe("getProjectDetails", () => {
 
   it("returns null on Supabase error", async () => {
     const db = buildMockDb();
-    mockedCreateClient.mockResolvedValue(db);
+    mockedCreateServiceClient.mockReturnValue(db);
     db.single.mockResolvedValue({ data: null, error: { message: "DB error" } });
 
     const { getProjectDetails } = await import("../project-details");

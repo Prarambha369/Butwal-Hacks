@@ -1,11 +1,11 @@
 "use server";
 
 import { logger } from "@/lib/logger"
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 
 
 export async function getProjectDetails(id: string) {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: project, error } = await supabase
     .from('projects')

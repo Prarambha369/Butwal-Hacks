@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { notFound, redirect } from "next/navigation";
 import { getAvatarUrl } from "@/lib/utils";
 import { auth0 } from "@/lib/auth0";
@@ -38,7 +38,7 @@ export default async function AttendeesPage({ params }: Props) {
 
   if (!userId) redirect("/sign-in");
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: event } = await supabase
     .from("events")

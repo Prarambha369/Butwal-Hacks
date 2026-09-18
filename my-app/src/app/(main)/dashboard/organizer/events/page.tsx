@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase';
+import { createServiceClient } from '@/utils/supabase';
 import { redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
 import { formatDualDate } from "@/lib/nepali-date";
@@ -16,7 +16,7 @@ export default async function OrganizerEventsPage() {
 
   if (!userId) redirect('/sign-in');
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   // ponytail: Look up profile UUID to satisfy organizer_id FK (UUID, not Auth0 sub)
   const { data: profile } = await supabase
     .from('profiles')

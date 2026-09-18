@@ -1,6 +1,6 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { formatDualDate } from "@/lib/nepali-date";
 import OrganizerDashboardClient from "./organizer-dashboard-client";
 import { buildPageMetadata } from "@/lib/seo"
@@ -15,7 +15,7 @@ export default async function OrganizerDashboardPage() {
   const userId = session?.user?.sub;
   if (!userId) redirect("/auth/login");
 
-  const db = await createClient();
+  const db = createServiceClient();
 
   // Get organizer profile
   const { data: profile } = await db

@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import Link from "next/link";
 import {
   Users, ShieldCheck, MessageSquare,
@@ -22,7 +22,7 @@ export const metadata = { ...buildPageMetadata({title: "Maintainer Dashboard", d
 export const dynamic = "force-dynamic";
 
 export default async function MaintainerCommandCenter() {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // ── Clean separate queries (no nested expansions that silently fail) ──
   const { count: profileCount } = await supabase

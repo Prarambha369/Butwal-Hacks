@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/utils/supabase"
+import { createServiceClient } from "@/utils/supabase"
 import { withRateLimit } from "@/lib/rate-limiter"
 
 /** Escape HTML special characters to prevent XSS in interpolated output. */
@@ -27,7 +27,7 @@ export const GET = withRateLimit(async (
   { params }: { params: Promise<{ bhId: string }> },
 ) => {
   const { bhId } = await params
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { data: profile, error } = await supabase
     .from("profiles")
