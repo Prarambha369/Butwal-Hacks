@@ -3,7 +3,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 
 export async function generateMetadata() {
-  return buildPageMetadata({title: "Organization", description: "View organization details", path: "/orgs", keywords: []});
+  return buildPageMetadata({title: "Organization", description: "Organizations and chapters in the Butwal Hacks network across Nepal.", path: "/orgs", keywords: []});
 }
 
 type Props = {

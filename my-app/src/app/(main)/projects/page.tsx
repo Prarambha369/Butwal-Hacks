@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Project Showcase",
-  description: "Explore the innovations built by our community of hackers in Lumbini Province — hackathon projects, open-source work, and real-world builds.",
+  description: "See what students in Lumbini built at our hackathons. Open-source work and real projects, free to browse.",
   path: "/projects",
 });
 

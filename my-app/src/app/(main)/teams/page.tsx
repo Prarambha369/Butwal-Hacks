@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = buildPageMetadata({title: "Teams", description: "Browse teams", path: "/teams", keywords: []});
+export const metadata = buildPageMetadata({title: "Teams", description: "Find a hackathon team in Butwal, or start your own. All levels welcome.", path: "/teams", keywords: []});
 
 export default async function TeamsPage() {
   const session = await auth0.getSession();

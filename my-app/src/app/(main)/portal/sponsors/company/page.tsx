@@ -5,7 +5,7 @@ import SponsorCompanyForm from "./sponsor-company-form";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = buildPageMetadata({title: "Sponsor Company", description: "Sponsor company details", path: "/portal/sponsors/company", keywords: []});
+export const metadata = buildPageMetadata({title: "Sponsor Company", description: "A sponsor backing Butwal Hacks programs in Nepal.", path: "/portal/sponsors/company", keywords: []});
 
 export const dynamic = "force-dynamic";
 

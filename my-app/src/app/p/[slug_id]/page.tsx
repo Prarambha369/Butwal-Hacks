@@ -28,14 +28,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!profile) {
     return buildPageMetadata({
       title: "Profile Not Found",
-      description: "The requested Hacker ID does not exist.",
+      description: "No Hacker ID like that here. Double-check the link.",
       path: `/p/${slug_id}`,
     });
   }
 
   return buildPageMetadata({
     title: `${profile.full_name} | Hacker ID ${profile.bh_id}`,
-    description: `Official verification profile for ${profile.full_name} (${profile.bh_id}) — Butwal Hacks.`,
+    description: `Verified work profile of ${profile.full_name} (${profile.bh_id}), Butwal Hacks member.`,
     path: `/p/${slug_id}`,
   });
 }

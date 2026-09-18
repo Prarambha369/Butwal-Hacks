@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Events",
-  description: "Browse and manage all Butwal Hacks events.",
+  description: "Every Butwal Hacks event in one list, upcoming and past.",
   path: "/events/list",
 });
 

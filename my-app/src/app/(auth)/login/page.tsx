@@ -5,7 +5,7 @@ import { buildPageMetadata } from "@/lib/seo"
 // The proxy intercepts /auth/login before this page route is ever reached
 // on the main domain. This file exists only for path completeness.
 
-export const metadata = buildPageMetadata({title: "Login", description: "Sign in to your Butwal Hacks account", path: "/login", keywords: []});
+export const metadata = buildPageMetadata({title: "Login", description: "Welcome back. Sign in to your free Butwal Hacks account.", path: "/login", keywords: []});
 
 export default function LoginPage() {
   redirect("/auth/login")

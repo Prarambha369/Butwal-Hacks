@@ -14,7 +14,7 @@ export const revalidate = 60;
 export const metadata: Metadata = buildPageMetadata({
   title: "Explore — Butwal Hacks Community",
   description:
-    "Discover builders, mentors, and organizers in the Butwal Hacks community. Browse profiles, search by BH-ID, and find your next collaborator.",
+    "Meet the builders, mentors, and organizers of Butwal Hacks. Look anyone up by BH-ID and find your next teammate.",
   path: "/explore",
   keywords: ["member directory", "BH-ID explorer", "community profiles", "tech talent Nepal"],
 })

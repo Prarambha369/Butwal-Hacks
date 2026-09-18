@@ -15,7 +15,7 @@ import { CommunityCTA } from "@/components/community/community-cta"
 export const metadata: Metadata = buildPageMetadata({
   title: "Community — Butwal Hacks",
   description:
-    "Builders, mentors, and organizers in Butwal's youth tech community. Participate in hackathons, ship projects, and earn verifiable trust markers.",
+    "Meet Butwal's student builders, mentors, and organizers. Join a hackathon, ship a project, and get signed proof of your work.",
   path: "/community",
 })
 
@@ -28,14 +28,14 @@ export default function CommunityPage() {
         name: "Butwal Hacks",
         url: "https://butwalhacks.com",
         description:
-          "A nonprofit youth technology initiative in Butwal, Nepal, providing hands-on hackathons, mentorship, and innovation opportunities.",
+          "A nonprofit youth technology initiative in Butwal, Nepal, running free hackathons, mentorship, and student programs.",
         foundingDate: "2024",
         areaServed: { "@type": "Place", name: "Lumbini Province, Nepal" },
         knowsAbout: ["Technology Education", "Hackathons", "Youth Mentorship"],
         member: {
           "@type": "Organization",
           name: "Butwal Hacks Community",
-          description: "Builders, mentors, and organizers building the future of tech in Nepal",
+            description: "Builders, mentors, and organizers running free tech events in Nepal",
         },
       }} />
 

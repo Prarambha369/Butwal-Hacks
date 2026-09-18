@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${marker.title} — Trust Marker${marker.is_revoked ? " (Revoked)" : ""}`,
-    description: `Verify the authenticity of a Butwal Hacks Trust Marker.`,
+    description: `Check a Butwal Hacks achievement marker. See who earned it and who signed it.`,
   };
 }
 

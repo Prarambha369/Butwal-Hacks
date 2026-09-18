@@ -7,7 +7,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Environment Setup",
-  description: "Set up your Butwal Hacks engineering environment with clear prerequisites and installation steps.",
+  description: "Get the Butwal Hacks codebase running on your machine, step by step. No experience with this stack? You'll manage.",
   path: "/docs/engineering/environment-setup",
 })
 

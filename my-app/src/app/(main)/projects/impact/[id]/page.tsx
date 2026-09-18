@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<unknown> {
   const report = await getImpactReport(id);
   
   if (!report) {
-    return buildPageMetadata({ title: "Report Not Found", description: "The requested impact report could not be found.", path: `/projects/impact/${id}` });
+    return buildPageMetadata({ title: "Report Not Found", description: "We could not find that report.", path: `/projects/impact/${id}` });
   }
 
   return buildPageMetadata({

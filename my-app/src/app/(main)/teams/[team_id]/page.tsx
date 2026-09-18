@@ -7,7 +7,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 
 export async function generateMetadata() {
-  return buildPageMetadata({title: "Team", description: "View team details", path: "/teams", keywords: []});
+  return buildPageMetadata({title: "Team", description: "A student hackathon team at Butwal Hacks. See members and their projects.", path: "/teams", keywords: []});
 }
 
 export default async function TeamPortfolioPage({ params }: { params: Promise<{ team_id: string }> }) {

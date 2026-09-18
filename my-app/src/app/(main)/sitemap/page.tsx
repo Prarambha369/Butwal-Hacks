@@ -15,7 +15,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Sitemap — Explore Butwal Hacks",
-  description: "Complete site directory for Butwal Hacks. Browse all pages, programs, events, and resources organized by category.",
+  description: "Find every Butwal Hacks page in one place: events, projects, teams, and resources.",
   path: "/sitemap",
 })
 

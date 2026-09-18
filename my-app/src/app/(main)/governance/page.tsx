@@ -9,7 +9,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Transparency & Governance",    description:
-    "How Butwal Hacks is run: our board members, operating policies, financial breakdowns, and commitment to open decision-making in Lumbini.",
+    "Who runs Butwal Hacks, where the money goes, and how decisions get made. All in the open.",
   path: "/governance",
 })
 

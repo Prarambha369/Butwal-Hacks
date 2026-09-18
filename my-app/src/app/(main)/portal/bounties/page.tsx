@@ -6,7 +6,7 @@ import OpportunitiesManager from "./opportunities-manager";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = buildPageMetadata({title: "Bounties", description: "Browse bounties", path: "/portal/bounties", keywords: []});
+export const metadata = buildPageMetadata({title: "Bounties", description: "Real challenges with real payouts for students. Funded by sponsors, tracked in public.", path: "/portal/bounties", keywords: []});
 
 export const dynamic = "force-dynamic";
 

@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: InitiativeDetailPageProps): P
   if (!initiative) {
     return buildPageMetadata({
       title: "Initiative Not Found",
-      description: "The requested initiative page could not be found.",
+      description: "We could not find that initiative. See what is running instead.",
       path: `/initiatives/${slug}`,
     })
   }

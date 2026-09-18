@@ -8,7 +8,7 @@ import GalleryGrid from "./gallery-grid";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Event Gallery",
-  description: "Browse photos from Butwal Hacks hackathons, workshops, and community meetups across Lumbini Province, Nepal.",
+  description: "Photos from Butwal Hacks hackathons and meetups across Lumbini. Real people, real builds.",
   path: "/gallery",
 });
 

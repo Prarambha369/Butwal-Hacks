@@ -10,7 +10,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Initiatives",
-  description: "Browse active, planned, and proposed Butwal Hacks initiatives with clear program status labels.",
+  description: "What we're running, planning, and dreaming up. Each labeled honestly by status.",
   path: "/initiatives",
 })
 
