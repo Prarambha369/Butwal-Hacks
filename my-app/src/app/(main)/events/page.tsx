@@ -14,7 +14,7 @@ import { ArrowRight, CalendarDays } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Events",
-  description: "Browse upcoming and past hackathons, workshops, and community gatherings at Butwal Hacks.",
+  description: "Free hackathons, workshops, and meetups in Butwal and across Nepal. Come build something.",
   path: "/events",
 })
 

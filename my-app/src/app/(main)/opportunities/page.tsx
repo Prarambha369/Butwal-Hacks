@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/seo";
 import { Briefcase, ExternalLink, MapPin, DollarSign, Clock } from "lucide-react";
 export const metadata: Metadata = buildPageMetadata({
   title: "Opportunities & Bounties",
-  description: "Browse jobs, internships, grants, and bounties from sponsors supporting the Butwal Hacks community.",
+  description: "Jobs, internships, grants, and bounties from sponsors. Real money for real student work.",
   path: "/opportunities",
 });
 

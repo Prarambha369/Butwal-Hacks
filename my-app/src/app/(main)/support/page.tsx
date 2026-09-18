@@ -74,7 +74,7 @@ export default function SupportPage() {
           <div className="rounded-xl border border-border bg-surface p-4">
             <div className="rounded-xl border border-border bg-surface/50 p-6">
               <p className="text-sm font-semibold text-secondary">Institutional Sponsorship</p>
-              <p className="mt-2 text-sm text-secondary">Aligned with the 77 Hacks vision and district-wide youth enablement.</p>
+              <p className="mt-2 text-sm text-secondary">Part of the 77 Hacks vision: tech opportunity in every district, starting with young people.</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-border bg-background p-3">
                   <p className="text-xs uppercase tracking-wide text-secondary">Focus</p>

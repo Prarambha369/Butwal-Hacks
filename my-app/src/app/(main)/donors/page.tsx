@@ -12,7 +12,7 @@ import { DonorsCTA } from "@/components/donors/donors-cta"
 export const metadata: Metadata = buildPageMetadata({
   title: "Donor Recognition",
   description:
-    "Honoring the individuals and organizations whose generous support makes Butwal Hacks Foundation's mission possible.",
+    "The people and organizations funding free hackathons in Nepal. Every rupee tracked in public.",
   path: "/donors",
 })
 

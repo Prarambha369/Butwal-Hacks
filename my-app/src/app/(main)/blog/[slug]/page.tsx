@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!post) {
     return buildPageMetadata({
       title: 'Blog Post Not Found',
-      description: 'The requested blog post could not be found.',
+      description: 'We could not find that post. Try the blog list.',
       path: `/blog/${slug}`,
     });
   }

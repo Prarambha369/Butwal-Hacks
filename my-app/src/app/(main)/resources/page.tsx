@@ -5,7 +5,7 @@ import { buildPageMetadata } from "@/lib/seo"
 import { Book, FileText, Code, Video, ExternalLink } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Resources",    description: "Workshop guides, starter templates, code examples, and session recordings from Butwal Hacks programs for builders in Lumbini.",
+  title: "Resources",    description: "Free guides, starter templates, and workshop recordings for builders in Lumbini. Start from zero.",
   path: "/resources",
 })
 

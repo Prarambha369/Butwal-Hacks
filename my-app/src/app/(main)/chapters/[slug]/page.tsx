@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props) {
   if (!chapter) {
     return buildPageMetadata({
       title: "Chapter Not Found",
-      description: "The requested chapter page could not be found.",
+      description: "We could not find that chapter. See all chapters instead.",
       path: `/chapters/${slug}`,
     })
   }

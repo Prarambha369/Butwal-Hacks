@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Recruiter Portal | Butwal Hacks",
-  description: "Find and recruit top technical talent from Butwal Hacks.",
+  description: "Meet student builders from Butwal Hacks. Browse verified work, not resumes.",
   path: "/portal/recruiters",
 });
 

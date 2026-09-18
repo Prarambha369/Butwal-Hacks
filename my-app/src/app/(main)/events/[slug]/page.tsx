@@ -27,14 +27,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!event) {
     return buildPageMetadata({
       title: "Event Not Found",
-      description: "The requested event page could not be found.",
+      description: "We could not find that event. Check upcoming events instead.",
       path: `/events/${slug}`,
     })
   }
 
   const fallbackDescription = event.location
-    ? `Register for ${event.title} in ${event.location}. Join the hackathon, meet fellow builders, and ship something great.`
-    : `Register for ${event.title} — join the hackathon and build with fellow students in Nepal.`
+    ? `Register for ${event.title} in ${event.location}. Join the hackathon, meet fellow builders, and ship something real.`
+    : `Register for ${event.title}. Join the hackathon and build with fellow students in Nepal.`
 
   return buildPageMetadata({
     title: event.title,

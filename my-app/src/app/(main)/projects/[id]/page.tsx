@@ -7,7 +7,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 
 export async function generateMetadata() {
-  return buildPageMetadata({title: "Project", description: "View project details", path: "/projects", keywords: []});
+  return buildPageMetadata({title: "Project", description: "A student-built project from a Butwal Hacks hackathon. See how it was made.", path: "/projects", keywords: []});
 }
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {

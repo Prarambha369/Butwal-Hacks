@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!program) {
     return buildPageMetadata({
       title: "Program Not Found",
-      description: "The requested program does not exist.",
+      description: "No program like that here. Browse the programs list instead.",
       path: `/programs/${slug}`,
     });
   }
