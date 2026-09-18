@@ -121,32 +121,13 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       return NextResponse.json({ received: true, matched: false });
     }
 
-    // Update bounty as completed on payout
+    // Update bounty as completed on payout. Completion is recorded by
+    // the paid marker itself (the member's Journey reads it from there).
     if (eventType === "expense.paid") {
       await supabase
         .from("sponsor_opportunities")
         .update({ is_active: false, updated_at: new Date().toISOString() })
         .eq("id", bounty.id);
-
-      // Find the hacker who submitted the expense — look up by email in expense
-      const payee = expense?.payee as Record<string, unknown> | undefined;
-      const payeeEmail = (payee?.email as string) || "";
-      if (payeeEmail) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id, auth0_user_id")
-          .eq("email", payeeEmail)
-          .maybeSingle();
-
-        if (profile) {
-          // Award XP for bounty completion
-          await supabase.rpc("increment_xp", {
-            p_profile_id: profile.id,
-            p_amount: 100,
-            p_reason: `Bounty completed: ${bounty.title}`,
-          });
-        }
-      }
 
       logger.info("[oc-webhook] Bounty paid & marked complete", {
         bountyId: bounty.id,

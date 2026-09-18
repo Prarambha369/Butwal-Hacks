@@ -10,7 +10,6 @@ export type SlimProfile = {
   full_name?: string | null;
   bio?: string | null;
   socials?: Record<string, string> | null;
-  xp?: number | null;
   trust_markers?: unknown[] | null;
 }
 

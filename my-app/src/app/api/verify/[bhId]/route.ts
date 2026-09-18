@@ -11,7 +11,7 @@ export const GET = withRateLimit(async (
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('full_name, bh_id, role, xp')
+    .select('full_name, bh_id, role')
     .eq('bh_id', bhId)
     .single();
 
@@ -28,7 +28,6 @@ export const GET = withRateLimit(async (
       name: profile.full_name,
       id: profile.bh_id,
       role: profile.role,
-      xp: profile.xp,
     },
   }, {
     headers: { "Cache-Control": "public, max-age=300, s-maxage=600" },

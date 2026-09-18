@@ -15,7 +15,6 @@ export interface TeammateCandidate {
   full_name: string;
   bh_id: string;
   role: string;
-  xp: number;
   avatar_url: string | null;
   bio: string | null;
   skills: string[];
@@ -43,7 +42,7 @@ export async function findTeammates(): Promise<TeamMatchResult> {
   // Get current user's profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, skills, social_links, bh_id, xp, bio")
+    .select("id, skills, social_links, bh_id, bio")
     .eq("auth0_user_id", session.user.sub)
     .single();
 
@@ -56,7 +55,7 @@ export async function findTeammates(): Promise<TeamMatchResult> {
   const { data: others } = await supabase
     .from("profiles")
     .select(`
-      id, full_name, bh_id, role, xp, avatar_url, bio, skills, social_links
+      id, full_name, bh_id, role, avatar_url, bio, skills, social_links
     `)
     .neq("id", myId)
     .eq("is_claimed", true)
@@ -64,6 +63,26 @@ export async function findTeammates(): Promise<TeamMatchResult> {
 
   if (!others || others.length === 0) {
     return { candidates: [], yourSkills: mySkills };
+  }
+
+  // Shared events (replaces the old XP-proximity bonus with a verifiable
+  // fact: people who showed up to the same events team up more easily).
+  const otherIds = others.map((o) => o.id);
+  const { data: myRegs } = await supabase
+    .from("event_registrations")
+    .select("event_id")
+    .eq("profile_id", myId);
+  const myEventIds = new Set((myRegs ?? []).map((r: { event_id: string }) => r.event_id));
+  const regsByProfile = new Map<string, Set<string>>();
+  if (otherIds.length > 0) {
+    const { data: otherRegs } = await supabase
+      .from("event_registrations")
+      .select("profile_id, event_id")
+      .in("profile_id", otherIds);
+    for (const r of (otherRegs ?? []) as Array<{ profile_id: string; event_id: string }>) {
+      if (!regsByProfile.has(r.profile_id)) regsByProfile.set(r.profile_id, new Set());
+      regsByProfile.get(r.profile_id)!.add(r.event_id);
+    }
   }
 
   // Score each candidate
@@ -87,11 +106,14 @@ export async function findTeammates(): Promise<TeamMatchResult> {
       score += (commonSkills.length / Math.max(mySkills.length, otherSkills.length)) * 60;
     }
 
-    // XP proximity bonus
-    const xpDiff = Math.abs((profile.xp ?? 0) - (other.xp ?? 0));
-    if (xpDiff < 500) {
+    // Shared events bonus (verifiable fact, not a score to raise)
+    const theirEvents = regsByProfile.get(other.id) ?? new Set<string>();
+    const sharedCount = [...myEventIds].filter((e) => theirEvents.has(e)).length;
+    if (sharedCount > 0) {
       score += 20;
-      reasons.push("Similar experience level");
+      reasons.push(
+        sharedCount === 1 ? "Went to the same event" : `Went to the same ${sharedCount} events`,
+      );
     }
 
     // Bio-based match (keyword overlap)
@@ -115,7 +137,6 @@ export async function findTeammates(): Promise<TeamMatchResult> {
       full_name: other.full_name ?? "Unnamed",
       bh_id: other.bh_id ?? "",
       role: other.role ?? "hacker",
-      xp: other.xp ?? 0,
       avatar_url: other.avatar_url,
       bio: other.bio,
       skills: otherSkills,

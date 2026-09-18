@@ -31,7 +31,7 @@ export const GET = withRateLimit(async (
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("full_name, bh_id, role, xp, bio")
+    .select("full_name, bh_id, role, bio")
     .eq("bh_id", bhId)
     .single()
 

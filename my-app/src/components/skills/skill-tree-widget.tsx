@@ -9,7 +9,6 @@ import { logger } from "@/lib/logger";
 interface SkillTreeSummary {
   totalSkills: number;
   totalUnlocked: number;
-  overallProgress: number;
   treeCount: number;
 }
 
@@ -85,23 +84,10 @@ export default function SkillTreeWidget() {
         </span>
       </div>
 
-      {/* Progress bar */}
-      <div className="h-2 w-full bg-surface-hover rounded-full overflow-hidden">
-        <div
-          className={cn(
-            "h-full rounded-full transition-all duration-700",
-            isComplete
-              ? "bg-status-green"
-              : "bg-gradient-to-r from-primary-red to-red-400",
-          )}
-          style={{ width: `${Math.round(summary.overallProgress)}%` }}
-        />
-      </div>
-
       {/* Summary text */}
       <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
         <span>{summary.treeCount} tree{summary.treeCount !== 1 ? "s" : ""}</span>
-        <span className="font-semibold">{Math.round(summary.overallProgress)}% complete</span>
+        <span className="font-semibold">{summary.totalUnlocked} of {summary.totalSkills} verified</span>
       </div>
     </Link>
   );

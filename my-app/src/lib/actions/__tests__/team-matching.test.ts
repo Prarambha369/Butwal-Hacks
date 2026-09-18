@@ -11,7 +11,7 @@ const mockedCreateServiceClient = createServiceClient as any;
 
 function buildMockDb() {
   const db: Record<string, any> = {};
-  const methods = ["from", "select", "eq", "neq", "limit", "single"];
+  const methods = ["from", "select", "eq", "neq", "limit", "single", "in"];
   for (const m of methods) db[m] = vi.fn(() => db);
   return db;
 }
@@ -35,7 +35,6 @@ describe("findTeammates", () => {
         skills: ["React", "TypeScript", "Node.js"],
         social_links: {},
         bh_id: "BH-24-001",
-        xp: 500,
         bio: "Full-stack developer passionate about building apps",
       },
       error: null,
@@ -49,7 +48,6 @@ describe("findTeammates", () => {
           full_name: "Alice",
           bh_id: "BH-24-002",
           role: "hacker",
-          xp: 600,
           avatar_url: null,
           bio: "React developer building awesome apps",
           skills: ["React", "Python", "TypeScript"],
@@ -81,7 +79,7 @@ describe("findTeammates", () => {
     mockedCreateServiceClient.mockReturnValue(db);
 
     db.single.mockResolvedValueOnce({
-      data: { id: "my-prof-1", skills: [], social_links: {}, bh_id: "BH-24-001", xp: 0, bio: null },
+      data: { id: "my-prof-1", skills: [], social_links: {}, bh_id: "BH-24-001", bio: null },
       error: null,
     });
     db.limit.mockResolvedValue({ data: null, error: null });
@@ -101,23 +99,30 @@ describe("findTeammates", () => {
     db.single.mockResolvedValueOnce({
       data: {
         id: "my-prof-1", skills: ["React"], social_links: {},
-        bh_id: "BH-24-001", xp: 500, bio: "Developer",
+        bh_id: "BH-24-001", bio: "Developer",
       },
       error: null,
     });
 
     db.limit.mockResolvedValue({
       data: [
-        { id: "other-1", full_name: "Low Match", bh_id: "B2", role: "hacker", xp: 10, avatar_url: null, bio: null, skills: [], social_links: {} },
-        { id: "other-2", full_name: "High Match", bh_id: "B3", role: "hacker", xp: 600, avatar_url: null, bio: "Developer creating apps", skills: ["React"], social_links: {} },
+        { id: "other-1", full_name: "Low Match", bh_id: "B2", role: "hacker", avatar_url: null, bio: null, skills: [], social_links: {} },
+        { id: "other-2", full_name: "High Match", bh_id: "B3", role: "hacker", avatar_url: null, bio: "Developer creating apps", skills: ["React"], social_links: {} },
       ],
       error: null,
     });
+    // Shared-event bonus: both match on e1, so Low survives filtering but ranks second.
+    // eq() order: profile lookup, others filter (both intermediate), then myRegs (terminal).
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockResolvedValueOnce({ data: [{ event_id: "e1" }], error: null });
+    db.in.mockResolvedValueOnce({ data: [{ profile_id: "other-1", event_id: "e1" }, { profile_id: "other-2", event_id: "e1" }], error: null });
 
     const { findTeammates } = await import("../team-matching");
     const result = await findTeammates();
 
     expect(result.candidates[0].full_name).toBe("High Match");
     expect(result.candidates[1].full_name).toBe("Low Match");
+    expect(result.candidates[1].matchReasons.some((r: string) => r.includes("same event"))).toBe(true);
   });
 });

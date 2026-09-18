@@ -7,7 +7,6 @@ export interface ExplorerMember {
   avatar: string
   bio: string
   skills: string[]
-  xp: number // kept internally for sort signal; not displayed
   projects: number
   events: number
   joined: string
@@ -28,7 +27,6 @@ interface ProfileRow {
   role: string | null
   bio: string | null
   skills: string[] | null
-  xp: number | null
   created_at: string
   auth0_user_id?: string | null
   project_count?: number
@@ -46,12 +44,10 @@ export async function fetchExplorerMembers(
       role,
       bio,
       skills,
-      xp,
       created_at,
       auth0_user_id
     `)
     .not("bh_id", "is", null)
-    .order("xp", { ascending: false })
     .limit(100);
 
   if (error || !profiles) {
@@ -104,7 +100,6 @@ export async function fetchExplorerMembers(
       avatar: initials,
       bio: p.bio || "",
       skills: p.skills || [],
-      xp: p.xp || 0,
       projects: projectCounts.get(p.id) || 0,
       events: eventCounts.get(p.id) || 0,
       joined: p.created_at ? p.created_at.slice(0, 7) : "",

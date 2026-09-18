@@ -43,7 +43,6 @@ export const GET = withRateLimit(async (
           avatar_url,
           skills,
           socials,
-          xp,
           ai_summary,
           created_at,
           trust_markers!trust_markers_profile_id_fkey (
@@ -77,7 +76,6 @@ export const GET = withRateLimit(async (
         avatar_url: profile.avatar_url,
         skills: profile.skills,
         socials: profile.socials,
-        xp: profile.xp,
         ai_summary: profile.ai_summary,
         member_since: profile.created_at,
         trust_markers: (profile.trust_markers ?? []).map((m: unknown) => {

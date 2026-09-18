@@ -111,7 +111,7 @@ export default async function HackerDashboardLayout({
   const db = createServiceClient();
   const { data: profile } = await db
     .from("profiles")
-    .select("id, role, slug_id, full_name, bio, socials, xp, trust_markers")
+    .select("id, role, slug_id, full_name, bio, socials, trust_markers")
     .eq("auth0_user_id", userId)
     .single();
 
@@ -146,7 +146,6 @@ export default async function HackerDashboardLayout({
         full_name: profile.full_name,
         bio: profile.bio,
         socials: profile.socials as Record<string, string> | null,
-        xp: profile.xp,
         trust_markers: profile.trust_markers as unknown[] | null,
       }
     : null;

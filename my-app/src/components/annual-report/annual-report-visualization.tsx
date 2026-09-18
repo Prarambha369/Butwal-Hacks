@@ -6,7 +6,6 @@ import {
   Calendar,
   Code2,
   Award,
-  Zap,
   ShieldCheck,
   TrendingUp,
   DollarSign,
@@ -88,7 +87,7 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
     );
   }
 
-  const { summary, financials, topHackers, monthlySignups, projectCategories, techUsage, skillTreeUnlocks, communityMetrics } = report;
+  const { summary, financials, recentlyVerified, monthlySignups, projectCategories, techUsage, skillTreeUnlocks, communityMetrics } = report;
   const maxMonthlySignups = Math.max(...monthlySignups.map((m) => m.count), 1);
   const maxSkillUnlocks = Math.max(...skillTreeUnlocks.map((m) => m.count), 1);
   const maxCategoryCount = Math.max(...projectCategories.map((c) => c.count), 1);
@@ -108,7 +107,6 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
           <StatCard icon={<Code2 className="w-4 h-4" />} label="Projects" value={summary.newProjects} sub={`${communityMetrics.totalProjects} total built`} />
           <StatCard icon={<Award className="w-4 h-4" />} label="Trust Markers" value={summary.trustMarkersIssued} sub="Verified achievements" />
           <StatCard icon={<ShieldCheck className="w-4 h-4" />} label="Teams" value={summary.newTeams} sub="Collaborations formed" />
-          <StatCard icon={<Zap className="w-4 h-4" />} label="Contributions" value={summary.totalXpAwarded.toLocaleString()} sub="Total score" />
           <StatCard icon={<Sparkles className="w-4 h-4" />} label="Credentials" value={summary.microCredentialsAwarded} sub="Skill verifications" />
           <StatCard icon={<DollarSign className="w-4 h-4" />} label="Budget" value={financials.available ? formatCurrency(financials.received, financials.currency) : "—"} sub="Total received" />
         </div>
@@ -270,41 +268,32 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
         </section>
       )}
 
-      {/* ── Top Hackers Leaderboard ───────────────────────────────── */}
-      {topHackers.length > 0 && (
+      {/* ── Recently verified (chronological record, not a ranking) ── */}
+      {recentlyVerified.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-5">
             <Trophy className="w-4 h-4 text-primary-red" />
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Top Contributors</h2>
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Recently Verified</h2>
           </div>
           <div className="bh-card overflow-hidden">
-            {topHackers.map((hacker, i) => (
+            {recentlyVerified.map((entry, i) => (
               <div
-                key={hacker.bh_id}
+                key={`${entry.bh_id}-${entry.unlocked_at}-${i}`}
                 className={cn(
-                  "flex items-center gap-4 px-5 py-3.5 transition-colors",
-                  i < topHackers.length - 1 ? "border-b border-border" : "",
-                  i === 0 ? "bg-primary-red/5" : "hover:bg-surface-hover/50",
+                  "flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-hover/50",
+                  i < recentlyVerified.length - 1 ? "border-b border-border" : "",
                 )}
               >
-                <span className={cn(
-                  "w-7 h-7 rounded-full flex items-center justify-center text-xs font-black",
-                  i === 0 ? "bg-status-yellow/20 text-status-yellow" :
-                  i === 1 ? "bg-muted-foreground/20 text-muted-foreground" :
-                  i === 2 ? "bg-status-orange/20 text-status-orange" :
-                  "bg-surface-hover text-muted-foreground",
-                )}>
-                  {i + 1}
-                </span>
                 <div className="flex-1 min-w-0">
-                  <Link href={`/p/${hacker.bh_id}`} className="text-sm font-bold text-primary hover:text-primary-red transition-colors truncate block">
-                    {hacker.full_name}
+                  <Link href={`/p/${entry.bh_id}`} className="text-sm font-bold text-primary hover:text-primary-red transition-colors truncate block">
+                    {entry.full_name}
                   </Link>
-                  <span className="text-[10px] font-mono text-muted-foreground">{hacker.bh_id}</span>
+                  <span className="text-[10px] font-mono text-muted-foreground">{entry.bh_id} · {entry.credential_name}</span>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-primary">{hacker.xp.toLocaleString()}</p>
-                  <p className="text-[9px] font-mono text-muted-foreground">Score</p>
+                <div className="text-right shrink-0">
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(entry.unlocked_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </p>
                 </div>
               </div>
             ))}

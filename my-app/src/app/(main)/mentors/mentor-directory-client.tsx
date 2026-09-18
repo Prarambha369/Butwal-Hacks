@@ -24,7 +24,6 @@ interface MentorProfile {
   avatar_url: string | null
   bio: string | null
   skills: string[] | null
-  xp: number
   cal_com_url: string | null
   socials: Record<string, string> | null
 }
