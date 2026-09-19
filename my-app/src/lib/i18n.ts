@@ -97,6 +97,7 @@ const translations: Record<string, { en: string; ne: string }> = {
   'footer.resources_page': { en: 'Resources', ne: 'स्रोतहरू' },
   'footer.documentation': { en: 'Documentation', ne: 'कागजातहरू' },
   'footer.donors': { en: 'Donors', ne: 'दाताहरू' },
+  'footer.partners': { en: 'Partners', ne: 'साझेदारहरू' },
   'footer.annual_report': { en: 'Annual Report', ne: 'वार्षिक प्रतिवेदन' },
   'footer.about_us': { en: 'About Us', ne: 'हाम्रो बारेमा' },
   'footer.philosophy': { en: 'Philosophy', ne: 'दर्शन' },
@@ -419,6 +420,7 @@ const translations: Record<string, { en: string; ne: string }> = {
   /* ── Trusted by ── */
   'home.trusted_by.label': { en: 'Supported by', ne: 'सहयोगीहरू' },
   'home.trusted_by.footer': { en: 'Student-run, open-source, built in public.', ne: 'विद्यार्थी-संचालित, खुला स्रोत, सार्वजनिक रूपमा निर्मित।' },
+  'home.trusted_by.view_all': { en: 'View all', ne: 'सबै हेर्नुहोस्' },
 
   /* ── Staggered feature cards ── */
   'home.features.hacker_id.title': { en: 'Your Hacker ID, Signed & Verified', ne: 'तपाईंको ह्याकर आईडी, हस्ताक्षरित र प्रमाणित' },

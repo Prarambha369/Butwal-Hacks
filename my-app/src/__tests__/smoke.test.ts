@@ -40,6 +40,7 @@ const routes = [
   { name: "/annual-report", path: "@/app/(main)/annual-report/page", hasGenMeta: true },
   { name: "/sitemap", path: "@/app/(main)/sitemap/page" },
   { name: "/donors", path: "@/app/(main)/donors/page" },
+  { name: "/partners", path: "@/app/(main)/partners/page" },
   { name: "/transparency", path: "@/app/(main)/transparency/page" },
   { name: "/initiatives", path: "@/app/(main)/initiatives/page" },
   { name: "/initiatives/[slug]", path: "@/app/(main)/initiatives/[slug]/page" },
