@@ -1,12 +1,18 @@
 import { notFound } from 'next/navigation';
-import { createClient } from '@/utils/supabase';
+import { createServiceClient } from '@/utils/supabase';
 import TeamPortfolio from '@/components/teams/team-portfolio';
 import RelatedLinks from '@/components/home/related-links';
 import { blogPosts, initiatives, getRelatedByTags } from '@/lib/content';
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export async function generateMetadata() {
+  return buildPageMetadata({title: "Team", description: "A student hackathon team at Butwal Hacks. See members and their projects.", path: "/teams", keywords: []});
+}
 
 export default async function TeamPortfolioPage({ params }: { params: Promise<{ team_id: string }> }) {
   const { team_id } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: team, error } = await supabase
     .from('teams')

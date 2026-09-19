@@ -13,4 +13,13 @@
 --      public read access still works — but it now respects any future RLS
 --      restrictions.
 
-ALTER VIEW public.trusted_profiles SET (security_invoker = true);
+-- Guarded: the view was created via dashboard SQL, so fresh chains built
+-- purely from migrations don't have it yet. No code references it, so a
+-- missing view is fine — only harden it when present.
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_views WHERE schemaname = 'public' AND viewname = 'trusted_profiles'
+  ) THEN
+    ALTER VIEW public.trusted_profiles SET (security_invoker = true);
+  END IF;
+END $$;

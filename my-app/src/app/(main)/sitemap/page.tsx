@@ -15,7 +15,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Sitemap — Explore Butwal Hacks",
-  description: "Complete site directory for Butwal Hacks. Browse all pages, programs, events, and resources organized by category.",
+  description: "Find every Butwal Hacks page in one place: events, projects, teams, and resources.",
   path: "/sitemap",
 })
 
@@ -45,8 +45,6 @@ const sections: SiteSection[] = [
     icon: <Calendar className="h-5 w-5" />,
     links: [
       { href: "/events", label: "All Events", description: "Upcoming and past events calendar" },
-      { href: "/events/list", label: "Event List", description: "Detailed list view of all events" },
-      { href: "/programs", label: "Programs", description: "Structured learning and building programs" },
       { href: "/gallery", label: "Event Gallery", description: "Photos from hackathons and meetups" },
     ],
   },
@@ -71,6 +69,7 @@ const sections: SiteSection[] = [
       { href: "/blog", label: "Blog", description: "Stories, updates, and community articles" },
       { href: "/support", label: "Sponsor Prospectus", description: "Partner with us to support youth tech" },
       { href: "/donors", label: "Donor Recognition", description: "Honoring our supporters and contributors" },
+      { href: "/partners", label: "Partners", description: "Organizations backing our programs" },
     ],
   },
   {

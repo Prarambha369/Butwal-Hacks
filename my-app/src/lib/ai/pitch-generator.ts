@@ -8,7 +8,7 @@
  * Uses system message + structured format for consistent output.
  */
 
-import { callGroq } from "./groq-client";
+import { callGroq, GROQ_TEXT_MODEL } from "./groq-client";
 
 export interface PitchInput {
   title: string;
@@ -176,7 +176,7 @@ export async function generatePitch(input: PitchInput): Promise<PitchResult> {
     ],
     maxTokens: 400,
     temperature: 0.7,
-    model: "llama-3.3-70b-versatile",
+    model: GROQ_TEXT_MODEL,
     timeout: 25_000,
   });
 

@@ -1,3 +1,13 @@
+/** Escape HTML entities to prevent injection in email/HTML contexts. */
+export function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
 /** Strip HTML tags, trim whitespace, limit length. */
 export function sanitizeString(input: string, maxLength = 5000): string {
   return input
@@ -29,8 +39,8 @@ export const sanitizeUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-
 
 /** Validate search input length and allowed chars */
 export function validateSearchInput(input: string): { valid: boolean; error?: string } {
-  if (input.length > 100) return { valid: false, error: "Search query must be less than 100 characters" };
-  if (!/^[a-zA-Z0-9\s\-'_]*$/.test(input)) return { valid: false, error: "Search query contains invalid characters" };
+  if (input.length > 100) return { valid: false, error: "Keep your search under 100 characters" };
+  if (!/^[a-zA-Z0-9\s\-'_]*$/.test(input)) return { valid: false, error: "Letters, numbers, spaces, and - ' _ only, please" };
   return { valid: true };
 }
 

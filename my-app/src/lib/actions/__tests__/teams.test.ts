@@ -22,11 +22,19 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+vi.mock("@/lib/actions/admin", () => ({
+  requireMaintainer: vi.fn(),
+}));
+
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
+import { requireMaintainer } from "@/lib/actions/admin";
 
 const mockedGetSession = auth0.getSession as ReturnType<typeof vi.fn>;
 const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>;
+const mockedRequireMaintainer = requireMaintainer as ReturnType<typeof vi.fn>;
+// Default: maintainer fallback denies (tests authorize via organizer/captain match).
+mockedRequireMaintainer.mockRejectedValue(new Error("Forbidden"));
 
 // ─── Mock Database Builder ───────────────────────────────────────────────────
 
@@ -376,9 +384,14 @@ describe("forceCreateTeam", () => {
   });
 
   it("creates team without members", async () => {
+    setAuthenticated();
     const db = mockSupabase();
     db.select.mockReturnValue(db);
-    db.single.mockResolvedValue({ data: { id: "new-team-id" }, error: null });
+    // resolveProfileId → event organizer check (match) → team insert
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { organizer_id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { id: "new-team-id" }, error: null });
 
     const { forceCreateTeam } = await import("../teams");
     const result = await forceCreateTeam("event-1", "New Team", []);
@@ -388,15 +401,34 @@ describe("forceCreateTeam", () => {
   });
 
   it("creates team with members", async () => {
+    setAuthenticated();
     const db = mockSupabase();
     db.select.mockReturnValue(db);
-    db.single.mockResolvedValue({ data: { id: "team-id" }, error: null });
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { organizer_id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { id: "team-id" }, error: null });
 
     const { forceCreateTeam } = await import("../teams");
     const result = await forceCreateTeam("event-1", "Full Team", ["p1", "p2"]);
 
     expect(result.success).toBe(true);
     expect(result.team_id).toBe("team-id");
+  });
+
+  it("denies team creation for non-organizers", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    db.select.mockReturnValue(db);
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { organizer_id: "someone-else" }, error: null });
+
+    const { forceCreateTeam } = await import("../teams");
+    const result = await forceCreateTeam("event-1", "Sneaky Team", []);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Only the event organizer can do this.");
   });
 });
 
@@ -408,10 +440,16 @@ describe("forceAddTeamMember", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns error if already a member", async () => {
+    setAuthenticated();
     const db = mockSupabase();
     db.select.mockReturnValue(db);
     db.eq.mockReturnValue(db);
-    db.single.mockResolvedValue({ data: { id: "existing" }, error: null });
+    // Code order: team lookup → resolveProfileId → organizer check → existing check
+    db.single
+      .mockResolvedValueOnce({ data: { event_id: "event-1" }, error: null })
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { organizer_id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { id: "existing" }, error: null });
 
     const { forceAddTeamMember } = await import("../teams");
     const result = await forceAddTeamMember("team-1", "profile-1");
@@ -421,10 +459,15 @@ describe("forceAddTeamMember", () => {
   });
 
   it("adds member successfully", async () => {
+    setAuthenticated();
     const db = mockSupabase();
     db.select.mockReturnValue(db);
     db.eq.mockReturnValue(db);
-    db.single.mockResolvedValueOnce({ data: null, error: null }); // not already a member
+    db.single
+      .mockResolvedValueOnce({ data: { event_id: "event-1" }, error: null })
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { organizer_id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: null, error: null }); // not already a member
     // Insert succeeds via chain behavior
 
     const { forceAddTeamMember } = await import("../teams");
@@ -442,11 +485,19 @@ describe("removeTeamMember", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("removes member successfully", async () => {
+    setAuthenticated();
     const db = mockSupabase();
+    // resolveProfileId → captain check (match)
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { is_captain: true }, error: null });
     db.delete.mockReturnValue(db);
-    // removeTeamMember chains: .delete().eq("team_id", ...).eq("profile_id", ...)
-    db.eq.mockReturnValueOnce(db);                                    // first eq() must return db for chaining
-    db.eq.mockResolvedValueOnce({ error: null });                      // second eq() is terminal
+    // eq() calls in order: profile lookup, captain check x2, delete chain x2 (terminal resolves)
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockResolvedValueOnce({ error: null });
 
     const { removeTeamMember } = await import("../teams");
     const result = await removeTeamMember("team-1", "profile-1");
@@ -455,16 +506,37 @@ describe("removeTeamMember", () => {
   });
 
   it("returns error on deletion failure", async () => {
+    setAuthenticated();
     const db = mockSupabase();
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { is_captain: true }, error: null });
     db.delete.mockReturnValue(db);
-    db.eq.mockReturnValueOnce(db);                                    // first eq() must return db for chaining
-    db.eq.mockResolvedValueOnce({ error: { message: "FK constraint" } }); // second eq() is terminal
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockResolvedValueOnce({ error: { message: "FK constraint" } }); // terminal
 
     const { removeTeamMember } = await import("../teams");
     const result = await removeTeamMember("team-1", "profile-1");
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("Failed to remove member.");
+  });
+
+  it("denies removal for non-captains", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { is_captain: false }, error: null });
+
+    const { removeTeamMember } = await import("../teams");
+    const result = await removeTeamMember("team-1", "profile-1");
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Only the team captain can remove members.");
   });
 });
 
@@ -476,10 +548,17 @@ describe("deleteTeam", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("deletes team and its members", async () => {
+    setAuthenticated();
     const db = mockSupabase();
+    // resolveProfileId → team lookup (organizer match)
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { id: "team-1", event_id: "event-1", organizer_id: "caller" }, error: null });
     // deleteTeam chains: members.delete().eq("team_id", teamId) then team.delete().eq("id", teamId)
-    // Each chain has one .eq() call (terminal), run sequentially
+    // eq() calls in order: profile lookup, team lookup, members chain (terminal), team chain (terminal)
     db.delete.mockReturnValue(db);
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockReturnValueOnce(db);
     // First chain: members — eq is terminal, returns success
     db.eq.mockResolvedValueOnce({ error: null });
     // Second chain: team — eq is terminal, returns success
@@ -493,8 +572,14 @@ describe("deleteTeam", () => {
   });
 
   it("returns error on deletion failure", async () => {
+    setAuthenticated();
     const db = mockSupabase();
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { id: "bad-id", event_id: "event-1", organizer_id: "caller" }, error: null });
     db.delete.mockReturnValue(db);
+    db.eq.mockReturnValueOnce(db);
+    db.eq.mockReturnValueOnce(db);
     // First chain: members — eq terminal, succeeds
     db.eq.mockResolvedValueOnce({ error: null });
     // Second chain: team — eq terminal, fails
@@ -505,5 +590,20 @@ describe("deleteTeam", () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("Failed to delete team.");
+  });
+
+  it("denies deletion for strangers", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null })
+      .mockResolvedValueOnce({ data: { id: "team-1", event_id: "event-1", organizer_id: "someone-else" }, error: null })
+      .mockResolvedValueOnce({ data: { is_captain: false }, error: null });
+
+    const { deleteTeam } = await import("../teams");
+    const result = await deleteTeam("team-1");
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("captain or event organizer");
   });
 });

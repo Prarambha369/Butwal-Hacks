@@ -2,6 +2,7 @@
 
 import { ExternalLink, Edit3, Calendar, User, Tag, X, ArrowUpRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { formatDualDate } from "@/lib/nepali-date"
 import Link from "next/link"
 import type { ProjectRow } from "./project-database-table"
 
@@ -30,10 +31,7 @@ export default function ProjectQuickView({ project, onClose }: ProjectQuickViewP
     ? statusColors[project.category] || "text-muted-foreground bg-surface-hover"
     : "text-muted-foreground bg-surface-hover"
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr)
-    return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-  }
+  const formatDate = (dateStr: string) => formatDualDate(new Date(dateStr))
 
   return (
     <>

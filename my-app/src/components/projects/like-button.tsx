@@ -73,8 +73,6 @@ export default function LikeButton({ projectId, initialLikes = 0 }: LikeButtonPr
       const result = await toggleProjectLike(projectId);
       if (result.success) {
         toast.success(prevLiked ? 'Removed like' : 'Project liked!');
-
-        // ponytail: XP award removed — handled by a separate trigger if needed
       }
     } catch (error: unknown) {
       // revert optimistic update

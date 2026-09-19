@@ -3,6 +3,12 @@ import { createServiceClient } from '@/utils/supabase';
 
 import { getUserProjects } from '@/lib/actions/projects';
 import ProfileClient from '@/components/hacker-id/profile-client';
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export async function generateMetadata() {
+  return buildPageMetadata({title: "Profile", description: "View a user profile", path: "/profile", keywords: []});
+}
 
 export const dynamic = "force-dynamic";
 
@@ -10,12 +16,15 @@ export default async function HackerProfilePage({ params }: { params: Promise<{ 
   const { bh_id } = await params;
   const supabase = createServiceClient();
 
+  // Explicit public allowlist — never select("*") on profiles with the service
+  // role key: email, is_suspended, and other private columns would be shipped
+  // to the browser. Only fields the public profile renders belong here.
   const { data: profile, error } = await supabase
     .from('profiles')
     .select(`
-      *,
-      trust_markers (
-        id, title, description, type, is_revoked, created_at,
+      id, full_name, bh_id, role, bio, avatar_url, social_links, ai_summary,
+      trust_markers!trust_markers_profile_id_fkey (
+        id, title, description, type, is_revoked, revocation_reason, created_at,
         events ( title, start_date ),
         issuer:profiles!trust_markers_issuer_id_fkey ( full_name, bh_id )
       )

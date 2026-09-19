@@ -1,7 +1,7 @@
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import Link from "next/link";
 import {
-  Users, ShieldCheck,
+  Users, ShieldCheck, MessageSquare,
   ArrowRight, CheckCircle2, AlertCircle, AlertTriangle,
   Settings2, GraduationCap, UserCheck, Database, ScrollText,
 } from "lucide-react";
@@ -14,11 +14,15 @@ import AuditLogFeed from "@/components/audit/audit-log-feed";
 import { runAllChecks, toSystemCheckResult } from "@/lib/health-checks";
 import type { AuditLog } from "@/lib/supabase-types";
 import type { SystemCheckResult } from "@/lib/health-checks";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "Maintainer Dashboard", description: "Maintainer workspace", path: "/dashboard/maintainer", keywords: []}), robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic";
 
 export default async function MaintainerCommandCenter() {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // ── Clean separate queries (no nested expansions that silently fail) ──
   const { count: profileCount } = await supabase
@@ -204,6 +208,7 @@ export default async function MaintainerCommandCenter() {
             <div className="space-y-2">
               <ControlLink href="/dashboard/maintainer/site-config" icon={<Settings2 size={14} />} label="Site Config" desc="Maintenance mode, site settings" color="text-status-orange" />
               <ControlLink href="/dashboard/maintainer/users" icon={<Users size={14} />} label="User Management" desc="Manage users, roles, bans" color="text-status-blue" />
+              <ControlLink href="/dashboard/maintainer/testimonials" icon={<MessageSquare size={14} />} label="Testimonials" desc="Review quotes, feature VIP voices" color="text-status-green" />
               <ControlLink href="/dashboard/maintainer/trust-override" icon={<ShieldCheck size={14} />} label="Trust Override" desc="Revoke or reinstate markers" color="text-primary-red" />
               <ControlLink href="/dashboard/maintainer/audit-log" icon={<ScrollText size={14} />} label="Audit Log" desc="Full system activity log" color="text-muted-foreground" />
               <ControlLink href="/dashboard/maintainer/dedicate-school" icon={<GraduationCap size={14} />} label="Dedicate School" desc="Add a new school chapter" color="text-muted-foreground" />

@@ -7,7 +7,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Environment Setup",
-  description: "Set up your Butwal Hacks engineering environment with clear prerequisites and installation steps.",
+  description: "Get the Butwal Hacks codebase running on your machine, step by step. No experience with this stack? You'll manage.",
   path: "/docs/engineering/environment-setup",
 })
 
@@ -51,7 +51,7 @@ export default function EnvironmentSetupDocPage() {
 
           <article className="min-w-0">
             <p className="text-lg leading-relaxed text-secondary">
-              This guide helps you configure a local development environment for Butwal Hacks so your setup matches production and linting standards.
+              This guide gets Butwal Hacks running on your machine. Follow it top to bottom. Stuck on a step? Ask on Discord, someone will help.
             </p>
 
             <div className="mt-7 rounded-xl border border-primary/40 bg-primary/10 p-5">

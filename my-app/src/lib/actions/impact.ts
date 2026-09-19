@@ -1,9 +1,9 @@
 "use server";
 
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 
 export async function getImpactReport(reportId: string) {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("impact_reports")
     .select(`*, projects (*)`)

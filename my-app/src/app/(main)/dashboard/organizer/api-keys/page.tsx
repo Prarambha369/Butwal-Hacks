@@ -1,10 +1,14 @@
-import { createClient } from '@/utils/supabase';
+import { createServiceClient } from '@/utils/supabase';
 import { redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
 import { ShieldCheck } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { ApiKeyList } from './api-key-list';
 import { GenerateKeyForm } from './generate-key-form';
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "API Keys", description: "Manage your API keys", path: "/dashboard/organizer/api-keys", keywords: []}), robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +18,7 @@ export default async function ApiKeysPage() {
 
   if (!userId) redirect('/sign-in');
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data: profile } = await supabase
     .from('profiles')
     .select('id')

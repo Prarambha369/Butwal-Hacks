@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { withRateLimit } from "@/lib/rate-limiter"
 
 /**
  * Open Badges 3.0 — Issuer Profile
@@ -7,7 +8,7 @@ import { NextResponse } from "next/server"
  * Referenced by every assertion as the `issuer` property.
  * Cache-friendly: static data, never changes.
  */
-export async function GET() {
+export const GET = withRateLimit(async () => {
   const issuer = {
     "@context": [
       "https://www.w3.org/ns/credentials/v2",
@@ -32,4 +33,4 @@ export async function GET() {
       "Cache-Control": "public, max-age=86400, s-maxage=86400",
     },
   })
-}
+}, "frequent")

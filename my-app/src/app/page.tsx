@@ -2,74 +2,98 @@ import Navbar from '@/components/sections/Navbar';
 import Hero from '@/components/sections/Hero';
 import ImpactMetrics from '@/components/home/impact-metrics';
 import LiveStatsCounter from '@/components/home/live-stats-counter';
-import EventCalendar from '@/components/home/event-calendar';
-import EventGallery from '@/components/home/event-gallery';
 import NonProfitFAQ from '@/components/home/non-profit-faq';
-import TrustedBy from '@/components/home/trusted-by';
-import { FadeIn } from '@/components/home/shared-primitives';
 import StaggeredFeatures from '@/components/home/staggered-features';
-import DatabaseTable from '@/components/home/database-table';
-import TypographyBlocks from '@/components/home/typography-blocks';
-import FeaturesCTA from '@/components/home/features-cta';
+import FeaturedProjects from '@/components/home/featured-projects';
+import StepsStrip from '@/components/home/steps-strip';
+import EventCalendar from '@/components/home/event-calendar';
+import TrustedBy from '@/components/home/trusted-by';
 import ContactCTA from '@/components/sections/ContactCTA';
 import Footer from '@/components/sections/Footer';
+import { FadeIn } from '@/components/home/shared-primitives';
+import { getFeaturedProjects } from '@/lib/actions/projects';
+import { createServiceClient } from '@/utils/supabase';
 import { buildPageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Butwal Hacks — The Pulse of Innovation in Western Nepal",
+  title: "Butwal Hacks: Free Hackathons for Students in Nepal",
   description:
-    "A youth-led nonprofit building structured pathways from learning to building to launching real-world technology initiatives in Western Nepal. Free hackathons, mentorship, and verified credentials.",
+    "Butwal Hacks runs free hackathons, workshops, and mentorship for students across Nepal. No fees, no experience needed. Just show up and build.",
   path: "/",
 });
 
 export const dynamic = "force-static";
 
-export default function LandingPage() {
+/**
+ * Landing page — one calm narrative, no filler:
+ *   belong (Hero) → proof (live stats) → values → tools →
+ *   real work (featured builds) → how it goes (steps) →
+ *   answers (FAQ) → one invitation (ContactCTA).
+ *
+ * Retired from this composition (files kept for later real-data use):
+ * database-table (showcase rows), typography-blocks (manifesto
+ * repetition), event-gallery (stock photos), features-cta (duplicate
+ * cards).
+ *
+ * Restored with real data: event-calendar (published events plotted,
+ * organizer publishing flows through automatically) and trusted-by
+ * (maintainer-managed partner wall, hidden until a partner exists).
+ */
+export default async function LandingPage() {
+  const projects = await getFeaturedProjects(6);
+
+  // Published events feed the calendar grid. Publishing is the only
+  // step an organizer takes — no separate calendar management exists.
+  const supabase = createServiceClient();
+  const { data: publishedEvents } = await supabase
+    .from("events")
+    .select("title, slug, start_date")
+    .eq("is_published", true)
+    .order("start_date", { ascending: true })
+    .limit(200);
+  const calendarEvents = ((publishedEvents ?? []) as Array<{
+    title: string; slug: string | null; start_date: string;
+  }>).map((e) => ({ title: e.title, slug: e.slug, start_date: e.start_date }));
+
   return (
     <div className="min-h-dvh bg-background text-primary">
       <Navbar />
       <main>
-        {/* Block 1: Hero */}
+        {/* 1. Belong */}
         <Hero />
 
-        {/* Block 2: Trusted By (social proof) */}
-        <TrustedBy />
-
-        {/* Block 3: Live Stats Counter (animated DB metrics) */}
+        {/* 2. Proof — live from the database */}
         <LiveStatsCounter />
 
-        {/* Block 4: Impact Metrics (values) */}
+        {/* 3. Values */}
         <ImpactMetrics />
 
-        {/* Block 5: Events Calendar */}
-        <EventCalendar />
-
-        {/* Block 6: Event Gallery */}
-        <EventGallery />
-
-        {/* Block 7: Staggered Feature Grid — Notion-inspired offset cards */}
+        {/* 4. Tools */}
         <FadeIn>
           <StaggeredFeatures />
         </FadeIn>
 
-        {/* Block 9: Database Table — Notion-style project view */}
+        {/* 5. Real work — community builds, honest empty state */}
         <FadeIn delay={120}>
-          <DatabaseTable />
+          <FeaturedProjects projects={projects} />
         </FadeIn>
 
-        {/* Block 10: Typography Blocks — Notion document-style section */}
-        <FadeIn delay={240}>
-          <TypographyBlocks />
+        {/* 5b. When — published events on the calendar, with .ics sync */}
+        <EventCalendar events={calendarEvents} />
+
+        {/* 6. How it goes — orientation, no ask */}
+        <FadeIn delay={180}>
+          <StepsStrip />
         </FadeIn>
 
-        {/* Block 11: FAQ */}
+        {/* 7. Answers */}
         <NonProfitFAQ />
 
-        {/* Block 12: Feature Grid + Final CTA */}
-        <FeaturesCTA />
+        {/* 7b. Who backs us — maintainer wall, hidden until real */}
+        <TrustedBy />
 
-        {/* Block 13: CTA Section */}
+        {/* 8. The single invitation */}
         <ContactCTA />
       </main>
 

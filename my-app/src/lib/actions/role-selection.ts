@@ -69,6 +69,10 @@ export async function selectRole(formData: FormData) {
   }
 
   revalidatePath("/dashboard");
+
+  // At this point `role` is already restricted to hacker, maintainer, or
+  // lead. organizer/sponsor self-selection returns early above with an error
+  // requesting approval instead.
   redirect(`/dashboard/${role}`);
 }
 

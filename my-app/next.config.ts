@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 /**
  * next.config.ts — production Next.js configuration for Butwal Hacks.
@@ -39,7 +40,7 @@ const baseCSP = `
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://api.dicebear.com https://api.qrserver.com;
   font-src 'self';
-  worker-src 'self';
+  worker-src 'self' blob:;
   object-src 'none';
   base-uri 'self';
   form-action 'self';
@@ -106,6 +107,14 @@ const widgetHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  // Pin the Turbopack root to the workspace root (repo root — one level up
+  // from this app dir). npm workspaces hoists `next` to the repo-root
+  // node_modules, so without an explicit root Turbopack can mis-infer (e.g.
+  // a stray package-lock.json in the user's home dir) and then refuse to
+  // compile anything, since deps outside the inferred root are blocked.
+  turbopack: {
+    root: path.resolve(process.cwd(), ".."),
+  },
 
 
 
@@ -129,6 +138,18 @@ const nextConfig: NextConfig = {
         hostname: "api.qrserver.com",
       },
     ],
+  },
+  // ─── Consolidation redirects (permanent, SEO-safe) ───
+  // Merged routes keep their link equity: old URLs 308 to canonical homes.
+  async redirects() {
+    return [
+      // /events/list was a near-duplicate of /events (which already has
+      // upcoming/past tabs) and leaked DRAFT events publicly.
+      { source: "/events/list", destination: "/events", permanent: true },
+      // /programs/* folded into initiatives (single completed instance).
+      { source: "/programs/annual-hackathon", destination: "/initiatives/hackathon", permanent: true },
+      { source: "/programs", destination: "/initiatives", permanent: true },
+    ]
   },
   async headers() {
     return [

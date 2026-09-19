@@ -10,6 +10,8 @@ interface AuthAwareCtaProps {
   actionHref: string;
   /** Label shown on the action button when user is authenticated */
   actionLabel: string;
+  /** Label shown to signed-out users. Defaults to "Sign in to Continue". */
+  signedOutLabel?: string;
   /** Optional return path after sign-in redirect */
   returnTo?: string;
   /** Variant style */
@@ -23,6 +25,7 @@ interface AuthAwareCtaProps {
 export default function AuthAwareCta({
   actionHref,
   actionLabel,
+  signedOutLabel = "Sign in to Continue",
   returnTo = "/",
   variant = "primary",
   className,
@@ -54,7 +57,7 @@ export default function AuthAwareCta({
         )}
       >
         <LogIn className="h-4 w-4" />
-        Sign in to Continue
+        {signedOutLabel}
       </Link>
     );
   }

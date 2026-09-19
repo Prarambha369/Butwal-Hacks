@@ -3,35 +3,44 @@ import type { MetadataRoute } from 'next'
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Butwal Hacks',
-    short_name: 'BHacks',
+    short_name: 'BH',
     description: "Student hackathons, projects & verified credentials in Nepal.",
+    id: '/',
+    scope: '/',
     start_url: '/',
     display: 'standalone',
     background_color: '#F7F7F8',
     theme_color: '#FE0000',
+    lang: 'en',
+    dir: 'ltr',
+    categories: ['education'],
     icons: [
-      // ─── SVG (modern browsers) ───────────────────────────────
       {
-        src: '/icon.svg',
-        sizes: '512x512',
+        src: '/favicon.svg',
+        sizes: 'any',
         type: 'image/svg+xml',
         purpose: 'any',
       },
       {
-        src: '/icon-192.svg',
-        sizes: '192x192',
-        type: 'image/svg+xml',
-        purpose: 'any',
-      },
-      // ─── PNG (Android / legacy browser support) ───────────────
-      {
-        src: '/android-chrome-192x192.png',
+        src: '/icon-192.png',
         sizes: '192x192',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/android-chrome-512x512.png',
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icon-512.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',

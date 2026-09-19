@@ -16,17 +16,7 @@ export const roleColors: Record<string, string> = {
   Sponsor: "text-primary-red border-primary-red/20 bg-primary-red/10",
 }
 
-function XpBar({ xp, maxXp = 10000 }: { xp: number; maxXp?: number }) {
-  const pct = Math.min((xp / maxXp) * 100, 100)
-  return (
-    <div className="w-full h-1 rounded-full bg-surface-hover overflow-hidden">
-      <div
-        className="h-full rounded-full bg-gradient-to-r from-primary-red/60 to-primary-red transition-all duration-500"
-        style={{ width: `${pct}%` }}
-      />
-    </div>
-  )
-}
+
 
 export function MemberCard({
   member,
@@ -95,8 +85,6 @@ export function MemberCard({
           {/* Meta row */}
           <div className="flex items-center gap-3 text-[10px] font-mono text-muted-foreground/50">
             <span>{member.bhId}</span>
-            <span className="w-1 h-1 rounded-full bg-muted-foreground/20" />
-            <span>{member.xp.toLocaleString()} XP</span>
             {member.projects > 0 && (
               <>
                 <span className="w-1 h-1 rounded-full bg-muted-foreground/20" />
@@ -104,9 +92,6 @@ export function MemberCard({
               </>
             )}
           </div>
-
-          {/* XP Progress Bar */}
-          <XpBar xp={member.xp} />
 
           {/* Skills */}
           {member.skills.length > 0 && (

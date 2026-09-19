@@ -11,7 +11,7 @@ export const revalidate = 300;
 export const metadata: Metadata = buildPageMetadata({
   title: "Financial Transparency",
   description:
-    "Real-time financial data from Open Collective. Butwal Hacks operates with full transparency — all income, expenses, and budget are publicly auditable.",
+    "Every rupee in and out, live from Open Collective. Our budget is public, down to the last momo.",
   path: "/transparency",
 })
 

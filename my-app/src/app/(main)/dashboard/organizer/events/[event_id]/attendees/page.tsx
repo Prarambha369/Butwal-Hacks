@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { notFound, redirect } from "next/navigation";
 import { getAvatarUrl } from "@/lib/utils";
 import { auth0 } from "@/lib/auth0";
@@ -7,6 +7,12 @@ import { Users, ExternalLink, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import AttendeeExport, { type Attendee } from "@/components/dashboard/organizer/attendee-export";
 import { CheckInButton } from "./checkin-button";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export async function generateMetadata() {
+  return { ...buildPageMetadata({title: "Attendees", description: "Event attendee list", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
+}
 
 type Props = {
   params: Promise<{ event_id: string }>;
@@ -32,7 +38,7 @@ export default async function AttendeesPage({ params }: Props) {
 
   if (!userId) redirect("/sign-in");
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: event } = await supabase
     .from("events")

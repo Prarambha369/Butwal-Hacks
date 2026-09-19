@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase';
+import { createServiceClient } from '@/utils/supabase';
+import { withRateLimit } from '@/lib/rate-limiter';
 
-export async function GET(
+export const GET = withRateLimit(async (
   request: NextRequest,
   { params }: { params: Promise<{ bhId: string }> }
-) {
+) => {
   const { bhId } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('full_name, bh_id, role, xp')
+    .select('full_name, bh_id, role')
     .eq('bh_id', bhId)
     .single();
 
@@ -27,9 +28,8 @@ export async function GET(
       name: profile.full_name,
       id: profile.bh_id,
       role: profile.role,
-      xp: profile.xp,
     },
   }, {
     headers: { "Cache-Control": "public, max-age=300, s-maxage=600" },
   });
-}
+}, "frequent")

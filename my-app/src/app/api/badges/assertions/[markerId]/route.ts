@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/utils/supabase"
+import { createServiceClient } from "@/utils/supabase"
+import { withRateLimit } from "@/lib/rate-limiter"
 
 /**
  * Open Badges 3.0 — Badge Assertion
@@ -10,12 +11,12 @@ import { createClient } from "@/utils/supabase"
  * This endpoint is referenced as the `id` in the OB3 JSON-LD and
  * can be imported into LinkedIn, Mozilla Backpack, or any OB3 wallet.
  */
-export async function GET(
+export const GET = withRateLimit(async (
   _request: NextRequest,
   { params }: { params: Promise<{ markerId: string }> },
-) {
+) => {
   const { markerId } = await params
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { data: marker, error } = await supabase
     .from("trust_markers")
@@ -48,7 +49,7 @@ export async function GET(
     credentialSubject: {
       id: `${siteUrl}/p/${marker.profiles?.bh_id ?? ""}`,
       type: ["AchievementSubject"],
-      name: marker.profiles?.full_name ?? "Unknown",
+      name: marker.profiles?.full_name ?? "A Mysterious Hacker",
       achievement: {
         id: `${siteUrl}/api/badges/achievements/${marker.type}`,
         type: ["Achievement"],
@@ -91,4 +92,4 @@ export async function GET(
       "Cache-Control": "public, max-age=3600, s-maxage=3600",
     },
   })
-}
+}, "frequent")

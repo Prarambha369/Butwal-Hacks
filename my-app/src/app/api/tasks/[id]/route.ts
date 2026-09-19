@@ -115,7 +115,7 @@ async function handlePatch(
     .single()
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: "Failed to update task" }, { status: 500 })
   }
 
   return NextResponse.json({ task: updated })
@@ -159,7 +159,7 @@ async function handleDelete(
     .eq("id", id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: "Failed to delete task" }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })

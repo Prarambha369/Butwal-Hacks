@@ -71,7 +71,7 @@ export function EnhancedContactForm() {
           required
           rows={5}
           className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red"
-          placeholder="Tell us more about your inquiry..."
+          placeholder="What do you want to ask or tell us? Anything is fine."
         />
       </div>
       <button

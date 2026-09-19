@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import type { Metadata } from "next"
 import { Users } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"
@@ -14,13 +14,13 @@ export const revalidate = 60;
 export const metadata: Metadata = buildPageMetadata({
   title: "Explore — Butwal Hacks Community",
   description:
-    "Discover builders, mentors, and organizers in the Butwal Hacks community. Browse profiles, search by BH-ID, and find your next collaborator.",
+    "Meet the builders, mentors, and organizers of Butwal Hacks. Look anyone up by BH-ID and find your next teammate.",
   path: "/explore",
   keywords: ["member directory", "BH-ID explorer", "community profiles", "tech talent Nepal"],
 })
 
 export default async function ExplorePage() {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const explorerMembers = await fetchExplorerMembers(supabase);
   const stats = getExplorerStats(explorerMembers);
 
@@ -45,7 +45,7 @@ export default async function ExplorePage() {
           totalMembers={stats.total}
           totalBuilders={stats.byRole.Builder}
           totalProjects={stats.totalProjects}
-          totalXp={stats.totalXp}
+          totalEvents={stats.totalEvents}
         />
 
         {/* ── MEMBER DIRECTORY ────────────────────────────────────── */}

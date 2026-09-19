@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/utils/supabase";
 import { auth0 } from "@/lib/auth0";
+import { withRateLimit } from "@/lib/rate-limiter";
 import { logger } from "@/lib/logger";
 import { generateCertificatesPdf } from "@/lib/pdf/certificate-export";
 import type { CertificateData, EventInfo } from "@/lib/pdf/certificate-export";
@@ -15,10 +16,10 @@ import type { CertificateData, EventInfo } from "@/lib/pdf/certificate-export";
  * Requires organizer or maintainer role for the event.
  * Returns a PDF file download.
  */
-export async function GET(
+export const GET = withRateLimit(async (
   request: Request,
   { params }: { params: Promise<{ eventId: string }> },
-) {
+) => {
   try {
     const { eventId } = await params;
 
@@ -123,4 +124,4 @@ export async function GET(
     logger.error("[export-certificates] Unexpected error:", err);
     return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
   }
-}
+}, "bulk")

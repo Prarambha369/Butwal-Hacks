@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { createClient } from "@/utils/supabase"
+import { createServiceClient } from "@/utils/supabase"
 
 // Fetches events from Supabase + checks Auth0 session at request time.
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ import { ArrowRight, CalendarDays } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Events",
-  description: "Browse upcoming and past hackathons, workshops, and community gatherings at Butwal Hacks.",
+  description: "Free hackathons, workshops, and meetups in Butwal and across Nepal. Come build something.",
   path: "/events",
 })
 
@@ -22,7 +22,7 @@ export default async function EventsPage() {
   const session = await auth0.getSession();
   const isSignedIn = !!session?.user;
 
-  const supabase = createClient()
+  const supabase = createServiceClient()
 
   const { data: dbEvents } = await supabase
     .from("events")
@@ -64,12 +64,6 @@ export default async function EventsPage() {
                   >
                     Your Dashboard <ArrowRight className="w-4 h-4" />
                   </Link>
-                  <Link
-                    href="/events/list"
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all active:scale-95"
-                  >
-                    Browse All Events
-                  </Link>
                   <a
                     href="/api/events/ical"
                     className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all active:scale-95"
@@ -84,12 +78,6 @@ export default async function EventsPage() {
                     className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
                   >
                     Join an Event <ArrowRight className="w-4 h-4" />
-                  </Link>
-                  <Link
-                    href="/events/list"
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all active:scale-95"
-                  >
-                    Browse All Events
                   </Link>
                   <a
                     href="/api/events/ical"

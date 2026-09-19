@@ -179,6 +179,12 @@
 }
 
 @layer utilities {
+  /* Partner wall marquee (was styled-jsx inside the old client component) */
+  @keyframes bh-trustedby-marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
   /* 🧱 Solid surface — flat white/gray card, 1px border, no blur */
   .bh-surface-solid {
     background: var(--bh-surface);
@@ -345,8 +351,6 @@
   .bh-input:focus {
     border-color: var(--bh-primary-red);
     box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.2);
-  }
-
   }
 
   .bh-input-sm {
@@ -635,3 +639,4 @@
     from { opacity: 0; transform: translateX(8px); }
     to { opacity: 1; transform: translateX(0); }
   }
+}

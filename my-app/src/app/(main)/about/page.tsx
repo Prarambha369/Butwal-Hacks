@@ -45,8 +45,8 @@ export default function AboutPage() {
         </ul>
         <h2 className="mt-10 text-2xl sm:text-3xl font-bold font-heading text-primary">Transparency</h2>
         <p className="mt-3 text-muted-foreground leading-relaxed">
-          Every initiative on this site is labeled by status — active, planned, or proposed. We don&apos;t inflate claims or pretend roadmaps are reality.
-          Our finances are public on Open Collective. Our code is open-source on GitHub. Trust is earned by telling the truth, even when it&apos;s not impressive.
+          Our finances are public on Open Collective. Our code is open-source on GitHub.
+          How we think about honesty is written down in our <a href="/philosophy" className="font-semibold text-primary underline underline-offset-4 hover:text-primary-red">philosophy</a>.
         </p>
       </section>
 

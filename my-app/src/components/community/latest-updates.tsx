@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ChevronRight, Calendar, ArrowUpRight } from "lucide-react"
 import { blogPosts } from "@/lib/content"
+import { formatDualDate } from "@/lib/nepali-date"
 import { FadeIn } from "@/components/home/shared-primitives"
 
 export function LatestUpdates() {
@@ -41,11 +42,7 @@ export function LatestUpdates() {
                 <div className="flex items-center gap-2 text-[11px] font-medium text-secondary/60 mb-3">
                   <Calendar className="w-3.5 h-3.5" />
                   <time dateTime={post.publishedAt}>
-                    {new Date(post.publishedAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                    {formatDualDate(new Date(post.publishedAt))}
                   </time>
                 </div>
                 <h3 className={`font-bold text-primary group-hover:text-primary-red transition-colors ${

@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { Users, Plus, ChevronRight, UserPlus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = buildPageMetadata({title: "Teams", description: "Find a hackathon team in Butwal, or start your own. All levels welcome.", path: "/teams", keywords: []});
 
 export default async function TeamsPage() {
   const session = await auth0.getSession();
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: profile } = await supabase
     .from("profiles")
