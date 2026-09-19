@@ -17,11 +17,14 @@ export interface CalendarEvent {
   end_date?: string | null;
 }
 
-/** Engine range edges (0-indexed AD months): Apr 1913 … Apr 2043. */
-const MIN_MONTH = { y: 1913, m: 3 };
+/** Browsable edges. The engine converts Apr 1913 … Apr 2043, but browsing
+ * floors at the 2025 establishment year: Jan 2025 AD / Poush 2081 BS
+ * (the BS month containing Jan 2025). Earlier dates still convert;
+ * navigation just stops here. AD months are 0-indexed. */
 const MAX_MONTH = { y: 2043, m: 3 };
-const MIN_BS = { y: 1970, m: 1 };
 const MAX_BS = { y: 2099, m: 12 };
+const FLOOR_MONTH = { y: 2025, m: 0 };
+const FLOOR_BS = { y: 2081, m: 9 };
 
 type CalendarView = "bs" | "ad";
 const VIEW_KEY = "bh-calendar-view";
@@ -353,10 +356,11 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
 function AdNavButton({ dir, label, onNav, date }: { dir: -1 | 1; label: string; onNav: (o: number) => void; date: Date }) {
   const y = date.getFullYear();
   const m = date.getMonth();
-  // Clamp navigation to the conversion engine's range.
+  // Clamp navigation to the conversion engine's range, floored at the
+  // 2025 establishment year.
   const can = dir === 1
     ? (y < MAX_MONTH.y || (y === MAX_MONTH.y && m < MAX_MONTH.m))
-    : (y > MIN_MONTH.y || (y === MIN_MONTH.y && m > MIN_MONTH.m));
+    : (y > FLOOR_MONTH.y || (y === FLOOR_MONTH.y && m > FLOOR_MONTH.m));
   return (
     <button
       onClick={() => onNav(dir)}
@@ -374,7 +378,7 @@ function BsNavButton({ dir, label, onNav, bsView }: { dir: -1 | 1; label: string
   m += dir;
   if (m < 1) { m = 12; y--; }
   if (m > 12) { m = 1; y++; }
-  const can = !(y < MIN_BS.y || (y === MIN_BS.y && m < MIN_BS.m) || y > MAX_BS.y || (y === MAX_BS.y && m > MAX_BS.m));
+  const can = !(y < FLOOR_BS.y || (y === FLOOR_BS.y && m < FLOOR_BS.m) || y > MAX_BS.y || (y === MAX_BS.y && m > MAX_BS.m));
   return (
     <button
       onClick={() => onNav(dir)}
