@@ -249,12 +249,6 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
                 </button>
               ))}
             </div>
-            <button
-              onClick={goToday}
-              className="rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-bold text-primary hover:bg-surface-hover transition-all"
-            >
-              {t("home.calendar.today", locale)}
-            </button>
             <a
               href="/api/events/ical"
               download="butwal-hacks-events.ics"
@@ -263,7 +257,13 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
               <CalendarPlus className="w-3.5 h-3.5" aria-hidden="true" />
               {t("home.calendar.sync", locale)}
             </a>
-            <div className="flex bg-surface-hover rounded-full p-1">
+            <div className="flex bg-surface-hover rounded-full p-1 items-center">
+              <button
+                onClick={goToday}
+                className="px-3 py-1.5 rounded-full text-[11px] font-bold text-primary hover:bg-background transition-all"
+              >
+                {t("home.calendar.today", locale)}
+              </button>
               {view === "bs" ? (
                 <>
                   <BsNavButton dir={-1} label={t("home.calendar.prev", locale)} onNav={changeBsMonth} bsView={bsView} />
@@ -279,39 +279,55 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
           </div>
         </div>
 
-        <div className="mb-6 flex flex-wrap items-center gap-1.5" role="group" aria-label={t("home.calendar.bh_label", locale)}>
-          <span className="mr-1 font-mono text-[10px] uppercase text-muted-foreground">
-            {t("home.calendar.bh_label", locale)}
-          </span>
-          <button
-            onClick={() => setBhFilter("all")}
-            aria-pressed={bhFilter === "all"}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition-all ${
-              bhFilter === "all"
-                ? "border-primary-red/40 bg-primary-red/8 text-primary"
-                : "border-border bg-surface text-muted-foreground hover:text-primary"
-            }`}
-          >
-            {t("home.calendar.bh_all", locale)}
-          </button>
-          {presentCategories.map((c) => {
-            const active = bhFilter === c;
-            return (
-              <button
-                key={c}
-                onClick={() => setBhFilter(active ? "all" : c)}
-                aria-pressed={active}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition-all ${
-                  active
-                    ? "border-primary-red/40 bg-primary-red/8 text-primary"
-                    : "border-border bg-surface text-muted-foreground hover:text-primary"
-                }`}
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-primary-red" aria-hidden="true" />
-                {t(`home.calendar.cat_${c.toLowerCase().replace(" ", "_")}`, locale)}
-              </button>
-            );
-          })}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t("home.calendar.bh_label", locale)}>
+            <span className="mr-1 font-mono text-[10px] uppercase text-muted-foreground">
+              {t("home.calendar.bh_label", locale)}
+            </span>
+            <button
+              onClick={() => setBhFilter("all")}
+              aria-pressed={bhFilter === "all"}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition-all ${
+                bhFilter === "all"
+                  ? "border-primary-red/40 bg-primary-red/8 text-primary"
+                  : "border-border bg-surface text-muted-foreground hover:text-primary"
+              }`}
+            >
+              {t("home.calendar.bh_all", locale)}
+            </button>
+            {presentCategories.map((c) => {
+              const active = bhFilter === c;
+              return (
+                <button
+                  key={c}
+                  onClick={() => setBhFilter(active ? "all" : c)}
+                  aria-pressed={active}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition-all ${
+                    active
+                      ? "border-primary-red/40 bg-primary-red/8 text-primary"
+                      : "border-border bg-surface text-muted-foreground hover:text-primary"
+                  }`}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary-red" aria-hidden="true" />
+                  {t(`home.calendar.cat_${c.toLowerCase().replace(" ", "_")}`, locale)}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1" aria-label="Calendar legend">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary-red" aria-hidden="true" />
+              {t("home.calendar.legend_events", locale)}
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-status-yellow" aria-hidden="true" />
+              {t("home.calendar.legend_festivals", locale)}
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-status-blue" aria-hidden="true" />
+              {t("home.calendar.legend_holidays", locale)}
+            </span>
+          </div>
         </div>
 
         {view === "bs" ? (
@@ -337,20 +353,6 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
             monthLabel={monthLabel}
           />
         )}
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1" aria-label="Calendar legend">
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary-red" aria-hidden="true" />
-            {t("home.calendar.legend_events", locale)}
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-status-yellow" aria-hidden="true" />
-            {t("home.calendar.legend_festivals", locale)}
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-status-blue" aria-hidden="true" />
-            {t("home.calendar.legend_holidays", locale)}
-          </span>
-        </div>
       </div>
     </section>
   );
