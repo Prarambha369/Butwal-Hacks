@@ -5,8 +5,12 @@ import { describe, it, expect } from "vitest";
 describe("consolidation redirects", () => {
   it("redirects merged routes to canonical homes", async () => {
     const config = await import("../../next.config");
-    const redirects = await config.default.redirects();
-    const bySource = new Map(redirects.map((r: { source: string; destination: string; permanent: boolean }) => [r.source, r]));
+    const redirectsFn = config.default.redirects;
+    expect(redirectsFn).toBeDefined();
+    const redirects = await redirectsFn!();
+    const bySource = new Map(
+      redirects.map((r) => [r.source, r] as const),
+    );
 
     expect(bySource.get("/events/list")).toMatchObject({
       destination: "/events",
