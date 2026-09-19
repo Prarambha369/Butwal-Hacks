@@ -18,11 +18,14 @@ export default function FeaturedProjects({ projects }: { projects: FeaturedProje
       <section className="py-16 md:py-24 bg-surface border-b border-border">
         <div className="mx-auto max-w-6xl px-4">
           <div className="text-center space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center">
+            <div className="bh-wiggle-hover mx-auto w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center cursor-default">
               <Monitor className="w-8 h-8 text-muted-foreground opacity-20" />
             </div>
             <p className="text-sm text-muted-foreground font-mono opacity-60">
-              Nothing featured yet. The first community builds will show up here.
+              Nothing featured yet. Your half-broken demo could live here.
+            </p>
+            <p className="text-xs text-muted-foreground/70 font-mono">
+              Be the first legend. Ship something at the next hackathon.
             </p>
           </div>
         </div>
