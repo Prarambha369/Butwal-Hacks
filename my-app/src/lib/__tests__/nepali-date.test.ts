@@ -15,6 +15,10 @@ const VERIFIED_PAIRS: Array<{ ad: [number, number, number]; bs: [number, number,
   { ad: [2026, 9, 17], bs: [2083, 6, 1] }, // Ashwin 2083 begins
   { ad: [2026, 9, 19], bs: [2083, 6, 3] }, // current date — Ashwin 3
   { ad: [2026, 10, 18], bs: [2083, 7, 1] }, // Kartik 2083 begins
+  { ad: [1913, 4, 13], bs: [1970, 1, 1] }, // range start (dual-source corroborated)
+  { ad: [1943, 4, 13], bs: [1999, 12, 31] }, // splice boundary: meets the 2000 anchor
+  { ad: [1920, 1, 1], bs: [1976, 9, 17] }, // splice boundary: opennp daily mapping
+  { ad: [2043, 4, 13], bs: [2099, 12, 30] }, // range end (dual-source corroborated)
   { ad: [2033, 4, 14], bs: [2090, 1, 1] }, // Nepali New Year 2090
   // Last supported day: BS 2090 Chaitra has 30 days, so 2090-12-30 =
   // AD 2034-04-13. (2090-01-01 itself = 2033-04-14, consistent with the
@@ -41,11 +45,11 @@ describe("adToBs", () => {
   })
 
   it("throws for dates before the supported range", () => {
-    expect(() => adToBs(utc(1943, 4, 13))).toThrow(RangeError)
+    expect(() => adToBs(utc(1913, 4, 12))).toThrow(RangeError)
   })
 
   it("throws for dates after the supported range", () => {
-    expect(() => adToBs(utc(2034, 4, 14))).toThrow(RangeError)
+    expect(() => adToBs(utc(2043, 4, 14))).toThrow(RangeError)
   })
 
   it("interprets days in Nepal time, not UTC or local TZ", () => {
@@ -64,9 +68,9 @@ describe("bsToAd", () => {
     )
   })
 
-  it("throws for BS years outside 2000-2090", () => {
-    expect(() => bsToAd(1999, 1, 1)).toThrow(RangeError)
-    expect(() => bsToAd(2091, 1, 1)).toThrow(RangeError)
+  it("throws for BS years outside 1970-2099", () => {
+    expect(() => bsToAd(1969, 1, 1)).toThrow(RangeError)
+    expect(() => bsToAd(2100, 1, 1)).toThrow(RangeError)
   })
 })
 
@@ -78,17 +82,17 @@ describe("calendar integrity", () => {
     expect(days).toBe(365)
   })
 
-  it("every year in the dataset spans 365 or 366 days", () => {
-    for (let y = 2000; y <= 2089; y++) {
+  it("every year in the dataset spans 364 to 366 days", () => {
+    for (let y = 1970; y <= 2098; y++) {
       const days = (bsToAd(y + 1, 1, 1).getTime() - bsToAd(y, 1, 1).getTime()) / 86400000
-      expect(days, `BS ${y} length`).toBeGreaterThanOrEqual(365)
+      expect(days, `BS ${y} length`).toBeGreaterThanOrEqual(364)
       expect(days, `BS ${y} length`).toBeLessThanOrEqual(366)
     }
   })
 
   it("round-trips every day of the current supported decade", () => {
     // Spot-check years across the range rather than all ~33k days.
-    for (const y of [2000, 2016, 2039, 2062, 2082]) {
+    for (const y of [1975, 2000, 2016, 2039, 2062, 2082, 2095]) {
       const start = bsToAd(y, 1, 1)
       const end = bsToAd(y + 1, 1, 1)
       for (let t = start.getTime(); t < end.getTime(); t += 86400000 * 17) {
