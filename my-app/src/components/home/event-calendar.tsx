@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, CalendarPlus } from "lucide-react";
-import { adToBs, BS_MONTH_NAMES } from "@/lib/nepali-date";
+import { adToBs, BS_MONTH_NAMES, nptDayParts } from "@/lib/nepali-date";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
 
@@ -11,11 +11,12 @@ export interface CalendarEvent {
   title: string;
   slug: string | null;
   start_date: string;
+  end_date?: string | null;
 }
 
-function dayKey(d: Date): string {
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
+/** Engine range edges (0-indexed months): Apr 1943 … Apr 2034. */
+const MIN_MONTH = { y: 1943, m: 3 };
+const MAX_MONTH = { y: 2034, m: 3 };
 
 /**
  * Month grid with published events plotted from the database.
@@ -25,13 +26,37 @@ function dayKey(d: Date): string {
 export default function EventCalendar({ events = [] }: { events?: CalendarEvent[] }) {
   const { locale } = useLanguage();
 
+  /** Whole-day serial of a timestamp's Nepal day (DST-proof). */
+  function nptSerial(d: Date): number | null {
+    if (Number.isNaN(d.getTime())) return null;
+    const { y, m, day } = nptDayParts(d);
+    return Date.UTC(y, m - 1, day) / 86400000;
+  }
+
+  function serialKey(serial: number): string {
+    const d = new Date(serial * 86400000);
+    return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+  }
+
+  /** Serial of an AD grid cell (year, 0-indexed month, day). */
+  function cellSerial(y: number, m: number, day: number): number {
+    return Date.UTC(y, m, day) / 86400000;
+  }
+
   const byDay = new Map<string, CalendarEvent[]>();
   for (const ev of events) {
-    const d = new Date(ev.start_date);
-    if (Number.isNaN(d.getTime())) continue;
-    const k = dayKey(d);
-    if (!byDay.has(k)) byDay.set(k, []);
-    byDay.get(k)!.push(ev);
+    const startSerial = nptSerial(new Date(ev.start_date));
+    if (startSerial === null) continue;
+    // Multi-day events span every Nepal day from start to end (capped,
+    // so a bad end date can't spin for years). Single-day when no end.
+    let endSerial = ev.end_date ? nptSerial(new Date(ev.end_date)) : startSerial;
+    if (endSerial === null || endSerial < startSerial) endSerial = startSerial;
+    if (endSerial > startSerial + 62) endSerial = startSerial + 62;
+    for (let s = startSerial; s <= endSerial; s++) {
+      const k = serialKey(s);
+      if (!byDay.has(k)) byDay.set(k, []);
+      byDay.get(k)!.push(ev);
+    }
   }
 
   // `new Date()` evaluated during SSR (server runs UTC, client runs
@@ -52,6 +77,8 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
     if (!date) return;
     setDate(new Date(date.getFullYear(), date.getMonth() + offset, 1));
   };
+
+
 
   if (!date || !today) {
     return (
@@ -80,6 +107,13 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
   const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   const bs = adToBs(date);
 
+  // Clamp navigation to the conversion engine's range: stepping past it
+  // used to crash render with an uncaught RangeError from adToBs.
+  const canPrev = date.getFullYear() > MIN_MONTH.y ||
+    (date.getFullYear() === MIN_MONTH.y && date.getMonth() > MIN_MONTH.m);
+  const canNext = date.getFullYear() < MAX_MONTH.y ||
+    (date.getFullYear() === MAX_MONTH.y && date.getMonth() < MAX_MONTH.m);
+
   return (
     <section className="bg-surface border-border border-b py-20">
       <div className="max-w-4xl mx-auto px-6">
@@ -101,8 +135,8 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
                 Sync
               </a>
               <div className="flex bg-surface-hover rounded-full p-1">
-                <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-background rounded-full" aria-label="Previous month"><ChevronLeft className="w-4 h-4" /></button>
-                <button onClick={() => changeMonth(1)} className="p-2 hover:bg-background rounded-full" aria-label="Next month"><ChevronRight className="w-4 h-4" /></button>
+                <button onClick={() => changeMonth(-1)} disabled={!canPrev} className="p-2 hover:bg-background rounded-full disabled:opacity-20 disabled:cursor-not-allowed" aria-label="Previous month"><ChevronLeft className="w-4 h-4" /></button>
+                <button onClick={() => changeMonth(1)} disabled={!canNext} className="p-2 hover:bg-background rounded-full disabled:opacity-20 disabled:cursor-not-allowed" aria-label="Next month"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
           </div>
@@ -117,7 +151,10 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
             const d = new Date(date.getFullYear(), date.getMonth(), day);
             const isToday = d.toDateString() === today;
             const dayBs = adToBs(d);
-            const dayEvents = byDay.get(dayKey(d)) ?? [];
+            // Cell identity is the AD date itself; event serials are Nepal
+            // days. They coincide for viewers in Nepal (the audience) and
+            // differ at most in the overnight window elsewhere.
+            const dayEvents = byDay.get(serialKey(cellSerial(date.getFullYear(), date.getMonth(), day))) ?? [];
             const first = dayEvents[0];
             return (
               <div key={day} className={`p-3 h-28 transition-colors border-t border-border ${isToday ? "bg-primary-red/5 hover:bg-primary-red/10" : "bg-background hover:bg-surface-hover"}`}>
