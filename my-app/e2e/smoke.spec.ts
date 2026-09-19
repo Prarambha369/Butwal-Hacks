@@ -32,7 +32,7 @@ test.describe("Butwal Hacks — Smoke Tests", () => {
 
   test("offline page is accessible", async ({ page }) => {
     await page.goto("/offline")
-    await expect(page.locator("text=Offline").or(page.locator("text=You're Offline"))).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Offline/i })).toBeVisible()
   })
 
   test("design-system page renders", async ({ page }) => {
