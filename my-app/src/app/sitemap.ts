@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { createServiceClient } from '@/utils/supabase'
 import { blogPosts, initiatives, events, chapters } from '@/lib/content'
+import { FESTIVALS_2083 } from '@/lib/festivals-2083'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://butwalhacks.com'
 const today = new Date()
@@ -71,6 +72,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${siteUrl}/chapters/${chapter.slug}`,
       lastModified: today,
       changeFrequency: 'monthly',
+      priority: 0.6,
+    })
+  }
+
+  // ─── Static: Festival index + permanent festival pages ────
+  // Samiti-seeded, dates never change once published.
+  entries.push({
+    url: `${siteUrl}/festivals`,
+    lastModified: today,
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  })
+  for (const festival of FESTIVALS_2083) {
+    entries.push({
+      url: `${siteUrl}/festivals/${festival.slug}`,
+      changeFrequency: 'yearly',
       priority: 0.6,
     })
   }

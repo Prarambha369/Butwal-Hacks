@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, CalendarPlus } from "lucide-react";
 import { adToBs, bsToAd, bsDaysInMonth, BS_MONTH_NAMES, BS_MONTH_NAMES_NE, nptDayParts } from "@/lib/nepali-date";
+import { FESTIVALS_2083, TRADITION_META, type FestivalEntry, type FestivalTradition } from "@/lib/festivals-2083";
 import { useLanguage } from "@/components/language-provider";
 import { t, type Locale } from "@/lib/i18n";
 
@@ -22,6 +23,9 @@ const MAX_BS = { y: 2099, m: 12 };
 
 type CalendarView = "bs" | "ad";
 const VIEW_KEY = "bh-calendar-view";
+
+type TraditionFilter = "all" | FestivalTradition;
+const TRADITION_ORDER: TraditionFilter[] = ["all", "hindu", "buddhist", "janajati", "civic", "christian"];
 
 /** Whole-day serial of a timestamp's Nepal day (DST-proof). */
 function nptSerial(d: Date): number | null {
@@ -89,6 +93,24 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
   const [today, setToday] = useState<string | null>(null);
   const [bsView, setBsView] = useState<{ y: number; m: number } | null>(null);
   const [view, setView] = useState<CalendarView>("bs");
+  // Tradition filter applies to Samiti festivals only; published events
+  // always show. Client state, intentionally not persisted.
+  const [tradFilter, setTradFilter] = useState<TraditionFilter>("all");
+
+  // Festivals are code-seeded from the Samiti patro (not the database),
+  // so they are always present. Maps keyed like the event maps above.
+  const festivalsByAd = new Map<string, FestivalEntry[]>();
+  const festivalsByBs = new Map<string, FestivalEntry[]>();
+  for (const f of FESTIVALS_2083) {
+    if (tradFilter !== "all" && f.tradition !== tradFilter) continue;
+    const serial = Date.UTC(f.ad[0], f.ad[1] - 1, f.ad[2]) / 86400000;
+    const ak = serialKey(serial);
+    if (!festivalsByAd.has(ak)) festivalsByAd.set(ak, []);
+    festivalsByAd.get(ak)!.push(f);
+    const bk = bsKey(f.bs[0], f.bs[1], f.bs[2]);
+    if (!festivalsByBs.has(bk)) festivalsByBs.set(bk, []);
+    festivalsByBs.get(bk)!.push(f);
+  }
 
   useEffect(() => {
     const now = new Date();
@@ -226,10 +248,37 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
           </div>
         </div>
 
+        <div className="mb-6 flex flex-wrap items-center gap-1.5" role="group" aria-label={t("home.calendar.festivals_label", locale)}>
+          <span className="mr-1 font-mono text-[10px] uppercase text-muted-foreground">
+            {t("home.calendar.festivals_label", locale)}
+          </span>
+          {TRADITION_ORDER.map((tr) => {
+            const active = tradFilter === tr;
+            return (
+              <button
+                key={tr}
+                onClick={() => setTradFilter(tr)}
+                aria-pressed={active}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition-all ${
+                  active
+                    ? "border-primary-red/40 bg-primary-red/8 text-primary"
+                    : "border-border bg-surface text-muted-foreground hover:text-primary"
+                }`}
+              >
+                {tr !== "all" && (
+                  <span className={`h-1.5 w-1.5 rounded-full ${TRADITION_META[tr].dot}`} aria-hidden="true" />
+                )}
+                {t(`home.calendar.tradition.${tr}`, locale)}
+              </button>
+            );
+          })}
+        </div>
+
         {view === "bs" ? (
           <BsGrid
             bsView={bsView}
             byBsDay={byBsDay}
+            festivalsByBs={festivalsByBs}
             today={today}
             weekdays={weekdays}
             locale={locale}
@@ -239,6 +288,7 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
           <AdGrid
             date={date}
             byAdDay={byAdDay}
+            festivalsByAd={festivalsByAd}
             today={today}
             weekdays={weekdays}
             locale={locale}
@@ -322,9 +372,39 @@ function EventLinks({ dayEvents, locale }: { dayEvents: CalendarEvent[]; locale:
   );
 }
 
-function AdGrid({ date, byAdDay, today, weekdays, locale, monthLabel }: {
+function FestivalLinks({ festivals, locale }: { festivals: FestivalEntry[]; locale: Locale }) {
+  const first = festivals[0];
+  if (!first) return null;
+  return (
+    <div className="mt-1 space-y-1">
+      <div className="flex gap-1" aria-hidden="true">
+        {festivals.slice(0, 3).map((f, j) => (
+          <span key={j} className={`h-1.5 w-1.5 rounded-full ${TRADITION_META[f.tradition].dot}`} />
+        ))}
+      </div>
+      <span className="sr-only">{festivals.length} festival{festivals.length === 1 ? "" : "s"}</span>
+      <Link
+        href={`/festivals/${first.slug}`}
+        className="block truncate text-[10px] font-bold text-status-yellow hover:opacity-80 transition-opacity min-h-[32px] sm:min-h-0 flex items-center"
+      >
+        {locale === "ne" ? first.nameNe : first.nameEn}
+      </Link>
+      {festivals.length > 1 && (
+        <Link
+          href="/festivals"
+          className="block text-[9px] font-mono text-muted-foreground hover:text-status-yellow transition-colors"
+        >
+          {t("home.calendar.festival_more", locale).replace("{n}", String(festivals.length - 1))}
+        </Link>
+      )}
+    </div>
+  );
+}
+
+function AdGrid({ date, byAdDay, festivalsByAd, today, weekdays, locale, monthLabel }: {
   date: Date;
   byAdDay: Map<string, CalendarEvent[]>;
+  festivalsByAd: Map<string, FestivalEntry[]>;
   today: string;
   weekdays: string[];
   locale: Locale;
@@ -332,11 +412,16 @@ function AdGrid({ date, byAdDay, today, weekdays, locale, monthLabel }: {
 }) {
   const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-  const hasAny = [...byAdDay.values()].some((l) => l.length > 0) &&
+  const hasEvents = [...byAdDay.values()].some((l) => l.length > 0) &&
     [...byAdDay.keys()].some((k) => {
       const [y, m] = k.split("-").map(Number);
       return y === date.getFullYear() && m === date.getMonth();
     });
+  const hasFestivals = [...festivalsByAd.keys()].some((k) => {
+    const [y, m] = k.split("-").map(Number);
+    return y === date.getFullYear() && m === date.getMonth();
+  });
+  const hasAny = hasEvents || hasFestivals;
 
   return (
     <>
@@ -362,12 +447,13 @@ function AdGrid({ date, byAdDay, today, weekdays, locale, monthLabel }: {
           const isToday = d.toDateString() === today;
           const dayBs = adToBs(d);
             const dayEvents = byAdDay.get(serialKey(cellSerial(date.getFullYear(), date.getMonth(), day))) ?? [];
+          const dayFestivals = festivalsByAd.get(serialKey(cellSerial(date.getFullYear(), date.getMonth(), day))) ?? [];
           const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
           return (
             <div
               key={day}
               role="gridcell"
-              aria-label={`${iso}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length === 1 ? "" : "s"}` : ""}`}
+              aria-label={`${iso}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length === 1 ? "" : "s"}` : ""}${dayFestivals.length > 0 ? `, ${dayFestivals.length} festival${dayFestivals.length === 1 ? "" : "s"}` : ""}`}
               className={`p-2 sm:p-3 h-20 sm:h-28 transition-colors border-t border-border ${isToday ? "bg-primary-red/5 hover:bg-primary-red/10 ring-1 ring-inset ring-primary-red/40" : "bg-background hover:bg-surface-hover"}`}
             >
               <time dateTime={iso} className={`text-xs font-bold block ${isToday ? "text-primary-red" : "text-primary"}`}>
@@ -376,6 +462,7 @@ function AdGrid({ date, byAdDay, today, weekdays, locale, monthLabel }: {
               </time>
               <span className="text-[9px] font-mono text-muted-foreground mt-1 hidden min-[420px]:block" aria-hidden="true">{dayBs.month}/{dayBs.day}</span>
               {dayEvents.length > 0 && <EventLinks dayEvents={dayEvents} locale={locale} />}
+              {dayFestivals.length > 0 && <FestivalLinks festivals={dayFestivals} locale={locale} />}
             </div>
           );
         })}
@@ -385,9 +472,10 @@ function AdGrid({ date, byAdDay, today, weekdays, locale, monthLabel }: {
   );
 }
 
-function BsGrid({ bsView, byBsDay, today, weekdays, locale, monthLabel }: {
+function BsGrid({ bsView, byBsDay, festivalsByBs, today, weekdays, locale, monthLabel }: {
   bsView: { y: number; m: number };
   byBsDay: Map<string, CalendarEvent[]>;
+  festivalsByBs: Map<string, FestivalEntry[]>;
   today: string;
   weekdays: string[];
   locale: Locale;
@@ -407,6 +495,9 @@ function BsGrid({ bsView, byBsDay, today, weekdays, locale, monthLabel }: {
     todayBs = null;
   }
   const hasAny = [...byBsDay.keys()].some((k) => {
+    const [y, m] = k.split("-").map(Number);
+    return y === bsView.y && m === bsView.m;
+  }) || [...festivalsByBs.keys()].some((k) => {
     const [y, m] = k.split("-").map(Number);
     return y === bsView.y && m === bsView.m;
   });
@@ -433,13 +524,14 @@ function BsGrid({ bsView, byBsDay, today, weekdays, locale, monthLabel }: {
           const day = i + 1;
           const isToday = todayBs !== null && todayBs.year === bsView.y && todayBs.month === bsView.m && todayBs.day === day;
           const dayEvents = byBsDay.get(`${bsView.y}-${bsView.m}-${day}`) ?? [];
+          const dayFestivals = festivalsByBs.get(`${bsView.y}-${bsView.m}-${day}`) ?? [];
           const ad = bsToAd(bsView.y, bsView.m, day);
           const iso = ad.toISOString().slice(0, 10);
           return (
             <div
               key={day}
               role="gridcell"
-              aria-label={`${iso}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length === 1 ? "" : "s"}` : ""}`}
+              aria-label={`${iso}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length === 1 ? "" : "s"}` : ""}${dayFestivals.length > 0 ? `, ${dayFestivals.length} festival${dayFestivals.length === 1 ? "" : "s"}` : ""}`}
               className={`p-2 sm:p-3 h-20 sm:h-28 transition-colors border-t border-border ${isToday ? "bg-primary-red/5 hover:bg-primary-red/10 ring-1 ring-inset ring-primary-red/40" : "bg-background hover:bg-surface-hover"}`}
             >
               <time dateTime={iso} className={`text-xs font-bold block ${isToday ? "text-primary-red" : "text-primary"}`}>
@@ -450,6 +542,7 @@ function BsGrid({ bsView, byBsDay, today, weekdays, locale, monthLabel }: {
                 {ad.getUTCMonth() + 1}/{ad.getUTCDate()}
               </span>
               {dayEvents.length > 0 && <EventLinks dayEvents={dayEvents} locale={locale} />}
+              {dayFestivals.length > 0 && <FestivalLinks festivals={dayFestivals} locale={locale} />}
             </div>
           );
         })}
