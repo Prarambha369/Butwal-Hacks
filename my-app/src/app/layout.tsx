@@ -17,6 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
   preload: true,
 });
 import { LanguageProvider } from "@/components/language-provider";
+import { AuthUserProvider } from "@/components/auth-user-provider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PostHogProvider } from "@/components/posthog-provider";
@@ -129,6 +130,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <Auth0Provider>
+          <AuthUserProvider>
             <PostHogProvider>
             <div id="app-content" tabIndex={-1} className="relative flex min-h-dvh flex-col overflow-x-hidden outline-none">
               <LanguageProvider>{children}</LanguageProvider>
@@ -136,6 +138,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </PostHogProvider>
           <AssistantPanel />
           <CommandSearch />
+          </AuthUserProvider>
         </Auth0Provider>
         {/* ponytail: pb-16 on mobile offsets the fixed bottom nav — md:pb-0 restores on desktop */}
         <div className="pb-16 md:pb-0" />

@@ -7,7 +7,7 @@ import { updateProfile } from '@/lib/actions/profile';
 import { toast } from 'sonner';
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
 import CameraCapture from '@/components/camera-capture';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useAuthUser } from '@/components/auth-user-provider';
 import { cn, getAvatarUrl } from '@/lib/utils';
 import { getSocialLinkError } from '@/lib/validation';
 import AvatarPreviewModal from './avatar-preview-modal';
@@ -19,7 +19,7 @@ const inputErrorClass = "border-bh-red-500 focus:ring-2 ring-bh-red-500/50";
 const labelClass = "text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground";
 
 export default function ProfileSettingsForm({ initialProfile }: { initialProfile: Record<string, unknown> }) {
-  const { user } = useUser();
+  const { user } = useAuthUser();
   const [formData, setFormData] = useState({
     full_name: (initialProfile?.full_name as string) || '',
     bio: (initialProfile?.bio as string) || '',

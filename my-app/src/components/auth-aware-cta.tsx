@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAuthUser } from "@/components/auth-user-provider";
 import Link from "next/link";
 import { LogIn, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ export default function AuthAwareCta({
   className,
   onAction,
 }: AuthAwareCtaProps) {
-  const { user, isLoading } = useUser();
+  const { user, isLoading } = useAuthUser();
 
   if (isLoading) {
     return (

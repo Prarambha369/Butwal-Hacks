@@ -28,7 +28,9 @@ export const GET = withRateLimit(async () => {
       db
         .from("profiles")
         .select("*", { count: "exact", head: true })
-        .eq("role", "hacker"),
+        // Claimed directory members only — the same population /explore
+        // lists, so the homepage number and the directory agree.
+        .not("bh_id", "is", null),
       db
         .from("events")
         .select("*", { count: "exact", head: true })

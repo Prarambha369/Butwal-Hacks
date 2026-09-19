@@ -42,10 +42,10 @@ interface ExploreHeroProps {
 // ─── Stat Items ────────────────────────────────────────────────────
 
 const statItems = [
-  { key: "members", icon: UsersRound, label: "Members", color: "text-primary-red", bg: "bg-primary-red/10" },
-  { key: "builders", icon: CodeXml, label: "Builders", color: "text-status-blue", bg: "bg-status-blue/10" },
-  { key: "projects", icon: FolderGit2, label: "Projects", color: "text-status-green", bg: "bg-status-green/10" },
-  { key: "events", icon: CalendarDays, label: "Events", color: "text-status-yellow", bg: "bg-status-yellow/10" },
+  { key: "members", icon: UsersRound, label: "Members", one: "Member", color: "text-primary-red", bg: "bg-primary-red/10" },
+  { key: "builders", icon: CodeXml, label: "Builders", one: "Builder", color: "text-status-blue", bg: "bg-status-blue/10" },
+  { key: "projects", icon: FolderGit2, label: "Projects", one: "Project", color: "text-status-green", bg: "bg-status-green/10" },
+  { key: "events", icon: CalendarDays, label: "Events", one: "Event", color: "text-status-yellow", bg: "bg-status-yellow/10" },
 ]
 
 // ─── Main Component ────────────────────────────────────────────────
@@ -80,7 +80,7 @@ export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalE
 
         {/* ── Animated Stats Grid ── */}
         <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
-          {statItems.map(({ key, icon: Icon, label, color, bg }) => {
+          {statItems.map(({ key, icon: Icon, label, one, color, bg }) => {
             const value = stats[key as keyof typeof stats]
             return (
               <div
@@ -94,7 +94,7 @@ export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalE
                   <AnimatedCounter value={value} />
                 </p>
                 <p className="text-[10px] font-bold text-muted-foreground/60 mt-0.5 uppercase tracking-wider">
-                  {label}
+                  {value === 1 ? one : label}
                 </p>
               </div>
             )

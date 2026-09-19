@@ -57,12 +57,21 @@ export function ExploreCta({ totalMembers }: ExploreCtaProps) {
 
         {/* Subtitle with animated count */}
         <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-          You&apos;re not just a spectator — create your BH-ID and join{" "}
-          <span className="font-bold text-primary inline-flex items-baseline gap-1">
-            <Users className="w-4 h-4 text-primary-red inline-block -mb-0.5" />
-            <AnimatedNumber value={totalMembers} />
-          </span>{" "}
-          members building the future of tech in Lumbini Province.
+          {totalMembers > 0 ? (
+            <>
+              You&apos;re not just a spectator — create your BH-ID and join{" "}
+              <span className="font-bold text-primary inline-flex items-baseline gap-1">
+                <Users className="w-4 h-4 text-primary-red inline-block -mb-0.5" />
+                <AnimatedNumber value={totalMembers} />
+              </span>{" "}
+              {totalMembers === 1 ? "member" : "members"} building the future of tech in Lumbini Province.
+            </>
+          ) : (
+            <>
+              You&apos;re not just a spectator — create your BH-ID and be one of
+              the first builders in Lumbini Province.
+            </>
+          )}
         </p>
 
         {/* Buttons */}

@@ -104,13 +104,13 @@ export default async function FestivalPage({
           {f.tithi && (
             <p className="flex items-center gap-2 text-sm text-text-secondary">
               <MoonStar className="h-4 w-4 text-status-yellow" aria-hidden="true" />
-              Tithi: {f.tithi} / तिथि: {f.tithi}
+              Tithi / तिथि: {f.tithi}
             </p>
           )}
           {f.muhurat && (
             <p className="flex items-center gap-2 text-sm text-text-secondary">
               <Clock3 className="h-4 w-4 text-status-blue" aria-hidden="true" />
-              Sahit: {f.muhurat}
+              Muhurat / साइत: {f.muhurat}
             </p>
           )}
         </div>

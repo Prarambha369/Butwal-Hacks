@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Check, X, Mail } from 'lucide-react';
 import { createClient } from '@/utils/supabase';
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAuthUser } from "@/components/auth-user-provider";
 
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { toast } from 'sonner';
@@ -27,7 +27,7 @@ export default function TeamInviteList({ onUpdate }: TeamInviteListProps) {
   const [error, setError] = useState<string | null>(null);
   const [profileUuid, setProfileUuid] = useState<string | null>(null);
   const supabase = createClient();
-  const { user } = useUser();
+  const { user } = useAuthUser();
 
   // ponytail: Resolve Auth0 sub to profile UUID on mount
   useEffect(() => {

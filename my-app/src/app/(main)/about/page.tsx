@@ -26,7 +26,7 @@ export default function AboutPage() {
         </p>
         <h2 className="mt-10 text-2xl sm:text-3xl font-bold font-heading text-primary">Mission</h2>
         <p className="mt-3 text-muted-foreground leading-relaxed">
-          Give every young technologist in Nepal a way to prove what they can build — a verified identity, a portfolio they own, and a community that shows up.
+          Give every young technologist in Nepal a way to prove what they can build: a verified identity, a portfolio they own, and a community that shows up.
         </p>
         <h2 className="mt-8 text-2xl sm:text-3xl font-bold font-heading text-primary">How we work</h2>
         <ul className="mt-4 space-y-3 text-muted-foreground leading-relaxed">
@@ -36,7 +36,7 @@ export default function AboutPage() {
           </li>
           <li className="flex items-start gap-2">
             <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-red" />
-            <span><strong className="text-primary">Community-funded.</strong> Every rupee is tracked on Open Collective. No administrative salaries — all funds go to programs.</span>
+            <span><strong className="text-primary">Community-funded.</strong> Every rupee is tracked on Open Collective. No administrative salaries. All funds go to programs.</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-red" />

@@ -52,10 +52,10 @@ function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string
 }
 
 const statItems = [
-  { key: "total_hackers", labelKey: "home.stats.members", icon: UsersRound, color: "text-primary-red", bg: "bg-primary-red/10" },
-  { key: "total_events", labelKey: "home.stats.events", icon: CalendarDays, color: "text-status-blue", bg: "bg-status-blue/10" },
-  { key: "total_projects", labelKey: "home.stats.projects", icon: FolderGit2, color: "text-status-green", bg: "bg-status-green/10" },
-  { key: "total_trust_markers", labelKey: "home.stats.credentials", icon: BadgeCheck, color: "text-status-yellow", bg: "bg-status-yellow/10" },
+  { key: "total_hackers", labelKey: "home.stats.members", oneKey: "home.stats.member_one", icon: UsersRound, color: "text-primary-red", bg: "bg-primary-red/10" },
+  { key: "total_events", labelKey: "home.stats.events", oneKey: "home.stats.event_one", icon: CalendarDays, color: "text-status-blue", bg: "bg-status-blue/10" },
+  { key: "total_projects", labelKey: "home.stats.projects", oneKey: "home.stats.project_one", icon: FolderGit2, color: "text-status-green", bg: "bg-status-green/10" },
+  { key: "total_trust_markers", labelKey: "home.stats.credentials", oneKey: "home.stats.credential_one", icon: BadgeCheck, color: "text-status-yellow", bg: "bg-status-yellow/10" },
 ] as const;
 
 export default function LiveStatsCounter() {
@@ -120,7 +120,7 @@ export default function LiveStatsCounter() {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {statItems.map(({ key, labelKey, icon: Icon, color, bg }) => {
+          {statItems.map(({ key, labelKey, oneKey, icon: Icon, color, bg }) => {
             const value = stats?.[key as keyof Stats] ?? null;
             return (
               <div
@@ -134,7 +134,7 @@ export default function LiveStatsCounter() {
                   {value !== null ? <AnimatedNumber value={value} /> : <span className="text-muted-foreground">—</span>}
                 </p>
                 <p className="text-xs text-text-secondary font-medium uppercase tracking-wider">
-                  {t(labelKey, locale)}
+                  {value === 1 ? t(oneKey, locale) : t(labelKey, locale)}
                 </p>
               </div>
             );

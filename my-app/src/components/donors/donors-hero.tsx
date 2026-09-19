@@ -2,12 +2,12 @@
 
 import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAuthUser } from "@/components/auth-user-provider";
 import { APP_URL } from "@/lib/constants";
 import Breadcrumbs from "@/components/breadcrumbs"
 
 export function DonorsHero() {
-  const { user, isLoading } = useUser();
+  const { user, isLoading } = useAuthUser();
   const isSignedIn = !!user;
 
   return (

@@ -39,15 +39,15 @@ vi.mock("@/utils/supabase", () => ({
   })),
 }));
 
-vi.mock("@auth0/nextjs-auth0/client", () => ({
-  useUser: vi.fn(),
+vi.mock("@/components/auth-user-provider", () => ({
+  useAuthUser: vi.fn(),
 }));
 
 import { createClient } from "@/utils/supabase";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAuthUser } from "@/components/auth-user-provider";
 
 const mockedCreateClient = createClient as any;
-const mockedUseUser = useUser as any;
+const mockedUseUser = useAuthUser as any;
 
 // ═══════════════════════════════════════════════════════════════════
 // usePresence

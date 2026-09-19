@@ -47,7 +47,9 @@ async function getPhotos(): Promise<GalleryPhoto[]> {
 
   if (error) {
     logger.error("Error fetching gallery photos:", error);
-    throw new Error("Could not load the gallery. Please try again later.");
+    // Degrade to the honest empty state below — a DB/RLS hiccup must
+    // never take down the whole page (seen against an empty preview DB).
+    return [];
   }
 
   if (!photos) return [];
