@@ -12,6 +12,9 @@ const VERIFIED_PAIRS: Array<{ ad: [number, number, number]; bs: [number, number,
   { ad: [2025, 12, 31], bs: [2082, 9, 16] }, // trust-page dates (was wrong before)
   { ad: [2026, 4, 14], bs: [2083, 1, 1] }, // Nepali New Year 2083
   { ad: [2026, 9, 11], bs: [2083, 5, 26] }, // around current date — Bhadra
+  { ad: [2026, 9, 17], bs: [2083, 6, 1] }, // Ashwin 2083 begins
+  { ad: [2026, 9, 19], bs: [2083, 6, 3] }, // current date — Ashwin 3
+  { ad: [2026, 10, 18], bs: [2083, 7, 1] }, // Kartik 2083 begins
   { ad: [2033, 4, 14], bs: [2090, 1, 1] }, // Nepali New Year 2090
   // Last supported day: BS 2090 Chaitra has 30 days, so 2090-12-30 =
   // AD 2034-04-13. (2090-01-01 itself = 2033-04-14, consistent with the
@@ -43,6 +46,13 @@ describe("adToBs", () => {
 
   it("throws for dates after the supported range", () => {
     expect(() => adToBs(utc(2034, 4, 14))).toThrow(RangeError)
+  })
+
+  it("interprets days in Nepal time, not UTC or local TZ", () => {
+    // 2026-09-18T18:15Z is Sep 19 00:00 in Kathmandu (UTC day is still 18th)
+    expect(adToBs(new Date("2026-09-18T18:15:00Z"))).toEqual({ year: 2083, month: 6, day: 3 })
+    // 2026-09-19T18:00Z is Sep 19 23:45 NPT — still Ashwin 3
+    expect(adToBs(new Date("2026-09-19T18:00:00Z"))).toEqual({ year: 2083, month: 6, day: 3 })
   })
 })
 

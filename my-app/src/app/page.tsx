@@ -7,6 +7,7 @@ import StaggeredFeatures from '@/components/home/staggered-features';
 import FeaturedProjects from '@/components/home/featured-projects';
 import StepsStrip from '@/components/home/steps-strip';
 import EventCalendar from '@/components/home/event-calendar';
+import CalendarErrorBoundary from '@/components/home/calendar-error-boundary';
 import TrustedBy from '@/components/home/trusted-by';
 import ContactCTA from '@/components/sections/ContactCTA';
 import Footer from '@/components/sections/Footer';
@@ -48,13 +49,13 @@ export default async function LandingPage() {
   const supabase = createServiceClient();
   const { data: publishedEvents } = await supabase
     .from("events")
-    .select("title, slug, start_date")
+    .select("title, slug, start_date, end_date")
     .eq("is_published", true)
     .order("start_date", { ascending: true })
     .limit(200);
   const calendarEvents = ((publishedEvents ?? []) as Array<{
-    title: string; slug: string | null; start_date: string;
-  }>).map((e) => ({ title: e.title, slug: e.slug, start_date: e.start_date }));
+    title: string; slug: string | null; start_date: string; end_date: string | null;
+  }>).map((e) => ({ title: e.title, slug: e.slug, start_date: e.start_date, end_date: e.end_date }));
 
   return (
     <div className="min-h-dvh bg-background text-primary">
@@ -80,7 +81,9 @@ export default async function LandingPage() {
         </FadeIn>
 
         {/* 5b. When — published events on the calendar, with .ics sync */}
-        <EventCalendar events={calendarEvents} />
+        <CalendarErrorBoundary>
+          <EventCalendar events={calendarEvents} />
+        </CalendarErrorBoundary>
 
         {/* 6. How it goes — orientation, no ask */}
         <FadeIn delay={180}>

@@ -11,8 +11,9 @@
  * Anchor: BS 2000-01-01 = AD 1943-04-14 (classic reference epoch,
  * consistent with the table's cumulative day counts).
  *
- * Supported range: BS 2000-01-01 … BS 2090-12-31
- * (AD 1943-04-14 … AD 2033-04-13). Out-of-range inputs throw RangeError.
+ * Supported range: BS 2000-01-01 … BS 2090-12-30
+ * (AD 1943-04-14 … AD 2034-04-13). Chaitra 2090 has 30 days, so the
+ * 31st is invalid. Out-of-range inputs throw RangeError.
  */
 
 // ─── BS Month Data (days per month, 1-indexed months) ──────────────
@@ -111,7 +112,7 @@ const BS_DATA: Record<number, number[]> = {
   2090: [30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30],
 }
 
-// ─── Range: BS 2000-01-01 … BS 2090-12-31 ─────────────────────────
+// ─── Range: BS 2000-01-01 … BS 2090-12-30 ─────────────────────────
 const MIN_BS_YEAR = 2000
 const MAX_BS_YEAR = 2090
 // Classic anchor: BS 2000-01-01 = AD 1943-04-14
@@ -130,14 +131,33 @@ const MAX_AD_MS = (() => {
   return ANCHOR_AD.getTime() + (total - 1) * 86400000
 })()
 
-function bsDaysInMonth(y: number, m: number): number {
+export function bsDaysInMonth(y: number, m: number): number {
   const dim = BS_DATA[y]?.[m - 1]
   if (dim === undefined) throw new RangeError(`BS date out of supported range (2000–2090): ${y}-${m}`)
   return dim
 }
 
+// Calendar days are Nepal days: derive Y/M/D in Asia/Kathmandu so a
+// UTC-midnight event timestamp never shifts ±1 day for the viewer.
+// (The old local-getter version broke in negative-offset timezones.)
+const NPT_DAY = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Kathmandu",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+})
+
+export function nptDayParts(d: Date): { y: number; m: number; day: number } {
+  const parts: Record<string, string> = {}
+  for (const p of NPT_DAY.formatToParts(d)) {
+    if (p.type !== "literal") parts[p.type] = p.value
+  }
+  return { y: Number(parts.year), m: Number(parts.month), day: Number(parts.day) }
+}
+
 function adToMsUTC(d: Date): number {
-  return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())
+  const { y, m, day } = nptDayParts(d)
+  return Date.UTC(y, m - 1, day)
 }
 
 // ─── AD → BS ───────────────────────────────────────────────────────
@@ -151,7 +171,7 @@ export function adToBs(adDate: Date): BsDate {
   const adMs = adToMsUTC(adDate)
   const anchorMs = ANCHOR_AD.getTime()
   if (adMs < anchorMs || adMs > MAX_AD_MS) {
-    throw new RangeError("AD date out of supported range (1943-04-14 … 2033-04-13)")
+    throw new RangeError("AD date out of supported range (1943-04-14 … 2034-04-13)")
   }
   let diffDays = Math.floor((adMs - anchorMs) / 86400000)
 
