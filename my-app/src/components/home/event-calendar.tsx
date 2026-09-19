@@ -169,7 +169,10 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
 
   const changeMonth = (offset: number) => {
     if (!date) return;
-    setDate(new Date(date.getFullYear(), date.getMonth() + offset, 1));
+    const next = new Date(date.getFullYear(), date.getMonth() + offset, 1);
+    if (next.getFullYear() < FLOOR_MONTH.y ||
+      (next.getFullYear() === FLOOR_MONTH.y && next.getMonth() < FLOOR_MONTH.m)) return;
+    setDate(next);
   };
 
   const changeBsMonth = (offset: number) => {
@@ -178,7 +181,7 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
     m += offset;
     if (m < 1) { m = 12; y--; }
     if (m > 12) { m = 1; y++; }
-    if (y < MIN_BS.y || (y === MIN_BS.y && m < MIN_BS.m)) return;
+    if (y < FLOOR_BS.y || (y === FLOOR_BS.y && m < FLOOR_BS.m)) return;
     if (y > MAX_BS.y || (y === MAX_BS.y && m > MAX_BS.m)) return;
     setBsView({ y, m });
   };
