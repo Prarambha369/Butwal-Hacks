@@ -506,19 +506,10 @@ function AdGrid({ date, byAdDay, festivalsByAd, holidaysByAd, today, weekdays, l
   });
   const hasAny = hasEvents || hasFestivals || hasHolidays;
 
+  // The grid always renders — even with zero items — so month dates are
+  // never hidden. A slim note replaces the old full-panel empty state.
   return (
     <>
-      {!hasAny ? (
-        <div className="rounded-lg border border-border bg-background p-10 text-center space-y-3">
-          <p className="text-sm text-muted-foreground">{t("home.calendar.empty", locale)}</p>
-          <Link
-            href="/events"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-6 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all"
-          >
-            {t("action.view_all_events", locale)}
-          </Link>
-        </div>
-      ) : (
       <div className="grid grid-cols-7 gap-px bg-border border border-border rounded-lg overflow-hidden" role="grid" aria-label={monthLabel}>
         {weekdays.map((d) => (
           <div key={d} role="columnheader" className="bg-surface p-2 sm:p-3 text-[10px] font-bold text-center uppercase text-muted-foreground">{d}</div>
@@ -552,6 +543,13 @@ function AdGrid({ date, byAdDay, festivalsByAd, holidaysByAd, today, weekdays, l
           );
         })}
       </div>
+      {!hasAny && (
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          {t("home.calendar.empty", locale)}{" "}
+          <Link href="/events" className="font-bold text-primary-red hover:underline">
+            {t("action.view_all_events", locale)}
+          </Link>
+        </p>
       )}
     </>
   );
@@ -593,17 +591,6 @@ function BsGrid({ bsView, byBsDay, festivalsByBs, holidaysByBs, today, weekdays,
 
   return (
     <>
-      {!hasAny ? (
-        <div className="rounded-lg border border-border bg-background p-10 text-center space-y-3">
-          <p className="text-sm text-muted-foreground">{t("home.calendar.empty", locale)}</p>
-          <Link
-            href="/events"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-6 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all"
-          >
-            {t("action.view_all_events", locale)}
-          </Link>
-        </div>
-      ) : (
       <div className="grid grid-cols-7 gap-px bg-border border border-border rounded-lg overflow-hidden" role="grid" aria-label={monthLabel}>
         {weekdays.map((d) => (
           <div key={d} role="columnheader" className="bg-surface p-2 sm:p-3 text-[10px] font-bold text-center uppercase text-muted-foreground">{d}</div>
@@ -638,6 +625,13 @@ function BsGrid({ bsView, byBsDay, festivalsByBs, holidaysByBs, today, weekdays,
           );
         })}
       </div>
+      {!hasAny && (
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          {t("home.calendar.empty", locale)}{" "}
+          <Link href="/events" className="font-bold text-primary-red hover:underline">
+            {t("action.view_all_events", locale)}
+          </Link>
+        </p>
       )}
     </>
   );
