@@ -11,7 +11,7 @@ import { submitProject } from '@/lib/actions/projects';
 import { toast } from 'sonner';
 import posthog from 'posthog-js';
 import { createClient } from '@/utils/supabase';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useAuthUser } from '@/components/auth-user-provider';
 
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
 
@@ -36,7 +36,7 @@ interface EventOption {
 export default function ProjectSubmissionForm() {
   const router = useRouter();
   const supabase = createClient();
-  const { user } = useUser();
+  const { user } = useAuthUser();
   const [events, setEvents] = useState<EventOption[]>([]);
   const [generatingPitch, setGeneratingPitch] = useState(false);
   const { register, handleSubmit, setValue, getValues, formState: { errors, isSubmitting } } = useForm({

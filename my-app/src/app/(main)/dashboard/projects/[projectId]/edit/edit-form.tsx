@@ -10,7 +10,7 @@ import { Save, Github, ExternalLink, Image as ImageIcon, Tags } from 'lucide-rea
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { updateProject } from '@/lib/actions/projects';
 import { toast } from 'sonner';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useAuthUser } from '@/components/auth-user-provider';
 import { createClient } from '@/utils/supabase';
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
 
@@ -36,7 +36,7 @@ interface ProjectData {
 }
 
 export default function EditProjectForm({ project }: { project: ProjectData }) {
-  const { user } = useUser();
+  const { user } = useAuthUser();
   const router = useRouter();
   const [techTags, setTechTags] = useState<string[]>(project.tech_stack || []);
   const [coverImage, setCoverImage] = useState(project.cover_image || '');

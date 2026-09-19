@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Bot, X, Send, Loader2, Sparkles, CheckCircle2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAuthUser } from "@/components/auth-user-provider";
 import { submitFeedback } from "@/lib/actions/feedback";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +74,7 @@ export default function AssistantPanel({
 }: {
   context?: "hacker" | "organizer" | "sponsor";
 } = {}) {
-  const { user } = useUser();
+  const { user } = useAuthUser();
   const reducedMotion = useReducedMotion();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("chat");

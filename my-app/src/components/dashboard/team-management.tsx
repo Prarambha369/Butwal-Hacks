@@ -9,7 +9,7 @@ import InviteHackerModal from '@/components/dashboard/invite-hacker-modal';
 import LinkProjectModal from '@/components/dashboard/link-project-modal';
 
 import { createClient } from '@/utils/supabase';
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAuthUser } from "@/components/auth-user-provider";
 import { Team, TeamMember, Profile } from '@/lib/supabase-types';
 import { getAvatarUrl } from '@/lib/utils';
 
@@ -25,7 +25,7 @@ export default function TeamManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
-  const { user } = useUser();
+  const { user } = useAuthUser();
   const [profileUuid, setProfileUuid] = useState<string | null>(null);
 
   // ponytail: Resolve Auth0 sub to profile UUID once on mount

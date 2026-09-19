@@ -20,6 +20,25 @@ export interface ExplorerMember {
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+/**
+ * DB roles are lowercase ('hacker', 'mentor', 'organizer', 'maintainer').
+ * The directory speaks Builder/Mentor/Organizer/Sponsor, so normalize once
+ * here — stats, role filter, and card pills all read ExplorerMember.role.
+ */
+export function toDisplayRole(dbRole: string | null): ExplorerMember["role"] {
+  switch ((dbRole ?? "").toLowerCase()) {
+    case "mentor":
+      return "Mentor";
+    case "organizer":
+    case "maintainer":
+      return "Organizer";
+    case "sponsor":
+      return "Sponsor";
+    default:
+      return "Builder";
+  }
+}
+
 interface ProfileRow {
   id: string
   bh_id: string
@@ -96,7 +115,7 @@ export async function fetchExplorerMembers(
     return {
       bhId: p.bh_id || "",
       name,
-      role: (p.role as ExplorerMember["role"]) || "Builder",
+      role: toDisplayRole(p.role),
       avatar: initials,
       bio: p.bio || "",
       skills: p.skills || [],

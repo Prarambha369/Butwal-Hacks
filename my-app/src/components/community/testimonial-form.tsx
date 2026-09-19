@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAuthUser } from "@/components/auth-user-provider";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
 import { submitTestimonial } from "@/lib/actions/events";
@@ -14,7 +14,7 @@ import { submitTestimonial } from "@/lib/actions/events";
  */
 export default function TestimonialForm() {
   const { locale } = useLanguage();
-  const { user, isLoading } = useUser();
+  const { user, isLoading } = useAuthUser();
   const [quote, setQuote] = useState("");
   const [rating, setRating] = useState<number | null>(null);
   const [sending, setSending] = useState(false);

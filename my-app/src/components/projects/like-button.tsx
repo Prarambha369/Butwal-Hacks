@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import { createClient } from '@/utils/supabase';
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAuthUser } from "@/components/auth-user-provider";
 import { cn } from '@/lib/utils';
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { logger } from '@/lib/logger';
@@ -20,7 +20,7 @@ export default function LikeButton({ projectId, initialLikes = 0 }: LikeButtonPr
   const [loading, setLoading] = useState(true);
   const [profileUuid, setProfileUuid] = useState<string | null>(null);
   const supabase = createClient();
-  const { user } = useUser();
+  const { user } = useAuthUser();
 
   // ponytail: Resolve Auth0 sub to profile UUID on mount
   useEffect(() => {

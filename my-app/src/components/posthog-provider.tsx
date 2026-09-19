@@ -2,7 +2,7 @@
 
 import posthog from "posthog-js"
 import { useEffect, Suspense, useState } from "react"
-import { useUser } from "@auth0/nextjs-auth0/client"
+import { useAuthUser } from "@/components/auth-user-provider"
 import { usePathname, useSearchParams } from "next/navigation"
 import { hasCookieConsent } from "@/components/cookie-consent-banner"
 
@@ -26,7 +26,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 }
 
 function PostHogInner({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useUser()
+  const { user, isLoading } = useAuthUser()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   // Track consent state — re-check when consent-granted event fires

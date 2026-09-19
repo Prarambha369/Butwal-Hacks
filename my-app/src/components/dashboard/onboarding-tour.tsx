@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAuthUser } from "@/components/auth-user-provider";
 import { createClient } from "@/utils/supabase";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import {
@@ -114,7 +114,7 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
   const mountedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const { user, isLoading: isAuthLoading } = useUser();
+  const { user, isLoading: isAuthLoading } = useAuthUser();
 
   // Trap Tab cycling within the tour card when visible
   useFocusTrap(cardRef, isVisible);
