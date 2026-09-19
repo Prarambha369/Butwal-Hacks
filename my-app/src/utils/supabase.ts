@@ -37,7 +37,22 @@ export function createClient() {
 /**
  * Service role Supabase client (bypasses RLS).
  * Use only in trusted server contexts.
+ *
+ * Never throws on missing config: CI/preview builds prerender pages
+ * without secrets, and every data path already handles query errors
+ * with honest empty states. A loud warning marks the fallback so a
+ * misconfigured production is visible in logs, not as 500s.
  */
 export function createServiceClient() {
-  return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    console.warn(
+      "[supabase] Service-role config missing — using unreachable placeholder. " +
+      "Reads will fail gracefully (empty states). Set NEXT_PUBLIC_SUPABASE_URL " +
+      "and SUPABASE_SERVICE_ROLE_KEY to fix.",
+    );
+    return createSupabaseClient("https://placeholder.supabase.co", "placeholder-key");
+  }
+  return createSupabaseClient(url, key);
 }
