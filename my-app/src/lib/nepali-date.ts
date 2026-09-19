@@ -348,4 +348,10 @@ export function formatBsDateIso(date: Date): string {
   return `${bs.year}-${String(bs.month).padStart(2, "0")}-${String(bs.day).padStart(2, "0")}`
 }
 
-export { BS_MONTH_NAMES }
+const BS_MONTH_NAMES_NE = [
+  "बैशाख", "जेठ", "असार", "साउन",
+  "भदौ", "असोज", "कात्तिक", "मंसिर",
+  "पुष", "माघ", "फागुन", "चैत",
+]
+
+export { BS_MONTH_NAMES, BS_MONTH_NAMES_NE }
