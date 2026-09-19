@@ -417,7 +417,7 @@ const translations: Record<string, { en: string; ne: string }> = {
   'home.gallery.next': { en: 'Next photo', ne: 'अर्को फोटो' },
 
   /* ── Trusted by ── */
-  'home.trusted_by.label': { en: 'Trusted by / Worked with', ne: 'हाम्रा पार्टनरहरू' },
+  'home.trusted_by.label': { en: 'Supported by', ne: 'सहयोगीहरू' },
   'home.trusted_by.footer': { en: 'Student-run, open-source, built in public.', ne: 'विद्यार्थी-संचालित, खुला स्रोत, सार्वजनिक रूपमा निर्मित।' },
 
   /* ── Staggered feature cards ── */
