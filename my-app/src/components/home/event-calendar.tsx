@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, CalendarPlus } from "lucide-react";
 import { adToBs, bsToAd, bsDaysInMonth, BS_MONTH_NAMES, BS_MONTH_NAMES_NE, nptDayParts } from "@/lib/nepali-date";
-import { FESTIVALS_2083, TRADITION_META, type FestivalEntry, type FestivalTradition } from "@/lib/festivals-2083";
+import { ALL_FESTIVALS, TRADITION_META, type FestivalEntry } from "@/lib/festivals";
 import { PUBLIC_HOLIDAYS, type PublicHolidayEntry } from "@/lib/public-holidays";
+import { categorizeEvent, type BhEventCategory } from "@/lib/event-categories";
 import { useLanguage } from "@/components/language-provider";
 import { t, type Locale } from "@/lib/i18n";
 
@@ -25,8 +26,8 @@ const MAX_BS = { y: 2099, m: 12 };
 type CalendarView = "bs" | "ad";
 const VIEW_KEY = "bh-calendar-view";
 
-type TraditionFilter = "all" | FestivalTradition;
-const TRADITION_ORDER: TraditionFilter[] = ["all", "hindu", "buddhist", "janajati", "civic", "christian"];
+type BhFilter = "all" | BhEventCategory;
+const BH_ORDER: BhEventCategory[] = ["Hackathon", "Workshop", "Game Jam", "Meetup"];
 
 /** Whole-day serial of a timestamp's Nepal day (DST-proof). */
 function nptSerial(d: Date): number | null {
@@ -61,10 +62,22 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
   const bsMonthName = (m: number) =>
     locale === "ne" ? BS_MONTH_NAMES_NE[m - 1] : BS_MONTH_NAMES[m - 1];
 
+  // BH category filter. Client state, intentionally not persisted.
+  // Declared before the maps below (they read it) — hooks stay
+  // unconditional so order is stable.
+  const [bhFilter, setBhFilter] = useState<BhFilter>("all");
+
   // AD-day map (for the AD grid) and BS-day map (for the BS grid).
+  // BH layer only: the category filter applies to dashboard events.
+  // Festivals and public holidays always show.
   const byAdDay = new Map<string, CalendarEvent[]>();
   const byBsDay = new Map<string, CalendarEvent[]>();
+  // Category pills, data-driven: only categories with a published event.
+  const presentCategories = BH_ORDER.filter((c) =>
+    events.some((ev) => categorizeEvent(ev.title) === c),
+  );
   for (const ev of events) {
+    if (bhFilter !== "all" && categorizeEvent(ev.title) !== bhFilter) continue;
     const startSerial = nptSerial(new Date(ev.start_date));
     if (startSerial === null) continue;
     let endSerial = ev.end_date ? nptSerial(new Date(ev.end_date)) : startSerial;
@@ -94,16 +107,12 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
   const [today, setToday] = useState<string | null>(null);
   const [bsView, setBsView] = useState<{ y: number; m: number } | null>(null);
   const [view, setView] = useState<CalendarView>("bs");
-  // Tradition filter applies to Samiti festivals only; published events
-  // always show. Client state, intentionally not persisted.
-  const [tradFilter, setTradFilter] = useState<TraditionFilter>("all");
 
-  // Festivals are code-seeded from the Samiti patro (not the database),
-  // so they are always present. Maps keyed like the event maps above.
+  // Festivals, all BS years (Samiti 2083 + feed imports). Always shown:
+  // the BH category filter never touches this layer.
   const festivalsByAd = new Map<string, FestivalEntry[]>();
   const festivalsByBs = new Map<string, FestivalEntry[]>();
-  for (const f of FESTIVALS_2083) {
-    if (tradFilter !== "all" && f.tradition !== tradFilter) continue;
+  for (const f of ALL_FESTIVALS) {
     const serial = Date.UTC(f.ad[0], f.ad[1] - 1, f.ad[2]) / 86400000;
     const ak = serialKey(serial);
     if (!festivalsByAd.has(ak)) festivalsByAd.set(ak, []);
@@ -264,16 +273,27 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
           </div>
         </div>
 
-        <div className="mb-6 flex flex-wrap items-center gap-1.5" role="group" aria-label={t("home.calendar.festivals_label", locale)}>
+        <div className="mb-6 flex flex-wrap items-center gap-1.5" role="group" aria-label={t("home.calendar.bh_label", locale)}>
           <span className="mr-1 font-mono text-[10px] uppercase text-muted-foreground">
-            {t("home.calendar.festivals_label", locale)}
+            {t("home.calendar.bh_label", locale)}
           </span>
-          {TRADITION_ORDER.map((tr) => {
-            const active = tradFilter === tr;
+          <button
+            onClick={() => setBhFilter("all")}
+            aria-pressed={bhFilter === "all"}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition-all ${
+              bhFilter === "all"
+                ? "border-primary-red/40 bg-primary-red/8 text-primary"
+                : "border-border bg-surface text-muted-foreground hover:text-primary"
+            }`}
+          >
+            {t("home.calendar.bh_all", locale)}
+          </button>
+          {presentCategories.map((c) => {
+            const active = bhFilter === c;
             return (
               <button
-                key={tr}
-                onClick={() => setTradFilter(tr)}
+                key={c}
+                onClick={() => setBhFilter(active ? "all" : c)}
                 aria-pressed={active}
                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition-all ${
                   active
@@ -281,10 +301,8 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
                     : "border-border bg-surface text-muted-foreground hover:text-primary"
                 }`}
               >
-                {tr !== "all" && (
-                  <span className={`h-1.5 w-1.5 rounded-full ${TRADITION_META[tr].dot}`} aria-hidden="true" />
-                )}
-                {t(`home.calendar.tradition.${tr}`, locale)}
+                <span className="h-1.5 w-1.5 rounded-full bg-primary-red" aria-hidden="true" />
+                {t(`home.calendar.cat_${c.toLowerCase().replace(" ", "_")}`, locale)}
               </button>
             );
           })}
