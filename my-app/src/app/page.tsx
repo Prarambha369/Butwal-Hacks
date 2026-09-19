@@ -6,10 +6,13 @@ import NonProfitFAQ from '@/components/home/non-profit-faq';
 import StaggeredFeatures from '@/components/home/staggered-features';
 import FeaturedProjects from '@/components/home/featured-projects';
 import StepsStrip from '@/components/home/steps-strip';
+import EventCalendar from '@/components/home/event-calendar';
+import TrustedBy from '@/components/home/trusted-by';
 import ContactCTA from '@/components/sections/ContactCTA';
 import Footer from '@/components/sections/Footer';
 import { FadeIn } from '@/components/home/shared-primitives';
 import { getFeaturedProjects } from '@/lib/actions/projects';
+import { createServiceClient } from '@/utils/supabase';
 import { buildPageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 
@@ -29,12 +32,29 @@ export const dynamic = "force-static";
  *   answers (FAQ) → one invitation (ContactCTA).
  *
  * Retired from this composition (files kept for later real-data use):
- * trusted-by (unverifiable logos), database-table (showcase rows),
- * typography-blocks (manifesto repetition), event-gallery (stock photos),
- * event-calendar (dateless widget), features-cta (duplicate cards).
+ * database-table (showcase rows), typography-blocks (manifesto
+ * repetition), event-gallery (stock photos), features-cta (duplicate
+ * cards).
+ *
+ * Restored with real data: event-calendar (published events plotted,
+ * organizer publishing flows through automatically) and trusted-by
+ * (maintainer-managed partner wall, hidden until a partner exists).
  */
 export default async function LandingPage() {
   const projects = await getFeaturedProjects(6);
+
+  // Published events feed the calendar grid. Publishing is the only
+  // step an organizer takes — no separate calendar management exists.
+  const supabase = createServiceClient();
+  const { data: publishedEvents } = await supabase
+    .from("events")
+    .select("title, slug, start_date")
+    .eq("is_published", true)
+    .order("start_date", { ascending: true })
+    .limit(200);
+  const calendarEvents = ((publishedEvents ?? []) as Array<{
+    title: string; slug: string | null; start_date: string;
+  }>).map((e) => ({ title: e.title, slug: e.slug, start_date: e.start_date }));
 
   return (
     <div className="min-h-dvh bg-background text-primary">
@@ -59,6 +79,9 @@ export default async function LandingPage() {
           <FeaturedProjects projects={projects} />
         </FadeIn>
 
+        {/* 5b. When — published events on the calendar, with .ics sync */}
+        <EventCalendar events={calendarEvents} />
+
         {/* 6. How it goes — orientation, no ask */}
         <FadeIn delay={180}>
           <StepsStrip />
@@ -66,6 +89,9 @@ export default async function LandingPage() {
 
         {/* 7. Answers */}
         <NonProfitFAQ />
+
+        {/* 7b. Who backs us — maintainer wall, hidden until real */}
+        <TrustedBy />
 
         {/* 8. The single invitation */}
         <ContactCTA />

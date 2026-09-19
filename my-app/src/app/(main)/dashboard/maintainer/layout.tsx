@@ -20,6 +20,7 @@ import {
   BookOpen,
   GraduationCap,
   Image as ImageIcon,
+  Handshake,
 } from "lucide-react";
 
 const maintainerLinks = [
@@ -58,6 +59,12 @@ const maintainerLinks = [
     label: "Photos",
     shortcut: "p",
     icon: <ImageIcon className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/maintainer/partners",
+    label: "Partners",
+    shortcut: "w",
+    icon: <Handshake className="w-4 h-4" />,
   },
   {
     href: "/api-docs",
