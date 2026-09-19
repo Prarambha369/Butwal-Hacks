@@ -125,9 +125,9 @@ export default function LiveStatsCounter() {
             return (
               <div
                 key={key}
-                className="bh-card p-6 text-center space-y-2 hover:-translate-y-0.5 transition-all duration-300"
+                className="bh-card bh-play-hover p-6 text-center space-y-2 hover:-translate-y-0.5 transition-all duration-300"
               >
-                <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-lg ${bg} ${color}`}>
+                <div className={`bh-play-target mx-auto flex h-10 w-10 items-center justify-center rounded-lg ${bg} ${color}`}>
                   <Icon className="h-5 w-5" />
                 </div>
                 <p className="text-2xl md:text-3xl font-black text-primary font-mono tabular-nums">
@@ -140,6 +140,10 @@ export default function LiveStatsCounter() {
             );
           })}
         </div>
+
+        <p className="mt-8 text-center font-mono text-[11px] text-muted-foreground">
+          {t('home.stats.footnote', locale)}
+        </p>
       </div>
     </section>
   );

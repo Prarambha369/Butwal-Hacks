@@ -38,12 +38,12 @@ const visibleIcons = [
 function ValueCard({ item, icon: Icon, color, bg, index, locale }: { item: ValueCard; icon: ComponentType<{ className?: string }>; color: string; bg: string; index: number; locale: "en" | "ne" }) {
   return (
     <div
-      className="bh-card p-6 text-center space-y-3 hover:-translate-y-0.5 transition-all duration-300"
+      className="bh-card bh-play-hover bh-doodle-hover p-6 text-center space-y-3 hover:-translate-y-0.5 transition-all duration-300"
       style={{
         transitionDelay: `${index * 100}ms`,
       }}
     >
-      <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-lg ${bg} ${color}`}>
+      <div className={`bh-play-spin mx-auto flex h-10 w-10 items-center justify-center rounded-lg ${bg} ${color}`}>
         <Icon className="h-5 w-5" />
       </div>
       <div>

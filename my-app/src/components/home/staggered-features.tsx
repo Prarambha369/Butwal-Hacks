@@ -78,9 +78,9 @@ export default function StaggeredFeatures() {
               <Link
                 key={feature.titleKey}
                 href={feature.href}
-                className={`group relative rounded-xl border border-border bg-surface p-6 md:p-7 transition-all duration-200 hover:shadow-sm ${feature.span}`}
+                className={`group bh-play-hover relative rounded-xl border border-border bg-surface p-6 md:p-7 transition-all duration-200 hover:shadow-sm ${feature.span}`}
               >
-                <div className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${feature.color} mb-4`}>
+                <div className={`bh-play-target inline-flex h-9 w-9 items-center justify-center rounded-lg ${feature.color} mb-4`}>
                   <Icon className="h-[18px] w-[18px]" />
                 </div>
                 <h3 className="text-base font-semibold text-primary mb-1.5 group-hover:text-primary-red transition-colors">
@@ -91,7 +91,7 @@ export default function StaggeredFeatures() {
                 </p>
                 <div className="mt-4 flex items-center gap-1 text-xs font-medium text-muted-foreground group-hover:text-primary-red transition-colors">
                   <span>{t('common.learn_more', locale)}</span>
-                  <ArrowRight className="h-3 w-3" />
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                 </div>
               </Link>
             )

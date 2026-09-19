@@ -3,6 +3,7 @@ import Hero from '@/components/sections/Hero';
 import ImpactMetrics from '@/components/home/impact-metrics';
 import LiveStatsCounter from '@/components/home/live-stats-counter';
 import NonProfitFAQ from '@/components/home/non-profit-faq';
+import ExcuseGenerator from '@/components/home/excuse-generator';
 import StaggeredFeatures from '@/components/home/staggered-features';
 import FeaturedProjects from '@/components/home/featured-projects';
 import StepsStrip from '@/components/home/steps-strip';
@@ -95,6 +96,9 @@ export default async function LandingPage() {
 
         {/* 7b. Who backs us — maintainer wall, hidden until real */}
         <TrustedBy />
+
+        {/* 7c. A laugh before the ask — excuses are jokes, the invite is real */}
+        <ExcuseGenerator />
 
         {/* 8. The single invitation */}
         <ContactCTA />
