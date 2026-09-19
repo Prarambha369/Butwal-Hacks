@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { createServiceClient } from '@/utils/supabase'
 import { blogPosts, initiatives, events, chapters } from '@/lib/content'
-import { FESTIVALS_2083 } from '@/lib/festivals-2083'
+import { ALL_FESTIVALS } from '@/lib/festivals'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://butwalhacks.com'
 const today = new Date()
@@ -84,7 +84,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: 'monthly',
     priority: 0.7,
   })
-  for (const festival of FESTIVALS_2083) {
+  for (const festival of ALL_FESTIVALS) {
     entries.push({
       url: `${siteUrl}/festivals/${festival.slug}`,
       changeFrequency: 'yearly',

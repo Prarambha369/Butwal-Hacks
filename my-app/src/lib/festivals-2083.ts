@@ -16,7 +16,7 @@
  *   dates — festival pages are permanent URLs.
  */
 
-export type FestivalTradition = "hindu" | "buddhist" | "janajati" | "civic" | "christian";
+export type FestivalTradition = "hindu" | "buddhist" | "janajati" | "civic" | "christian" | "muslim";
 
 export interface FestivalEntry {
   /** Stable per-observance id, e.g. "vijaya-dashami". */
@@ -351,4 +351,5 @@ export const TRADITION_META: Record<FestivalTradition, { en: string; ne: string;
   janajati: { en: "Janajati", ne: "जनजाति", dot: "bg-status-green" },
   civic: { en: "Civic", ne: "नागरिक", dot: "bg-status-blue" },
   christian: { en: "Christian", ne: "क्रिस्चियन", dot: "bg-status-teal" },
+  muslim: { en: "Muslim", ne: "मुस्लिम", dot: "bg-status-orange" },
 };

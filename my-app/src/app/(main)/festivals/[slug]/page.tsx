@@ -3,16 +3,16 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, MoonStar, Clock3, PartyPopper } from "lucide-react";
 import {
-  FESTIVALS_2083,
-  getFestival,
-  getFestivalsByGroup,
+  ALL_FESTIVALS,
+  getFestivalAll,
+  getFestivalsByGroupAll,
   TRADITION_META,
-} from "@/lib/festivals-2083";
+} from "@/lib/festivals";
 import { BS_MONTH_NAMES, BS_MONTH_NAMES_NE } from "@/lib/nepali-date";
 import { buildPageMetadata } from "@/lib/seo";
 
 export async function generateStaticParams() {
-  return FESTIVALS_2083.map((f) => ({ slug: f.slug }));
+  return ALL_FESTIVALS.map((f) => ({ slug: f.slug }));
 }
 
 export async function generateMetadata({
@@ -21,7 +21,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const f = getFestival(slug);
+  const f = getFestivalAll(slug);
   if (!f) {
     return buildPageMetadata({
       title: "Festival Not Found",
@@ -30,8 +30,8 @@ export async function generateMetadata({
     });
   }
   return buildPageMetadata({
-    title: `${f.nameEn} 2083 (${f.nameNe})`,
-    description: f.contextEn,
+    title: `${f.nameEn} ${f.bs[0]} (${f.nameNe})`,
+    description: f.contextEn || `${f.nameEn} falls on ${BS_MONTH_NAMES[f.bs[1] - 1]} ${f.bs[2]}, ${f.bs[0]} BS.`,
     path: `/festivals/${f.slug}`,
   });
 }
@@ -56,13 +56,13 @@ export default async function FestivalPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const f = getFestival(slug);
+  const f = getFestivalAll(slug);
   if (!f) notFound();
 
   const [by, bm, bd] = f.bs;
   const [ay, am, ad] = f.ad;
   const meta = TRADITION_META[f.tradition];
-  const siblings = getFestivalsByGroup(f.group).filter((s) => s.slug !== f.slug);
+  const siblings = getFestivalsByGroupAll(f.group, f.bs[0]).filter((s) => s.slug !== f.slug);
 
   return (
     <div className="min-h-dvh bg-background px-6 pb-24 pt-32 md:px-20">
@@ -72,8 +72,8 @@ export default async function FestivalPage({
           className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary-red"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          All festivals of 2083
-          <span className="text-muted-foreground/60">/ २०८३ का सबै चाडपर्व</span>
+          All festivals
+          <span className="text-muted-foreground/60">/ सबै चाडपर्व</span>
         </Link>
 
         <div className="mt-8 flex flex-wrap items-center gap-2">
