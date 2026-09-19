@@ -14,6 +14,10 @@ export default function TrustedByClient({ partners }: { partners: Partner[] }) {
       <div className="mx-auto max-w-6xl px-4">
         <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-8">
           {t("home.trusted_by.label", locale)}
+          {" · "}
+          <Link href="/partners" className="underline underline-offset-4 hover:text-primary transition-colors">
+            {t("home.trusted_by.view_all", locale)}
+          </Link>
         </p>
 
         <div className="relative overflow-hidden">
