@@ -2,7 +2,8 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { MapPin, Users, Calendar, ArrowLeft, MessageSquare, ExternalLink, GraduationCap, User } from "lucide-react"
 
-import { chapters, blogPosts, getRelatedByTags } from "@/lib/content"
+import { chapters, blogPosts, getRelatedByTags, type Chapter } from "@/lib/content"
+import { getChapterBySlug } from "@/lib/actions/chapters"
 import { buildPageMetadata } from "@/lib/seo"
 import Breadcrumbs from "@/components/breadcrumbs"
 import RelatedLinks from "@/components/home/related-links"
@@ -11,13 +12,37 @@ type Props = {
   params: Promise<{ slug: string }>
 }
 
+export const revalidate = 300;
+
+/** DB row → content shape (DB-first, static fallback inside the action). */
+async function loadChapter(slug: string): Promise<Chapter | null> {
+  const row = await getChapterBySlug(slug);
+  if (!row) return chapters.find((c) => c.slug === slug) ?? null;
+  return {
+    slug: row.slug,
+    name: row.name,
+    tags: [],
+    school: row.school,
+    leadName: row.lead_name,
+    city: row.city,
+    district: row.district,
+    province: "Lumbini Province",
+    status: row.status,
+    established: row.established,
+    memberCount: row.member_count,
+    description: row.description,
+    highlights: row.highlights,
+    socialLinks: { whatsapp: row.whatsapp ?? "" },
+  };
+}
+
 export function generateStaticParams() {
   return chapters.map((chapter) => ({ slug: chapter.slug }))
 }
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params
-  const chapter = chapters.find((c) => c.slug === slug)
+  const chapter = await loadChapter(slug)
 
   if (!chapter) {
     return buildPageMetadata({
@@ -36,7 +61,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function ChapterDetailPage({ params }: Props) {
   const { slug } = await params
-  const chapter = chapters.find((c) => c.slug === slug)
+  const chapter = await loadChapter(slug)
 
   if (!chapter) {
     notFound()
