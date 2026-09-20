@@ -29,6 +29,7 @@ function buildMockDb() {
   };
 }
 
+/** Builds a keep-alive request carrying a cron bearer secret. */
 function mockRequestWithBearer(token: string): NextRequest {
   return new Request("http://localhost:3000/api/keep-alive", {
     headers: { Authorization: `Bearer ${token}` },

@@ -14,7 +14,8 @@ jobs:
     steps:
       - name: Ping /api/keep-alive
         env:
-          KEEP_ALIVE_SECRET: ${{ secrets.KEEP_ALIVE_SECRET }}
+          # Route accepts KEEP_ALIVE_SECRET with CRON_SECRET as alias.
+          KEEP_ALIVE_SECRET: ${{ secrets.KEEP_ALIVE_SECRET || secrets.CRON_SECRET }}
         run: |
           echo "Pinging https://app.butwalhacks.com/api/keep-alive ..."
           AUTH_ARGS=()
