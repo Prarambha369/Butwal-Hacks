@@ -43,17 +43,20 @@ export const dynamic = "force-static";
  * (maintainer-managed partner wall, hidden until a partner exists).
  */
 export default async function LandingPage() {
-  const projects = await getFeaturedProjects(6);
-
   // Published events feed the calendar grid. Publishing is the only
   // step an organizer takes — no separate calendar management exists.
+  // Independent reads run in parallel so one slow query never stalls the page.
   const supabase = createServiceClient();
-  const { data: publishedEvents } = await supabase
-    .from("events")
-    .select("title, slug, start_date, end_date")
-    .eq("is_published", true)
-    .order("start_date", { ascending: true })
-    .limit(200);
+  const [projects, { data: publishedEvents }] = await Promise.all([
+    getFeaturedProjects(6),
+    supabase
+      .from("events")
+      .select("title, slug, start_date, end_date")
+      .eq("is_published", true)
+      .order("start_date", { ascending: true })
+      .limit(200)
+      .abortSignal(AbortSignal.timeout(5000)),
+  ]);
   const calendarEvents = ((publishedEvents ?? []) as Array<{
     title: string; slug: string | null; start_date: string; end_date: string | null;
   }>).map((e) => ({ title: e.title, slug: e.slug, start_date: e.start_date, end_date: e.end_date }));

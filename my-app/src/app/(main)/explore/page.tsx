@@ -25,13 +25,16 @@ export const metadata: Metadata = buildPageMetadata({
 
 export default async function ExplorePage() {
   const supabase = createServiceClient();
-  const explorerMembers = await fetchExplorerMembers(supabase);
+  // Independent reads run in parallel so one slow query never stalls the page.
+  const [explorerMembers, { count: mentorCount }] = await Promise.all([
+    fetchExplorerMembers(supabase),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("open_to_mentor", true)
+      .not("bh_id", "is", null),
+  ]);
   const stats = getExplorerStats(explorerMembers);
-  const { count: mentorCount } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-    .eq("open_to_mentor", true)
-    .not("bh_id", "is", null);
 
   return (
     <>
