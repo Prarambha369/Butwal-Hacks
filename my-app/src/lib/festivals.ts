@@ -3,8 +3,8 @@
  * pages, and sitemap.
  *
  * - 2083 is Samiti-seeded (authoritative, human writeups).
- * - Other years are Hamro Patro-feed imports (major observances only,
- *   no writeups yet — context lines stay empty until written by hand).
+ * - Other years are Hamro Patro-feed imports (major observances only)
+ *   with human one-line writeups.
  */
 import { FESTIVALS_2081 } from "./festivals-2081";
 import { FESTIVALS_2082 } from "./festivals-2082";

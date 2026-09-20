@@ -291,8 +291,20 @@ if (unmapped.length) {
 
 for (const [year, rows] of Object.entries(byBsYear).sort()) {
   rows.sort((a, b) => a.bs[1] - b.bs[1] || a.bs[2] - b.bs[2]);
-  const body = rows.map((r) =>
-    `  {\n    slug: "${r.slug}", group: "${r.group}",\n    nameEn: "${r.nameEn}", nameNe: "${r.nameNe}",\n    tradition: "${r.tradition}", bs: [${r.bs.join(", ")}], ad: [${r.ad.join(", ")}],\n    contextEn: "",\n    contextNe: "",\n  },`).join("\n");
+  // Carry over human writeups from the previous generation (matched by
+  // slug) so regenerating never wipes hand-written context lines.
+  const dest = join(ROOT, `src/lib/festivals-${year}.ts`);
+  const prev = existsSync(dest) ? readFileSync(dest, "utf8") : null;
+  const carried = new Map();
+  if (prev) {
+    for (const m of prev.matchAll(/slug: "([^"]+)",[\s\S]*?contextEn: "(.*?)",\n    contextNe: "(.*?)",/g)) {
+      if (m[2] || m[3]) carried.set(m[1], [m[2], m[3]]);
+    }
+  }
+  const body = rows.map((r) => {
+    const [ce, cn] = carried.get(r.slug) ?? ["", ""];
+    return `  {\n    slug: "${r.slug}", group: "${r.group}",\n    nameEn: "${r.nameEn}", nameNe: "${r.nameNe}",\n    tradition: "${r.tradition}", bs: [${r.bs.join(", ")}], ad: [${r.ad.join(", ")}],\n    contextEn: "${ce}",\n    contextNe: "${cn}",\n  },`;
+  }).join("\n");
   const out = `/**
  * Festivals of BS ${year} — imported from the Hamro Patro-based community
  * feed (shresthasushil NepaliEvents.ics), major public observances only.
@@ -301,9 +313,8 @@ for (const [year, rows] of Object.entries(byBsYear).sort()) {
  *
  * Regenerate with: node scripts/fetch-nepali-events.mjs [ics-path] --write
  *
- * Conventions match festivals-2083.ts, except context lines are empty:
- * one-line writeups stay human-written per year. The Samiti file owns 2083;
- * this importer never emits 2083 rows.
+ * Conventions match festivals-2083.ts. Human writeups (context lines)
+ * are carried over across regenerations, matched by slug.
  */
 import type { FestivalEntry } from "./festivals-2083";
 
@@ -311,10 +322,9 @@ export const FESTIVALS_${year}: FestivalEntry[] = [
 ${body}
 ];
 `;
-  const dest = join(ROOT, `src/lib/festivals-${year}.ts`);
-  const prev = existsSync(dest) ? readFileSync(dest, "utf8") : null;
-  if (prev !== out) {
-    console.log(`${year}: ${prev ? "UPDATE" : "NEW"} (${rows.length} rows)${WRITE ? " — written" : " — preview only"}`);
+  const prevOut = existsSync(dest) ? readFileSync(dest, "utf8") : null;
+  if (prevOut !== out) {
+    console.log(`${year}: ${prevOut ? "UPDATE" : "NEW"} (${rows.length} rows)${WRITE ? " — written" : " — preview only"}`);
     if (WRITE) writeFileSync(dest, out);
   } else {
     console.log(`${year}: unchanged (${rows.length} rows)`);
