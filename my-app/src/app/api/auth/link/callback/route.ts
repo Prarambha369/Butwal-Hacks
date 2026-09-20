@@ -38,14 +38,14 @@ export const GET = withRateLimit(async (request: Request) => {
       error: errorParam,
       description: errorDescription,
     });
-    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
+    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
     redirectUrl.searchParams.set("linked", `error:${encodeURIComponent(errorDescription || "Authentication was cancelled or failed")}`);
     return NextResponse.redirect(redirectUrl);
   }
 
   if (!code || !returnedState) {
     logger.warn("[auth/link/callback] Missing code or state");
-    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
+    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
     redirectUrl.searchParams.set("linked", "error:Missing+authorization+parameters");
     return NextResponse.redirect(redirectUrl);
   }
@@ -57,7 +57,7 @@ export const GET = withRateLimit(async (request: Request) => {
 
     if (!storedState) {
       logger.warn("[auth/link/callback] No stored state cookie - possible CSRF or expired link");
-      const redirectUrl = new URL("/dashboard/hacker/profile", process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
+      const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
       redirectUrl.searchParams.set("linked", "error:Link+request+expired.+Please+try+again");
       return NextResponse.redirect(redirectUrl);
     }
@@ -66,7 +66,7 @@ export const GET = withRateLimit(async (request: Request) => {
     const stateParts = storedState.split(":");
     if (stateParts.length < 3) {
       logger.warn("[auth/link/callback] Malformed state cookie");
-      const redirectUrl = new URL("/dashboard/hacker/profile", process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
+      const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
       redirectUrl.searchParams.set("linked", "error:Invalid+link+state.+Please+try+again");
       return NextResponse.redirect(redirectUrl);
     }
@@ -77,7 +77,7 @@ export const GET = withRateLimit(async (request: Request) => {
     // Verify the returned state matches (nonce comparison)
     if (returnedState !== storedState) {
       logger.warn("[auth/link/callback] State mismatch - possible CSRF");
-      const redirectUrl = new URL("/dashboard/hacker/profile", process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
+      const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
       redirectUrl.searchParams.set("linked", "error:Security+check+failed.+Please+try+again");
       return NextResponse.redirect(redirectUrl);
     }
@@ -86,7 +86,7 @@ export const GET = withRateLimit(async (request: Request) => {
     cookieStore.delete(LINK_STATE_COOKIE);
 
     // Exchange the authorization code for tokens
-    const baseUrl = process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const baseUrl = process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const redirectUri = `${baseUrl}/api/auth/link/callback`;
     const tokens = await exchangeCodeForTokens(code, redirectUri);
 
@@ -180,14 +180,14 @@ export const GET = withRateLimit(async (request: Request) => {
     });
 
     // Redirect back to profile with success
-    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
+    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
     redirectUrl.searchParams.set("linked", `success:${displayName}`);
     return NextResponse.redirect(redirectUrl);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to link account";
     logger.error("[auth/link/callback] Error:", err);
 
-    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
+    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
     redirectUrl.searchParams.set("linked", `error:${encodeURIComponent(message)}`);
     return NextResponse.redirect(redirectUrl);
   }

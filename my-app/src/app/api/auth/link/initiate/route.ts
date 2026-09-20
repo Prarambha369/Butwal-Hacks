@@ -52,8 +52,8 @@ export const POST = withRateLimit(async (request: Request) => {
       maxAge: LINK_STATE_TTL / 1000, // 10 minutes
     });
 
-    // Build the redirect URL
-    const baseUrl = process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    // Build the redirect URL (APP_BASE_URL is canonical; AUTH0_BASE_URL kept as legacy fallback)
+    const baseUrl = process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const redirectUri = `${baseUrl}/api/auth/link/callback`;
     const authUrl = buildLinkAuthUrl(provider, state, redirectUri);
 
