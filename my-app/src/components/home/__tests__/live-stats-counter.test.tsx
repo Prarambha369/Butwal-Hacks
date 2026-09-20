@@ -26,7 +26,7 @@ describe("LiveStatsCounter", () => {
       const { container } = render(<LiveStatsCounter />);
 
       // Should show loading badge
-      expect(screen.getByText("loading platform stats")).toBeInTheDocument();
+      expect(screen.getByText((_, el) => el?.tagName === "SPAN" && el?.textContent === "// loading platform stats?")).toBeInTheDocument();
 
       // Should render 4 skeleton cards with animate-pulse
       const skeletonCards = container.querySelectorAll(".animate-pulse");
@@ -68,7 +68,7 @@ describe("LiveStatsCounter", () => {
     it("renders live from the database badge", async () => {
       render(<LiveStatsCounter />);
 
-      const badge = await screen.findByText("live from the database");
+      const badge = await screen.findByText((_, el) => el?.tagName === "SPAN" && el?.textContent === "// live from the database?");
       expect(badge).toBeInTheDocument();
     });
 
@@ -87,29 +87,26 @@ describe("LiveStatsCounter", () => {
       // The animated number component starts at 0 and animates to the target.
       // Since the test environment may resolve at different speeds, verify
       // the component rendered its stat cards with the data it received.
-      const container = document.querySelector(".bh-card");
-      expect(container).toBeInTheDocument();
-
-      // Verify the section rendered with stat cards
-      const statCards = document.querySelectorAll(".bh-card");
-      expect(statCards.length).toBeGreaterThanOrEqual(4);
+      await screen.findByText("Members");
+      const numbers = document.querySelectorAll(".tabular-nums");
+      expect(numbers.length).toBeGreaterThanOrEqual(4);
     });
 
-    it("renders icon containers for each stat", async () => {
+    it("renders underline rules for each stat", async () => {
       render(<LiveStatsCounter />);
 
       // Wait for data to load
       await screen.findByText("Members");
 
-      // Each stat card has its own accent tile color
-      const expectedTiles = [
-        ".bg-primary-red\\/10",
-        ".bg-status-blue\\/10",
-        ".bg-status-green\\/10",
-        ".bg-status-yellow\\/10",
+      // Each stat has its own accent underline color
+      const expectedRules = [
+        ".bg-primary-red",
+        ".bg-status-blue",
+        ".bg-status-green",
+        ".bg-status-yellow",
       ];
-      for (const tile of expectedTiles) {
-        expect(document.querySelectorAll(tile).length).toBe(1);
+      for (const rule of expectedRules) {
+        expect(document.querySelectorAll(rule).length).toBeGreaterThanOrEqual(1);
       }
     });
   });

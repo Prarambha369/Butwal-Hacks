@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Dices } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
+import SectionEyebrow from "@/components/section-eyebrow";
 
 /** Number of excuses. Kept in sync with home.excuses.1..N keys + the test. */
 export const EXCUSE_COUNT = 10;
@@ -32,10 +33,8 @@ export default function ExcuseGenerator() {
   return (
     <section className="border-b border-border bg-surface py-16 md:py-24">
       <div className="mx-auto max-w-3xl px-4 text-center">
-        <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-primary-red/10 bg-primary-red/5 px-3 py-1">
-          <span className="font-mono text-[10px] font-semibold text-primary-red">
-            {t("home.excuses.badge", locale)}
-          </span>
+        <div className="mb-4">
+          <SectionEyebrow text={t("home.excuses.badge", locale)} />
         </div>
         <h2 className="text-3xl font-bold text-primary md:text-5xl tracking-tight leading-[1.05] text-balance">
           {t("home.excuses.title", locale)}

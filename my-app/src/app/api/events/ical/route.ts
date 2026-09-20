@@ -63,6 +63,10 @@ export const GET = withRateLimit(async () => {
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//Butwal Hacks//Events//EN',
+    'NAME:Butwal Hacks Events',
+    'X-WR-CALNAME:Butwal Hacks Events',
+    'X-WR-CALDESC:Butwal Hacks hackathons, workshops, and community events',
+    `URL:${SITE_URL}/api/events/ical`,
     ...vevents,
     'END:VCALENDAR',
   ].join('\r\n');

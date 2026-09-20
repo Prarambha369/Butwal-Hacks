@@ -13,9 +13,16 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Ping /api/keep-alive
+        env:
+          # Route accepts KEEP_ALIVE_SECRET with CRON_SECRET as alias.
+          KEEP_ALIVE_SECRET: ${{ secrets.KEEP_ALIVE_SECRET || secrets.CRON_SECRET }}
         run: |
           echo "Pinging https://app.butwalhacks.com/api/keep-alive ..."
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://app.butwalhacks.com/api/keep-alive")
+          AUTH_ARGS=()
+          if [ -n "$KEEP_ALIVE_SECRET" ]; then
+            AUTH_ARGS=(-H "Authorization: Bearer $KEEP_ALIVE_SECRET")
+          fi
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${AUTH_ARGS[@]}" "https://app.butwalhacks.com/api/keep-alive")
           if [ "$STATUS" = "200" ]; then
             echo "✅ keep-alive ping successful (HTTP $STATUS)"
           else
@@ -29,8 +36,11 @@ jobs:
           RESPONSE=$(curl -s "https://app.butwalhacks.com/api/health")
           echo "$RESPONSE" | python3 -m json.tool 2>/dev/null || echo "$RESPONSE"
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://app.butwalhacks.com/api/health")
-          if [ "$STATUS" = "200" ]; then
-            echo "✅ health check successful (HTTP $STATUS)"
+          # 200 = healthy, 503 = degraded but responding (e.g. optional
+          # dependency not configured). Both prove the app is up; only fail
+          # when the endpoint is unreachable or returns an unexpected code.
+          if [ "$STATUS" = "200" ] || [ "$STATUS" = "503" ]; then
+            echo "✅ health check responding (HTTP $STATUS)"
           else
             echo "⚠️ health check returned HTTP $STATUS"
             exit 1

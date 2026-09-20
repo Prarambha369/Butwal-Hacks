@@ -22,7 +22,8 @@ export async function getActivePartners(): Promise<Partner[]> {
     .select('id, name, logo_url, href, sort_order, is_active')
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    .abortSignal(AbortSignal.timeout(5000));
   if (error) {
     // PGRST205 = table missing from schema cache (preview/dev DB behind
     // on migrations). Benign and self-healing: return empty, no log spam.

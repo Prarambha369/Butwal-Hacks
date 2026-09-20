@@ -24,7 +24,7 @@ const mockedRequireMaintainer = requireMaintainer as ReturnType<typeof vi.fn>;
 
 function buildMockDb() {
   const db: Record<string, ReturnType<typeof vi.fn>> = {};
-  for (const m of ["from", "select", "eq", "order", "insert", "update", "delete"]) {
+  for (const m of ["from", "select", "eq", "order", "insert", "update", "delete", "abortSignal"]) {
     db[m] = vi.fn(() => db);
   }
   return db;
@@ -40,7 +40,7 @@ describe("partners", () => {
     const db = buildMockDb();
     mockedCreateServiceClient.mockReturnValue(db);
     db.order.mockReturnValueOnce(db);
-    db.order.mockResolvedValueOnce({
+    db.abortSignal.mockResolvedValueOnce({
       data: [{ id: "p1", name: "GitHub Education", logo_url: null, href: null, sort_order: 0, is_active: true }],
       error: null,
     });

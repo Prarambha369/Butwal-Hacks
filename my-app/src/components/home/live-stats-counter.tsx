@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UsersRound, CalendarDays, FolderGit2, BadgeCheck } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
+import SectionEyebrow from "@/components/section-eyebrow";
 
 interface Stats {
   total_hackers: number;
@@ -12,12 +12,12 @@ interface Stats {
   total_trust_markers: number;
 }
 
-function SkeletonCard() {
+function SkeletonStat() {
   return (
-    <div className="bh-card p-6 text-center space-y-2 animate-pulse">
-      <div className="mx-auto h-10 w-10 rounded-lg bg-surface-hover" />
-      <div className="h-8 w-20 bg-surface-hover rounded mx-auto" />
-      <div className="h-3 w-16 bg-surface-hover rounded mx-auto" />
+    <div className="animate-pulse">
+      <div className="h-12 md:h-14 w-24 bg-surface-hover rounded mx-auto lg:mx-0" />
+      <div className="mx-auto lg:mx-0 mt-3 h-0.5 w-10 bg-surface-hover" />
+      <div className="h-3 w-20 bg-surface-hover rounded mx-auto lg:mx-0 mt-3" />
     </div>
   );
 }
@@ -52,10 +52,10 @@ function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string
 }
 
 const statItems = [
-  { key: "total_hackers", labelKey: "home.stats.members", oneKey: "home.stats.member_one", icon: UsersRound, color: "text-primary-red", bg: "bg-primary-red/10" },
-  { key: "total_events", labelKey: "home.stats.events", oneKey: "home.stats.event_one", icon: CalendarDays, color: "text-status-blue", bg: "bg-status-blue/10" },
-  { key: "total_projects", labelKey: "home.stats.projects", oneKey: "home.stats.project_one", icon: FolderGit2, color: "text-status-green", bg: "bg-status-green/10" },
-  { key: "total_trust_markers", labelKey: "home.stats.credentials", oneKey: "home.stats.credential_one", icon: BadgeCheck, color: "text-status-yellow", bg: "bg-status-yellow/10" },
+  { key: "total_hackers", labelKey: "home.stats.members", oneKey: "home.stats.member_one", rule: "bg-primary-red" },
+  { key: "total_events", labelKey: "home.stats.events", oneKey: "home.stats.event_one", rule: "bg-status-blue" },
+  { key: "total_projects", labelKey: "home.stats.projects", oneKey: "home.stats.project_one", rule: "bg-status-green" },
+  { key: "total_trust_markers", labelKey: "home.stats.credentials", oneKey: "home.stats.credential_one", rule: "bg-status-yellow" },
 ] as const;
 
 export default function LiveStatsCounter() {
@@ -91,19 +91,17 @@ export default function LiveStatsCounter() {
 
   if (!stats) {
     return (
-      <section className="py-16 md:py-20 bg-surface border-b border-border">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="flex items-center justify-center gap-3 mb-12">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/8 text-[10px] font-mono font-semibold text-primary-red tracking-tight">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-red" />
-              {t('home.stats.loading', locale)}
-            </span>
+      <section className="relative overflow-hidden py-16 md:py-20 bg-surface border-b border-border">
+        <div aria-hidden="true" className="bh-bg-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_60%_80%_at_50%_50%,black,transparent)]" />
+        <div className="relative mx-auto max-w-6xl px-4">
+          <div className="mb-10 text-center">
+            <SectionEyebrow text={t('home.stats.loading', locale)} />
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
+            <SkeletonStat />
+            <SkeletonStat />
+            <SkeletonStat />
+            <SkeletonStat />
           </div>
         </div>
       </section>
@@ -111,29 +109,23 @@ export default function LiveStatsCounter() {
   }
 
   return (
-    <section className="py-16 md:py-20 bg-surface border-b border-border">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="flex items-center justify-center gap-3 mb-12">            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/8 text-[10px] font-mono font-semibold text-primary-red tracking-tight">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-red" />
-              {t('home.stats.live', locale)}
-            </span>
+    <section className="relative overflow-hidden py-16 md:py-20 bg-surface border-b border-border">
+      <div aria-hidden="true" className="bh-bg-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_60%_80%_at_50%_50%,black,transparent)]" />
+      <div className="relative mx-auto max-w-6xl px-4">
+        <div className="mb-10 text-center">
+          <SectionEyebrow text={t('home.stats.live', locale)} />
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {statItems.map(({ key, labelKey, oneKey, icon: Icon, color, bg }) => {
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
+          {statItems.map(({ key, labelKey, oneKey, rule }) => {
             const value = stats?.[key as keyof Stats] ?? null;
             return (
-              <div
-                key={key}
-                className="bh-card bh-play-hover p-6 text-center space-y-2 hover:-translate-y-0.5 transition-all duration-300"
-              >
-                <div className={`bh-play-target mx-auto flex h-10 w-10 items-center justify-center rounded-lg ${bg} ${color}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <p className="text-4xl md:text-5xl font-black text-primary font-mono tabular-nums">
+              <div key={key} className="text-center lg:text-left">
+                <p className="font-mono text-5xl md:text-6xl font-black tabular-nums text-primary">
                   {value !== null ? <AnimatedNumber value={value} /> : <span className="text-muted-foreground">—</span>}
                 </p>
-                <p className="text-xs text-text-secondary font-medium uppercase tracking-wider">
+                <div aria-hidden="true" className={`mx-auto lg:mx-0 mt-3 h-[3px] w-10 ${rule}`} />
+                <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-text-secondary">
                   {value === 1 ? t(oneKey, locale) : t(labelKey, locale)}
                 </p>
               </div>
@@ -141,7 +133,7 @@ export default function LiveStatsCounter() {
           })}
         </div>
 
-        <p className="mt-8 text-center font-mono text-[11px] text-muted-foreground">
+        <p className="mt-10 text-center font-mono text-[11px] text-muted-foreground">
           {t('home.stats.footnote', locale)}
         </p>
       </div>

@@ -38,23 +38,32 @@ function TerminalTyper({ locale }: { locale: "en" | "ne" }) {
   return (
     <div
       aria-hidden="true"
-      className="mx-auto mb-8 w-fit max-w-full rounded-xl border border-border bg-surface-inverse px-4 py-3 text-left font-mono text-xs sm:text-sm shadow-sm"
+      className="mx-auto w-fit max-w-full overflow-hidden rounded-xl border border-border bg-surface-inverse shadow-sm"
     >
-      <p className="text-text-secondary break-all">
-        <span className="text-status-green">$</span> {first}
-        {count < script.length && count >= 0 && rest.length === 0 && <span className="bh-caret text-primary-red">▍</span>}
-      </p>
-      {rest.length > 0 && (
-        <p className="text-status-green break-words">
-          {rest.join("\n")}
-          {count < script.length && <span className="bh-caret text-primary-red">▍</span>}
+      {/* Terminal title bar */}
+      <div className="flex items-center gap-1.5 border-b border-border/60 px-4 py-2">
+        <span className="h-2.5 w-2.5 rounded-full bg-primary-red/80" />
+        <span className="h-2.5 w-2.5 rounded-full bg-status-yellow/80" />
+        <span className="h-2.5 w-2.5 rounded-full bg-status-green/80" />
+        <span className="ml-2 font-mono text-[10px] text-text-secondary">butwal-hacks — zsh</span>
+      </div>
+      <div className="px-4 py-3 text-left font-mono text-xs sm:text-sm">
+        <p className="text-text-secondary break-all">
+          <span className="text-status-green">$</span> {first}
+          {count < script.length && count >= 0 && rest.length === 0 && <span className="bh-caret text-primary-red">▍</span>}
         </p>
-      )}
-      {count >= script.length && (
-        <p>
-          <span className="bh-caret text-primary-red">▍</span>
-        </p>
-      )}
+        {rest.length > 0 && (
+          <p className="text-status-green break-words">
+            {rest.join("\n")}
+            {count < script.length && <span className="bh-caret text-primary-red">▍</span>}
+          </p>
+        )}
+        {count >= script.length && (
+          <p>
+            <span className="text-status-green">$</span> <span className="bh-caret text-primary-red">▍</span>
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -65,6 +74,9 @@ export default function Hero() {
   const subtext = useSiteContent("hero.subtext", "home.hero.subtext");
   return (
     <section className="relative w-full overflow-hidden bg-surface py-20 md:py-32">
+      {/* Blueprint grid wash + soft red glow behind the terminal */}
+      <div aria-hidden="true" className="bh-bg-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_70%_80%_at_50%_30%,black,transparent)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-primary-red/8 blur-3xl" />
       <div className="bh-container relative">
         {/* Floating stickers — desktop only, clearly jokes, honestly free */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden lg:block">
@@ -89,8 +101,6 @@ export default function Hero() {
         </div>
 
         <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-          <TerminalTyper locale={locale} />
-
           {/* Main headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-primary leading-[1.08]">
             {title}
@@ -115,6 +125,11 @@ export default function Hero() {
             >
               <span>{t('action.explore_projects', locale)}</span>
             </Link>
+          </div>
+
+          {/* Terminal — supporting visual under the headline */}
+          <div className="mt-10">
+            <TerminalTyper locale={locale} />
           </div>
         </div>
       </div>

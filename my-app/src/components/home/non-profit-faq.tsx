@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
+import SectionEyebrow from "@/components/section-eyebrow";
 
 const faqs = [
   { id: "free", qKey: "home.faq.items.free.q", aKey: "home.faq.items.free.a" },
@@ -26,8 +27,8 @@ export default function NonProfitFAQ() {
     <section aria-labelledby="faq-heading" className="py-16 md:py-24 bg-background border-b border-border">
       <div className="mx-auto max-w-3xl px-4">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/5 border border-primary-red/10 mb-4">
-            <span className="text-[10px] font-mono font-semibold text-primary-red">{t('home.faq.badge', locale)}</span>
+          <div className="mb-4">
+            <SectionEyebrow text={t('home.faq.badge', locale)} />
           </div>
           <h2 id="faq-heading" className="text-3xl md:text-5xl font-bold text-primary tracking-tight leading-[1.05] text-balance">
             {t('home.faq.title', locale)}

@@ -84,6 +84,51 @@ function isExactRouteMatch(pathname: string, routeSet: Set<string>): boolean {
 }
 
 /**
+ * Whether an Auth0 middleware failure is a missing-configuration error.
+ *
+ * The SDK wraps the root cause: `auth0.middleware()` throws
+ * `DomainResolutionError { code: "domain_resolution_error" }` whose
+ * `cause` is `InvalidConfigurationError { code: "invalid_configuration" }`.
+ * Walk the whole cause chain so the wrapper never masks the signature.
+ * Anything else (e.g. failed login callbacks) must propagate untouched.
+ */
+function isAuthConfigError(err: unknown): boolean {
+  const seen = new Set<unknown>();
+  let cur: unknown = err;
+  while (cur && (typeof cur === "object" || typeof cur === "function") && !seen.has(cur)) {
+    seen.add(cur);
+    const code = (cur as { code?: unknown }).code;
+    const message = cur instanceof Error ? cur.message : String(cur);
+    if (
+      code === "invalid_configuration" ||
+      /Set AUTH0_.* env var|Missing: .*env var|InvalidConfiguration/i.test(message)
+    ) {
+      return true;
+    }
+    cur = (cur as { cause?: unknown }).cause;
+  }
+  return false;
+}
+
+/**
+ * Run the Auth0 middleware, degrading gracefully when Auth0 is not
+ * configured (missing env vars). Instead of a 500 on every /auth/* route,
+ * visitors are sent to /sign-in with an explanatory flag. Non-config
+ * errors (e.g. failed login callbacks) are rethrown to preserve SDK behavior.
+ */
+async function runAuthMiddleware(request: NextRequest): Promise<NextResponse> {
+  try {
+    return await auth0.middleware(request);
+  } catch (err) {
+    if (!isAuthConfigError(err)) throw err;
+    logger.warn("[proxy] Auth0 misconfigured, redirecting to sign-in");
+    const url = new URL("/sign-in", request.url);
+    url.searchParams.set("error", "auth_unavailable");
+    return NextResponse.redirect(url);
+  }
+}
+
+/**
  * Proxy middleware — runs on every eligible request.
  *
  * Auth0 v4 mounts auth routes (/auth/login, /auth/callback, /auth/logout)
@@ -110,7 +155,7 @@ export async function proxy(request: NextRequest) {
   if (isRouteInSet(pathname, SHARED_PREFIXES)) {
     // Auth0 middleware handles auth routes
     if (pathname.startsWith("/auth/")) {
-      return auth0.middleware(request);
+      return runAuthMiddleware(request);
     }
     return NextResponse.next();
   }
@@ -315,7 +360,7 @@ export async function handleLocalDev(request: NextRequest): Promise<NextResponse
 
   // Auth0 middleware for auth routes
   if (pathname.startsWith("/auth/")) {
-    return await auth0.middleware(request);
+    return await runAuthMiddleware(request);
   }
 
   // Protect dashboard routes with role-based access (even in dev)

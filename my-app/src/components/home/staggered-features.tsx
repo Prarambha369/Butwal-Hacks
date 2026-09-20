@@ -52,8 +52,8 @@ const features = [
  * StaggeredFeatures — mixed layout with visual variety
  *
  * Intentionally avoids the "6 identical icon cards in a 3-column grid" pattern.
- * Cards have varied sizes, the last row uses a 2-column split for asymmetry,
- * and a highlighted callout card breaks the rhythm.
+ * Cards have varied sizes, index numerals, and an accent rule that fills on
+ * hover. A blog strip at the bottom cross-links build stories.
  */
 export default function StaggeredFeatures() {
   const { locale } = useLanguage();
@@ -72,14 +72,17 @@ export default function StaggeredFeatures() {
 
         {/* Mixed layout grid — not all cards are the same */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 auto-rows-[minmax(180px,auto)]">
-          {features.map((feature) => {
+          {features.map((feature, i) => {
             const Icon = feature.icon
             return (
               <Link
                 key={feature.titleKey}
                 href={feature.href}
-                className={`group bh-play-hover relative rounded-xl border border-border bg-surface p-6 md:p-7 transition-all duration-200 hover:shadow-sm ${feature.span}`}
+                className={`group bh-play-hover relative overflow-hidden rounded-xl border border-border bg-surface p-6 md:p-7 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-primary-red/30 ${feature.span}`}
               >
+                <span aria-hidden="true" className="pointer-events-none absolute right-4 top-3 font-mono text-4xl font-black text-border transition-colors group-hover:text-primary-red/20">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <div className={`bh-play-target inline-flex h-9 w-9 items-center justify-center rounded-lg ${feature.color} mb-4`}>
                   <Icon className="h-[18px] w-[18px]" />
                 </div>
@@ -93,11 +96,24 @@ export default function StaggeredFeatures() {
                   <span>{t('common.learn_more', locale)}</span>
                   <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                 </div>
+                <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-primary-red transition-transform duration-300 group-hover:scale-x-100" />
               </Link>
             )
           })}
 
 
+        </div>
+
+        {/* Blog cross-link — tool talk continues in build stories */}
+        <div className="mt-8 flex justify-center">
+          <Link
+            href="/blog"
+            className="group inline-flex items-center gap-2 font-mono text-xs font-semibold text-muted-foreground transition-colors hover:text-primary-red"
+          >
+            <span className="text-primary-red" aria-hidden="true">{"// "}</span>
+            {t('home.features.blog_link', locale)}
+            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </div>
     </section>
