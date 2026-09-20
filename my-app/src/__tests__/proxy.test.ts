@@ -427,4 +427,27 @@ describe("auth middleware misconfiguration", () => {
 
     await expect(proxy(request)).rejects.toThrow("callback failed");
   });
+
+  it("detects config errors wrapped in DomainResolutionError cause chain", async () => {
+    // Exact shape from production logs: the SDK wraps
+    // InvalidConfigurationError inside DomainResolutionError.
+    const cause = new Error(
+      "Missing: domain: Set AUTH0_DOMAIN env var or pass domain in options",
+    ) as Error & { code: string };
+    cause.code = "invalid_configuration";
+    const wrapped = new Error("Domain resolver threw an error.") as Error & {
+      code: string;
+      cause: Error;
+    };
+    wrapped.code = "domain_resolution_error";
+    wrapped.cause = cause;
+    setMiddlewareImpl(() => { throw wrapped; });
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://localhost:3000/auth/profile");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/sign-in?error=auth_unavailable");
+  });
 });

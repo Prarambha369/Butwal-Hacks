@@ -84,6 +84,33 @@ function isExactRouteMatch(pathname: string, routeSet: Set<string>): boolean {
 }
 
 /**
+ * Whether an Auth0 middleware failure is a missing-configuration error.
+ *
+ * The SDK wraps the root cause: `auth0.middleware()` throws
+ * `DomainResolutionError { code: "domain_resolution_error" }` whose
+ * `cause` is `InvalidConfigurationError { code: "invalid_configuration" }`.
+ * Walk the whole cause chain so the wrapper never masks the signature.
+ * Anything else (e.g. failed login callbacks) must propagate untouched.
+ */
+function isAuthConfigError(err: unknown): boolean {
+  const seen = new Set<unknown>();
+  let cur: unknown = err;
+  while (cur && (typeof cur === "object" || typeof cur === "function") && !seen.has(cur)) {
+    seen.add(cur);
+    const code = (cur as { code?: unknown }).code;
+    const message = cur instanceof Error ? cur.message : String(cur);
+    if (
+      code === "invalid_configuration" ||
+      /Set AUTH0_.* env var|Missing: .*env var|InvalidConfiguration/i.test(message)
+    ) {
+      return true;
+    }
+    cur = (cur as { cause?: unknown }).cause;
+  }
+  return false;
+}
+
+/**
  * Run the Auth0 middleware, degrading gracefully when Auth0 is not
  * configured (missing env vars). Instead of a 500 on every /auth/* route,
  * visitors are sent to /sign-in with an explanatory flag. Non-config
@@ -93,13 +120,8 @@ async function runAuthMiddleware(request: NextRequest): Promise<NextResponse> {
   try {
     return await auth0.middleware(request);
   } catch (err) {
-    const code = (err as { code?: string })?.code ?? "";
-    const message = err instanceof Error ? err.message : String(err);
-    const isConfigError =
-      code === "invalid_configuration" ||
-      /Set AUTH0_.* env var|Missing: /i.test(message);
-    if (!isConfigError) throw err;
-    logger.error("[proxy] Auth0 misconfigured, redirecting to sign-in:", message);
+    if (!isAuthConfigError(err)) throw err;
+    logger.warn("[proxy] Auth0 misconfigured, redirecting to sign-in");
     const url = new URL("/sign-in", request.url);
     url.searchParams.set("error", "auth_unavailable");
     return NextResponse.redirect(url);
