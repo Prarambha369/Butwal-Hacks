@@ -24,5 +24,13 @@ describe("consolidation redirects", () => {
       destination: "/initiatives",
       permanent: true,
     });
+    expect(bySource.get("/philosophy")).toMatchObject({
+      destination: "/about#philosophy",
+      permanent: true,
+    });
+    expect(bySource.get("/profile/:bh_id")).toMatchObject({
+      destination: "/p/:bh_id",
+      permanent: true,
+    });
   });
 });

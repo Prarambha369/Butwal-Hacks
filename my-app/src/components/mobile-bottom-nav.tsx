@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", i18nKey: "nav.dashboard", icon: LayoutDashboard },
   { href: "/events", i18nKey: "nav.events", icon: CalendarDays },
   { href: "/explore", i18nKey: "nav.explore", icon: Search },
-  { href: "/profile", i18nKey: "nav.profile", icon: User },
+  { href: "/dashboard/hacker/profile", i18nKey: "nav.profile", icon: User },
 ];
 
 /**

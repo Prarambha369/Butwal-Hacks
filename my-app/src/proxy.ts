@@ -50,7 +50,7 @@ const MARKETING_PREFIXES = [
 const APP_PREFIXES = [
   "/dashboard/",
   "/portal/",
-  "/profile/",
+  "/p/",
   "/teams/",
   "/orgs/",
   "/api/",
