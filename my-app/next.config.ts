@@ -149,6 +149,8 @@ const nextConfig: NextConfig = {
       // /programs/* folded into initiatives (single completed instance).
       { source: "/programs/annual-hackathon", destination: "/initiatives/hackathon", permanent: true },
       { source: "/programs", destination: "/initiatives", permanent: true },
+      // /philosophy folded into /about#philosophy (the definition of us).
+      { source: "/philosophy", destination: "/about#philosophy", permanent: true },
     ]
   },
   async headers() {
