@@ -35,7 +35,7 @@ const features = [
     descKey: "home.features.bounties.desc",
     icon: Medal,
     color: "text-status-yellow bg-status-yellow/8",
-    href: "/opportunities",
+    href: "/support#opportunities",
     span: "md:col-span-1 md:row-span-1",
   },
   {

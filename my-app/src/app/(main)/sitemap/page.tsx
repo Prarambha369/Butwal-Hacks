@@ -53,7 +53,6 @@ const sections: SiteSection[] = [
     icon: <Code className="h-5 w-5" />,
     links: [
       { href: "/projects", label: "Projects", description: "Community-built projects and open-source work" },
-      { href: "/opportunities", label: "Opportunities", description: "Bounties, jobs, internships, and grants" },
       { href: "/dashboard/hacker/work", label: "Task Board", description: "Notion-style kanban for team projects" },
       { href: "/dashboard/hacker/team-matching", label: "Team Matching", description: "AI-powered teammate suggestions" },
     ],

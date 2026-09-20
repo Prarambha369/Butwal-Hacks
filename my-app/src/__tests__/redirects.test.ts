@@ -44,5 +44,9 @@ describe("consolidation redirects", () => {
       destination: "/partners#donors",
       permanent: true,
     });
+    expect(bySource.get("/opportunities")).toMatchObject({
+      destination: "/support#opportunities",
+      permanent: true,
+    });
   });
 });

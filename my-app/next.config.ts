@@ -164,6 +164,9 @@ const nextConfig: NextConfig = {
       { source: "/initiatives", destination: "/events#initiatives", permanent: true },
       // /donors folded into /partners#donors (single recognition wall).
       { source: "/donors", destination: "/partners#donors", permanent: true },
+      // /opportunities folded into /support#opportunities (listings live
+      // on the sponsor page now).
+      { source: "/opportunities", destination: "/support#opportunities", permanent: true },
     ]
   },
   async headers() {

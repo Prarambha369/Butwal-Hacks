@@ -1,16 +1,6 @@
-import type { Metadata } from "next";
-import { getPublicOpportunities } from "@/lib/actions/sponsor-opportunities";
-import { buildPageMetadata } from "@/lib/seo";
 import { Briefcase, ExternalLink, MapPin, DollarSign, Clock } from "lucide-react";
-export const metadata: Metadata = buildPageMetadata({
-  title: "Opportunities & Bounties",
-  description: "Jobs, internships, grants, and bounties from sponsors. Real money for real student work.",
-  path: "/opportunities",
-});
 
-export const dynamic = "force-dynamic";
-
-interface OpportunityWithSponsor {
+export interface OpportunityWithSponsor {
   id: string
   title: string
   description: string
@@ -40,34 +30,22 @@ const TYPE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-export default async function OpportunitiesPage() {
-  const [jobsResult, bountiesResult] = await Promise.all([
-    getPublicOpportunities({ is_bounty: false }),
-    getPublicOpportunities({ is_bounty: true }),
-  ]);
-
-  const typedBounties = bountiesResult.data as OpportunityWithSponsor[];
-  const typedJobs = jobsResult.data as OpportunityWithSponsor[];
-
+/**
+ * OpportunitySections — bounty board + job listings, migrated from the
+ * retired /opportunities page into /support#opportunities (one sponsor
+ * action page). Data is fetched by the host page and passed in.
+ */
+export default function OpportunitySections({
+  bounties,
+  jobs,
+}: {
+  bounties: OpportunityWithSponsor[];
+  jobs: OpportunityWithSponsor[];
+}) {
   return (
-    <main className="min-h-dvh bg-background text-primary">
-      {/* Hero */}
-      <section className="border-b border-border px-4 py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl text-center">
-          <p className="inline-flex rounded-full border border-primary-red/30 bg-primary-red/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary-red">
-            Sponsor Opportunities
-          </p>
-          <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
-            Build with <span className="text-primary-red">Purpose</span>
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-secondary sm:text-lg">
-            Jobs, internships, grants, and bounties from organizations supporting Nepal&apos;s student builders.
-          </p>
-        </div>
-      </section>
-
+    <div id="opportunities" className="scroll-mt-24">
       {/* Bounties Section */}
-      {typedBounties.length > 0 && (
+      {bounties.length > 0 && (
         <section className="border-b border-border px-4 py-12">
           <div className="mx-auto max-w-6xl">
             <div className="flex items-center justify-between mb-6">
@@ -76,11 +54,11 @@ export default async function OpportunitiesPage() {
                 <p className="text-sm text-secondary mt-1">Complete challenges and earn rewards</p>
               </div>
               <span className="px-3 py-1 rounded-full bg-status-yellow/20 text-status-yellow text-xs font-bold border border-status-yellow/30">
-                {typedBounties.length} active
+                {bounties.length} active
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {typedBounties.map((bounty) => (
+              {bounties.map((bounty) => (
                 <div key={bounty.id} className="bh-card p-5 hover:border-status-yellow/50 transition-all space-y-3">
                   <div className="flex items-start justify-between">
                     <span className="px-2 py-0.5 rounded-md bg-status-yellow/20 text-status-yellow border border-status-yellow/30 text-[10px] font-bold">
@@ -119,7 +97,7 @@ export default async function OpportunitiesPage() {
         <div className="mx-auto max-w-6xl">
           <h2 className="text-2xl font-bold mb-6">All Opportunities</h2>
 
-          {typedJobs.length === 0 ? (
+          {jobs.length === 0 ? (
             <div className="bh-card p-12 text-center">
               <div className="mx-auto w-14 h-14 rounded-full bg-surface/10 flex items-center justify-center mb-4">
                 <Briefcase size={28} className="text-secondary" />
@@ -131,7 +109,7 @@ export default async function OpportunitiesPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {typedJobs.map((opp) => (
+              {jobs.map((opp) => (
                 <div key={opp.id} className="bh-card p-5 hover:border-primary-red/30 transition-all">
                   <div className="flex items-start justify-between gap-4">
                     {/* Company logo */}
@@ -186,6 +164,6 @@ export default async function OpportunitiesPage() {
           )}
         </div>
       </section>
-    </main>
+    </div>
   );
 }
