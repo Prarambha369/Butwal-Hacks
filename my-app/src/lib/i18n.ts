@@ -13,6 +13,7 @@ const translations: Record<string, { en: string; ne: string }> = {
   'nav.dashboard': { en: 'Dashboard', ne: 'ड्यासबोर्ड' },
   'nav.sign_in': { en: 'Sign In', ne: 'साइन इन' },
   'nav.sign_out': { en: 'Sign Out', ne: 'साइन आउट' },
+  'nav.profile_settings': { en: 'Profile settings', ne: 'प्रोफाइल सेटिङ' },
   'home.hero.title': { en: "Lumbini's Youth Tech Hub. For Students, by Students.", ne: 'लुम्बिनीको युवा प्रविधि केन्द्र। विद्यार्थीहरूद्वारा, विद्यार्थीहरूको लागि।' },
   'home.hero.subtext': { en: "Free hackathons, mentorship, and project-based learning for students in Lumbini Province. Build real projects and earn verifiable credentials.", ne: 'लुम्बिनी प्रदेशका विद्यार्थीहरूको लागि नि:शुल्क ह्याकाथन, मेन्टरशिप, र परियोजना-आधारित सिकाइ। वास्तविक परियोजनाहरू बनाउनुहोस् र प्रमाणित प्रमाणहरू कमाउनुहोस्।' },
   'home.hero.cta_primary': { en: 'Start Building', ne: 'निर्माण सुरु गर्नुहोस्' },

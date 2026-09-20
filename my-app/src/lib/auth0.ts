@@ -8,16 +8,35 @@ import { Auth0Client } from "@auth0/nextjs-auth0/server";
  * subdomain leaves the apex domain (and vice versa) reading logged-out —
  * navbars keep showing Sign in/Sign up and `getSession()` returns null.
  * A `Domain=butwalhacks.com` cookie is sent to the apex + all subdomains.
- * Localhost keeps the default (host-only) cookie so dev still works.
+ *
+ * The serving origin (APP_BASE_URL, required env) decides: localhost and
+ * preview/unknown hosts keep the default host-only cookie so auth keeps
+ * working there. Only a butwalhacks.com origin gets the shared domain.
  */
 function sharedCookieDomain(): string | undefined {
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? process.env.APP_BASE_URL ?? "";
+  const baseUrl =
+    process.env.APP_BASE_URL ??
+    process.env.AUTH0_BASE_URL ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "";
   try {
-    const host = new URL(siteUrl).hostname;
-    if (!host || host === "localhost" || host === "127.0.0.1") return undefined;
-    // eTLD+1 heuristic is enough for butwalhacks.com (no public-suffix edge).
-    return host.split(".").slice(-2).join(".");
+    const host = new URL(baseUrl).hostname.toLowerCase();
+    if (!host) return undefined;
+    if (
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host === "app.localhost" ||
+      host.endsWith(".localhost") ||
+      host.endsWith(".vercel.app") ||
+      host.endsWith(".pages.dev")
+    ) {
+      return undefined;
+    }
+    if (host === "butwalhacks.com" || host.endsWith(".butwalhacks.com")) {
+      return "butwalhacks.com";
+    }
+    // Unknown host (custom preview, tunnel) — host-only cookie is the safe default.
+    return undefined;
   } catch {
     return undefined;
   }

@@ -283,6 +283,29 @@ describe("requireRoleByPath", () => {
     expect(location).toContain("returnTo=%2Fdashboard");
   });
 
+  it("guards bare /dashboard through proxy() on the app host (not just requireRoleByPath)", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("https://app.butwalhacks.com/dashboard");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    const location = response.headers.get("location")!;
+    expect(location).toContain("/auth/login");
+    expect(location).toContain("returnTo=%2Fdashboard");
+  });
+
+  it("redirects bare /dashboard on the marketing host to the app subdomain", async () => {
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("https://butwalhacks.com/dashboard");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")!).toContain("app.butwalhacks.com/dashboard");
+  });
+
   it("passes through for authenticated hackers on /dashboard/hacker", async () => {
     setAuthenticated();
     const { requireRoleByPath } = await import("@/proxy");

@@ -23,24 +23,32 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+  // Generation counter: retry/timeout/flip can overlap async getUserMedia
+  // calls — only the latest generation may touch the video element or state.
+  // Stale generations stop their stream instead of leaking it.
+  const generationRef = useRef(0);
 
   // Request camera access
   const startCamera = useCallback(async (facing: "user" | "environment") => {
+    const generation = ++generationRef.current;
+    const isStale = () => generation !== generationRef.current;
+    const stopStream = (stream: MediaStream | null) => {
+      stream?.getTracks().forEach((t) => t.stop());
+    };
+
     setLoading(true);
     setError(null);
 
     // Clean up previous stream
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
+    stopStream(streamRef.current);
+    streamRef.current = null;
 
     // Guard: onloadedmetadata can fire before we attach the handler on fast
     // devices (leaving the UI stuck on "Accessing camera..."), so watch for
     // readiness explicitly and time out instead of spinning forever.
     let settled = false;
     const finish = (video: HTMLVideoElement | null) => {
-      if (settled) return;
+      if (settled || isStale()) return;
       settled = true;
       window.clearTimeout(timer);
       if (video) {
@@ -53,8 +61,11 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
       setLoading(false);
     };
     const timer = window.setTimeout(() => {
-      if (!settled) {
+      if (!settled && !isStale()) {
         settled = true;
+        // Invalidate any still-pending getUserMedia so its late resolution
+        // stops its stream instead of hijacking the preview.
+        generationRef.current++;
         setError("Camera is taking too long to start. Please try again.");
         setLoading(false);
       }
@@ -72,6 +83,13 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
         },
         audio: false,
       });
+
+      // A newer startCamera call (retry/flip/timeout) superseded this one —
+      // stop the orphan stream instead of assigning it to the preview.
+      if (isStale()) {
+        stopStream(stream);
+        return;
+      }
 
       streamRef.current = stream;
 
@@ -94,6 +112,7 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
         video.onloadedmetadata = () => finish(video);
       }
     } catch (err) {
+      if (isStale()) return;
       window.clearTimeout(timer);
       settled = true;
       const message =
@@ -112,8 +131,12 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
   useEffect(() => {
     startCamera(facingMode);
     return () => {
+      // Invalidate any in-flight request so its late resolution can't
+      // setState on the unmounted modal or leak its stream.
+      generationRef.current++;
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       }
     };
   }, [startCamera, facingMode]);

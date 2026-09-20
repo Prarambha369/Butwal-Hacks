@@ -8,6 +8,7 @@ import { useAuthUser } from '@/components/auth-user-provider';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/components/language-provider';
 import { t } from '@/lib/i18n';
+import type { Locale } from '@/lib/i18n';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -45,9 +46,9 @@ const navLinks = [
 
 /**
  * Signed-in user menu — avatar button opening Dashboard / Profile settings /
- * Sign out. Closes on outside click or Escape.
+ * Sign out. Closes on outside click or Escape. All labels localized.
  */
-function UserMenu({ name, email, picture }: { name?: string; email?: string; picture?: string }) {
+function UserMenu({ name, email, picture, locale }: { name?: string; email?: string; picture?: string; locale: Locale }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const initial = (name || email || "?").charAt(0).toUpperCase();
@@ -106,19 +107,19 @@ function UserMenu({ name, email, picture }: { name?: string; email?: string; pic
               href={`${APP_URL}/dashboard`}
               className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-primary"
             >
-              <LayoutDashboard className="h-4 w-4" /> Dashboard
+              <LayoutDashboard className="h-4 w-4" /> {t('nav.dashboard', locale)}
             </a>
             <a
-              href={`${APP_URL}/dashboard/hacker/profile`}
+              href={`${APP_URL}/dashboard/profile`}
               className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-primary"
             >
-              <Settings className="h-4 w-4" /> Profile settings
+              <Settings className="h-4 w-4" /> {t('nav.profile_settings', locale)}
             </a>
             <a
               href={`${APP_URL}/auth/logout`}
               className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-primary"
             >
-              <LogOut className="h-4 w-4" /> Sign out
+              <LogOut className="h-4 w-4" /> {t('nav.sign_out', locale)}
             </a>
           </div>
         </div>
@@ -207,6 +208,7 @@ export default function Navbar() {
                 name={user?.name}
                 email={user?.email}
                 picture={user?.picture}
+                locale={locale}
               />
             ) : (
               <>
@@ -304,15 +306,15 @@ export default function Navbar() {
                 className="bh-btn-primary text-center"
               >
                 <LayoutDashboard className="h-5 w-5" />
-                Dashboard
+                {t('nav.dashboard', locale)}
               </a>
               <a
-                href={`${APP_URL}/dashboard/hacker/profile`}
+                href={`${APP_URL}/dashboard/profile`}
                 onClick={() => setIsOpen(false)}
                 className="bh-btn-secondary text-center"
               >
                 <Settings className="h-5 w-5" />
-                Profile settings
+                {t('nav.profile_settings', locale)}
               </a>
               <a
                 href={`${APP_URL}/auth/logout`}

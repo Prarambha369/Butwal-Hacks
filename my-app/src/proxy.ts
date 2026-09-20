@@ -172,7 +172,8 @@ export async function proxy(request: NextRequest) {
   // ── Step 3: App domain routing ─────────────────────────────
   if (isAppHost(hostname)) {
     // Routes explicitly allowed on app domain
-    if (isRouteInSet(pathname, APP_PREFIXES)) {
+    // (bare /dashboard needs an exact match — APP_PREFIXES only holds "/dashboard/")
+    if (pathname === "/dashboard" || isRouteInSet(pathname, APP_PREFIXES)) {
       // Protect dashboard routes with role-based access
       // (bare /dashboard included — it renders the hub, not a redirect)
       if (pathname === "/dashboard" || pathname.startsWith("/dashboard/") || pathname.startsWith("/portal/")) {
@@ -207,7 +208,8 @@ export async function proxy(request: NextRequest) {
     }
 
     // Check if this is an app route hitting the marketing domain → redirect to app
-    if (isRouteInSet(pathname, APP_PREFIXES)) {
+    // (bare /dashboard included — it lives on the app subdomain)
+    if (pathname === "/dashboard" || isRouteInSet(pathname, APP_PREFIXES)) {
       return redirectToDomain(request, "app");
     }
 
