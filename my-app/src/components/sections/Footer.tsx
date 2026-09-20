@@ -41,7 +41,7 @@ const sitemapGroups = [
     labelKey: 'footer.about_section',
     links: [
       { nameKey: 'footer.about_us', href: '/about' },
-      { nameKey: 'footer.philosophy', href: '/philosophy' },
+      { nameKey: 'footer.philosophy', href: '/about#philosophy' },
       { nameKey: 'footer.sponsor_prospectus', href: '/support' },
       { nameKey: 'footer.transparency', href: '/transparency' },
       { nameKey: 'footer.governance', href: '/governance' },
