@@ -25,7 +25,7 @@ export default function TestimonialForm() {
     return (
       <div className="mx-auto mt-10 max-w-2xl text-center">
         <Link
-          href="/sign-in?returnTo=/community"
+          href="/sign-in?returnTo=/explore"
           className="text-sm font-semibold text-primary-red hover:text-deep-red transition-colors"
         >
           {t("community.testimonials.form.signin", locale)}
