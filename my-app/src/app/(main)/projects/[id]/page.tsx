@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { getProjectDetails } from '@/lib/actions/project-details';
+import { getLatestImpactReport } from '@/lib/actions/impact';
 import ProjectDetailView from '@/components/projects/project-detail-view';
+import ProjectImpactSection from '@/components/projects/project-impact-section';
 import RelatedLinks from '@/components/home/related-links';
 import { blogPosts, initiatives, getRelatedByTags } from '@/lib/content';
 import { buildPageMetadata } from "@/lib/seo"
@@ -18,10 +20,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     notFound();
   }
 
+  const impact = await getLatestImpactReport(id);
+
   return (
     <div className="min-h-dvh bg-background pt-24 px-4 md:px-6 lg:px-12">
       <div className="max-w-6xl mx-auto">
         <ProjectDetailView project={project} />
+        <ProjectImpactSection report={impact} />
 
         <RelatedLinks
           title="Continue Reading"
