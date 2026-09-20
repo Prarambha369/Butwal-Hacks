@@ -34,7 +34,7 @@ const sitemapGroups = [
       { nameKey: 'footer.documentation', href: '/docs' },
       { nameKey: 'footer.donors', href: '/partners#donors' },
       { nameKey: 'footer.partners', href: '/partners' },
-      { nameKey: 'footer.annual_report', href: '/annual-report' },
+      { nameKey: 'footer.annual_report', href: '/transparency?view=report' },
     ],
   },
   {

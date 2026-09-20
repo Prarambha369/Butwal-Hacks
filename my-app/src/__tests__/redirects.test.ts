@@ -48,5 +48,9 @@ describe("consolidation redirects", () => {
       destination: "/support#opportunities",
       permanent: true,
     });
+    expect(bySource.get("/annual-report")).toMatchObject({
+      destination: "/transparency?view=report",
+      permanent: true,
+    });
   });
 });
