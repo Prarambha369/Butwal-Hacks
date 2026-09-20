@@ -201,7 +201,7 @@ const nextConfig: NextConfig = {
 // SENTRY_DSN must be set in the environment. In dev, Sentry is
 // initialized but traces are sampled at 0% unless SENTRY_DSN is set.
 
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 const sentryOptions = {
   org: process.env.SENTRY_ORG,

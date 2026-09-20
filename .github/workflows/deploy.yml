@@ -23,9 +23,15 @@ jobs:
           version: latest
 
       - name: Apply pending migrations
-        run: supabase db push --db-url "$SUPABASE_DB_URL"
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "WARNING: SUPABASE_DB_URL not set. Skipping migration step."
+            echo "Run migrations manually: supabase db push --db-url \"\$SUPABASE_DB_URL\""
+            exit 0
+          fi
+          supabase db push --db-url "$SUPABASE_DB_URL"
 
   seed-embeddings:
     name: Seed Embeddings
@@ -44,11 +50,16 @@ jobs:
       - run: npm install --legacy-peer-deps
 
       - name: Seed knowledge embeddings
-        run: npx tsx scripts/seed-embeddings.ts
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
+        run: |
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] || [ -z "$HF_API_TOKEN" ]; then
+            echo "WARNING: Supabase/HF secrets missing. Skipping embedding seed."
+            exit 0
+          fi
+          npx tsx scripts/seed-embeddings.ts
 
   vercel-deploy:
     name: Vercel Deploy

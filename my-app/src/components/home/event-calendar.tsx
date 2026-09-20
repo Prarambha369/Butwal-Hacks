@@ -69,6 +69,10 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
   // Declared before the maps below (they read it) — hooks stay
   // unconditional so order is stable.
   const [bhFilter, setBhFilter] = useState<BhFilter>("all");
+  // Layer visibility for festivals + public holidays. The legend doubles
+  // as the filter control; both layers default to visible.
+  const [showFestivals, setShowFestivals] = useState(true);
+  const [showHolidays, setShowHolidays] = useState(true);
 
   // AD-day map (for the AD grid) and BS-day map (for the BS grid).
   // BH layer only: the category filter applies to dashboard events.
@@ -229,7 +233,15 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
     <section id="calendar" className="bg-surface border-border border-b py-20 scroll-mt-20" aria-labelledby="bh-calendar-heading">
       <div className="max-w-4xl mx-auto px-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
-          <h2 id="bh-calendar-heading" className="text-2xl font-bold">{t("home.calendar.title", locale)}</h2>
+          <h2 id="bh-calendar-heading" className="text-2xl font-bold">
+            <Link
+              href="/calendar"
+              aria-label={t("home.calendar.open_full", locale)}
+              className="transition-colors hover:text-primary-red"
+            >
+              {t("home.calendar.title", locale)}
+            </Link>
+          </h2>
           <div className="flex flex-wrap items-center gap-2 sm:gap-4">
             <div className="text-right" aria-live="polite">
               <p className="font-bold text-sm">{monthLabel}</p>
@@ -319,14 +331,27 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
               <span className="h-1.5 w-1.5 rounded-full bg-primary-red" aria-hidden="true" />
               {t("home.calendar.legend_events", locale)}
             </span>
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-status-yellow" aria-hidden="true" />
-              {t("home.calendar.legend_festivals", locale)}
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-status-blue" aria-hidden="true" />
-              {t("home.calendar.legend_holidays", locale)}
-            </span>
+            {(
+              [
+                { key: "festivals", visible: showFestivals, toggle: () => setShowFestivals((v) => !v), dot: "bg-status-yellow", label: t("home.calendar.legend_festivals", locale) },
+                { key: "holidays", visible: showHolidays, toggle: () => setShowHolidays((v) => !v), dot: "bg-status-blue", label: t("home.calendar.legend_holidays", locale) },
+              ] as const
+            ).map(({ key, visible, toggle, dot, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={toggle}
+                aria-pressed={visible}
+                aria-label={(visible ? t("home.calendar.hide_layer", locale) : t("home.calendar.show_layer", locale)).replace("{layer}", label)}
+                title={(visible ? t("home.calendar.hide_layer", locale) : t("home.calendar.show_layer", locale)).replace("{layer}", label)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-mono transition-all ${
+                  visible ? "text-muted-foreground hover:text-primary" : "text-muted-foreground/40 hover:text-muted-foreground"
+                }`}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${dot} ${visible ? "" : "opacity-30"}`} aria-hidden="true" />
+                <span className={visible ? "" : "line-through"}>{label}</span>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -334,8 +359,8 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
           <BsGrid
             bsView={bsView}
             byBsDay={byBsDay}
-            festivalsByBs={festivalsByBs}
-            holidaysByBs={holidaysByBs}
+            festivalsByBs={showFestivals ? festivalsByBs : new Map()}
+            holidaysByBs={showHolidays ? holidaysByBs : new Map()}
             today={today}
             weekdays={weekdays}
             locale={locale}
@@ -345,8 +370,8 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
           <AdGrid
             date={date}
             byAdDay={byAdDay}
-            festivalsByAd={festivalsByAd}
-            holidaysByAd={holidaysByAd}
+            festivalsByAd={showFestivals ? festivalsByAd : new Map()}
+            holidaysByAd={showHolidays ? holidaysByAd : new Map()}
             today={today}
             weekdays={weekdays}
             locale={locale}

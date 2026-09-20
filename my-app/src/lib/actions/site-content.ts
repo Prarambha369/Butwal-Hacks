@@ -8,13 +8,14 @@ import { EDITABLE_KEYS, type LocalizedText } from '@/lib/site-content-keys';
 
 export type { LocalizedText };
 
-/** Raw DB value (or null when never edited). */
+/** Raw DB value (or null when never edited). Fails fast on DB stalls. */
 export async function getSiteContentValue(key: string): Promise<LocalizedText | null> {
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from('site_content')
     .select('value')
     .eq('key', key)
+    .abortSignal(AbortSignal.timeout(5000))
     .single();
   if (error || !data) return null;
   const v = data.value as Partial<LocalizedText> | null;

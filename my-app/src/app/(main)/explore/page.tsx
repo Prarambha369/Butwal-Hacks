@@ -11,6 +11,7 @@ import { ExploreHero } from "./explore-hero"
 import { CommunityPlatforms } from "@/components/community/community-platforms"
 import { TestimonialsSection } from "@/components/testimonials"
 import TestimonialForm from "@/components/community/testimonial-form"
+import ExcuseGenerator from "@/components/home/excuse-generator"
 
 // ISR: revalidate every 60 seconds so new signups appear within a minute
 export const revalidate = 60;
@@ -25,13 +26,16 @@ export const metadata: Metadata = buildPageMetadata({
 
 export default async function ExplorePage() {
   const supabase = createServiceClient();
-  const explorerMembers = await fetchExplorerMembers(supabase);
+  // Independent reads run in parallel so one slow query never stalls the page.
+  const [explorerMembers, { count: mentorCount }] = await Promise.all([
+    fetchExplorerMembers(supabase),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("open_to_mentor", true)
+      .not("bh_id", "is", null),
+  ]);
   const stats = getExplorerStats(explorerMembers);
-  const { count: mentorCount } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-    .eq("open_to_mentor", true)
-    .not("bh_id", "is", null);
 
   return (
     <>
@@ -128,6 +132,9 @@ export default async function ExplorePage() {
         <div className="mx-auto max-w-6xl px-4 pb-4">
           <TestimonialForm />
         </div>
+
+        {/* ── EXCUSE GENERATOR (moved from homepage) ───────────────── */}
+        <ExcuseGenerator />
 
         {/* ── CTA ──────────────────────────────────────────────────── */}
         <ExploreCta totalMembers={stats.total} />

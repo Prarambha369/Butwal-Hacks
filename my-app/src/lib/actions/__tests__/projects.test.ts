@@ -35,7 +35,7 @@ function buildMockDb() {
   const methods = [
     "from", "select", "eq", "neq", "in", "or",
     "order", "limit", "range", "like", "ilike", "single", "maybeSingle",
-    "insert", "update", "delete", "upsert",
+    "insert", "update", "delete", "upsert", "abortSignal",
   ] as const;
 
   for (const m of methods) {
@@ -59,6 +59,7 @@ function buildMockDb() {
     update: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
     upsert: ReturnType<typeof vi.fn>;
+    abortSignal: ReturnType<typeof vi.fn>;
   };
 }
 
@@ -489,7 +490,8 @@ describe("getFeaturedProjects", () => {
     const db = mockSupabase();
     db.select.mockReturnValue(db);
     db.order.mockReturnValue(db);
-    db.limit.mockResolvedValue({
+    db.limit.mockReturnValue(db);
+    db.abortSignal.mockResolvedValue({
       data: [
         { id: "p1", title: "Featured 1", project_likes: [{ count: 10 }] },
         { id: "p2", title: "Featured 2", project_likes: [{ count: 5 }] },
@@ -509,7 +511,8 @@ describe("getFeaturedProjects", () => {
     const db = mockSupabase();
     db.select.mockReturnValue(db);
     db.order.mockReturnValue(db);
-    db.limit.mockResolvedValue({ data: [], error: null });
+    db.limit.mockReturnValue(db);
+    db.abortSignal.mockResolvedValue({ data: [], error: null });
 
     const { getFeaturedProjects } = await import("../projects");
     await getFeaturedProjects(5);
@@ -521,7 +524,8 @@ describe("getFeaturedProjects", () => {
     const db = mockSupabase();
     db.select.mockReturnValue(db);
     db.order.mockReturnValue(db);
-    db.limit.mockResolvedValue({ data: null, error: { message: "DB error" } });
+    db.limit.mockReturnValue(db);
+    db.abortSignal.mockResolvedValue({ data: null, error: { message: "DB error" } });
 
     const { getFeaturedProjects } = await import("../projects");
     const result = await getFeaturedProjects();

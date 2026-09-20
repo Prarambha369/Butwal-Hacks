@@ -35,24 +35,53 @@ export function createClient() {
 }
 
 /**
+ * Inert query builder returned when Supabase is not configured.
+ *
+ * Any method call returns itself, and awaiting it resolves immediately to
+ * `{ data: null, error }` — so unconfigured environments (local dev without
+ * .env.local, CI builds without secrets) render honest empty states
+ * instantly instead of burning seconds per query on unreachable-network
+ * timeouts. Never used when real credentials are present.
+ */
+function createUnconfiguredClient() {
+  const result = {
+    data: null,
+    error: { message: "Supabase not configured", code: "SUPABASE_NOT_CONFIGURED" },
+  };
+  const proxy = new Proxy(
+    {},
+    {
+      get(_target, prop) {
+        // Thenable protocol: `await query` resolves immediately.
+        if (prop === "then") return (resolve: (v: unknown) => void) => resolve(result);
+        if (typeof prop === "symbol") return undefined;
+        return (..._args: unknown[]) => proxy;
+      },
+    },
+  );
+  return proxy as unknown as ReturnType<typeof createSupabaseClient>;
+}
+
+/**
  * Service role Supabase client (bypasses RLS).
  * Use only in trusted server contexts.
  *
  * Never throws on missing config: CI/preview builds prerender pages
  * without secrets, and every data path already handles query errors
- * with honest empty states. A loud warning marks the fallback so a
- * misconfigured production is visible in logs, not as 500s.
+ * with honest empty states. Without config, returns an inert client
+ * that fails fast (no network round-trips); a loud warning marks the
+ * fallback so a misconfigured production is visible in logs, not as 500s.
  */
 export function createServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
     console.warn(
-      "[supabase] Service-role config missing — using unreachable placeholder. " +
-      "Reads will fail gracefully (empty states). Set NEXT_PUBLIC_SUPABASE_URL " +
+      "[supabase] Service-role config missing — using inert client. " +
+      "Reads will fail fast (empty states). Set NEXT_PUBLIC_SUPABASE_URL " +
       "and SUPABASE_SERVICE_ROLE_KEY to fix.",
     );
-    return createSupabaseClient("https://placeholder.supabase.co", "placeholder-key");
+    return createUnconfiguredClient();
   }
   return createSupabaseClient(url, key);
 }
