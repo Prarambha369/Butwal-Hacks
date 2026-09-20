@@ -159,6 +159,9 @@ const nextConfig: NextConfig = {
       // /community folded into /explore (directory, platforms, and the
       // sole testimonials surface all moved there).
       { source: "/community", destination: "/explore", permanent: true },
+      // /initiatives list folded into /events#initiatives (detail pages
+      // at /initiatives/[slug] stay).
+      { source: "/initiatives", destination: "/events#initiatives", permanent: true },
     ]
   },
   async headers() {

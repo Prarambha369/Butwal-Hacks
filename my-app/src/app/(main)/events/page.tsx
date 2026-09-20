@@ -7,10 +7,11 @@ export const dynamic = "force-dynamic";
 import { buildPageMetadata } from "@/lib/seo"
 import { auth0 } from "@/lib/auth0"
 import { APP_URL } from "@/lib/constants"
+import { initiatives } from "@/lib/content"
 import Breadcrumbs from "@/components/breadcrumbs"
 import EventsFilter from "@/components/events/events-filter"
 import type { EventItem } from "@/components/events/events-filter"
-import { ArrowRight, CalendarDays } from "lucide-react"
+import { ArrowRight, CalendarDays, FlaskConical } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Events",
@@ -93,6 +94,34 @@ export default async function EventsPage() {
 
         <div className="mt-10">
           <EventsFilter events={events} />
+        </div>
+
+        {/* Ongoing initiatives — migrated from /initiatives (list retired,
+            detail pages live on at /initiatives/[slug]). */}
+        <div id="initiatives" className="mt-16 scroll-mt-24">
+          <div className="flex items-start gap-4 mb-2">
+            <div className="p-3 rounded-lg bg-status-blue/10 shrink-0">
+              <FlaskConical className="w-6 h-6 text-status-blue" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-black tracking-tight text-primary">Ongoing Initiatives</h2>
+              <p className="mt-2 text-muted-foreground max-w-2xl">
+                Programs we run, plan, and dream up — each labeled honestly by status.
+              </p>
+            </div>
+          </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {initiatives.map((initiative) => (
+              <article key={initiative.slug} className="rounded-xl border border-border bg-surface p-6">
+                <p className="text-xs uppercase tracking-wide text-secondary">Status: {initiative.status}</p>
+                <h3 className="mt-2 text-xl font-semibold text-primary">{initiative.name}</h3>
+                <p className="mt-2 text-sm text-secondary">{initiative.summary}</p>
+                <Link href={`/initiatives/${initiative.slug}`} className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
+                  View initiative page
+                </Link>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
     </main>
