@@ -3,6 +3,7 @@
 import { logger } from "@/lib/logger"
 import { createServiceClient } from "@/utils/supabase";
 import { sanitizeString } from "@/lib/validation";
+import { sendSlackEmail } from "@/lib/slack-email";
 
 interface SubmitFeedbackInput {
   category: "bug" | "feature" | "improvement" | "other";
@@ -62,6 +63,22 @@ export async function submitFeedback(input: SubmitFeedbackInput) {
       });
 
     if (error) throw error;
+
+    // Best-effort mirror to Slack: the channel email auto-posts whatever
+    // lands there (e.g. #feedback-from-site). A failed email never fails
+    // the submission — the DB row is the source of truth.
+    await sendSlackEmail({
+      from: "feedback@mail.butwalhacks.com",
+      subject: `Feedback [${input.category}] on Butwal Hacks`,
+      text: [
+        "NEW SITE FEEDBACK",
+        `Category:  ${input.category}`,
+        `From:      ${input.auth0_id ?? "anonymous"}`,
+        `Time:      ${new Date().toISOString()}`,
+        "",
+        message,
+      ].join("\n"),
+    });
 
     return { success: true };
   } catch (error) {
