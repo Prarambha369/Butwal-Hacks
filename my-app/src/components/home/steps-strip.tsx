@@ -35,27 +35,18 @@ export default function StepsStrip() {
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.3em] text-primary-red">
             {t("home.steps.badge", locale)}
           </p>
-          <h2 className="text-2xl md:text-3xl font-bold text-primary leading-tight">
+          <h2 className="text-3xl md:text-5xl font-bold text-primary leading-[1.05] tracking-tight text-balance">
             {t("home.steps.title", locale)}
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
             {t("home.steps.subtitle", locale)}
           </p>
-          {/* Hand-drawn squiggle under the intro — pure decoration */}
-          <svg aria-hidden="true" viewBox="0 0 120 12" className="mx-auto h-3 w-28 text-primary-red">
-            <path
-              d="M2 8 C 20 2, 40 10, 60 6 S 100 4, 118 7"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
+          <div aria-hidden="true" className="mx-auto h-1 w-16 rounded-full bg-primary-red" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {STEPS.map((step) => (
-            <div key={step.n} className="bh-card bh-play-hover bh-doodle-hover p-6 md:p-8 space-y-3">
+            <div key={step.n} className="bh-card bh-play-hover bh-dashed-hover p-6 md:p-8 space-y-3">
               <p className="bh-play-target inline-block font-mono text-xs font-bold text-muted-foreground/60">
                 {step.n}
               </p>

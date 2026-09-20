@@ -38,7 +38,7 @@ const visibleIcons = [
 function ValueCard({ item, icon: Icon, color, bg, index, locale }: { item: ValueCard; icon: ComponentType<{ className?: string }>; color: string; bg: string; index: number; locale: "en" | "ne" }) {
   return (
     <div
-      className="bh-card bh-play-hover bh-doodle-hover p-6 text-center space-y-3 hover:-translate-y-0.5 transition-all duration-300"
+      className="bh-card bh-play-hover bh-dashed-hover p-6 text-center space-y-3 hover:-translate-y-0.5 transition-all duration-300"
       style={{
         transitionDelay: `${index * 100}ms`,
       }}

@@ -13,22 +13,12 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/about",
 })
 
-function HandDrawnUnderline() {
+function CrispUnderline() {
   return (
-    <svg
+    <span
       aria-hidden="true"
-      viewBox="0 0 180 18"
-      className="pointer-events-none absolute -bottom-2 left-0 h-4 w-full text-primary-red"
-      preserveAspectRatio="none"
-    >
-      <path
-        d="M4 12 C 40 6, 92 17, 176 9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-      />
-    </svg>
+      className="pointer-events-none absolute -bottom-1.5 left-0 h-[3px] w-full rounded-full bg-primary-red"
+    />
   )
 }
 
@@ -117,7 +107,7 @@ export default function AboutPage() {
                       <>{b.prefix}{" "}
                         <span className="relative inline-block">
                           {b.title}
-                          <HandDrawnUnderline />
+                          <CrispUnderline />
                         </span>
                       </>
                     ) : (

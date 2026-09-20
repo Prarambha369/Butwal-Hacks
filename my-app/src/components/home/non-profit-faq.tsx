@@ -29,7 +29,7 @@ export default function NonProfitFAQ() {
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/5 border border-primary-red/10 mb-4">
             <span className="text-[10px] font-mono font-semibold text-primary-red">{t('home.faq.badge', locale)}</span>
           </div>
-          <h2 id="faq-heading" className="text-3xl md:text-4xl font-bold text-primary">
+          <h2 id="faq-heading" className="text-3xl md:text-5xl font-bold text-primary tracking-tight leading-[1.05] text-balance">
             {t('home.faq.title', locale)}
           </h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto text-sm">

@@ -130,7 +130,7 @@ export default function LiveStatsCounter() {
                 <div className={`bh-play-target mx-auto flex h-10 w-10 items-center justify-center rounded-lg ${bg} ${color}`}>
                   <Icon className="h-5 w-5" />
                 </div>
-                <p className="text-2xl md:text-3xl font-black text-primary font-mono tabular-nums">
+                <p className="text-4xl md:text-5xl font-black text-primary font-mono tabular-nums">
                   {value !== null ? <AnimatedNumber value={value} /> : <span className="text-muted-foreground">—</span>}
                 </p>
                 <p className="text-xs text-text-secondary font-medium uppercase tracking-wider">

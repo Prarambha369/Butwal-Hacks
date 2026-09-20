@@ -62,7 +62,7 @@ export default function StaggeredFeatures() {
       <div className="mx-auto max-w-6xl px-4">
         {/* Minimal header — no eyebrow, just a plain heading */}
         <div className="mb-14 max-w-xl">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-primary leading-[1.1]">
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-primary leading-[1.05] text-balance">
             {t('home.features.title', locale)}
           </h2>
           <p className="mt-3 text-sm text-text-secondary leading-relaxed max-w-lg">
