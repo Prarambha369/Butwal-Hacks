@@ -126,7 +126,7 @@ export default function TeamPortfolio({ teamId }: TeamPortfolioProps) {
             {members.map(member => (
               <Link 
                 key={member?.id} 
-                href={`/profile/${member?.bh_id}`}
+                href={`/p/${member?.bh_id}`}
                 className="flex items-center gap-4 p-4 rounded-lg bg-surface-hover border border-border hover:bg-surface-hover transition-all group"
               >
                 <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-bh-red-500/50 transition-all">

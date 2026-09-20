@@ -151,6 +151,11 @@ const nextConfig: NextConfig = {
       { source: "/programs", destination: "/initiatives", permanent: true },
       // /philosophy folded into /about#philosophy (the definition of us).
       { source: "/philosophy", destination: "/about#philosophy", permanent: true },
+      // /profile/[bh_id] was byte-identical to /p/[slug_id] (same query,
+      // same component). /p wins: shorter, ISR-cached, per-profile SEO.
+      // NOTE: single named param only — a :path* wildcard corrupts Next's
+      // generated route types (routes.d.ts) on this version.
+      { source: "/profile/:bh_id", destination: "/p/:bh_id", permanent: true },
     ]
   },
   async headers() {

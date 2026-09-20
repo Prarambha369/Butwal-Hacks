@@ -151,7 +151,7 @@ export default async function AttendeesPage({ params }: Props) {
                             attended={row.attended}
                           />
                           <Link 
-                            href={`/profile/${p?.bh_id}`}
+                            href={`/p/${p?.bh_id}`}
                             className="p-2 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-all"
                           >
                             <ExternalLink className="w-4 h-4" />
