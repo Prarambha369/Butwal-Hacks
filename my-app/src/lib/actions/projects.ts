@@ -392,7 +392,8 @@ export async function getFeaturedProjects(limit = 3) {
     query = query.limit(limit);
   }
 
-  const { data, error } = await query;
+  // Fail fast on DB stalls — callers render empty states on [].
+  const { data, error } = await query.abortSignal(AbortSignal.timeout(5000));
 
   if (error) {
     logger.error("Error fetching projects:", error);

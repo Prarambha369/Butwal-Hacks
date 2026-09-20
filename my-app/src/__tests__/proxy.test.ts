@@ -378,3 +378,53 @@ describe("proxy (main handler)", () => {
     expect(response.headers.get("location")).toContain("/dashboard/hacker");
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// runAuthMiddleware — Auth0 misconfiguration handling
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("auth middleware misconfiguration", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function setMiddlewareImpl(impl: (req: NextRequest) => Promise<never> | never) {
+    (auth0 as unknown as Record<string, unknown>).middleware = vi.fn(impl);
+  }
+
+  function configError(): Error & { code: string } {
+    const err = new Error(
+      "Missing: domain: Set AUTH0_DOMAIN env var or pass domain in options",
+    ) as Error & { code: string };
+    err.code = "invalid_configuration";
+    return err;
+  }
+
+  it("redirects to sign-in instead of 500 when Auth0 is unconfigured (local)", async () => {
+    setMiddlewareImpl(() => { throw configError(); });
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://localhost:3000/auth/profile");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/sign-in?error=auth_unavailable");
+  });
+
+  it("redirects to sign-in instead of 500 when Auth0 is unconfigured (prod domain)", async () => {
+    setMiddlewareImpl(() => { throw configError(); });
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("https://butwalhacks.com/auth/login");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/sign-in?error=auth_unavailable");
+  });
+
+  it("rethrows non-config auth errors to preserve SDK behavior", async () => {
+    setMiddlewareImpl(() => { throw new Error("callback failed"); });
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://localhost:3000/auth/callback?code=x");
+
+    await expect(proxy(request)).rejects.toThrow("callback failed");
+  });
+});
