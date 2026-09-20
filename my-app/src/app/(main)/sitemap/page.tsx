@@ -33,7 +33,6 @@ const sections: SiteSection[] = [
     icon: <Users className="h-5 w-5" />,
     links: [
       { href: "/explore", label: "Explore", description: "Discover members, browse profiles, find collaborators" },
-      { href: "/community", label: "Community Hub", description: "Platforms, updates, and ways to get involved" },
       { href: "/chapters", label: "Chapters", description: "Local chapter network — launching soon across Nepal" },
       { href: "/initiatives", label: "Initiatives", description: "Active programs like Hackathon, GameJam, MiniHackathon" },
       { href: "/contact", label: "Contact", description: "Get in touch with the team" },

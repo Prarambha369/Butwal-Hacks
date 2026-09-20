@@ -44,7 +44,7 @@ export default function ContactPage() {
             <Link href="/events" className="bh-btn-primary text-sm">
               See upcoming events
             </Link>
-            <Link href="/community" className="bh-btn-secondary text-sm">
+            <Link href="/explore" className="bh-btn-secondary text-sm">
               Join the community
             </Link>
           </div>

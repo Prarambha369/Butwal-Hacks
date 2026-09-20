@@ -156,6 +156,9 @@ const nextConfig: NextConfig = {
       // NOTE: single named param only — a :path* wildcard corrupts Next's
       // generated route types (routes.d.ts) on this version.
       { source: "/profile/:bh_id", destination: "/p/:bh_id", permanent: true },
+      // /community folded into /explore (directory, platforms, and the
+      // sole testimonials surface all moved there).
+      { source: "/community", destination: "/explore", permanent: true },
     ]
   },
   async headers() {

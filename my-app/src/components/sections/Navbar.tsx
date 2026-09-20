@@ -38,7 +38,6 @@ function LanguageToggle() {
 
 const navLinks = [
   { name: 'Home', href: '/', i18nKey: 'nav.home' },
-  { name: 'Community', href: '/community', i18nKey: 'nav.community' },
   { name: 'Events', href: '/events', i18nKey: 'nav.events' },
   { name: 'Explore', href: '/explore', i18nKey: 'nav.explore' },
   { name: 'Insights', href: '/blog', i18nKey: 'nav.insights' },
