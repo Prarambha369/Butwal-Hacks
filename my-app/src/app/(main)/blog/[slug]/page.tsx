@@ -2,12 +2,13 @@ import Image from 'next/image';
 import { Metadata } from 'next';
 import { buildPageMetadata } from '@/lib/seo';
 import { blogPosts, events, getRelatedByTags } from '@/lib/content';
+import { getPublishedPost, getPublishedPosts } from '@/lib/actions/blog';
 import { notFound } from 'next/navigation';
 import RelatedLinks from '@/components/home/related-links';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const post = blogPosts.find(p => p.slug === slug);
+  const post = await getPublishedPost(slug);
   
   if (!post) {
     return buildPageMetadata({
@@ -25,14 +26,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export async function generateStaticParams() {
-  return blogPosts.map((post) => ({
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({
     slug: post.slug,
   }));
 }
 
 export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = blogPosts.find(p => p.slug === slug);
+  const post = await getPublishedPost(slug);
 
   if (!post) {
     notFound();
