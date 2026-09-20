@@ -38,7 +38,7 @@ function TerminalTyper({ locale }: { locale: "en" | "ne" }) {
   return (
     <div
       aria-hidden="true"
-      className="mx-auto mb-8 w-fit max-w-full overflow-hidden rounded-xl border border-border bg-surface-inverse shadow-sm"
+      className="mx-auto w-fit max-w-full overflow-hidden rounded-xl border border-border bg-surface-inverse shadow-sm"
     >
       {/* Terminal title bar */}
       <div className="flex items-center gap-1.5 border-b border-border/60 px-4 py-2">
@@ -101,8 +101,6 @@ export default function Hero() {
         </div>
 
         <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-          <TerminalTyper locale={locale} />
-
           {/* Main headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-primary leading-[1.08]">
             {title}
@@ -127,6 +125,11 @@ export default function Hero() {
             >
               <span>{t('action.explore_projects', locale)}</span>
             </Link>
+          </div>
+
+          {/* Terminal — supporting visual under the headline */}
+          <div className="mt-10">
+            <TerminalTyper locale={locale} />
           </div>
         </div>
       </div>
