@@ -210,7 +210,7 @@ export default async function SupportPage() {
               </p>
             </div>
             <Link
-              href="/resources"
+              href="/learn#resources"
               className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-surface/50"
             >
               View Reports

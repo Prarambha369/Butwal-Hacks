@@ -30,8 +30,8 @@ const sitemapGroups = [
     labelKey: 'footer.learn_resources',
     links: [
       { nameKey: 'footer.blog_insights', href: '/blog' },
-      { nameKey: 'footer.resources_page', href: '/resources' },
-      { nameKey: 'footer.documentation', href: '/docs' },
+      { nameKey: 'footer.resources_page', href: '/learn#resources' },
+      { nameKey: 'footer.documentation', href: '/learn#guides' },
       { nameKey: 'footer.donors', href: '/partners#donors' },
       { nameKey: 'footer.partners', href: '/partners' },
       { nameKey: 'footer.annual_report', href: '/transparency?view=report' },

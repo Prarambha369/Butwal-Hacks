@@ -84,8 +84,7 @@ const sections: SiteSection[] = [
     description: "Learning materials, documentation, and developer guides.",
     icon: <BookOpen className="h-5 w-5" />,
     links: [
-      { href: "/resources", label: "Resources", description: "Guides, tutorials, and learning materials" },
-      { href: "/docs", label: "Documentation", description: "Technical docs for contributors and maintainers" },
+      { href: "/learn", label: "Learn", description: "Guides, workshop resources, and docs" },
       { href: "/docs/engineering/environment-setup", label: "Setup Guide", description: "Local dev environment setup" },
       { href: "/docs/components/section-heading", label: "Component Library", description: "UI component previews and usage" },
     ],
