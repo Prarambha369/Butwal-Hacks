@@ -32,9 +32,38 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
     // Clean up previous stream
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     }
 
+    // Guard: onloadedmetadata can fire before we attach the handler on fast
+    // devices (leaving the UI stuck on "Accessing camera..."), so watch for
+    // readiness explicitly and time out instead of spinning forever.
+    let settled = false;
+    const finish = (video: HTMLVideoElement | null) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      if (video) {
+        video.onloadedmetadata = null;
+        video.onerror = null;
+        video.play()?.catch(() => {
+          // Autoplay block — user can still tap capture once frames flow.
+        });
+      }
+      setLoading(false);
+    };
+    const timer = window.setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        setError("Camera is taking too long to start. Please try again.");
+        setLoading(false);
+      }
+    }, 12_000);
+
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new DOMException("Unsupported", "NotSupportedError");
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: facing,
@@ -46,21 +75,35 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
 
       streamRef.current = stream;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        // Wait for video to be ready before removing loading state
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-          setLoading(false);
-        };
+      const video = videoRef.current;
+      if (!video) {
+        finish(null);
+        return;
+      }
+      video.onerror = () => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        setError("Could not start the camera preview. Please try again.");
+        setLoading(false);
+      };
+      video.srcObject = stream;
+      if (video.readyState >= 1) {
+        finish(video);
+      } else {
+        video.onloadedmetadata = () => finish(video);
       }
     } catch (err) {
+      window.clearTimeout(timer);
+      settled = true;
       const message =
         err instanceof DOMException && err.name === "NotAllowedError"
           ? "Camera access denied. Please allow camera permissions in your browser settings."
           : err instanceof DOMException && err.name === "NotFoundError"
             ? "No camera found on this device."
-            : "Could not access the camera. Please check your permissions.";
+            : err instanceof DOMException && err.name === "NotSupportedError"
+              ? "This browser does not support camera capture. Please upload a photo instead."
+              : "Could not access the camera. Please check your permissions.";
       setError(message);
       setLoading(false);
     }
@@ -79,6 +122,12 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
+
+    // Video not ready yet (0x0) — capturing now would produce a black image.
+    if (!video.videoWidth || !video.videoHeight) {
+      setError("Camera is still starting up. Please wait a moment and try again.");
+      return;
+    }
 
     // Match canvas size to the video's intrinsic dimensions
     canvas.width = video.videoWidth;

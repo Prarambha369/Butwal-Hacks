@@ -174,7 +174,8 @@ export async function proxy(request: NextRequest) {
     // Routes explicitly allowed on app domain
     if (isRouteInSet(pathname, APP_PREFIXES)) {
       // Protect dashboard routes with role-based access
-      if (pathname.startsWith("/dashboard/") || pathname.startsWith("/portal/")) {
+      // (bare /dashboard included — it renders the hub, not a redirect)
+      if (pathname === "/dashboard" || pathname.startsWith("/dashboard/") || pathname.startsWith("/portal/")) {
         return requireRoleByPath(request, pathname);
       }
 
@@ -314,7 +315,8 @@ export async function requireRoleByPath(
     return requireRole(request, pathname, ["sponsor", "maintainer"]);
   }
   // /dashboard/hacker and /dashboard/* — require any authenticated user
-  if (pathname.startsWith("/dashboard/")) {
+  // (bare /dashboard hub included)
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
     return requireAnyAuth(request, pathname);
   }
   return NextResponse.next();
@@ -364,7 +366,8 @@ export async function handleLocalDev(request: NextRequest): Promise<NextResponse
   }
 
   // Protect dashboard routes with role-based access (even in dev)
-  if (pathname.startsWith("/dashboard/")) {
+  // (bare /dashboard included — it renders the hub, not a redirect)
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
     return requireRoleByPath(request, pathname);
   }
 

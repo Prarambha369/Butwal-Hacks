@@ -48,6 +48,37 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
   const [requestSent, setRequestSent] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
   const [requestSubmitting, setRequestSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  const handleResendVerification = useCallback(async () => {
+    if (resending || resendCooldown > 0) return;
+    setResending(true);
+    try {
+      const res = await fetch("/api/auth/resend-verification", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Resend failed");
+      toast.success(
+        data.alreadyVerified
+          ? "Your email is already verified — you're all set."
+          : "Verification email sent. Check your inbox (and spam folder)."
+      );
+      setResendCooldown(60);
+      const timer = setInterval(() => {
+        setResendCooldown((c) => {
+          if (c <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return c - 1;
+        });
+      }, 1000);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not resend the email.");
+    } finally {
+      setResending(false);
+    }
+  }, [resending, resendCooldown]);
 
   const isButwalEmail = email.endsWith("@butwalhacks.com");
 
@@ -267,6 +298,35 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
 
   return (
     <div className="space-y-8">
+      {/* Email verification notice — Auth0 sends the link, but nothing in
+          the app mentioned it, so new users never knew to check their inbox. */}
+      {!emailVerified && (
+        <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-xl bg-status-yellow/10 border border-status-yellow/30">
+          <div className="flex items-start gap-3 flex-1">
+            <Mail className="w-5 h-5 text-status-yellow shrink-0 mt-0.5" />
+            <div className="text-xs leading-relaxed">
+              <p className="font-bold text-primary">Check your inbox to verify your email</p>
+              <p className="text-muted-foreground mt-0.5">
+                We sent a verification link to <strong className="text-primary">{email}</strong>.
+                Verify to unlock Maintainer eligibility and full access.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleResendVerification}
+            disabled={resending || resendCooldown > 0}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-status-yellow/20 text-xs font-bold text-primary hover:bg-status-yellow/30 transition-all shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {resending ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Send className="w-3.5 h-3.5" />
+            )}
+            {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend email"}
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="text-center space-y-3 max-w-xl mx-auto">
         <div className="inline-flex p-3 rounded-xl bg-primary-red/10">

@@ -313,6 +313,36 @@ export function getProviderIconPath(provider: string): string {
 }
 
 /**
+ * Resend the Auth0 email-verification link to a user.
+ * Requires the M2M app to have the `update:users` scope.
+ */
+export async function sendVerificationEmail(auth0UserId: string): Promise<void> {
+  const token = await getManagementToken();
+  // Token audience determines the base; fall back to AUTH0_DOMAIN.
+  const mgmtBase =
+    process.env.AUTH0_MANAGEMENT_API_AUDIENCE?.replace(/\/$/, "") ||
+    `https://${process.env.AUTH0_DOMAIN}/api/v2`;
+
+  const res = await fetch(`${mgmtBase}/jobs/verification-email`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ user_id: auth0UserId }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    logger.error("[auth0-mgmt] Failed to resend verification email", {
+      status: res.status,
+      error: errorText.slice(0, 200),
+    });
+    throw new Error(`Failed to resend verification email: ${res.status}`);
+  }
+}
+
+/**
  * Build the Auth0 authorization URL for linking a new identity.
  */
 export function buildLinkAuthUrl(
