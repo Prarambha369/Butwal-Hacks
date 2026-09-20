@@ -6,7 +6,7 @@ import LegalDocumentLayout from "@/components/legal-document-layout"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Cookie Policy",
-  description: "Cookie policy for Butwal Hacks, explaining how we use cookies and similar technologies.",
+  description: "How Butwal Hacks uses cookies. Short version: as few as possible.",
   path: "/cookie-policy",
 })
 

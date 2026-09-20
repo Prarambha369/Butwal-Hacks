@@ -177,7 +177,7 @@ export default function TaskDetailDrawer({ task, onClose, onUpdate, onDelete, te
 
         {/* Footer */}
         <div className="px-5 py-3 border-t border-border text-[11px] text-muted-foreground flex items-center justify-between">
-          <span>Created {new Date(task.created_at).toLocaleDateString()}</span>
+          <span>Created {new Date(task.created_at).toLocaleDateString(undefined, { timeZone: "Asia/Kathmandu" })}</span>
           <span>ID: {task.id.slice(0, 8)}</span>
         </div>
       </div>

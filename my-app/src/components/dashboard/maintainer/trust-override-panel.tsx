@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { revokeTrustMarker, reinstateTrustMarker } from "@/lib/actions/admin";
+import { formatDualDate } from "@/lib/nepali-date";
 import type { TrustMarker } from "@/lib/supabase-types";
 import { cn } from "@/lib/utils";
 
@@ -277,11 +278,7 @@ export default function TrustOverridePanel({ markers }: TrustOverridePanelProps)
                     )}
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      {new Date(marker.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatDualDate(new Date(marker.created_at))}
                     </span>
                     {marker.is_revoked && marker.revocation_reason && (
                       <span className="flex items-center gap-1 text-primary-red/70">

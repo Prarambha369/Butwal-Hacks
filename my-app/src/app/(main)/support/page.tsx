@@ -1,10 +1,12 @@
-export const dynamic = "force-static";
+export const revalidate = 300;
 
 import type { Metadata } from "next"
 import Link from "next/link"
-import { BarChart3, Mail, MapPin, Rocket, ShieldCheck, Users } from "lucide-react"
+import { BarChart3, Mail, MapPin, Target, ShieldCheck, UsersRound } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"
 import { SponsorForm } from "./sponsor-form"
+import { getPublicOpportunities } from "@/lib/actions/sponsor-opportunities"
+import OpportunitySections, { type OpportunityWithSponsor } from "@/components/sponsor/opportunity-sections"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Sponsor Prospectus",    description:
@@ -14,26 +16,38 @@ export const metadata: Metadata = buildPageMetadata({
 
 const metrics = [
   {
-    icon: Users,
+    icon: UsersRound,
+    iconClass: "text-primary-red",
     value: "Growing",
     label: "Student Builders",
     note: "Students and young developers building real projects across Lumbini Province.",
   },
   {
-    icon: Rocket,
+    icon: Target,
+    iconClass: "text-status-blue",
     value: "Real",
     label: "Projects That Matter",
     note: "MVPs addressing local challenges in education, tourism, and civic life.",
   },
   {
     icon: MapPin,
+    iconClass: "text-status-green",
     value: "Local",
     label: "Community Roots",
     note: "Deep engagement across Butwal, Bhairahawa, and surrounding Lumbini corridor communities.",
   },
 ]
 
-export default function SupportPage() {
+export default async function SupportPage() {
+  // Live listings feed the opportunities section below (migrated from
+  // /opportunities — one sponsor action page).
+  const [jobsResult, bountiesResult] = await Promise.all([
+    getPublicOpportunities({ is_bounty: false }),
+    getPublicOpportunities({ is_bounty: true }),
+  ]);
+  const jobs = (jobsResult.data ?? []) as OpportunityWithSponsor[];
+  const bounties = (bountiesResult.data ?? []) as OpportunityWithSponsor[];
+
   return (
     <main className="min-h-dvh bg-background text-primary">
       
@@ -71,7 +85,7 @@ export default function SupportPage() {
           <div className="rounded-xl border border-border bg-surface p-4">
             <div className="rounded-xl border border-border bg-surface/50 p-6">
               <p className="text-sm font-semibold text-secondary">Institutional Sponsorship</p>
-              <p className="mt-2 text-sm text-secondary">Aligned with the 77 Hacks vision and district-wide youth enablement.</p>
+              <p className="mt-2 text-sm text-secondary">Part of the 77 Hacks vision: tech opportunity in every district, starting with young people.</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-border bg-background p-3">
                   <p className="text-xs uppercase tracking-wide text-secondary">Focus</p>
@@ -119,7 +133,7 @@ export default function SupportPage() {
               const Icon = metric.icon
               return (
                 <article key={metric.label} className="rounded-xl border border-border bg-surface p-6">
-                  <Icon className="h-5 w-5 text-primary" />
+                  <Icon className={`h-5 w-5 ${metric.iconClass}`} />
                   <p className="mt-3 text-5xl font-bold font-heading leading-none text-primary">{metric.value}</p>
                   <h3 className="mt-2 text-base font-semibold text-primary">{metric.label}</h3>
                   <p className="mt-3 text-sm text-secondary">{metric.note}</p>
@@ -196,7 +210,7 @@ export default function SupportPage() {
               </p>
             </div>
             <Link
-              href="/resources"
+              href="/learn#resources"
               className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-surface/50"
             >
               View Reports
@@ -209,7 +223,9 @@ export default function SupportPage() {
         <SponsorForm />
       </section>
 
-      
+      <OpportunitySections bounties={bounties} jobs={jobs} />
+
+
     </main>
   )
 }

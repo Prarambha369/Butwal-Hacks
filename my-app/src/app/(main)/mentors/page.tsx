@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Mentor Directory — Butwal Hacks",
-  description: "Connect with mentors available for 1:1 chats. Browse experienced developers and engineers offering mentorship.",
+  description: "Talk 1:1 with developers and engineers volunteering as mentors. Ask anything, no stupid questions.",
 };
 
 interface MentorProfile {
@@ -16,7 +16,6 @@ interface MentorProfile {
   avatar_url: string | null
   bio: string | null
   skills: string[] | null
-  xp: number
   cal_com_url: string | null
   socials: Record<string, string> | null
 }
@@ -26,10 +25,10 @@ export default async function MentorsPage() {
 
   const { data: mentors } = await supabase
     .from("profiles")
-    .select("bh_id, full_name, avatar_url, bio, skills, xp, cal_com_url, socials")
+    .select("bh_id, full_name, avatar_url, bio, skills, cal_com_url, socials")
     .eq("open_to_mentor", true)
     .not("bh_id", "is", null)
-    .order("xp", { ascending: false })
+    .order("full_name", { ascending: true })
     .limit(50);
 
   const list = (mentors ?? []) as unknown as MentorProfile[];

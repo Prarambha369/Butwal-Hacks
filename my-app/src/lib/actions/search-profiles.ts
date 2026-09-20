@@ -9,7 +9,6 @@ export interface TalentSearchResult {
   slug_id: string;
   avatar_url: string | null;
   bio: string | null;
-  xp: number;
   trust_marker_count: number;
   top_markers: { title: string; type: string }[];
 }
@@ -22,15 +21,15 @@ export interface TalentSearchFilters {
 
 // ── Guaranteed columns from 001_initial_schema.sql ───────────────────────
 // profiles: id, slug_id, email, role, is_claimed, github_username, bio,
-//           avatar_url, xp, is_suspended, created_at
+//           avatar_url, is_suspended, created_at
 // trust_markers: id, profile_id, issuer_id, event_id, type, title,
 //                description, is_revoked, revocation_reason,
 //                crypto_signature, created_at
 // Later migrations (004, 005, 031) add full_name, bh_id, skills,
 // looking_for_team — these may NOT be applied, so we don't depend on them.
 
-const BASE_PROFILE_COLS = "id, slug_id, bio, avatar_url, xp";
-const PROFILE_COLS_WITH_SKILLS = "id, slug_id, bio, avatar_url, xp, skills";
+const BASE_PROFILE_COLS = "id, slug_id, bio, avatar_url";
+const PROFILE_COLS_WITH_SKILLS = "id, slug_id, bio, avatar_url, skills";
 
 /**
  * Search claimed hacker profiles with text and marker-type filters.
@@ -49,7 +48,7 @@ export async function searchTalent(
     .select(selectCols)
     .eq("is_claimed", true)
     .neq("role", "maintainer")
-    .order("xp", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (filters.query && filters.query.trim().length >= 2) {
@@ -103,7 +102,6 @@ export async function searchTalent(
         slug_id: p.slug_id ?? "",
         avatar_url: p.avatar_url,
         bio: p.bio,
-        xp: p.xp ?? 0,
         trust_marker_count: profileMarkers.length,
         top_markers: profileMarkers.slice(0, 3),
       };

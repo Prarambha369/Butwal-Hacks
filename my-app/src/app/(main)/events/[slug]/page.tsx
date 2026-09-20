@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Users, FolderGit2, Camera } from "lucide-react"
 
-import { createClient } from "@/utils/supabase"
+import { createServiceClient } from "@/utils/supabase"
 import { buildPageMetadata } from "@/lib/seo"
 import { initiatives, events as contentEvents, blogPosts, getRelatedByTags } from "@/lib/content"
 import RelatedLinks from "@/components/home/related-links"
@@ -17,7 +17,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const supabase = createClient()
+  const supabase = createServiceClient()
   const { data: event } = await supabase
     .from("events")
     .select("title, description, location")
@@ -27,14 +27,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!event) {
     return buildPageMetadata({
       title: "Event Not Found",
-      description: "The requested event page could not be found.",
+      description: "We could not find that event. Check upcoming events instead.",
       path: `/events/${slug}`,
     })
   }
 
   const fallbackDescription = event.location
-    ? `Register for ${event.title} in ${event.location}. Join the hackathon, meet fellow builders, and ship something great.`
-    : `Register for ${event.title} — join the hackathon and build with fellow students in Nepal.`
+    ? `Register for ${event.title} in ${event.location}. Join the hackathon, meet fellow builders, and ship something real.`
+    : `Register for ${event.title}. Join the hackathon and build with fellow students in Nepal.`
 
   return buildPageMetadata({
     title: event.title,
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params
-  const supabase = createClient()
+  const supabase = createServiceClient()
 
   const { data: event } = await supabase
     .from("events")
@@ -85,6 +85,33 @@ export default async function EventDetailPage({ params }: Props) {
       </div>
 
       <EventDetailContent event={eventData} />
+
+      {/* Explore this event: its teams, projects, and photos. */}
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface p-4">
+          <span className="mr-1 font-mono text-[10px] uppercase text-muted-foreground">
+            Explore this event
+          </span>
+          <Link
+            href="/teams"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-primary hover:bg-surface-hover transition-all"
+          >
+            <Users className="w-3.5 h-3.5" /> Teams
+          </Link>
+          <Link
+            href={`/events/${slug}/projects`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-primary hover:bg-surface-hover transition-all"
+          >
+            <FolderGit2 className="w-3.5 h-3.5" /> Projects
+          </Link>
+          <Link
+            href="/gallery"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-primary hover:bg-surface-hover transition-all"
+          >
+            <Camera className="w-3.5 h-3.5" /> Photos
+          </Link>
+        </div>
+      </div>
 
       {/* Related links: initiatives + blog posts tagged to this event */}
       <div className="mx-auto max-w-6xl px-4 pb-16">

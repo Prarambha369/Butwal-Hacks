@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 
 import { cloudinaryUrl } from '@/lib/utils';
+import { formatDualDate } from '@/lib/nepali-date';
 import type { Project } from '@/lib/supabase-types';
 
 interface ExtendedProject extends Project {
@@ -54,7 +55,7 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-hover border border-border text-primary text-xs font-medium">
               <Calendar className="w-3 h-3" />
-              {project.created_at ? new Date(project.created_at).toLocaleDateString() : 'Recent'}
+              {project.created_at ? formatDualDate(new Date(project.created_at)) : 'Recent'}
             </div>
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-deep-red/20 border border-primary-red/30 text-primary-red text-xs font-medium">
               <Users className="w-3 h-3" />

@@ -1,54 +1,26 @@
-"use client"
-
-import React, { useState } from "react"
-import { ChevronLeft, ChevronRight, Star, Quote } from "lucide-react"
 import { FadeIn } from "@/components/home/shared-primitives"
+import TestimonialCarousel, { type CarouselTestimonial } from "@/components/testimonials-carousel"
+import { getApprovedTestimonials } from "@/lib/actions/testimonials"
 
-interface Testimonial {
-  name: string
-  role: string
-  quote: string
-  avatar: string
-}
+/**
+ * TestimonialsSection — real community voices only.
+ * Reads approved (+featured-first) rows; never invents entries.
+ * Empty state stays honest instead of showing placeholder people.
+ */
+export async function TestimonialsSection() {
+  const rows = await getApprovedTestimonials(12)
 
-const testimonials: Testimonial[] = [
-  {
-    name: "Aarav Sharma",
-    role: "First-time Hacker",
-    quote:
-      "Before Butwal Hacks, I thought building software was impossible. In 48 hours, I shipped my first full-stack app. This community makes you ship.",
-    avatar: "AS",
-  },
-  {
-    name: "Priya Gurung",
-    role: "Mentor & Engineer",
-    quote:
-      "The energy here is unmatched. I've mentored at national hackathons, but the hunger to learn in Butwal is different. These builders are solving real local problems.",
-    avatar: "PG",
-  },
-  {
-    name: "Rajan Thapa",
-    role: "Organizer",
-    quote:
-      "Tech talent isn't limited to Kathmandu. Butwal is producing builders who solve real problems in Lumbini Province.",
-    avatar: "RT",
-  },
-  {
-    name: "Sneha KC",
-    role: "Open Source Contributor",
-    quote:
-      "Getting verified made me confident enough to contribute to open source. My trust markers are public proof of what I've built.",
-    avatar: "SK",
-  },
-]
-
-export function TestimonialsSection() {
-  const [current, setCurrent] = useState(0)
-
-  const prev = () => setCurrent((c) => (c === 0 ? testimonials.length - 1 : c - 1))
-  const next = () => setCurrent((c) => (c === testimonials.length - 1 ? 0 : c + 1))
-
-  const t = testimonials[current]
+  const items: CarouselTestimonial[] = rows
+    .filter((r) => (r.comment ?? "").trim().length > 0)
+    .map((r) => ({
+      quote: (r.comment ?? "").trim(),
+      name: r.guest_name || r.profile?.full_name || "A Mysterious Hacker",
+      sub: r.guest_title || (r.profile?.bh_id ? `BH-ID ${r.profile.bh_id}` : null),
+      avatarUrl: r.profile?.avatar_url ?? null,
+      rating: r.rating,
+      vip: r.author_type === "maintainer",
+      source: r.source,
+    }))
 
   return (
     <section className="border-b border-border bg-background/30 px-6 py-28" aria-label="Testimonials">
@@ -60,66 +32,14 @@ export function TestimonialsSection() {
           What Builders Say
         </h2>
 
-        <div className="mt-16 relative">
-          {/* Quote */}
-          <div className="mx-auto flex max-w-2xl flex-col items-center gap-6">
-            <Quote className="h-10 w-10 text-primary-red/30" aria-hidden="true" />
-            <blockquote className="text-xl leading-relaxed text-primary/80 md:text-2xl">
-              &ldquo;{t.quote}&rdquo;
-            </blockquote>
-
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-red/20 text-sm font-bold text-primary-red">
-                {t.avatar}
-              </div>
-              <div className="text-left">
-                <p className="font-bold text-primary">{t.name}</p>
-                <p className="text-sm text-secondary">{t.role}</p>
-              </div>
-            </div>
-
-            {/* Stars */}
-            <div className="flex gap-1" aria-hidden="true">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Star key={i} className="h-4 w-4 fill-bh-red-500 text-primary-red" />
-              ))}
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <div className="mt-10 flex items-center justify-center gap-4">
-            <button
-              onClick={prev}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface/50 text-secondary transition-all hover:bg-surface hover:text-primary"
-              aria-label="Previous testimonial"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-
-            <div className="flex gap-2">
-              {testimonials.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrent(i)}
-                  className={`h-2 w-2 rounded-full transition-all ${
-                    i === current
-                      ? "w-6 bg-bh-red-500"
-                      : "bg-border hover:bg-secondary"
-                  }`}
-                  aria-label={`Go to testimonial ${i + 1}`}
-                />
-              ))}
-            </div>
-
-            <button
-              onClick={next}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface/50 text-secondary transition-all hover:bg-surface hover:text-primary"
-              aria-label="Next testimonial"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
+        {items.length === 0 ? (
+          <p className="mx-auto mt-10 max-w-xl text-sm leading-relaxed text-muted-foreground">
+            No stories published yet — share yours with the form below and it will
+            appear here once a maintainer approves it.
+          </p>
+        ) : (
+          <TestimonialCarousel items={items} />
+        )}
       </FadeIn>
     </section>
   )

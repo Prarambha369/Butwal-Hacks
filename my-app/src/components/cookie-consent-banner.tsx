@@ -72,28 +72,39 @@ export default function CookieConsentBanner() {
       )}
     >
       <div className="mx-auto w-full max-w-3xl">
-        <div className="relative rounded-xl border border-border bg-surface p-5 md:p-6 shadow-xl">
+        <div className="relative rounded-xl border border-border bg-surface p-4 md:p-6 shadow-xl">
           {/* Close button */}
           <button
             onClick={handleDeny}
-            className="absolute right-3 top-3 min-w-[44px] min-h-[44px] p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-surface-hover transition-colors flex items-center justify-center"
+            className="absolute right-2 top-2 min-w-[44px] min-h-[44px] p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-surface-hover transition-colors flex items-center justify-center"
             aria-label="Dismiss cookie notice"
           >
             <X className="w-4 h-4" />
           </button>
 
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-3 md:gap-4">
             <div className="hidden sm:flex w-10 h-10 rounded-xl bg-primary-red/10 items-center justify-center shrink-0">
               <Cookie className="w-5 h-5 text-primary-red" />
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-2 mb-1 md:mb-1.5">
                 <Cookie className="w-4 h-4 text-primary-red sm:hidden" />
                 <p className="text-sm font-bold text-primary">This site uses cookies</p>
               </div>
 
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-lg">
+              {/* Short line on phones so the banner stays a strip, not a wall */}
+              <p className="text-xs text-muted-foreground leading-relaxed sm:hidden">
+                Essentials always run. Analytics need your okay.
+                <Link
+                  href="/cookie-policy"
+                  className="inline-flex items-center gap-1 ml-1 text-primary-red hover:underline font-medium"
+                >
+                  <Shield className="w-3 h-3" />
+                  Learn more
+                </Link>
+              </p>
+              <p className="hidden sm:block text-xs text-muted-foreground leading-relaxed max-w-lg">
                 We use essential and analytics cookies to improve your experience.
                 Analytics (PostHog) only activate with your consent.
                 <Link
@@ -105,16 +116,16 @@ export default function CookieConsentBanner() {
                 </Link>
               </p>
 
-              <div className="flex items-center gap-3 mt-4">
+              <div className="flex items-center gap-2 md:gap-3 mt-3 md:mt-4">
                 <button
                   onClick={handleAccept}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-bh-red-500 px-5 py-2 text-xs font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+                  className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-full bg-bh-red-500 px-5 py-2.5 md:py-2 text-xs font-bold text-white hover:bg-deep-red transition-all active:scale-95 min-h-[44px]"
                 >
                   Accept All
                 </button>
                 <button
                   onClick={handleDeny}
-                  className="rounded-full border border-border px-5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-surface-hover transition-all active:scale-95"
+                  className="flex-1 sm:flex-none rounded-full border border-border px-5 py-2.5 md:py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-surface-hover transition-all active:scale-95 min-h-[44px] text-center"
                 >
                   Deny
                 </button>

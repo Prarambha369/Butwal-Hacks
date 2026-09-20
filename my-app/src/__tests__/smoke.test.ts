@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { cn } from "@/lib/utils";
-import { calculateLevel } from "@/lib/gamification/levels";
 
 describe("cn (clsx + tailwind-merge)", () => {
   it("merges class names", () => {
@@ -16,34 +15,15 @@ describe("cn (clsx + tailwind-merge)", () => {
   });
 });
 
-describe("calculateLevel", () => {
-  it("returns level 1 for 0 xp", () => {
-    const level = calculateLevel(0);
-    expect(level.level).toBe(1);
-  });
-
-  it("returns highest level for high xp", () => {
-    const level = calculateLevel(10000);
-    expect(level.level).toBe(5);
-  });
-
-  it("returns a level with name and color", () => {
-    const level = calculateLevel(250);
-    expect(level).toHaveProperty("name");
-    expect(level).toHaveProperty("color");
-  });
-});
-
 // Route export smoke tests - data-driven for all pages
 const routes = [
   // Public Marketing Pages
   { name: "/", path: "@/app/page", hasGenMeta: false },
   { name: "/explore", path: "@/app/(main)/explore/page", revalidate: 60 },
-  { name: "/community", path: "@/app/(main)/community/page" },
-  { name: "/chapters", path: "@/app/(main)/chapters/page", dynamic: "force-static" },
+  { name: "/chapters", path: "@/app/(main)/chapters/page", revalidate: 300 },
+  { name: "/learn", path: "@/app/(main)/learn/page" },
   { name: "/chapters/[slug]", path: "@/app/(main)/chapters/[slug]/page" },
   { name: "/events", path: "@/app/(main)/events/page" },
-  { name: "/events/list", path: "@/app/(main)/events/list/page" },
   { name: "/events/[slug]", path: "@/app/(main)/events/[slug]/page" },
   { name: "/events/[slug]/projects", path: "@/app/(main)/events/[slug]/projects/page" },
   { name: "/projects", path: "@/app/(main)/projects/page" },
@@ -55,30 +35,21 @@ const routes = [
   { name: "/contact", path: "@/app/(main)/contact/page" },
   { name: "/support", path: "@/app/(main)/support/page" },
   { name: "/governance", path: "@/app/(main)/governance/page" },
-  { name: "/resources", path: "@/app/(main)/resources/page" },
-  { name: "/opportunities", path: "@/app/(main)/opportunities/page" },
-  { name: "/annual-report", path: "@/app/(main)/annual-report/page", hasGenMeta: true },
   { name: "/sitemap", path: "@/app/(main)/sitemap/page" },
-  { name: "/donors", path: "@/app/(main)/donors/page" },
+  { name: "/partners", path: "@/app/(main)/partners/page" },
   { name: "/transparency", path: "@/app/(main)/transparency/page" },
-  { name: "/initiatives", path: "@/app/(main)/initiatives/page" },
   { name: "/initiatives/[slug]", path: "@/app/(main)/initiatives/[slug]/page" },
-  { name: "/programs/[slug]", path: "@/app/(main)/programs/[slug]/page" },
-  { name: "/philosophy", path: "@/app/(main)/philosophy/page" },
   { name: "/gallery", path: "@/app/(main)/gallery/page" },
   { name: "/cookie-policy", path: "@/app/(main)/cookie-policy/page" },
 
   // Auth Pages
   { name: "/sign-in", path: "@/app/(auth)/sign-in/page" },
-  { name: "/sign-up", path: "@/app/(auth)/sign-up/page" },
-  { name: "/login", path: "@/app/(auth)/login/page" },
   { name: "/claim/[token]", path: "@/app/(auth)/claim/[token]/page" },
 
   // Profile & Verification Pages
   { name: "/verify/[markerId]", path: "@/app/verify/[markerId]/page", hasGenMeta: true },
   { name: "/p/[slug_id]", path: "@/app/p/[slug_id]/page", hasGenMeta: true, revalidate: 60 },
   { name: "/widget/[slugId]", path: "@/app/widget/[slugId]/page", hasGenMeta: true },
-  { name: "/profile/[bh_id]", path: "@/app/(main)/profile/[bh_id]/page" },
 
   // Portal Pages
   { name: "/portal/sponsors", path: "@/app/(main)/portal/sponsors/page", dynamic: "force-dynamic" },
@@ -88,6 +59,10 @@ const routes = [
   { name: "/portal/bounties/new", path: "@/app/(main)/portal/bounties/new/page" },
   { name: "/portal/bounties/[id]/edit", path: "@/app/(main)/portal/bounties/[id]/edit/page" },
   { name: "/portal/payouts", path: "@/app/(main)/portal/payouts/page" },
+
+  // Onboarding Pages
+  { name: "/dashboard/onboarding", path: "@/app/(main)/dashboard/onboarding/page" },
+  { name: "/dashboard/sponsor-onboarding", path: "@/app/(main)/dashboard/sponsor-onboarding/page" },
 
   // Hacker Dashboard Pages
   { name: "/dashboard/hacker", path: "@/app/(main)/dashboard/hacker/page" },
@@ -117,6 +92,8 @@ const routes = [
   { name: "/dashboard/maintainer/site-config", path: "@/app/(main)/dashboard/maintainer/site-config/page" },
   { name: "/dashboard/maintainer/trust-override", path: "@/app/(main)/dashboard/maintainer/trust-override/page" },
   { name: "/dashboard/maintainer/dedicate-school", path: "@/app/(main)/dashboard/maintainer/dedicate-school/page" },
+  { name: "/dashboard/maintainer/chapters", path: "@/app/(main)/dashboard/maintainer/chapters/page" },
+  { name: "/dashboard/maintainer/blog", path: "@/app/(main)/dashboard/maintainer/blog/page" },
 
   // Project Dashboard Pages
   { name: "/dashboard/projects/new", path: "@/app/(main)/dashboard/projects/new/page" },
@@ -139,7 +116,6 @@ const routes = [
   { name: "/legal/terms", path: "@/app/(main)/legal/terms/page" },
 
   // Docs Pages
-  { name: "/docs", path: "@/app/(main)/docs/page" },
   { name: "/docs/components/section-heading", path: "@/app/(main)/docs/components/section-heading/page" },
   { name: "/docs/engineering/environment-setup", path: "@/app/(main)/docs/engineering/environment-setup/page" },
 
@@ -180,7 +156,6 @@ describe.each(routes)("$name", ({ name: _name, path, hasGenMeta, dynamic, revali
 const loadingFiles = [
   { name: "explore page", path: "@/app/(main)/explore/loading" },
   { name: "dashboard/organizer/api-keys", path: "@/app/(main)/dashboard/organizer/api-keys/loading" },
-  { name: "programs/[slug]", path: "@/app/(main)/programs/[slug]/loading" },
   { name: "initiatives/[slug]", path: "@/app/(main)/initiatives/[slug]/loading" },
   { name: "root (app router)", path: "@/app/loading" },
 ];
@@ -236,7 +211,6 @@ const apiRoutes = [
   { name: "GET /api/organizer/metrics", path: "@/app/api/organizer/metrics/route", method: "GET" },
   { name: "GET /api/impact/report/[projectId]", path: "@/app/api/impact/report/[projectId]/route", method: "GET" },
   { name: "POST /api/resources/complete", path: "@/app/api/resources/complete/route", method: "POST" },
-  { name: "POST /api/reviews", path: "@/app/api/reviews/route", method: "POST" },
   { name: "POST /api/sponsor", path: "@/app/api/sponsor/route", method: "POST" },
   { name: "GET /api/notifications", path: "@/app/api/notifications/route", method: "GET" },
   { name: "GET/POST /api/tasks", path: "@/app/api/tasks/route", method: "GET", returns201: true, createMethod: "POST" },

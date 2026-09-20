@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import AuthAwareCta from "@/components/auth-aware-cta";
 import Link from "next/link";
-import { ArrowUpRight, Sparkles, Users } from "lucide-react";
+import { ArrowUpRight, Compass, Users } from "lucide-react";
 
 interface ExploreCtaProps {
   totalMembers: number;
@@ -45,7 +45,7 @@ export function ExploreCta({ totalMembers }: ExploreCtaProps) {
         {/* Eyebrow badge */}
         <div className="flex justify-center mb-6">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/8 text-[10px] font-bold text-primary-red tracking-wider">
-            <Sparkles className="w-3 h-3" />
+            <Compass className="w-3 h-3" />
             Join the Movement
           </span>
         </div>
@@ -57,12 +57,21 @@ export function ExploreCta({ totalMembers }: ExploreCtaProps) {
 
         {/* Subtitle with animated count */}
         <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-          You&apos;re not just a spectator — create your BH-ID and join{" "}
-          <span className="font-bold text-primary inline-flex items-baseline gap-1">
-            <Users className="w-4 h-4 text-primary-red inline-block -mb-0.5" />
-            <AnimatedNumber value={totalMembers} />
-          </span>{" "}
-          members building the future of tech in Lumbini Province.
+          {totalMembers > 0 ? (
+            <>
+              You&apos;re not just a spectator — create your BH-ID and join{" "}
+              <span className="font-bold text-primary inline-flex items-baseline gap-1">
+                <Users className="w-4 h-4 text-primary-red inline-block -mb-0.5" />
+                <AnimatedNumber value={totalMembers} />
+              </span>{" "}
+              {totalMembers === 1 ? "member" : "members"} building the future of tech in Lumbini Province.
+            </>
+          ) : (
+            <>
+              You&apos;re not just a spectator — create your BH-ID and be one of
+              the first builders in Lumbini Province.
+            </>
+          )}
         </p>
 
         {/* Buttons */}
@@ -74,10 +83,10 @@ export function ExploreCta({ totalMembers }: ExploreCtaProps) {
             className="py-3.5 px-8 text-sm font-bold rounded-full shadow-[--bh-glow-red-soft] hover:shadow-[--bh-glow-red] transition-all duration-300"
           />
           <Link
-            href="/community"
+            href="/events"
             className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-8 py-3.5 text-sm font-bold text-primary hover:bg-surface-hover hover:border-muted-foreground/30 transition-all active:scale-[0.97]"
           >
-            Explore Community <ArrowUpRight className="w-4 h-4" />
+            Browse Events <ArrowUpRight className="w-4 h-4" />
           </Link>
         </div>
       </div>

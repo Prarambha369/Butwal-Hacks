@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { useUser } from "@auth0/nextjs-auth0/client"
+import { useAuthUser } from "@/components/auth-user-provider"
 import { createClient } from "@/utils/supabase"
 import { useSyncExternalStore } from "react"
 import type { RealtimeChannel } from "@supabase/supabase-js"
@@ -88,7 +88,7 @@ function initChannel(userId?: string) {
 }
 
 export function usePresence(): Set<string> {
-  const { user } = useUser()
+  const { user } = useAuthUser()
   const userId = user?.sub
   const isSignedIn = !!user
 

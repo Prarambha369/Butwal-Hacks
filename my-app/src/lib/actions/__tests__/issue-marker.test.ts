@@ -4,8 +4,9 @@ vi.mock("@/utils/supabase", () => ({ createServiceClient: vi.fn() }));
 vi.mock("@/lib/logger", () => ({ logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() } }));
 vi.mock("@/lib/validation", () => ({ sanitizeString: vi.fn((s: string, max: number) => s.slice(0, max)) }));
 vi.mock("@/lib/profile-resolver", () => ({ resolveProfileId: vi.fn() }));
-vi.mock("@/lib/crypto/sign", () => ({ signTrustMarker: vi.fn(() => "ed25519-sig-abc123") }));
+vi.mock("@/lib/crypto-sign", () => ({ signTrustMarker: vi.fn(() => "ed25519-sig-abc123") }));
 vi.mock("@/lib/cache", () => ({ bustCache: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("@/lib/discord", () => ({ notifyMarkerIssued: vi.fn(), notifyEventCreated: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import { createServiceClient } from "@/utils/supabase";
@@ -33,13 +34,16 @@ describe("issueTrustMarker", () => {
     const db = buildMockDb();
     mockedCreateServiceClient.mockReturnValue(db);
 
-    // Chain: from().insert().select().single() — terminal is single
+    // Chain 1: from().insert().select().single() — terminal is single
     db.single.mockResolvedValueOnce({
       data: { id: "marker-1", created_at: "2026-01-01" },
       error: null,
     });
-    // Chain: from().update({ crypto_signature }).eq("id", marker.id) — terminal is eq
-    db.eq.mockResolvedValue({ error: null });
+    // Chain 2: from().update({ crypto_signature }).eq("id", marker.id) — eq is terminal, returns result
+    db.eq.mockResolvedValueOnce({ error: null });
+    // Chain 3: from("profiles").select("full_name, bh_id").eq("id", issuerId).single() — for Discord notification
+    db.eq.mockImplementationOnce(() => db);
+    db.single.mockResolvedValueOnce({ data: { full_name: "Test Issuer", bh_id: "BH-24-001" }, error: null });
 
     const { issueTrustMarker } = await import("../issue-marker");
     const result = await issueTrustMarker({

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { ScrollText } from "lucide-react";
 import AuditLogPanel from "@/components/dashboard/maintainer/audit-log-panel";
 import type { Metadata } from "next";
@@ -21,7 +21,7 @@ export default async function AuditLogPage(props: {
   const actionFilter = searchParams?.action ?? "all";
   const pageSize = 25;
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Get total count (respect action filter)
   let countQuery = supabase.from("audit_logs").select("*", { count: "exact", head: true });

@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import { Calendar, MapPin, FileText, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { createEvent } from '@/lib/actions/events';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useAuthUser } from '@/components/auth-user-provider';
 
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { Button } from '@/components/ui/button';
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
 
 export default function EventCreationForm() {
-  const { user } = useUser();
+  const { user } = useAuthUser();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',

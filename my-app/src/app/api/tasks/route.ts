@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
   const { data: tasks, error, count } = await query.range(offset, offset + limit - 1)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500 })
   }
 
   return NextResponse.json({
@@ -176,7 +176,7 @@ async function handlePost(request: NextRequest) {
     .single()
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: "Failed to create task" }, { status: 500 })
   }
 
   return NextResponse.json({ task }, { status: 201 })

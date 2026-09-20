@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ArrowRight, Calendar, MapPin } from "lucide-react"
+import { formatDualDate } from "@/lib/nepali-date"
 import CountdownTimer from "./countdown-timer"
 
 export interface EventItem {
@@ -22,13 +23,20 @@ type FilterMode = "upcoming" | "past"
 export default function EventsFilter({ events }: { events: EventItem[] }) {
   const [filter, setFilter] = useState<FilterMode>("upcoming")
 
-  const now = new Date()
+  // `new Date()` at render time differs between the server (UTC) and the
+  // client (Asia/Kathmandu). Compute "now" only after mount so the
+  // upcoming/past split matches between SSR and hydration.
+  const [now, setNow] = useState<number | null>(null)
+
+  useEffect(() => {
+    setNow(Date.now())
+  }, [])
 
   const upcoming: EventItem[] = []
   const past: EventItem[] = []
   for (const e of events) {
     if (!e.is_published) continue
-    if (new Date(e.start_date) >= now) upcoming.push(e)
+    if (now === null || new Date(e.start_date).getTime() >= now) upcoming.push(e)
     else past.push(e)
   }
   upcoming.sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
@@ -95,20 +103,18 @@ export default function EventsFilter({ events }: { events: EventItem[] }) {
 }
 
 function EventCard({ event, filter }: { event: EventItem; filter: FilterMode }) {
-  const [now] = useState(() => Date.now())
+  const [now, setNow] = useState<number | null>(null)
+  useEffect(() => {
+    setNow(Date.now())
+  }, [])
   const startDate = new Date(event.start_date)
   const isLive =
     filter === "upcoming" &&
+    now !== null &&
     startDate.getTime() <= now &&
     new Date(event.end_date).getTime() >= now
 
-  const formatDate = (d: Date) =>
-    d.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    })
+  const formatDate = (d: Date) => formatDualDate(d)
 
   return (
     <article className="group bh-card p-7 transition-all hover:border-primary-red/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary-red/5">

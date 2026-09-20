@@ -7,7 +7,7 @@ import { createServiceClient } from '@/utils/supabase';
 import { revalidatePath } from 'next/cache';
 import { bustCache } from '@/lib/cache';
 
-async function requireMaintainer() {
+export async function requireMaintainer() {
   const session = await auth0.getSession();
   if (!session?.user) redirect("/auth/login");
   const supabase = createServiceClient();

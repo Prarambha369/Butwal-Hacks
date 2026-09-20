@@ -111,6 +111,9 @@ function ColorRow({
 
 /* ─── Page ────────────────────────────────────────────────────────── */
 
+
+// metadata disabled because this page is a client component (Next.js forbids exporting metadata from client components).
+
 export default function SectionHeadingDocsPage() {
   return (
     <main    className="min-h-dvh bg-background text-primary">

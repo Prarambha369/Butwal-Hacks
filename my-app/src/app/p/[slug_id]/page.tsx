@@ -28,14 +28,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!profile) {
     return buildPageMetadata({
       title: "Profile Not Found",
-      description: "The requested Hacker ID does not exist.",
+      description: "No Hacker ID like that here. Double-check the link.",
       path: `/p/${slug_id}`,
     });
   }
 
   return buildPageMetadata({
     title: `${profile.full_name} | Hacker ID ${profile.bh_id}`,
-    description: `Official verification profile for ${profile.full_name} (${profile.bh_id}) — Butwal Hacks.`,
+    description: `Verified work profile of ${profile.full_name} (${profile.bh_id}), Butwal Hacks member.`,
     path: `/p/${slug_id}`,
   });
 }
@@ -44,12 +44,15 @@ export default async function ProfilePage({ params }: Props) {
   const { slug_id } = await params;
   const supabase = createServiceClient();
 
+  // Explicit public allowlist — never select("*") on profiles with the service
+  // role key: email, is_suspended, and other private columns would be shipped
+  // to the browser. Only fields the public profile renders belong here.
   const { data: profile, error } = await supabase
     .from("profiles")
     .select(`
-      *,
-      trust_markers (
-        id, title, description, type, is_revoked, created_at,
+      id, full_name, bh_id, role, bio, avatar_url, social_links, ai_summary,
+      trust_markers!trust_markers_profile_id_fkey (
+        id, title, description, type, is_revoked, revocation_reason, created_at,
         events ( title, start_date ),
         issuer:profiles!trust_markers_issuer_id_fkey ( full_name, bh_id )
       )

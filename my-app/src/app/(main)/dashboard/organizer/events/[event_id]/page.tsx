@@ -1,5 +1,6 @@
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { notFound } from "next/navigation";
+import { formatDualDate } from "@/lib/nepali-date";
 import {
   Calendar,
   MapPin,
@@ -11,12 +12,19 @@ import {
   GraduationCap,
   FileDown,
   QrCode,
-  ScanQrCode
+  ScanQrCode,
+  Image as ImageIcon
 } from "lucide-react";
 import Link from "next/link";
 
 import { CloseEventClientButton } from "./close-event-button";
 import { CertificateExportButton } from "./certificate-export-button";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export async function generateMetadata() {
+  return { ...buildPageMetadata({title: "Event Details", description: "View event details", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
+}
 
 export default async function EventDetailsPage({
   params,
@@ -24,7 +32,7 @@ export default async function EventDetailsPage({
   params: Promise<{ event_id: string }>;
 }) {
   const { event_id } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: event, error } = await supabase
     .from("events")
@@ -84,6 +92,13 @@ export default async function EventDetailsPage({
             Scan
           </Link>
           <Link 
+            href={`/dashboard/organizer/events/${event_id}/photos`}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-surface-hover transition-all"
+          >
+            <ImageIcon className="w-4 h-4" />
+            Photos
+          </Link>
+          <Link 
             href={`/dashboard/organizer/events/${event_id}/analytics`}
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-surface-hover transition-all"
           >
@@ -102,7 +117,7 @@ export default async function EventDetailsPage({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <Calendar className="w-4 h-4" />
-              <span>{new Date(event.start_date).toLocaleDateString()} - {new Date(event.end_date).toLocaleDateString()}</span>
+              <span>{formatDualDate(new Date(event.start_date))} — {formatDualDate(new Date(event.end_date))}</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <MapPin className="w-4 h-4" />

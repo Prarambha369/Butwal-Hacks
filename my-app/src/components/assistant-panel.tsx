@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Bot, X, Send, Loader2, Sparkles, CheckCircle2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAuthUser } from "@/components/auth-user-provider";
 import { submitFeedback } from "@/lib/actions/feedback";
 import { cn } from "@/lib/utils";
 
@@ -17,19 +17,41 @@ interface Message {
   content: string;
 }
 
+// Context-aware suggestion sets for onboarding surfaces.
+// Keep the generic fallback set; overlay a flow-specific set when one is
+// provided via the forced open path.
 
+const CHAT_SUGGESTIONS: Record<string, string[]> = {
+  default: [
+    "What is Butwal Hacks?",
+    "How do I join a chapter?",
+    "What events are coming up?",
+    "How can I sponsor?",
+  ],
+  hacker: [
+    "How do I complete my profile?",
+    "How does AI Team Match work?",
+    "How do I submit a project?",
+    "What are trust markers?",
+  ],
+  organizer: [
+    "How do I create my first event?",
+    "How do I issue a trust marker?",
+    "How do I manage registrations?",
+    "Where is the team work board?",
+  ],
+  sponsor: [
+    "How do I connect Open Collective?",
+    "How do I set up my company profile?",
+    "How do I search for hackers?",
+    "How do bounties work?",
+  ],
+};
 
 const CHAT_WELCOME: Message = {
   role: "assistant",
-  content: "Hey there! I'm BH Bot. Ask me about Butwal Hacks - our chapters, events, programs, or how to get involved!",
+  content: "Hey there! I'm BH Bot. Ask me about Butwal Hacks, our chapters, events, programs, or how to get involved.",
 };
-
-const CHAT_SUGGESTIONS = [
-  "What is Butwal Hacks?",
-  "How do I join a chapter?",
-  "What events are coming up?",
-  "How can I sponsor?",
-];
 
 // ─── Hooks ───────────────────────────────────────────────────────────
 
@@ -47,11 +69,17 @@ function useReducedMotion() {
 
 // ─── Component ──────────────────────────────────────────────────────
 
-export default function AssistantPanel() {
-  const { user } = useUser();
+export default function AssistantPanel({
+  context,
+}: {
+  context?: "hacker" | "organizer" | "sponsor";
+} = {}) {
+  const { user } = useAuthUser();
   const reducedMotion = useReducedMotion();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("chat");
+
+  const suggestionSet = CHAT_SUGGESTIONS[context ?? ""] ?? CHAT_SUGGESTIONS.default;
 
   // ── Chat state ──
   const [messages, setMessages] = useState<Message[]>([CHAT_WELCOME]);
@@ -189,8 +217,8 @@ export default function AssistantPanel() {
         className={cn(
           "fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300",
           isOpen
-            ? "scale-90 bg-bh-red-500 text-white"
-            : "bg-surface border border-border text-primary hover:scale-110 hover:border-primary-red/50"
+            ? "scale-90 bg-bh-red-500 text-white ring-2 ring-bh-red-500/40"
+            : "bg-surface border border-border text-primary hover:scale-110 hover:border-primary-red/50 outline-none focus-visible:ring-2 focus-visible:ring-bh-red-500/50 focus-visible:ring-offset-2"
         )}
       >
         {isOpen ? <X size={22} /> : <Bot size={22} />}
@@ -307,8 +335,11 @@ export default function AssistantPanel() {
               {/* Suggestions */}
               {messages.length <= 2 && !chatLoading && (
                 <div className="px-4 pb-2">
+                  <p className="text-[10px] font-mono text-muted-foreground/50 mb-2">
+                    Suggested questions
+                  </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {CHAT_SUGGESTIONS.map((s) => (
+                    {suggestionSet.map((s) => (
                       <button
                         key={s}
                         onClick={() => handleChatSubmit(s)}

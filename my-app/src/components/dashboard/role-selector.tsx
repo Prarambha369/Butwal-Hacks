@@ -276,8 +276,8 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
           Welcome to Butwal Hacks
         </h1>
         <p className="text-sm text-muted-foreground">
-          Select your role to get started. Your role determines what tools and features you can access.
-          You can always change it later or request an upgrade.
+          Pick who you are for now. Hacker builds, organizer runs events, sponsor funds them.
+          You can change this anytime.
         </p>
       </div>
 

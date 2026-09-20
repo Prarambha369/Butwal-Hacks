@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X, LogIn, LogOut, Search, LayoutDashboard } from 'lucide-react';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useAuthUser } from '@/components/auth-user-provider';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/components/language-provider';
 import { t } from '@/lib/i18n';
@@ -38,7 +38,6 @@ function LanguageToggle() {
 
 const navLinks = [
   { name: 'Home', href: '/', i18nKey: 'nav.home' },
-  { name: 'Community', href: '/community', i18nKey: 'nav.community' },
   { name: 'Events', href: '/events', i18nKey: 'nav.events' },
   { name: 'Explore', href: '/explore', i18nKey: 'nav.explore' },
   { name: 'Insights', href: '/blog', i18nKey: 'nav.insights' },
@@ -47,7 +46,7 @@ const navLinks = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { user, isLoading } = useUser();
+  const { user, isLoading } = useAuthUser();
   const isSignedIn = !!user;
   const { locale } = useLanguage();
 
@@ -72,24 +71,23 @@ export default function Navbar() {
           {/* Left: Logo */}
           <div className="flex items-center gap-3 shrink-0">
             <Link href="/" className="flex items-center gap-3 group min-h-[44px]">
-              <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-deep-red">
-                <Image
-                  src="/logo.png"
-                  alt="Butwal Hacks"
-                  fill
-                  className="object-cover"
-                  sizes="36px"
-                  priority
-                />
-              </div>
+              <Image
+                src="/favicon.svg"
+                alt="Butwal Hacks"
+                width={40}
+                height={40}
+                className="h-10 w-10"
+                priority
+              />
               <span className="text-primary font-bold text-lg tracking-tight">
                 Butwal Hacks
               </span>
             </Link>
           </div>
 
-          {/* Center: Nav Links (Desktop) */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* Center: Nav Links (Desktop) — lg and up; the full link +
+              search + auth cluster needs ~1024px and clips at md */}
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -102,7 +100,7 @@ export default function Navbar() {
           </div>
 
           {/* Right: Search + Auth + Theme Toggle */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2">
             {/* Cmd+K Search Trigger */}
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('bh:open-search'))}
@@ -157,7 +155,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile: Search + Theme + Menu */}
-          <div className="md:hidden flex items-center gap-1">
+          <div className="lg:hidden flex items-center gap-1">
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('bh:open-search'))}
               className="text-text-secondary min-w-[44px] min-h-[44px] p-2.5 hover:text-primary transition-colors flex items-center justify-center"
@@ -181,7 +179,7 @@ export default function Navbar() {
       {/* Mobile Menu Overlay */}
       <div
         className={cn(
-          "absolute top-full left-0 w-full bg-surface border-b border-border transition-all duration-200 ease-in-out md:hidden shadow-lg max-h-dvh overflow-y-auto",
+          "absolute top-full left-0 w-full bg-surface border-b border-border transition-all duration-200 ease-in-out lg:hidden shadow-lg max-h-dvh overflow-y-auto",
           isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
         )}
       >

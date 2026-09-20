@@ -55,7 +55,7 @@ export default function TaskCard({ task, onSelect, assigneeInitial }: TaskCardPr
           <Priority.icon className={cn("h-3 w-3 shrink-0", Priority.color)} />
           {task.due_date && (
             <span className="text-xs text-muted-foreground truncate">
-              {new Date(task.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              {new Date(task.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "Asia/Kathmandu" })}
             </span>
           )}
         </div>

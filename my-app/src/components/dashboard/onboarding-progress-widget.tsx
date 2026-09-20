@@ -12,7 +12,6 @@ type SlimProfile = {
   full_name?: string | null;
   bio?: string | null;
   socials?: Record<string, string> | null;
-  xp?: number | null;
   trust_markers?: unknown[] | null;
 };
 
@@ -23,9 +22,10 @@ interface OnboardingProgressWidgetProps {
 }
 
 /**
- * OnboardingProgressWidget — compact sidebar widget showing onboarding
- * completion as a progress bar with percentage. Clicking "Continue" or
- * the step name takes the user to the next incomplete step.
+ * OnboardingProgressWidget — compact sidebar widget listing the remaining
+ * onboarding steps as a plain checklist (no percentages or progress bars:
+ * wayfinding, not a game). Clicking the step name takes the user to the
+ * next incomplete step.
  *
  * Syncs dismissal state (localStorage) with the full onboarding card
  * on /dashboard so dismissing one hides both.
@@ -44,7 +44,7 @@ export default function OnboardingProgressWidget({
     setIsDismissed(stored === "true");
   }, []);
 
-  const { progress, completedCount, totalCount, allComplete, steps, currentStepIndex } =
+  const { completedCount, totalCount, allComplete, steps, currentStepIndex } =
     useOnboardingProgress(profile, chapterCount, projectCount);
 
   if (!isMounted) return null;
@@ -64,8 +64,8 @@ export default function OnboardingProgressWidget({
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-[10px] font-mono font-bold text-primary-red">
-              {progress}%
+            <span className="text-[10px] font-mono text-muted-foreground">
+              {completedCount} of {totalCount}
             </span>
             <button
               onClick={() => {
@@ -80,17 +80,9 @@ export default function OnboardingProgressWidget({
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="h-1.5 w-full bg-surface-hover rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary-red rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        {/* Step count */}
+        {/* Remaining steps */}
         <p className="text-[10px] text-muted-foreground font-mono">
-          {completedCount} of {totalCount} steps
+          {completedCount} of {totalCount} steps done
         </p>
 
         {/* Next step CTA */}

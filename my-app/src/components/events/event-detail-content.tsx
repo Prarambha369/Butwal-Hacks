@@ -1,9 +1,11 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import CountdownTimer from "./countdown-timer"
 import EventRegisterButton from "./event-register-button"
 import Link from "next/link"
 import { ArrowRight, Calendar, MapPin, Clock, Users, Code2, Trophy } from "lucide-react"
+import { formatDualDate } from "@/lib/nepali-date"
 
 interface EventData {
   id: string
@@ -37,24 +39,29 @@ const faqs = [
 export default function EventDetailContent({ event }: Props) {
   const startDate = new Date(event.start_date)
   const endDate = new Date(event.end_date)
-  const now = new Date()
 
-  const isUpcoming = startDate >= now
-  const isLive = startDate <= now && endDate >= now
-  const isPast = endDate < now
+  // `new Date()` at render time differs between the server (UTC) and the
+  // client (Asia/Kathmandu). Compute "now" only after mount; before mount
+  // the event is treated as upcoming so SSR and hydration agree.
+  const [now, setNow] = useState<number | null>(null)
+  useEffect(() => {
+    setNow(Date.now())
+  }, [])
 
-  const formatDate = (d: Date) =>
-    d.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    })
+  const isUpcoming = now === null || startDate.getTime() >= now
+  const isLive = now !== null && startDate.getTime() <= now && endDate.getTime() >= now
+  const isPast = now !== null && endDate.getTime() < now
 
+  const formatDate = (d: Date) => formatDualDate(d)
+
+  // Always render event times in Nepal time so the server (UTC) and the
+  // client (local browser TZ) display the same value and it matches what
+  // organizers intend.
   const formatTime = (d: Date) =>
     d.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
+      timeZone: "Asia/Kathmandu",
       timeZoneName: "short",
     })
 

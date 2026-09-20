@@ -15,7 +15,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Sitemap — Explore Butwal Hacks",
-  description: "Complete site directory for Butwal Hacks. Browse all pages, programs, events, and resources organized by category.",
+  description: "Find every Butwal Hacks page in one place: events, projects, teams, and resources.",
   path: "/sitemap",
 })
 
@@ -33,9 +33,8 @@ const sections: SiteSection[] = [
     icon: <Users className="h-5 w-5" />,
     links: [
       { href: "/explore", label: "Explore", description: "Discover members, browse profiles, find collaborators" },
-      { href: "/community", label: "Community Hub", description: "Platforms, updates, and ways to get involved" },
       { href: "/chapters", label: "Chapters", description: "Local chapter network — launching soon across Nepal" },
-      { href: "/initiatives", label: "Initiatives", description: "Active programs like Hackathon, GameJam, MiniHackathon" },
+      { href: "/events#initiatives", label: "Initiatives", description: "Active programs like Hackathon, GameJam, MiniHackathon" },
       { href: "/contact", label: "Contact", description: "Get in touch with the team" },
     ],
   },
@@ -45,8 +44,6 @@ const sections: SiteSection[] = [
     icon: <Calendar className="h-5 w-5" />,
     links: [
       { href: "/events", label: "All Events", description: "Upcoming and past events calendar" },
-      { href: "/events/list", label: "Event List", description: "Detailed list view of all events" },
-      { href: "/programs", label: "Programs", description: "Structured learning and building programs" },
       { href: "/gallery", label: "Event Gallery", description: "Photos from hackathons and meetups" },
     ],
   },
@@ -56,7 +53,6 @@ const sections: SiteSection[] = [
     icon: <Code className="h-5 w-5" />,
     links: [
       { href: "/projects", label: "Projects", description: "Community-built projects and open-source work" },
-      { href: "/opportunities", label: "Opportunities", description: "Bounties, jobs, internships, and grants" },
       { href: "/dashboard/hacker/work", label: "Task Board", description: "Notion-style kanban for team projects" },
       { href: "/dashboard/hacker/team-matching", label: "Team Matching", description: "AI-powered teammate suggestions" },
     ],
@@ -67,10 +63,10 @@ const sections: SiteSection[] = [
     icon: <Heart className="h-5 w-5" />,
     links: [
       { href: "/about", label: "About Us", description: "Mission, vision, and team behind Butwal Hacks" },
-      { href: "/philosophy", label: "Philosophy", description: "Our beliefs and operating principles" },
+      { href: "/about#philosophy", label: "Philosophy", description: "Our beliefs and operating principles" },
       { href: "/blog", label: "Blog", description: "Stories, updates, and community articles" },
       { href: "/support", label: "Sponsor Prospectus", description: "Partner with us to support youth tech" },
-      { href: "/donors", label: "Donor Recognition", description: "Honoring our supporters and contributors" },
+      { href: "/partners", label: "Partners", description: "Organizations backing our programs" },
     ],
   },
   {
@@ -80,7 +76,7 @@ const sections: SiteSection[] = [
     links: [
       { href: "/transparency", label: "Financial Transparency", description: "Live budget data from Open Collective" },
       { href: "/governance", label: "Governance", description: "Board structure, policies, and ethics" },
-      { href: "/annual-report", label: "Annual Report", description: "Yearly impact and growth metrics" },
+      { href: "/transparency?view=report", label: "Annual Report", description: "Yearly impact and growth metrics" },
     ],
   },
   {
@@ -88,8 +84,7 @@ const sections: SiteSection[] = [
     description: "Learning materials, documentation, and developer guides.",
     icon: <BookOpen className="h-5 w-5" />,
     links: [
-      { href: "/resources", label: "Resources", description: "Guides, tutorials, and learning materials" },
-      { href: "/docs", label: "Documentation", description: "Technical docs for contributors and maintainers" },
+      { href: "/learn", label: "Learn", description: "Guides, workshop resources, and docs" },
       { href: "/docs/engineering/environment-setup", label: "Setup Guide", description: "Local dev environment setup" },
       { href: "/docs/components/section-heading", label: "Component Library", description: "UI component previews and usage" },
     ],

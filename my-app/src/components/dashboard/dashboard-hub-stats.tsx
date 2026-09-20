@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Zap, Medal, Code2, Trophy, TrendingUp, Users, CheckCircle2 } from "lucide-react";
+import { Medal, Code2, Trophy, TrendingUp, Users } from "lucide-react";
 
 // ─── Animated Counter ──────────────────────────────────────────────
 
@@ -35,7 +35,6 @@ interface DashboardHubStatsProps {
   trustMarkerCount: number;
   projectCount: number;
   hackathonCount: number;
-  xp: number;
 }
 
 // ─── Recent Activity Data ──────────────────────────────────────────
@@ -47,7 +46,7 @@ interface ActivityItem {
   color: string;
 }
 
-function buildActivities(xp: number, projectCount: number, hackathonCount: number): ActivityItem[] {
+function buildActivities(projectCount: number, hackathonCount: number, trustMarkerCount: number): ActivityItem[] {
   const items: ActivityItem[] = [];
 
   if (projectCount > 0) {
@@ -56,15 +55,6 @@ function buildActivities(xp: number, projectCount: number, hackathonCount: numbe
       time: "Recent",
       icon: <Code2 className="w-3.5 h-3.5" />,
       color: "text-status-blue",
-    });
-  }
-
-  if (xp >= 100) {
-    items.push({
-      text: `Earned ${xp} XP — Level ${Math.floor(xp / 1000) + 1}`,
-      time: "Ongoing",
-      icon: <Zap className="w-3.5 h-3.5" />,
-      color: "text-status-yellow",
     });
   }
 
@@ -77,12 +67,12 @@ function buildActivities(xp: number, projectCount: number, hackathonCount: numbe
     });
   }
 
-  if (xp > 0) {
+  if (trustMarkerCount > 0) {
     items.push({
-      text: "Completed onboarding profile",
-      time: "Earlier",
-      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-      color: "text-muted-foreground",
+      text: `Earned ${trustMarkerCount} trust marker${trustMarkerCount !== 1 ? "s" : ""}`,
+      time: "Ongoing",
+      icon: <Medal className="w-3.5 h-3.5" />,
+      color: "text-status-yellow",
     });
   }
 
@@ -104,10 +94,8 @@ export default function DashboardHubStats({
   trustMarkerCount,
   projectCount,
   hackathonCount,
-  xp,
 }: DashboardHubStatsProps) {
-  const activities = buildActivities(xp, projectCount, hackathonCount);
-  const level = Math.floor(xp / 1000) + 1;
+  const activities = buildActivities(projectCount, hackathonCount, trustMarkerCount);
 
   return (
     <>
@@ -115,9 +103,9 @@ export default function DashboardHubStats({
       <div>
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="w-4 h-4 text-primary-red" />
-          <h2 className="text-sm font-bold text-primary">Your Progress</h2>
+          <h2 className="text-sm font-bold text-primary">Your Stats</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <StatCard
             icon={<Medal className="w-4 h-4" />}
             iconColor="text-primary-red"
@@ -138,14 +126,6 @@ export default function DashboardHubStats({
             iconBg="bg-status-green/10"
             value={hackathonCount}
             label="Hackathons"
-          />
-          <StatCard
-            icon={<Zap className="w-4 h-4" />}
-            iconColor="text-status-yellow"
-            iconBg="bg-status-yellow/10"
-            value={level}
-            label="Current Level"
-            suffix=""
           />
         </div>
       </div>

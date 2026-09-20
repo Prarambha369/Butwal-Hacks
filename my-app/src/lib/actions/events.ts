@@ -5,6 +5,8 @@ import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import { sanitizeString } from "@/lib/validation";
 import { resolveProfileId } from "@/lib/profile-resolver";
+import { notifyEventCreated } from "@/lib/discord";
+import { SITE_URL } from "@/lib/constants";
 
 interface CreateEventInput {
   title: string
@@ -16,6 +18,34 @@ interface CreateEventInput {
   is_published?: boolean
 }
 
+// ponytail: fire-and-forget Discord announcement, failures only logged.
+// Drafts stay quiet — only published events get announced.
+async function announceEvent(opts: {
+  title: string
+  start_date: string
+  location?: string | null
+  organizerId: string
+  isPublished?: boolean
+}) {
+  if (!opts.isPublished) return
+  try {
+    const supabase = createServiceClient()
+    const { data: organizer } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", opts.organizerId)
+      .single()
+    notifyEventCreated({
+      title: opts.title,
+      startDate: opts.start_date,
+      location: opts.location,
+      eventUrl: `${SITE_URL}/events`,
+      organizerName: organizer?.full_name || "A Mysterious Hacker",
+    })
+  } catch (error) {
+    logger.warn("Error announcing event:", error)
+  }
+}
 // ponytail: Looks up profile UUID from WorkOS user ID to satisfy organizer_id FK
 export async function createEvent(input: CreateEventInput) {
   try {
@@ -38,6 +68,14 @@ export async function createEvent(input: CreateEventInput) {
       .single()
 
     if (error) throw error
+
+    announceEvent({
+      title: input.title,
+      start_date: input.start_date,
+      location: input.location,
+      organizerId: profileId,
+      isPublished: input.is_published,
+    })
 
     revalidatePath("/dashboard/organizer/events")
     return { success: true, eventId: data.id }
@@ -83,6 +121,14 @@ export async function createChapterEvent(input: CreateChapterEventInput, orgSlug
       .single()
 
     if (error) throw error
+
+    announceEvent({
+      title: input.title,
+      start_date: input.start_date,
+      location: input.location,
+      organizerId: profileId,
+      isPublished: input.is_published,
+    })
 
     revalidatePath(`/orgs/${orgSlug}/events`)
 
@@ -156,6 +202,9 @@ export async function closeEvent(eventId: string) {
 }
 
 export async function submitEventFeedback(eventId: string, rating: number, comment: string) {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return { success: false, error: "Rating must be between 1 and 5" }
+  }
   try {
     const supabase = createServiceClient();
     const profileId = await resolveProfileId()
@@ -177,9 +226,48 @@ export async function submitEventFeedback(eventId: string, rating: number, comme
     return { success: true };
   } catch (error) {
     logger.error("Error submitting feedback:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "An unexpected error occurred" 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "An unexpected error occurred"
+    };
+  }
+}
+
+/**
+ * submitTestimonial — community testimonial without an event.
+ * Lands as `pending`: invisible until a maintainer approves it.
+ */
+export async function submitTestimonial(input: { quote: string; rating?: number | null }) {
+  const quote = sanitizeString(input.quote, 2000).trim();
+  if (quote.length < 10) {
+    return { success: false, error: "Please write a little more (at least 10 characters)" };
+  }
+  if (input.rating !== undefined && input.rating !== null &&
+      (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5)) {
+    return { success: false, error: "Rating must be between 1 and 5" };
+  }
+  try {
+    const supabase = createServiceClient();
+    const profileId = await resolveProfileId();
+
+    const { error } = await supabase.from("event_reviews").insert({
+      event_id: null,
+      profile_id: profileId,
+      rating: input.rating ?? null,
+      comment: quote,
+      status: "pending",
+      author_type: "member",
+    });
+
+    if (error) throw error;
+
+    revalidatePath("/explore");
+    return { success: true };
+  } catch (error) {
+    logger.error("Error submitting testimonial:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "An unexpected error occurred"
     };
   }
 }

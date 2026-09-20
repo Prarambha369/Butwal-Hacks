@@ -1,13 +1,14 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { MapPin, Users, Calendar, ArrowUpRight, ExternalLink, Sparkles, MessageSquare, GraduationCap, User } from "lucide-react"
+import { MapPin, Users, UsersRound, Calendar, ArrowUpRight, ExternalLink, Handshake, MessageSquare, Megaphone, GraduationCap, User, School } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"
-import { chapters, type Chapter } from "@/lib/content"
+import { type Chapter } from "@/lib/content"
+import { getActiveChapters } from "@/lib/actions/chapters"
 import Breadcrumbs from "@/components/breadcrumbs"
 import SafeJsonLd from "@/lib/json-ld"
 import { FadeIn } from "@/components/home/shared-primitives"
 
-export const dynamic = "force-static";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Chapters — Butwal Hacks",
@@ -123,7 +124,24 @@ function ChapterCard({ chapter, index }: { chapter: Chapter; index: number }) {
   )
 }
 
-export default function ChaptersPage() {
+export default async function ChaptersPage() {
+  // DB-first (maintainer-managed), static fallback inside the action.
+  const chapters: Chapter[] = (await getActiveChapters()).map((r) => ({
+    slug: r.slug,
+    name: r.name,
+    tags: [],
+    school: r.school,
+    leadName: r.lead_name,
+    city: r.city,
+    district: r.district,
+    province: "Lumbini Province",
+    status: r.status,
+    established: r.established,
+    memberCount: r.member_count,
+    description: r.description,
+    highlights: r.highlights,
+    socialLinks: { whatsapp: r.whatsapp ?? "" },
+  }));
   const activeChapters = chapters.filter((c) => c.status === "active")
   const totalMembers = chapters.reduce((sum, c) => sum + c.memberCount, 0)
 
@@ -162,7 +180,7 @@ export default function ChaptersPage() {
             <Breadcrumbs
               items={[
                 { label: "Home", href: "/" },
-                { label: "Community", href: "/community" },
+                { label: "Explore", href: "/explore" },
                 { label: "Chapters" },
               ]}
             />
@@ -230,17 +248,17 @@ export default function ChaptersPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 auto-rows-[minmax(200px,auto)] max-w-4xl mx-auto">
               {[
                 {
-                  icon: Users,
+                  icon: UsersRound,
                   title: "School-Level Community",
                   desc: "Build alongside classmates with a dedicated student lead and faculty support. Monthly meetups and coding circles right at your school.",
                 },
                 {
-                  icon: Sparkles,
+                  icon: Handshake,
                   title: "Club Partnership",
                   desc: "Partner with your school's existing tech or coding club. Get resources, mentorship, and a direct pipeline to Butwal Hacks events.",
                 },
                 {
-                  icon: MessageSquare,
+                  icon: Megaphone,
                   title: "Student Leadership",
                   desc: "Each chapter is led by a student lead who organizes activities, communicates with Butwal Hacks, and grows the local community.",
                 },
@@ -282,7 +300,8 @@ export default function ChaptersPage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-primary-red/10 blur-[120px] pointer-events-none" />
 
           <FadeIn className="relative mx-auto max-w-3xl px-4 text-center">
-            <Sparkles className="w-10 h-10 text-primary-red mx-auto mb-6" />              <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">
+            <School className="w-10 h-10 text-primary-red mx-auto mb-6" />
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">
               Don&apos;t See Your School?
             </h2>
             <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
@@ -297,7 +316,7 @@ export default function ChaptersPage() {
                 Start a Chapter <ArrowUpRight className="w-4 h-4" />
               </Link>
               <Link
-                href="/community"
+                href="/explore"
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-hover px-8 py-3.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all"
               >
                 Explore Community <Users className="w-4 h-4" />

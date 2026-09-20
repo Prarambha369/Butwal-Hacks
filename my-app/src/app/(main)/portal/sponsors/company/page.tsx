@@ -2,6 +2,10 @@ import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 import { getSponsorProfile } from "@/lib/actions/sponsor-profile";
 import SponsorCompanyForm from "./sponsor-company-form";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = buildPageMetadata({title: "Sponsor Company", description: "A sponsor backing Butwal Hacks programs in Nepal.", path: "/portal/sponsors/company", keywords: []});
 
 export const dynamic = "force-dynamic";
 

@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   return buildPageMetadata({
     title: `${slug} Members`,
-    description: `Members of the ${slug} chapter.`,
+    description: `Students and mentors in the ${slug} chapter of Butwal Hacks.`,
     path: `/orgs/${slug}/members`,
   });
 }

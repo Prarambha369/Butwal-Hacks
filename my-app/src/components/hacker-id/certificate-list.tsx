@@ -131,7 +131,7 @@ function CertificateCard({ cert }: CertificateCardProps) {
                   <div className="p-4 rounded-lg bg-surface-hover border border-border space-y-2">
                     <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Audit Trail</p>
                     <p className="text-muted-foreground leading-relaxed italic">
-                      &quot;{cert.verificationTrail || 'No verification trail available for this document.'}&quot;
+                      &quot;{cert.verificationTrail || 'No verification notes on this one yet.'}&quot;
                     </p>
                   </div>
 
@@ -162,7 +162,7 @@ export default function CertificateList({ certificates }: { certificates: Certif
           <CheckCircle2 size={32} className="text-muted-foreground opacity-20" />
         </div>
         <p className="text-muted-foreground font-mono text-sm opacity-60">
-          No certificates issued yet. The compiler awaits.
+          No certificates yet. They show up here after your first verified event.
         </p>
       </div>
     );

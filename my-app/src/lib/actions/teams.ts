@@ -191,6 +191,23 @@ export async function getEventTeams(eventId: string): Promise<EventTeam[]> {
  * Force-create a team for an event and optionally assign members.
  * Bypasses the normal invitation flow — organizer-only action.
  */
+/**
+ * Event organizer or maintainer only — enforced server-side because
+ * these actions run with the service role. Throws otherwise.
+ */
+async function requireEventOrganizer(eventId: string): Promise<void> {
+  const supabase = createServiceClient();
+  const callerId = await resolveProfileId();
+  const { data: event } = await supabase
+    .from("events")
+    .select("organizer_id")
+    .eq("id", eventId)
+    .single();
+  if ((event as { organizer_id?: string } | null)?.organizer_id === callerId) return;
+  const { requireMaintainer } = await import("@/lib/actions/admin");
+  await requireMaintainer();
+}
+
 export async function forceCreateTeam(
   eventId: string,
   teamName: string,
@@ -200,6 +217,12 @@ export async function forceCreateTeam(
 
   const trimmedName = teamName.trim();
   if (!trimmedName) return { success: false, error: "Team name is required." };
+
+  try {
+    await requireEventOrganizer(eventId);
+  } catch {
+    return { success: false, error: "Only the event organizer can do this." };
+  }
 
   // Create the team
   const { data: team, error: createError } = await supabase
@@ -245,6 +268,19 @@ export async function forceAddTeamMember(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceClient();
 
+  const { data: team } = await supabase
+    .from("teams")
+    .select("event_id")
+    .eq("id", teamId)
+    .single();
+  const eventId = (team as { event_id?: string } | null)?.event_id;
+  if (!eventId) return { success: false, error: "Team not found." };
+  try {
+    await requireEventOrganizer(eventId);
+  } catch {
+    return { success: false, error: "Only the event organizer can do this." };
+  }
+
   // Check if already a member
   const { data: existing } = await supabase
     .from("team_members")
@@ -276,6 +312,19 @@ export async function removeTeamMember(
   profileId: string,
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceClient();
+  const callerId = await resolveProfileId();
+
+  // Only the team captain can remove members — enforced here (not just
+  // client-side) because this runs with the service role.
+  const { data: captainCheck } = await supabase
+    .from("team_members")
+    .select("is_captain")
+    .eq("team_id", teamId)
+    .eq("profile_id", callerId)
+    .single();
+  if ((captainCheck as { is_captain?: boolean } | null)?.is_captain !== true) {
+    return { success: false, error: "Only the team captain can remove members." };
+  }
 
   const { error } = await supabase
     .from("team_members")
@@ -292,11 +341,46 @@ export async function removeTeamMember(
 
 /**
  * Delete a team and all its members.
+ * Allowed for the team captain, the parent event's organizer, or a
+ * maintainer — enforced here (not just client-side) because this runs
+ * with the service role.
  */
 export async function deleteTeam(
   teamId: string,
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceClient();
+  const callerId = await resolveProfileId();
+
+  const { data: team } = await supabase
+    .from("teams")
+    .select("id, event_id, organizer_id")
+    .eq("id", teamId)
+    .single();
+  const teamRow = team as { id: string; event_id: string; organizer_id?: string } | null;
+  if (!teamRow) return { success: false, error: "Team not found." };
+
+  let authorized = teamRow.organizer_id === callerId;
+  if (!authorized) {
+    const { data: captainCheck } = await supabase
+      .from("team_members")
+      .select("is_captain")
+      .eq("team_id", teamId)
+      .eq("profile_id", callerId)
+      .single();
+    authorized = (captainCheck as { is_captain?: boolean } | null)?.is_captain === true;
+  }
+  if (!authorized) {
+    try {
+      const { requireMaintainer } = await import("@/lib/actions/admin");
+      await requireMaintainer();
+      authorized = true;
+    } catch {
+      authorized = false;
+    }
+  }
+  if (!authorized) {
+    return { success: false, error: "Only the team captain or event organizer can delete this team." };
+  }
 
   // Delete members first
   await supabase.from("team_members").delete().eq("team_id", teamId);

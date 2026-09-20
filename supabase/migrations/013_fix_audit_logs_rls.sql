@@ -10,7 +10,8 @@ ALTER TABLE public.audit_logs DISABLE ROW LEVEL SECURITY;
 
 -- Grant full access to the service_role (used by createServiceClient())
 GRANT ALL PRIVILEGES ON TABLE public.audit_logs TO service_role;
-GRANT ALL PRIVILEGES ON SEQUENCE public.audit_logs_id_seq TO service_role;
+-- NOTE: no sequence grant — audit_logs.id is a UUID (gen_random_uuid), so no
+-- audit_logs_id_seq exists. The original line errored on fresh chains.
 
 -- Also ensure the anon key can't read audit logs (security)
 REVOKE ALL PRIVILEGES ON TABLE public.audit_logs FROM anon, authenticated;

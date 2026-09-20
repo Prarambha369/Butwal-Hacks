@@ -179,6 +179,12 @@
 }
 
 @layer utilities {
+  /* Partner wall marquee (was styled-jsx inside the old client component) */
+  @keyframes bh-trustedby-marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
   /* 🧱 Solid surface — flat white/gray card, 1px border, no blur */
   .bh-surface-solid {
     background: var(--bh-surface);
@@ -345,8 +351,6 @@
   .bh-input:focus {
     border-color: var(--bh-primary-red);
     box-shadow: 0 0 0 2px rgba(254, 0, 0, 0.2);
-  }
-
   }
 
   .bh-input-sm {
@@ -635,3 +639,68 @@
     from { opacity: 0; transform: translateX(8px); }
     to { opacity: 1; transform: translateX(0); }
   }
+
+  /* ── Homepage fun motion (CSS only, reduced-motion safe) ── */
+  @keyframes bh-float {
+    0%, 100% { transform: translateY(0) rotate(var(--bh-float-rot, 0deg)); }
+    50% { transform: translateY(-10px) rotate(var(--bh-float-rot, 0deg)); }
+  }
+  @keyframes bh-wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-5deg) scale(1.04); }
+    75% { transform: rotate(5deg) scale(1.04); }
+  }
+  @keyframes bh-pop-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes bh-blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+  @keyframes bh-spin-once {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-bh-float {
+    animation: bh-float 5s ease-in-out infinite;
+  }
+  .animate-bh-pop-in {
+    animation: bh-pop-in 0.35s ease both;
+  }
+  .bh-caret {
+    display: inline-block;
+    width: 0.55em;
+    animation: bh-blink 1s step-end infinite;
+  }
+  .bh-wiggle-hover:hover {
+    animation: bh-wiggle 0.4s ease;
+  }
+  /* Playful icon reaction: hovering a card wiggles (or spins) its icon tile. */
+  .bh-play-hover:hover .bh-play-target {
+    animation: bh-wiggle 0.4s ease;
+  }
+  .bh-play-hover:hover .bh-play-spin {
+    animation: bh-spin-once 0.6s ease;
+  }
+  /* Dashed ring: card border goes dashed red on hover. */
+  .bh-dashed-hover:hover {
+    border-style: dashed;
+    border-color: rgba(254, 0, 0, 0.45);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-bh-float,
+    .animate-bh-pop-in,
+    .bh-caret,
+    .bh-wiggle-hover:hover,
+    .bh-play-hover:hover .bh-play-target,
+    .bh-play-hover:hover .bh-play-spin {
+      animation: none;
+    }
+    .animate-bh-float {
+      transform: rotate(var(--bh-float-rot, 0deg));
+    }
+  }
+}

@@ -12,7 +12,12 @@ CREATE TABLE IF NOT EXISTS teams (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-ALTER TABLE teams ADD CONSTRAINT teams_organizer_fk FOREIGN KEY (organizer_id) REFERENCES profiles(id) ON DELETE CASCADE;
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS organizer_id UUID REFERENCES profiles(id);
+DO $$ BEGIN
+  ALTER TABLE teams ADD CONSTRAINT teams_organizer_fk FOREIGN KEY (organizer_id) REFERENCES profiles(id) ON DELETE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Add team membership table
 CREATE TABLE IF NOT EXISTS team_members (

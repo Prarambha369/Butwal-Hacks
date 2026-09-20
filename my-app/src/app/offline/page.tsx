@@ -4,6 +4,9 @@ import { WifiOff } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
 import { t } from "@/lib/i18n"
 
+
+// metadata disabled because this page is a client component (Next.js forbids exporting metadata from client components).
+
 export default function OfflinePage() {
   const { locale } = useLanguage()
 

@@ -20,7 +20,7 @@ export default function NotFound() {
           <Link href="/">
             <Button>{t('not_found.back_home', locale)}</Button>
           </Link>
-          <Link href="/community">
+          <Link href="/explore">
             <Button variant="secondary">{t('not_found.explore_community', locale)}</Button>
           </Link>
         </div>

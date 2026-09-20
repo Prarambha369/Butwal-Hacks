@@ -5,6 +5,7 @@ import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
 import { bustCache } from "@/lib/cache"
+import { GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
 
 /**
  * POST /api/certificates/extract
@@ -24,7 +25,17 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     const userId = session.user.sub
 
     const extractSchema = z.object({
-      cloudinaryUrl: z.string().url("cloudinaryUrl must be a valid URL"),
+      // SECURITY: restrict to Cloudinary URLs only — prevents SSRF via arbitrary URLs
+      // passed to Groq vision API which fetches the image server-side.
+      cloudinaryUrl: z.string().url("cloudinaryUrl must be a valid URL").refine(
+        (url) => {
+          try {
+            const u = new URL(url)
+            return u.protocol === "https:" && u.hostname === "res.cloudinary.com"
+          } catch { return false }
+        },
+        "cloudinaryUrl must be an HTTPS Cloudinary delivery URL (https://res.cloudinary.com/...)"
+      ),
     })
 
     let cloudinaryUrl: string
@@ -54,7 +65,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "llama-3.2-11b-vision-preview",
+        model: GROQ_VISION_MODEL,
         messages: [
           {
             role: "user",

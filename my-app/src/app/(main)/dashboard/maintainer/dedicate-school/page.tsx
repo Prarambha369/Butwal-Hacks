@@ -26,6 +26,9 @@ const LUMBINI_CITIES: Record<string, string[]> = {
 const DISTRICTS = Object.keys(LUMBINI_CITIES).sort();
 
 /* ── Page ──────────────────────────────────────────────────────── */
+
+// metadata disabled because this page is a client component (Next.js forbids exporting metadata from client components).
+
 export default function DedicateSchoolPage() {
   const router = useRouter();
 

@@ -3,7 +3,7 @@
 // ponytail: auth routes use <a> tags (not <Link>) because Auth0 handles
 // them via proxy middleware — <Link> triggers RSC fetch which fails.
 import Link from "next/link"
-import { useUser } from "@auth0/nextjs-auth0/client"
+import { useAuthUser } from "@/components/auth-user-provider"
 import { LogOut, User } from "lucide-react"
 import { useState, useEffect } from "react"
 import { createClient } from "@/utils/supabase"
@@ -14,7 +14,7 @@ import { createClient } from "@/utils/supabase"
  * the legacy organization switcher + user button).
  */
 export function OrgSwitcher() {
-  const { user } = useUser()
+  const { user } = useAuthUser()
   const [profile, setProfile] = useState<{ bh_id: string; full_name: string } | null>(null)
 
   useEffect(() => {

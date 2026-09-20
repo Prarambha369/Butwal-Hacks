@@ -242,6 +242,7 @@ export default function AuditLogPanel({ entries, total, page, pageSize }: AuditL
                         year: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
+                        timeZone: "Asia/Kathmandu",
                       })}
                     </p>
                   </div>
