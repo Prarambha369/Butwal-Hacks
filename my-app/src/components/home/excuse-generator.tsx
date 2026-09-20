@@ -37,7 +37,7 @@ export default function ExcuseGenerator() {
             {t("home.excuses.badge", locale)}
           </span>
         </div>
-        <h2 className="text-2xl font-bold text-primary md:text-3xl">
+        <h2 className="text-3xl font-bold text-primary md:text-5xl tracking-tight leading-[1.05] text-balance">
           {t("home.excuses.title", locale)}
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">

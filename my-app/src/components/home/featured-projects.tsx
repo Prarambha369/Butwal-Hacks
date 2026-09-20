@@ -50,7 +50,7 @@ export default function FeaturedProjects({ projects }: { projects: FeaturedProje
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-red" />
             <span className="text-[10px] font-mono font-semibold text-muted-foreground tracking-tight">community projects</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-primary">
+          <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight leading-[1.05] text-balance">
             Featured Builds
           </h2>
           <p className="mt-3 text-secondary max-w-2xl mx-auto text-sm">
