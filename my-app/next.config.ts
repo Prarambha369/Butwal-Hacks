@@ -162,6 +162,8 @@ const nextConfig: NextConfig = {
       // /initiatives list folded into /events#initiatives (detail pages
       // at /initiatives/[slug] stay).
       { source: "/initiatives", destination: "/events#initiatives", permanent: true },
+      // /donors folded into /partners#donors (single recognition wall).
+      { source: "/donors", destination: "/partners#donors", permanent: true },
     ]
   },
   async headers() {

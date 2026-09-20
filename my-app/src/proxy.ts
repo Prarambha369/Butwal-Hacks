@@ -13,7 +13,6 @@ const MARKETING_ROUTES = new Set([
   "/contact",
   "/cookie-policy",
   "/docs",
-  "/donors",
   "/events",
   "/explore",
   "/faq",

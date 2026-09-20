@@ -3,6 +3,11 @@ import { Handshake, ArrowRight } from "lucide-react";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { buildPageMetadata } from "@/lib/seo";
 import { getActivePartners } from "@/lib/actions/partners";
+import { DonorSpotlight } from "@/components/donors/donor-spotlight";
+import { RecognitionTiers } from "@/components/donors/recognition-tiers";
+import { CommunitySupportWall } from "@/components/donors/community-support-wall";
+import { SupporterBenefits } from "@/components/donors/supporter-benefits";
+import { DonorsCTA } from "@/components/donors/donors-cta";
 
 export const metadata = buildPageMetadata({
   title: "Partners — Butwal Hacks",
@@ -107,6 +112,15 @@ export default async function PartnersPage() {
             </div>
           </>
         )}
+      </section>
+
+      {/* Donor recognition — migrated from /donors (single wall). */}
+      <section id="donors" aria-label="Donor recognition" className="mx-auto max-w-6xl px-4 pb-14 sm:pb-16 scroll-mt-24">
+        <DonorSpotlight />
+        <RecognitionTiers />
+        <CommunitySupportWall />
+        <SupporterBenefits />
+        <DonorsCTA />
       </section>
     </main>
   );

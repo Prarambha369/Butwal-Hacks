@@ -40,5 +40,9 @@ describe("consolidation redirects", () => {
       destination: "/events#initiatives",
       permanent: true,
     });
+    expect(bySource.get("/donors")).toMatchObject({
+      destination: "/partners#donors",
+      permanent: true,
+    });
   });
 });

@@ -32,7 +32,7 @@ const sitemapGroups = [
       { nameKey: 'footer.blog_insights', href: '/blog' },
       { nameKey: 'footer.resources_page', href: '/resources' },
       { nameKey: 'footer.documentation', href: '/docs' },
-      { nameKey: 'footer.donors', href: '/donors' },
+      { nameKey: 'footer.donors', href: '/partners#donors' },
       { nameKey: 'footer.partners', href: '/partners' },
       { nameKey: 'footer.annual_report', href: '/annual-report' },
     ],
