@@ -1,10 +1,12 @@
-export const dynamic = "force-static";
+export const revalidate = 300;
 
 import type { Metadata } from "next"
 import Link from "next/link"
 import { BarChart3, Mail, MapPin, Target, ShieldCheck, UsersRound } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"
 import { SponsorForm } from "./sponsor-form"
+import { getPublicOpportunities } from "@/lib/actions/sponsor-opportunities"
+import OpportunitySections, { type OpportunityWithSponsor } from "@/components/sponsor/opportunity-sections"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Sponsor Prospectus",    description:
@@ -36,7 +38,16 @@ const metrics = [
   },
 ]
 
-export default function SupportPage() {
+export default async function SupportPage() {
+  // Live listings feed the opportunities section below (migrated from
+  // /opportunities — one sponsor action page).
+  const [jobsResult, bountiesResult] = await Promise.all([
+    getPublicOpportunities({ is_bounty: false }),
+    getPublicOpportunities({ is_bounty: true }),
+  ]);
+  const jobs = (jobsResult.data ?? []) as OpportunityWithSponsor[];
+  const bounties = (bountiesResult.data ?? []) as OpportunityWithSponsor[];
+
   return (
     <main className="min-h-dvh bg-background text-primary">
       
@@ -212,7 +223,9 @@ export default function SupportPage() {
         <SponsorForm />
       </section>
 
-      
+      <OpportunitySections bounties={bounties} jobs={jobs} />
+
+
     </main>
   )
 }
