@@ -60,5 +60,13 @@ describe("consolidation redirects", () => {
       destination: "/sign-in?mode=signup",
       permanent: true,
     });
+    expect(bySource.get("/resources")).toMatchObject({
+      destination: "/learn#resources",
+      permanent: true,
+    });
+    expect(bySource.get("/docs")).toMatchObject({
+      destination: "/learn#guides",
+      permanent: true,
+    });
   });
 });

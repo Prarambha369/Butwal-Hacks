@@ -35,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/governance`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/philosophy`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/opportunities`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${siteUrl}/resources`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/learn`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/contact`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/docs`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/transparency?view=report`, lastModified: today, changeFrequency: 'yearly', priority: 0.7 },

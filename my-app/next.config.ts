@@ -173,6 +173,9 @@ const nextConfig: NextConfig = {
       // passthrough) in front of Auth0 Universal Login.
       { source: "/login", destination: "/sign-in", permanent: true },
       { source: "/sign-up", destination: "/sign-in?mode=signup", permanent: true },
+      // /resources + /docs index folded into /learn (docs subpages stay).
+      { source: "/resources", destination: "/learn#resources", permanent: true },
+      { source: "/docs", destination: "/learn#guides", permanent: true },
     ]
   },
   async headers() {
