@@ -2,6 +2,7 @@ export const dynamic = "force-static";
 
 import type { Metadata } from "next"
 import Link from "next/link"
+import { Suspense } from "react"
 
 import Breadcrumbs from "@/components/breadcrumbs"
 import { EnhancedContactForm } from "@/components/enhanced-contact-form"
@@ -27,9 +28,11 @@ export default function ContactPage() {
         </p>
       </section>
 
-      {/* Enhanced Contact Form */}
+      {/* Enhanced Contact Form (?topic=general|volunteer|sponsor|press|chapter) */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <EnhancedContactForm />
+        <Suspense>
+          <EnhancedContactForm />
+        </Suspense>
       </section>
 
       <section className="relative my-20 w-full overflow-hidden rounded-xl border border-border bg-surface p-8 md:p-12">
