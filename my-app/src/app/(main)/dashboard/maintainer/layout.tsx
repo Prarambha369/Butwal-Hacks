@@ -73,6 +73,12 @@ const maintainerLinks = [
     icon: <GraduationCap className="w-4 h-4" />,
   },
   {
+    href: "/dashboard/maintainer/blog",
+    label: "Blog",
+    shortcut: "b",
+    icon: <BookOpen className="w-4 h-4" />,
+  },
+  {
     href: "/api-docs",
     label: "API Docs",
     shortcut: "d",

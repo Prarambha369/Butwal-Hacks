@@ -92,7 +92,8 @@ const BlogPostCard = memo(function BlogPostCard({
   )
 })
 
-export function BlogContent() {
+export function BlogContent({ posts: initialPosts }: { posts?: BlogPost[] } = {}) {
+  const posts = initialPosts ?? blogPosts;
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All Posts")
   const [isLoading, setIsLoading] = useState(false)
@@ -119,9 +120,9 @@ export function BlogContent() {
 
   // Filter posts based on search and category
   const filteredPosts = useMemo(() => {
-    let posts = blogPosts
+    let filtered = posts
     if (selectedCategory !== "All Posts") {
-      posts = posts.filter((post) => {
+      filtered = filtered.filter((post) => {
         if (selectedCategory === "Development") return post.slug.includes("tech")
         if (selectedCategory === "Community") return post.slug.includes("mentorship")
         return true
@@ -129,15 +130,15 @@ export function BlogContent() {
     }
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
-      posts = posts.filter(
+      filtered = filtered.filter(
         (post) =>
           post.title.toLowerCase().includes(query) ||
           post.excerpt.toLowerCase().includes(query) ||
           post.body.some((p) => p.toLowerCase().includes(query))
       )
     }
-    return posts
-  }, [searchQuery, selectedCategory])
+    return filtered
+  }, [searchQuery, selectedCategory, posts])
 
   const hasResults = filteredPosts.length > 0
   const animationKey = `${searchQuery}-${selectedCategory}`
