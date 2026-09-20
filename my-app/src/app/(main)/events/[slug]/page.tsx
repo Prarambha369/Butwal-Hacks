@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Users, FolderGit2, Camera } from "lucide-react"
 
 import { createServiceClient } from "@/utils/supabase"
 import { buildPageMetadata } from "@/lib/seo"
@@ -85,6 +85,33 @@ export default async function EventDetailPage({ params }: Props) {
       </div>
 
       <EventDetailContent event={eventData} />
+
+      {/* Explore this event: its teams, projects, and photos. */}
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface p-4">
+          <span className="mr-1 font-mono text-[10px] uppercase text-muted-foreground">
+            Explore this event
+          </span>
+          <Link
+            href="/teams"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-primary hover:bg-surface-hover transition-all"
+          >
+            <Users className="w-3.5 h-3.5" /> Teams
+          </Link>
+          <Link
+            href={`/events/${slug}/projects`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-primary hover:bg-surface-hover transition-all"
+          >
+            <FolderGit2 className="w-3.5 h-3.5" /> Projects
+          </Link>
+          <Link
+            href="/gallery"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-primary hover:bg-surface-hover transition-all"
+          >
+            <Camera className="w-3.5 h-3.5" /> Photos
+          </Link>
+        </div>
+      </div>
 
       {/* Related links: initiatives + blog posts tagged to this event */}
       <div className="mx-auto max-w-6xl px-4 pb-16">

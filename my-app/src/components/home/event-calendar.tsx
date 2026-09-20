@@ -226,7 +226,7 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
   const bsHint = (() => { try { const b = adToBs(new Date()); return `Today: ${BS_MONTH_NAMES[b.month - 1]} ${b.day}, ${b.year} BS`; } catch { return ""; } })();
 
   return (
-    <section className="bg-surface border-border border-b py-20" aria-labelledby="bh-calendar-heading">
+    <section id="calendar" className="bg-surface border-border border-b py-20 scroll-mt-20" aria-labelledby="bh-calendar-heading">
       <div className="max-w-4xl mx-auto px-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
           <h2 id="bh-calendar-heading" className="text-2xl font-bold">{t("home.calendar.title", locale)}</h2>
