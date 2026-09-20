@@ -53,6 +53,27 @@ describe("submitFeedback", () => {
     expect(result).toEqual({ success: true });
   });
 
+  it("succeeds via Slack mirror when the DB is unreachable", async () => {
+    mockDb({ error: { message: "Supabase not configured", code: "SUPABASE_NOT_CONFIGURED" } });
+    mockedSendSlackEmail.mockResolvedValue(true);
+
+    const { submitFeedback } = await import("../feedback");
+    const result = await submitFeedback({ category: "other", message: "hello team" });
+
+    expect(result).toEqual({ success: true });
+    expect(mockedSendSlackEmail).toHaveBeenCalledOnce();
+  });
+
+  it("fails only when both DB and Slack fail", async () => {
+    mockDb({ error: { message: "db down" } });
+    mockedSendSlackEmail.mockResolvedValue(false);
+
+    const { submitFeedback } = await import("../feedback");
+    const result = await submitFeedback({ category: "other", message: "hello team" });
+
+    expect(result.success).toBe(false);
+  });
+
   it("rejects short messages without touching Slack", async () => {
     mockDb({ error: null });
 

@@ -53,7 +53,7 @@ export async function submitFeedback(input: SubmitFeedbackInput) {
     }
 
     const supabase = createServiceClient();
-    const { error } = await supabase
+    const { error: dbError } = await supabase
       .from("feedback")
       .insert({
         category: input.category,
@@ -62,12 +62,15 @@ export async function submitFeedback(input: SubmitFeedbackInput) {
         ...(input.auth0_id ? { auth0_user_id: input.auth0_id } : {}),
       });
 
-    if (error) throw error;
+    if (dbError) {
+      logger.error("[feedback] DB insert failed, falling back to Slack mirror:", dbError);
+    }
 
-    // Best-effort mirror to Slack: the channel email auto-posts whatever
-    // lands there (e.g. #feedback-from-site). A failed email never fails
-    // the submission — the DB row is the source of truth.
-    await sendSlackEmail({
+    // Slack mirror runs regardless of the DB outcome: the channel email
+    // auto-posts whatever lands there (e.g. #feedback-from-site), so the
+    // team still receives the message when the database is unreachable.
+    // A failed email never fails the submission.
+    const mirrored = await sendSlackEmail({
       from: "feedback@mail.butwalhacks.com",
       subject: `Feedback [${input.category}] on Butwal Hacks`,
       text: [
@@ -75,10 +78,13 @@ export async function submitFeedback(input: SubmitFeedbackInput) {
         `Category:  ${input.category}`,
         `From:      ${input.auth0_id ?? "anonymous"}`,
         `Time:      ${new Date().toISOString()}`,
+        `Stored:    ${dbError ? "no (db unreachable)" : "yes"}`,
         "",
         message,
       ].join("\n"),
     });
+
+    if (dbError && !mirrored) throw dbError;
 
     return { success: true };
   } catch (error) {
