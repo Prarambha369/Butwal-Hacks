@@ -20,8 +20,8 @@ const routes = [
   // Public Marketing Pages
   { name: "/", path: "@/app/page", hasGenMeta: false },
   { name: "/explore", path: "@/app/(main)/explore/page", revalidate: 60 },
-  { name: "/community", path: "@/app/(main)/community/page" },
-  { name: "/chapters", path: "@/app/(main)/chapters/page", dynamic: "force-static" },
+  { name: "/chapters", path: "@/app/(main)/chapters/page", revalidate: 300 },
+  { name: "/learn", path: "@/app/(main)/learn/page" },
   { name: "/chapters/[slug]", path: "@/app/(main)/chapters/[slug]/page" },
   { name: "/events", path: "@/app/(main)/events/page" },
   { name: "/events/[slug]", path: "@/app/(main)/events/[slug]/page" },
@@ -35,30 +35,21 @@ const routes = [
   { name: "/contact", path: "@/app/(main)/contact/page" },
   { name: "/support", path: "@/app/(main)/support/page" },
   { name: "/governance", path: "@/app/(main)/governance/page" },
-  { name: "/resources", path: "@/app/(main)/resources/page" },
-  { name: "/opportunities", path: "@/app/(main)/opportunities/page" },
-  { name: "/annual-report", path: "@/app/(main)/annual-report/page", hasGenMeta: true },
   { name: "/sitemap", path: "@/app/(main)/sitemap/page" },
-  { name: "/donors", path: "@/app/(main)/donors/page" },
   { name: "/partners", path: "@/app/(main)/partners/page" },
   { name: "/transparency", path: "@/app/(main)/transparency/page" },
-  { name: "/initiatives", path: "@/app/(main)/initiatives/page" },
   { name: "/initiatives/[slug]", path: "@/app/(main)/initiatives/[slug]/page" },
-  { name: "/philosophy", path: "@/app/(main)/philosophy/page" },
   { name: "/gallery", path: "@/app/(main)/gallery/page" },
   { name: "/cookie-policy", path: "@/app/(main)/cookie-policy/page" },
 
   // Auth Pages
   { name: "/sign-in", path: "@/app/(auth)/sign-in/page" },
-  { name: "/sign-up", path: "@/app/(auth)/sign-up/page" },
-  { name: "/login", path: "@/app/(auth)/login/page" },
   { name: "/claim/[token]", path: "@/app/(auth)/claim/[token]/page" },
 
   // Profile & Verification Pages
   { name: "/verify/[markerId]", path: "@/app/verify/[markerId]/page", hasGenMeta: true },
   { name: "/p/[slug_id]", path: "@/app/p/[slug_id]/page", hasGenMeta: true, revalidate: 60 },
   { name: "/widget/[slugId]", path: "@/app/widget/[slugId]/page", hasGenMeta: true },
-  { name: "/profile/[bh_id]", path: "@/app/(main)/profile/[bh_id]/page" },
 
   // Portal Pages
   { name: "/portal/sponsors", path: "@/app/(main)/portal/sponsors/page", dynamic: "force-dynamic" },
@@ -101,6 +92,8 @@ const routes = [
   { name: "/dashboard/maintainer/site-config", path: "@/app/(main)/dashboard/maintainer/site-config/page" },
   { name: "/dashboard/maintainer/trust-override", path: "@/app/(main)/dashboard/maintainer/trust-override/page" },
   { name: "/dashboard/maintainer/dedicate-school", path: "@/app/(main)/dashboard/maintainer/dedicate-school/page" },
+  { name: "/dashboard/maintainer/chapters", path: "@/app/(main)/dashboard/maintainer/chapters/page" },
+  { name: "/dashboard/maintainer/blog", path: "@/app/(main)/dashboard/maintainer/blog/page" },
 
   // Project Dashboard Pages
   { name: "/dashboard/projects/new", path: "@/app/(main)/dashboard/projects/new/page" },
@@ -123,7 +116,6 @@ const routes = [
   { name: "/legal/terms", path: "@/app/(main)/legal/terms/page" },
 
   // Docs Pages
-  { name: "/docs", path: "@/app/(main)/docs/page" },
   { name: "/docs/components/section-heading", path: "@/app/(main)/docs/components/section-heading/page" },
   { name: "/docs/engineering/environment-setup", path: "@/app/(main)/docs/engineering/environment-setup/page" },
 
