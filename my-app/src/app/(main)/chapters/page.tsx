@@ -2,12 +2,13 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { MapPin, Users, UsersRound, Calendar, ArrowUpRight, ExternalLink, Handshake, MessageSquare, Megaphone, GraduationCap, User, School } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"
-import { chapters, type Chapter } from "@/lib/content"
+import { type Chapter } from "@/lib/content"
+import { getActiveChapters } from "@/lib/actions/chapters"
 import Breadcrumbs from "@/components/breadcrumbs"
 import SafeJsonLd from "@/lib/json-ld"
 import { FadeIn } from "@/components/home/shared-primitives"
 
-export const dynamic = "force-static";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Chapters — Butwal Hacks",
@@ -123,7 +124,24 @@ function ChapterCard({ chapter, index }: { chapter: Chapter; index: number }) {
   )
 }
 
-export default function ChaptersPage() {
+export default async function ChaptersPage() {
+  // DB-first (maintainer-managed), static fallback inside the action.
+  const chapters: Chapter[] = (await getActiveChapters()).map((r) => ({
+    slug: r.slug,
+    name: r.name,
+    tags: [],
+    school: r.school,
+    leadName: r.lead_name,
+    city: r.city,
+    district: r.district,
+    province: "Lumbini Province",
+    status: r.status,
+    established: r.established,
+    memberCount: r.member_count,
+    description: r.description,
+    highlights: r.highlights,
+    socialLinks: { whatsapp: r.whatsapp ?? "" },
+  }));
   const activeChapters = chapters.filter((c) => c.status === "active")
   const totalMembers = chapters.reduce((sum, c) => sum + c.memberCount, 0)
 

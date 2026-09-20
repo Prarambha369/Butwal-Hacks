@@ -67,6 +67,12 @@ const maintainerLinks = [
     icon: <Handshake className="w-4 h-4" />,
   },
   {
+    href: "/dashboard/maintainer/chapters",
+    label: "Chapters",
+    shortcut: "h",
+    icon: <GraduationCap className="w-4 h-4" />,
+  },
+  {
     href: "/api-docs",
     label: "API Docs",
     shortcut: "d",
