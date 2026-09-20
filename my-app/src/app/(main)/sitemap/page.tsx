@@ -67,7 +67,6 @@ const sections: SiteSection[] = [
       { href: "/about#philosophy", label: "Philosophy", description: "Our beliefs and operating principles" },
       { href: "/blog", label: "Blog", description: "Stories, updates, and community articles" },
       { href: "/support", label: "Sponsor Prospectus", description: "Partner with us to support youth tech" },
-      { href: "/donors", label: "Donor Recognition", description: "Honoring our supporters and contributors" },
       { href: "/partners", label: "Partners", description: "Organizations backing our programs" },
     ],
   },
