@@ -45,7 +45,7 @@ const baseCSP = `
   base-uri 'self';
   form-action 'self';
   upgrade-insecure-requests;
-  connect-src 'self' https://vitals.vercel-insights.com https://auth.butwalhacks.com https://*.auth0.com https://*.posthog.com https://api.cloudinary.com https://*.supabase.co wss://*.supabase.co https://*.ingest.us.sentry.io;
+  connect-src 'self' https://vitals.vercel-insights.com https://auth.butwalhacks.com https://*.posthog.com https://api.cloudinary.com https://*.supabase.co wss://*.supabase.co https://*.ingest.us.sentry.io;
   report-uri /api/csp-violation;
 `
 
