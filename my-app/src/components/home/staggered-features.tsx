@@ -43,7 +43,7 @@ const features = [
     descKey: "home.features.github.desc",
     icon: Github,
     color: "text-primary bg-surface-hover",
-    href: "/community",
+    href: "/explore",
     span: "md:col-span-1 md:row-span-1",
   },
 ]

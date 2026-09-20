@@ -162,7 +162,7 @@ export default function ChaptersPage() {
             <Breadcrumbs
               items={[
                 { label: "Home", href: "/" },
-                { label: "Community", href: "/community" },
+                { label: "Explore", href: "/explore" },
                 { label: "Chapters" },
               ]}
             />
@@ -298,7 +298,7 @@ export default function ChaptersPage() {
                 Start a Chapter <ArrowUpRight className="w-4 h-4" />
               </Link>
               <Link
-                href="/community"
+                href="/explore"
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-hover px-8 py-3.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all"
               >
                 Explore Community <Users className="w-4 h-4" />

@@ -32,5 +32,9 @@ describe("consolidation redirects", () => {
       destination: "/p/:bh_id",
       permanent: true,
     });
+    expect(bySource.get("/community")).toMatchObject({
+      destination: "/explore",
+      permanent: true,
+    });
   });
 });

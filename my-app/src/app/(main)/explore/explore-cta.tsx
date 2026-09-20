@@ -83,10 +83,10 @@ export function ExploreCta({ totalMembers }: ExploreCtaProps) {
             className="py-3.5 px-8 text-sm font-bold rounded-full shadow-[--bh-glow-red-soft] hover:shadow-[--bh-glow-red] transition-all duration-300"
           />
           <Link
-            href="/community"
+            href="/events"
             className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-8 py-3.5 text-sm font-bold text-primary hover:bg-surface-hover hover:border-muted-foreground/30 transition-all active:scale-[0.97]"
           >
-            Explore Community <ArrowUpRight className="w-4 h-4" />
+            Browse Events <ArrowUpRight className="w-4 h-4" />
           </Link>
         </div>
       </div>

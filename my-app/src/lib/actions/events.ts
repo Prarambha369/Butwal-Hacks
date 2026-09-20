@@ -261,7 +261,7 @@ export async function submitTestimonial(input: { quote: string; rating?: number 
 
     if (error) throw error;
 
-    revalidatePath("/community");
+    revalidatePath("/explore");
     return { success: true };
   } catch (error) {
     logger.error("Error submitting testimonial:", error);
