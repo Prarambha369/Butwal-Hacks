@@ -134,5 +134,25 @@ describe("GET /api/keep-alive", () => {
     expect(res.status).toBe(500);
     expect(body.status).toBe("error");
     expect(body.db_online).toBe(false);
+    expect(body.message).toBe("DB Connection Error");
+  });
+
+  it("returns a generic 500 message for anonymous callers (no detail leak)", async () => {
+    vi.stubEnv("KEEP_ALIVE_SECRET", "");
+    vi.stubEnv("CRON_SECRET", "");
+    mockedGetSession.mockResolvedValue(null);
+    const db = buildMockDb();
+    db.select.mockResolvedValue({ count: null, error: new Error("postgres connection string leaked") });
+    mockedCreateServiceClient.mockReturnValue(db);
+
+    const { GET } = await import("../keep-alive/route");
+    const res = await GET();
+    const body = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(body.status).toBe("error");
+    expect(body.db_online).toBe(false);
+    expect(body.message).toBe("Database check failed");
+    expect(body.message).not.toContain("postgres");
   });
 });
