@@ -29,6 +29,10 @@ export async function getProjectDetails(id: string) {
           )
         )
       ),
+      events (
+        title,
+        slug
+      ),
       project_likes(count)
     `)
     .eq('id', id)

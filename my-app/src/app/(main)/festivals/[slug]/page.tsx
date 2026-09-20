@@ -121,8 +121,10 @@ export default async function FestivalPage({
         </div>
 
         <p className="mt-8 font-mono text-[11px] text-muted-foreground">
-          Dates follow the Nepal Panchanga Nirnayak Samiti patro for 2083.
-          २०८३ को पात्रोअनुसार।
+          Dates follow the patro for {f.bs[0]} BS.{" "}
+          <Link href="/#calendar" className="font-bold text-primary-red hover:underline">
+            See it on the calendar
+          </Link>
         </p>
 
         {siblings.length > 0 && (

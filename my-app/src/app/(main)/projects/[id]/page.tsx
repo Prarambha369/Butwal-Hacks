@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { CalendarDays, Users } from 'lucide-react';
 import { getProjectDetails } from '@/lib/actions/project-details';
 import { getLatestImpactReport } from '@/lib/actions/impact';
 import ProjectDetailView from '@/components/projects/project-detail-view';
@@ -22,9 +24,44 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   const impact = await getLatestImpactReport(id);
 
+  const event = (project as {
+    events?: { title: string; slug: string | null } | Array<{ title: string; slug: string | null }> | null;
+  }).events;
+  const eventLink = Array.isArray(event) ? event[0] ?? null : event;
+  const team = (project as {
+    teams?: { id: string; name: string } | Array<{ id: string; name: string }> | null;
+  }).teams;
+  const teamLink = Array.isArray(team) ? team[0] ?? null : team;
+
   return (
     <div className="min-h-dvh bg-background pt-24 px-4 md:px-6 lg:px-12">
       <div className="max-w-6xl mx-auto">
+        {(eventLink || teamLink) && (
+          <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+            {eventLink && (
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                <CalendarDays className="w-4 h-4 text-primary-red" />
+                Built at{" "}
+                {eventLink.slug ? (
+                  <Link href={`/events/${eventLink.slug}`} className="font-bold text-primary hover:text-primary-red transition-colors">
+                    {eventLink.title}
+                  </Link>
+                ) : (
+                  <span className="font-bold text-primary">{eventLink.title}</span>
+                )}
+              </span>
+            )}
+            {teamLink && (
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                <Users className="w-4 h-4 text-status-blue" />
+                by{" "}
+                <Link href={`/teams/${teamLink.id}`} className="font-bold text-primary hover:text-primary-red transition-colors">
+                  {teamLink.name}
+                </Link>
+              </span>
+            )}
+          </div>
+        )}
         <ProjectDetailView project={project} />
         <ProjectImpactSection report={impact} />
 
