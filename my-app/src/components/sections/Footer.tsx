@@ -11,10 +11,9 @@ const sitemapGroups = [
     labelKey: 'footer.events_projects',
     links: [
       { nameKey: 'footer.all_events', href: '/events' },
-      { nameKey: 'footer.event_list', href: '/events/list' },
       { nameKey: 'footer.event_gallery', href: '/gallery' },
       { nameKey: 'footer.featured_projects', href: '/projects' },
-      { nameKey: 'footer.initiatives', href: '/initiatives' },
+      { nameKey: 'footer.initiatives', href: '/events#initiatives' },
     ],
   },
   {
@@ -31,17 +30,18 @@ const sitemapGroups = [
     labelKey: 'footer.learn_resources',
     links: [
       { nameKey: 'footer.blog_insights', href: '/blog' },
-      { nameKey: 'footer.resources_page', href: '/resources' },
-      { nameKey: 'footer.documentation', href: '/docs' },
-      { nameKey: 'footer.donors', href: '/donors' },
-      { nameKey: 'footer.annual_report', href: '/annual-report' },
+      { nameKey: 'footer.resources_page', href: '/learn#resources' },
+      { nameKey: 'footer.documentation', href: '/learn#guides' },
+      { nameKey: 'footer.donors', href: '/partners#donors' },
+      { nameKey: 'footer.partners', href: '/partners' },
+      { nameKey: 'footer.annual_report', href: '/transparency?view=report' },
     ],
   },
   {
     labelKey: 'footer.about_section',
     links: [
       { nameKey: 'footer.about_us', href: '/about' },
-      { nameKey: 'footer.philosophy', href: '/philosophy' },
+      { nameKey: 'footer.philosophy', href: '/about#philosophy' },
       { nameKey: 'footer.sponsor_prospectus', href: '/support' },
       { nameKey: 'footer.transparency', href: '/transparency' },
       { nameKey: 'footer.governance', href: '/governance' },
@@ -97,12 +97,12 @@ export default function Footer() {
               <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
                 {t(group.labelKey, locale)}
               </h2>
-              <ul className="space-y-3">
+              <ul className="space-y-1">
                 {group.links.map((link) => (
                   <li key={link.nameKey}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-primary-red transition-colors"
+                      className="inline-flex min-h-[44px] items-center text-sm text-muted-foreground hover:text-primary-red transition-colors"
                     >
                       {t(link.nameKey, locale)}
                     </Link>
@@ -134,17 +134,17 @@ export default function Footer() {
               <LanguageToggle />
             </div>
           </div>
-          <div className="flex items-center gap-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-            <Link href="/legal/privacy" className="hover:text-primary-red transition-colors">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-1 sm:gap-2 text-[11px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">
+            <Link href="/legal/privacy" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.privacy', locale)}
             </Link>
-            <Link href="/legal/terms" className="hover:text-primary-red transition-colors">
+            <Link href="/legal/terms" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.terms', locale)}
             </Link>
-            <Link href="/cookie-policy" className="hover:text-primary-red transition-colors">
+            <Link href="/cookie-policy" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.cookies', locale)}
             </Link>
-            <Link href="/sitemap" className="hover:text-primary-red transition-colors">
+            <Link href="/sitemap" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.sitemap', locale)}
             </Link>
           </div>

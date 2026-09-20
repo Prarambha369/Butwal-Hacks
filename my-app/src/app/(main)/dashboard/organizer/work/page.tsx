@@ -2,6 +2,10 @@ import { redirect } from "next/navigation"
 import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase"
 import WorkDashboardClient from "../../hacker/work/work-dashboard-client"
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "Organizer Work", description: "Organizer work area", path: "/dashboard/organizer/work", keywords: []}), robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic"
 

@@ -41,7 +41,7 @@ describe("LiveStatsCounter", () => {
       render(<LiveStatsCounter />);
 
       // Wait for the error state to render
-      const errorText = await screen.findByText("Stats temporarily unavailable");
+      const errorText = await screen.findByText("Numbers are napping. Back soon.");
       expect(errorText).toBeInTheDocument();
     });
 
@@ -50,7 +50,7 @@ describe("LiveStatsCounter", () => {
 
       render(<LiveStatsCounter />);
 
-      const errorText = await screen.findByText("Stats temporarily unavailable");
+      const errorText = await screen.findByText("Numbers are napping. Back soon.");
       expect(errorText).toBeInTheDocument();
     });
   });
@@ -75,7 +75,7 @@ describe("LiveStatsCounter", () => {
     it("renders all four stat labels", async () => {
       render(<LiveStatsCounter />);
 
-      expect(await screen.findByText("Hackers")).toBeInTheDocument();
+      expect(await screen.findByText("Members")).toBeInTheDocument();
       expect(screen.getByText("Events")).toBeInTheDocument();
       expect(screen.getByText("Projects")).toBeInTheDocument();
       expect(screen.getByText("Credentials")).toBeInTheDocument();
@@ -99,11 +99,18 @@ describe("LiveStatsCounter", () => {
       render(<LiveStatsCounter />);
 
       // Wait for data to load
-      await screen.findByText("Hackers");
+      await screen.findByText("Members");
 
-      // Each stat card has an icon container with bg-primary-red/10 class
-      const iconContainers = document.querySelectorAll(".bg-primary-red\\/10");
-      expect(iconContainers.length).toBe(4);
+      // Each stat card has its own accent tile color
+      const expectedTiles = [
+        ".bg-primary-red\\/10",
+        ".bg-status-blue\\/10",
+        ".bg-status-green\\/10",
+        ".bg-status-yellow\\/10",
+      ];
+      for (const tile of expectedTiles) {
+        expect(document.querySelectorAll(tile).length).toBe(1);
+      }
     });
   });
 });

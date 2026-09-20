@@ -7,6 +7,8 @@ const mockCallGroq = vi.fn();
 
 vi.mock("@/lib/ai/groq-client", () => ({
   callGroq: mockCallGroq,
+  GROQ_TEXT_MODEL: "openai/gpt-oss-20b",
+  GROQ_VISION_MODEL: "qwen/qwen3.8-27b",
 }));
 
 // Mock Supabase service client for getPitchExamples
@@ -80,7 +82,7 @@ beforeEach(() => {
   mockCallGroq.mockResolvedValue({
     content:
       "Rural farmers in Nepal face a 30% crop yield loss from undiagnosed diseases. AgriSense tackles this with a ResNet-50 model trained on 12,000 local field images, classifying 9 crop diseases from a phone photo. The app functions offline with a compact 15MB model, sends SMS-based results for farmers without smartphones, and connects to the Ministry of Agriculture's early warning system. Built using TensorFlow Lite, Next.js, and Twilio SMS API.",
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-20b",
     usage: { prompt_tokens: 450, completion_tokens: 120, total_tokens: 570 },
   });
 });
@@ -277,7 +279,7 @@ describe("generatePitch", () => {
     // Options
     expect(maxTokens).toBe(400);
     expect(temperature).toBe(0.7);
-    expect(model).toBe("llama-3.3-70b-versatile");
+    expect(model).toBe("openai/gpt-oss-20b");
     expect(timeout).toBe(25_000);
   });
 
@@ -295,7 +297,7 @@ describe("generatePitch", () => {
 
     expect(result.pitch).toBeTruthy();
     expect(result.pitch.length).toBeGreaterThan(50);
-    expect(result.model).toBe("llama-3.3-70b-versatile");
+    expect(result.model).toBe("openai/gpt-oss-20b");
   });
 
   it("includes hardcoded examples in system prompt when no DB examples", async () => {

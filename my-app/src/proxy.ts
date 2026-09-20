@@ -10,11 +10,9 @@ const MARKETING_ROUTES = new Set([
   "/about",
   "/blog",
   "/chapters",
-  "/community",
   "/contact",
   "/cookie-policy",
   "/docs",
-  "/donors",
   "/events",
   "/explore",
   "/faq",
@@ -22,11 +20,8 @@ const MARKETING_ROUTES = new Set([
   "/governance",
   "/initiatives",
   "/legal",
-  "/opportunities",
-  "/philosophy",
   "/privacy",
-  "/programs",
-  "/resources",
+  "/learn",
   "/support",
   "/terms",
   "/transparency",
@@ -38,7 +33,6 @@ const MARKETING_PREFIXES = [
   "/blog/",
   "/events/",
   "/initiatives/",
-  "/programs/",
   "/legal/",
   "/docs/",
   "/explore/",
@@ -53,7 +47,7 @@ const MARKETING_PREFIXES = [
 const APP_PREFIXES = [
   "/dashboard/",
   "/portal/",
-  "/profile/",
+  "/p/",
   "/teams/",
   "/orgs/",
   "/api/",
@@ -269,6 +263,10 @@ export async function requireRoleByPath(
   }
   if (pathname.startsWith("/portal/")) {
     return requireRole(request, pathname, ["sponsor", "recruiter", "organizer", "maintainer"]);
+  }
+  // Sponsor funnel interstitial — allow sponsors + maintainers.
+  if (pathname.startsWith("/dashboard/sponsor-onboarding")) {
+    return requireRole(request, pathname, ["sponsor", "maintainer"]);
   }
   // /dashboard/hacker and /dashboard/* — require any authenticated user
   if (pathname.startsWith("/dashboard/")) {

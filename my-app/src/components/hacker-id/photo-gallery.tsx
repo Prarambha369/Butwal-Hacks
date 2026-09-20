@@ -20,7 +20,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
           <ImageIcon className="w-8 h-8 text-muted-foreground opacity-20" />
         </div>
         <p className="text-muted-foreground font-mono text-sm opacity-60">
-          No memories captured yet. The lens awaits.
+          No photos yet. Come to an event and bring your camera.
         </p>
       </div>
     );

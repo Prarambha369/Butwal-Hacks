@@ -3,22 +3,25 @@ export const revalidate = 3600;
 
 import type { Metadata } from "next"
 import { BlogContent } from "@/components/blog/blog-content"
+import { getPublishedPosts } from "@/lib/actions/blog"
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Blog",
-  description: "Updates from Butwal Hacks on community events, project building, and tech learning in Nepal.",
+  description: "Stories from Butwal Hacks: events, student builds, and learning to code in Nepal.",
   path: "/blog",
 })
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  // DB-first (maintainer-authored), static fallback inside the action.
+  const posts = await getPublishedPosts();
   return (
     <main className="min-h-dvh bg-background text-primary">
-      
+
       <section className="px-4 py-10">
-        <BlogContent />
+        <BlogContent posts={posts} />
       </section>
-      
+
     </main>
   )
 }

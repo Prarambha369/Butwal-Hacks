@@ -17,7 +17,7 @@ export default function ProjectShowcase({ projects, isProfileView = false }: Pro
           <Code2 className="w-8 h-8 text-muted-foreground opacity-20" />
         </div>
         <p className="text-muted-foreground font-mono text-sm opacity-60">
-          No projects shipped yet. The compiler awaits.
+          No projects yet. Ship your first one at a build night and it will show up here.
         </p>
       </div>
     );

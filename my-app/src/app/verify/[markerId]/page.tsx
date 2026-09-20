@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { Metadata } from "next";
 import { ShieldCheck, XCircle, Award, Clock, UserCheck } from "lucide-react";
 import Link from "next/link";
+import { formatDualDate } from "@/lib/nepali-date";
 
 type Props = {
   params: Promise<{ markerId: string }>;
@@ -10,7 +11,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { markerId } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: marker } = await supabase
     .from("trust_markers")
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${marker.title} — Trust Marker${marker.is_revoked ? " (Revoked)" : ""}`,
-    description: `Verify the authenticity of a Butwal Hacks Trust Marker.`,
+    description: `Check a Butwal Hacks achievement marker. See who earned it and who signed it.`,
   };
 }
 
@@ -44,7 +45,7 @@ function markerIcon(type: string) {
 
 export default async function VerifyMarkerPage({ params }: Props) {
   const { markerId } = await params;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: marker, error } = await supabase
     .from("trust_markers")
@@ -195,11 +196,7 @@ export default async function VerifyMarkerPage({ params }: Props) {
           <div className="bh-card p-5 space-y-2">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Issued At</p>
             <p className="text-sm font-bold text-primary">
-              {new Date(marker.created_at).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+              {formatDualDate(new Date(marker.created_at))}
             </p>
           </div>
 

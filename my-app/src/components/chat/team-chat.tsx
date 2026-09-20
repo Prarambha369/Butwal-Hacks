@@ -37,7 +37,6 @@ export default function TeamChat({ className }: TeamChatProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newMessageCount, setNewMessageCount] = useState(0);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const hasSetDefault = useRef(false);
@@ -383,6 +382,13 @@ function ChatBubble({
   // Use auth0_user_id for presence matching (usePresence tracks Auth0 sub, not UUID)
   const isOnline = onlineIds.has(message.profile?.auth0_user_id ?? "");
 
+  // "now" is computed after mount so relative timestamps match between
+  // the server (UTC) and client (Asia/Kathmandu) renders.
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+  }, []);
+
   return (
     <div className="flex items-start gap-3 group">
       <div className="relative flex-shrink-0 mt-0.5">
@@ -406,7 +412,7 @@ function ChatBubble({
             {message.profile?.full_name ?? "Unknown"}
           </span>
           <span className="text-[10px] font-mono text-muted-foreground/50">
-            {formatTime(message.created_at)}
+            {formatTime(message.created_at, now)}
           </span>
         </div>
         <p className="text-sm text-primary/90 leading-relaxed whitespace-pre-wrap break-words">
@@ -417,10 +423,13 @@ function ChatBubble({
   );
 }
 
-function formatTime(dateStr: string): string {
+function formatTime(dateStr: string, now: number | null): string {
   const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+  if (now === null) {
+    // Stable SSR output — no relative labels before hydration.
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "Asia/Kathmandu" });
+  }
+  const diffMs = now - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
 
   if (diffMins < 1) return "now";
@@ -429,5 +438,5 @@ function formatTime(dateStr: string): string {
   const diffHours = Math.floor(diffMins / 60);
   if (diffHours < 24) return `${diffHours}h ago`;
 
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "Asia/Kathmandu" });
 }

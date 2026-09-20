@@ -9,7 +9,7 @@ import {
   type SkillTreeWithStatus,
   type SkillWithStatus,
   type SkillStatus,
-} from "@/lib/gamification/skill-trees";
+} from "@/lib/skill-trees";
 
 interface Project {
   tech_stack?: string[] | null;
@@ -168,7 +168,6 @@ export async function getSkillTreesWithStatus(options?: {
       tiers: tiersWithStatus,
       unlockedCount,
       totalCount,
-      overallProgress: totalCount > 0 ? (unlockedCount / totalCount) * 100 : 0,
     };
   });
 
@@ -187,19 +186,19 @@ export async function getSkillTreesWithStatus(options?: {
 /**
  * Attempt to unlock a skill by ID.
  * Evaluates conditions server-side and inserts into profile_micro_credentials if met.
- * Also awards XP for the unlock.
+ * The unlock record itself is the recognition — no points attached.
  */
 export async function unlockSkill(skillId: string) {
   const supabase = createServiceClient();
   const profileId = await resolveProfileId();
 
   // Find the skill definition from already-imported SKILL_TREES
-  let targetSkill: { id: string; name: string; xpReward: number } | null = null;
+  let targetSkill: { id: string; name: string } | null = null;
   for (const tree of SKILL_TREES) {
     for (const tier of tree.tiers) {
       const found = tier.skills.find((s) => s.id === skillId);
       if (found) {
-        targetSkill = { id: found.id, name: found.name, xpReward: found.xpReward };
+        targetSkill = { id: found.id, name: found.name };
         break;
       }
     }
@@ -257,26 +256,8 @@ export async function unlockSkill(skillId: string) {
     throw new Error("Failed to unlock skill");
   }
 
-  // Award XP
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("xp")
-    .eq("id", profileId)
-    .single();
-
-  const currentXP = profile?.xp ?? 0;
-  const newXP = currentXP + targetSkill.xpReward;
-
-  const { error: xpError } = await supabase
-    .from("profiles")
-    .update({ xp: newXP })
-    .eq("id", profileId);
-
-  if (xpError) {
-    logger.error("Failed to award XP for skill unlock:", xpError);
-  }
-
-  // Audit log
+  // Audit log — records the unlock itself (no points attached; the
+  // unlocked credential row is the record).
   const { error: auditError } = await supabase
     .from("audit_logs")
     .insert({
@@ -286,9 +267,6 @@ export async function unlockSkill(skillId: string) {
       target_id: skillId,
       metadata: {
         skill_name: targetSkill.name,
-        xp_awarded: targetSkill.xpReward,
-        previous_xp: currentXP,
-        new_xp: newXP,
       },
     });
 
@@ -303,8 +281,6 @@ export async function unlockSkill(skillId: string) {
     success: true,
     alreadyUnlocked: false,
     skillName: targetSkill.name,
-    xpAwarded: targetSkill.xpReward,
-    newXP,
   };
 }
 
@@ -334,7 +310,6 @@ export async function getProfileUnlockedSkills(profileId: string) {
     icon: string;
     treeName: string;
     treeColor: string;
-    xpReward: number;
     unlockedAt: string;
   }> = [];
 
@@ -350,7 +325,6 @@ export async function getProfileUnlockedSkills(profileId: string) {
             icon: skill.icon,
             treeName: tree.name,
             treeColor: tree.color,
-            xpReward: skill.xpReward,
             unlockedAt: record?.unlocked_at ?? "",
           });
         }
@@ -377,12 +351,10 @@ export async function getSkillTreeSummary() {
   const trees = await getSkillTreesWithStatus();
   const totalSkills = trees.reduce((sum, t) => sum + t.totalCount, 0);
   const totalUnlocked = trees.reduce((sum, t) => sum + t.unlockedCount, 0);
-  const overallProgress = totalSkills > 0 ? (totalUnlocked / totalSkills) * 100 : 0;
 
   return {
     totalSkills,
     totalUnlocked,
-    overallProgress,
     treeCount: trees.length,
     recentUnlocks: trees
       .flatMap((t) => t.tiers.flatMap((ti) => ti.skills))

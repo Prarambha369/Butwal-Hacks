@@ -12,7 +12,17 @@
  *   - Total retry budget capped at 80% of caller's timeout
  */
 
+import { captureLLMCall } from "./posthog-llm";
+
 const GROQ_API_BASE = "https://api.groq.com/openai/v1/chat/completions";
+
+/**
+ * Live models on our Groq plan (verified against /v1/models).
+ * Single source of truth — import these instead of hardcoding IDs,
+ * so the next model retirement is a one-line change.
+ */
+export const GROQ_TEXT_MODEL = "openai/gpt-oss-20b";
+export const GROQ_VISION_MODEL = "qwen/qwen3.8-27b";
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 1000;
@@ -29,6 +39,8 @@ export interface GroqOptions {
   temperature?: number;
   /** Per-call timeout (not total). default 15s. */
   timeout?: number;
+  /** Feature name for PostHog LLM observability. */
+  feature?: string;
 }
 
 export interface GroqResult {
@@ -103,7 +115,7 @@ export async function callGroq(options: GroqOptions): Promise<GroqResult> {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: options.model ?? "llama-3.3-70b-versatile",
+          model: options.model ?? GROQ_TEXT_MODEL,
           messages: options.messages,
           max_tokens: options.maxTokens ?? 500,
           temperature: options.temperature ?? 0.7,
@@ -118,11 +130,23 @@ export async function callGroq(options: GroqOptions): Promise<GroqResult> {
           throw new Error("Empty response from Groq");
         }
 
-        return {
+        const result = {
           content,
           model: json.model ?? options.model ?? "unknown",
           usage: json.usage ?? undefined,
         };
+
+        // Track LLM call for PostHog AI observability
+        captureLLMCall({
+          model: result.model,
+          input_tokens: json.usage?.prompt_tokens ?? 0,
+          output_tokens: json.usage?.completion_tokens ?? 0,
+          latency_ms: Date.now() - (deadline - retryBudgetMs),
+          success: true,
+          feature: options.feature ?? "unknown",
+        });
+
+        return result;
       }
 
       // Non-ok response — check if retryable

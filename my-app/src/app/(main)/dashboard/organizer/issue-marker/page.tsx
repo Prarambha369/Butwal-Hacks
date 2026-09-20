@@ -4,6 +4,10 @@ import { redirect } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { IssueMarkerForm } from "@/components/dashboard/organizer/issue-marker-form";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "Issue Marker", description: "Issue verification markers", path: "/dashboard/organizer/issue-marker", keywords: []}), robots: { index: false, follow: false } };
 
 export default async function IssueMarkerPage() {
   const session = await auth0.getSession();

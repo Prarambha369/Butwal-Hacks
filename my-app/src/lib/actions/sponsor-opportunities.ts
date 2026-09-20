@@ -68,7 +68,7 @@ export async function createOpportunity(input: CreateOpportunityInput) {
 
     if (error) throw error;
     revalidatePath("/portal/bounties");
-    revalidatePath("/opportunities");
+    revalidatePath("/support");
     return { success: true };
   } catch (error) {
     logger.error("[sponsor-opportunities] Error creating:", error);
@@ -116,7 +116,7 @@ export async function updateOpportunity(id: string, input: CreateOpportunityInpu
 
     if (error) throw error;
     revalidatePath("/portal/bounties");
-    revalidatePath("/opportunities");
+    revalidatePath("/support");
     return { success: true };
   } catch (error) {
     logger.error("[sponsor-opportunities] Error updating:", error);
@@ -142,7 +142,7 @@ export async function toggleOpportunity(id: string) {
 
     await supabase.from("sponsor_opportunities").update({ is_active: !opp.is_active, updated_at: new Date().toISOString() }).eq("id", id);
     revalidatePath("/portal/bounties");
-    revalidatePath("/opportunities");
+    revalidatePath("/support");
     return { success: true, is_active: !opp.is_active };
   } catch (error) {
     logger.error("[sponsor-opportunities] Error toggling:", error);
@@ -168,7 +168,7 @@ export async function deleteOpportunity(id: string) {
 
     await supabase.from("sponsor_opportunities").delete().eq("id", id);
     revalidatePath("/portal/bounties");
-    revalidatePath("/opportunities");
+    revalidatePath("/support");
     return { success: true };
   } catch (error) {
     logger.error("[sponsor-opportunities] Error deleting:", error);

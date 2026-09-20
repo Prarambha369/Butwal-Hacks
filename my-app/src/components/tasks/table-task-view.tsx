@@ -306,7 +306,7 @@ export default function TableTaskView({ workspaceId, initialTasks, teamMembers =
       case "due_date":
         return task.due_date ? (
           <span className="text-xs text-text-secondary">
-            {new Date(task.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            {new Date(task.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "Asia/Kathmandu" })}
           </span>
         ) : (
           <span className="text-xs text-muted-foreground">—</span>

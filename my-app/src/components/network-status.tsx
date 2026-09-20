@@ -62,7 +62,7 @@ export default function NetworkStatus() {
           role="alert"
         >
           <WifiOff className="w-3.5 h-3.5" />
-          You are offline — some features may be unavailable
+          You&apos;re offline. Some features may not work until you reconnect.
         </div>
       )}
 

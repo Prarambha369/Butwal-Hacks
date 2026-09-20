@@ -8,10 +8,9 @@ interface BHIDClaimCardProps {
   bhId: string;
   role: string;
   fullName: string;
-  xp?: number;
 }
 
-export function BHIDClaimCard({ bhId, role, fullName, xp = 0 }: BHIDClaimCardProps) {
+export function BHIDClaimCard({ bhId, role, fullName }: BHIDClaimCardProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(() => {
@@ -78,10 +77,7 @@ export function BHIDClaimCard({ bhId, role, fullName, xp = 0 }: BHIDClaimCardPro
                 </button>
               </div>
 
-              {/* XP */}
-              <span className="text-xs font-mono text-muted-foreground">
-                {xp.toLocaleString()} XP
-              </span>
+
             </div>
 
             <p className="text-xs text-muted-foreground">

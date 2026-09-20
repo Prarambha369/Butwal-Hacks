@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { KeyRound, Ban } from "lucide-react";
 import { revokeApiKey } from "@/lib/actions/api-keys";
+import { formatDualDate } from "@/lib/nepali-date";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -65,7 +66,7 @@ export function ApiKeyList({ keys }: { keys: ApiKey[] }) {
                 </div>
               </td>
               <td className="px-5 py-3.5 font-mono text-xs text-muted-foreground">
-                {key.last_used_at ? new Date(key.last_used_at).toLocaleDateString() : "Never used"}
+                {key.last_used_at ? formatDualDate(new Date(key.last_used_at)) : "Never used"}
               </td>
               <td className="px-6 py-4 text-center">
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${key.is_active ? "bg-status-green/10 border-status-green/30 text-status-green" : "bg-primary-red/10 border-primary-red/30 text-primary-red"}`}>

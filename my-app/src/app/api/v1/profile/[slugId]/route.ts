@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/utils/supabase";
 import { withCache } from "@/lib/cache";
+import { withRateLimit } from "@/lib/rate-limiter";
 
 /**
  * GET /api/v1/profile/[slugId]
@@ -19,10 +20,10 @@ import { withCache } from "@/lib/cache";
  * Example:
  *   curl https://butwalhacks.com/api/v1/profile/BH-24-001
  */
-export async function GET(
+export const GET = withRateLimit(async (
   _request: NextRequest,
   { params }: { params: Promise<{ slugId: string }> },
-) {
+) => {
   const { slugId } = await params;
 
   // Wrap in Redis edge cache (5 min TTL) with graceful degradation
@@ -42,10 +43,9 @@ export async function GET(
           avatar_url,
           skills,
           socials,
-          xp,
           ai_summary,
           created_at,
-          trust_markers (
+          trust_markers!trust_markers_profile_id_fkey (
             id,
             title,
             description,
@@ -76,7 +76,6 @@ export async function GET(
         avatar_url: profile.avatar_url,
         skills: profile.skills,
         socials: profile.socials,
-        xp: profile.xp,
         ai_summary: profile.ai_summary,
         member_since: profile.created_at,
         trust_markers: (profile.trust_markers ?? []).map((m: unknown) => {
@@ -147,7 +146,7 @@ export async function GET(
       "Cache-Control": "public, max-age=60, s-maxage=60",
     },
   });
-}
+}, "frequent")
 
 /** Handle CORS preflight */
 export async function OPTIONS() {

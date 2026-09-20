@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { CheckCircle, AlertCircle, LogIn } from "lucide-react"
-import { useUser } from "@auth0/nextjs-auth0/client"
+import { useAuthUser } from "@/components/auth-user-provider"
 import { cn } from "@/lib/utils"
 import { RoseSpinner } from "@/components/ui/rose-loader";
 
@@ -14,7 +14,7 @@ interface Props {
 
 export default function EventRegisterButton({ eventId, eventSlug }: Props) {
   const router = useRouter()
-  const { user, isLoading: authLoading } = useUser()
+  const { user, isLoading: authLoading } = useAuthUser()
   const [state, setState] = useState<"idle" | "loading" | "registered" | "error">("idle")
   const [message, setMessage] = useState("")
 

@@ -3,8 +3,8 @@ import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
-import { ghostMarkerNotificationHtml } from "@/lib/emails/ghost-marker-notification"
-import { signTrustMarker } from "@/lib/crypto/sign"
+import { ghostMarkerNotificationHtml } from "@/lib/ghost-marker-email"
+import { signTrustMarker } from "@/lib/crypto-sign"
 import { bustCache } from "@/lib/cache"
 import { z } from "zod"
 
@@ -216,7 +216,6 @@ export const POST = withRateLimit(async (req: NextRequest) => {
           to: [normalizedEmail],
           subject: `You've received a Trust Marker from Butwal Hacks`,
           html: ghostMarkerNotificationHtml(
-            normalizedEmail,
             issuer?.full_name || "An organizer",
             safeTitle,
             safeDescription,

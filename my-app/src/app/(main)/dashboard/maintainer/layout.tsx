@@ -19,6 +19,8 @@ import {
   Settings2,
   BookOpen,
   GraduationCap,
+  Image as ImageIcon,
+  Handshake,
 } from "lucide-react";
 
 const maintainerLinks = [
@@ -51,6 +53,30 @@ const maintainerLinks = [
     label: "Site Config",
     shortcut: "s",
     icon: <Settings2 className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/maintainer/photos",
+    label: "Photos",
+    shortcut: "p",
+    icon: <ImageIcon className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/maintainer/partners",
+    label: "Partners",
+    shortcut: "w",
+    icon: <Handshake className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/maintainer/chapters",
+    label: "Chapters",
+    shortcut: "h",
+    icon: <GraduationCap className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/maintainer/blog",
+    label: "Blog",
+    shortcut: "b",
+    icon: <BookOpen className="w-4 h-4" />,
   },
   {
     href: "/api-docs",
@@ -90,7 +116,7 @@ export default async function MaintainerDashboardLayout({
   return (
     <div className="flex min-h-dvh bg-background">
       <MaintainerSidebar slugId={slugId} links={maintainerLinks} />
-      <main className="flex-1 p-8 max-w-7xl mx-auto min-h-dvh flex flex-col">
+      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto min-h-dvh flex flex-col pb-20 md:pb-0">
         <DashboardNavProvider links={maintainerLinks}>
           {children}
         </DashboardNavProvider>

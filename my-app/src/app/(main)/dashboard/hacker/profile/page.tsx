@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase';
+import { createServiceClient } from '@/utils/supabase';
 import { redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
 import { User, Eye, ExternalLink } from 'lucide-react';
@@ -6,6 +6,10 @@ import ProfileSettingsForm from '@/components/dashboard/hacker/profile-form';
 import ProfileOnboardingGuide from '@/components/dashboard/hacker/profile-onboarding-guide';
 import { PublicProfileToggle } from '@/components/dashboard/hacker/public-profile-toggle';
 import LinkedAccounts from '@/components/dashboard/hacker/linked-accounts';
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "My Profile", description: "View and edit your profile", path: "/dashboard/hacker/profile", keywords: []}), robots: { index: false, follow: false } };
 
 export default async function HackerProfileSettingsPage() {
   const session = await auth0.getSession();
@@ -13,7 +17,7 @@ export default async function HackerProfileSettingsPage() {
 
   if (!userId) redirect('/sign-in');
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')

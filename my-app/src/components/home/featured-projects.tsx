@@ -18,11 +18,14 @@ export default function FeaturedProjects({ projects }: { projects: FeaturedProje
       <section className="py-16 md:py-24 bg-surface border-b border-border">
         <div className="mx-auto max-w-6xl px-4">
           <div className="text-center space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center">
+            <div className="bh-wiggle-hover mx-auto w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center cursor-default">
               <Monitor className="w-8 h-8 text-muted-foreground opacity-20" />
             </div>
             <p className="text-sm text-muted-foreground font-mono opacity-60">
-              No community projects to feature yet. The first builds will appear here.
+              Nothing featured yet. Your half-broken demo could live here.
+            </p>
+            <p className="text-xs text-muted-foreground/70 font-mono">
+              Be the first legend. Ship something at the next hackathon.
             </p>
           </div>
         </div>
@@ -47,7 +50,7 @@ export default function FeaturedProjects({ projects }: { projects: FeaturedProje
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-red" />
             <span className="text-[10px] font-mono font-semibold text-muted-foreground tracking-tight">community projects</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-primary">
+          <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight leading-[1.05] text-balance">
             Featured Builds
           </h2>
           <p className="mt-3 text-secondary max-w-2xl mx-auto text-sm">

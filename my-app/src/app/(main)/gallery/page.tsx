@@ -1,12 +1,14 @@
 import { Calendar } from "lucide-react";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
+import { auth0 } from "@/lib/auth0";
+import { logger } from "@/lib/logger";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import GalleryGrid from "./gallery-grid";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Event Gallery",
-  description: "Browse photos from Butwal Hacks hackathons, workshops, and community meetups across Lumbini Province, Nepal.",
+  description: "Photos from Butwal Hacks hackathons and meetups across Lumbini. Real people, real builds.",
   path: "/gallery",
 });
 
@@ -21,22 +23,34 @@ export type GalleryPhoto = {
   date: string;
   span: number;
   uploader: string | null;
+  /** Maintainer-chosen delivery recipe (null = default) */
+  optimize: string | null;
   /** Duration in seconds — only set for video entries */
   duration?: number;
 };
 
 async function getPhotos(): Promise<GalleryPhoto[]> {
-  const supabase = createClient();
+  // Service client: consistent with every other server read in this app.
+  // Only approved photos are ever public; pending uploads stay invisible.
+  const supabase = createServiceClient();
 
-  const { data: photos } = await supabase
+  const { data: photos, error } = await supabase
     .from("photos")
     .select(`
-      id, url, span, created_at,
+      id, url, span, optimized_transform, created_at,
       events ( id, title, slug ),
       profiles!photos_uploader_id_fkey ( full_name )
     `)
+    .eq("status", "approved")
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(100);
+
+  if (error) {
+    logger.error("Error fetching gallery photos:", error);
+    // Degrade to the honest empty state below — a DB/RLS hiccup must
+    // never take down the whole page (seen against an empty preview DB).
+    return [];
+  }
 
   if (!photos) return [];
 
@@ -51,12 +65,15 @@ async function getPhotos(): Promise<GalleryPhoto[]> {
       date: p.created_at,
       span: (p as { span?: number }).span ?? 1,
       uploader: (prof as { full_name?: string })?.full_name ?? null,
+      optimize: (p as { optimized_transform?: string }).optimized_transform ?? null,
     };
   });
 }
 
 export default async function GalleryPage() {
   const photos = await getPhotos();
+  // Download gate: only signed-in users get full-quality file URLs.
+  const session = await auth0.getSession().catch(() => null);
 
   return (
     <main className="min-h-dvh bg-background pt-28 pb-20 px-6 md:px-20">
@@ -89,7 +106,7 @@ export default async function GalleryPage() {
             </div>
           </div>
         ) : (
-          <GalleryGrid photos={photos} />
+          <GalleryGrid photos={photos} canDownload={!!session?.user} />
         )}
       </div>
     </main>

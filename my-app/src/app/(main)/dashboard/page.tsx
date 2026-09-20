@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth0 } from "@/lib/auth0";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
 import { BHIDClaimCard } from "@/components/dashboard/bhid-claim-card";
 import { ToolGuideSection } from "@/components/dashboard/tool-guide-section";
 import { OnboardingSteps } from "@/components/dashboard/onboarding-steps";
@@ -9,6 +9,10 @@ import DashboardHubStats from "@/components/dashboard/dashboard-hub-stats";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { t } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "Dashboard", description: "Your Butwal Hacks dashboard overview", path: "/dashboard", keywords: []}), robots: { index: false, follow: false } };
 
 export default async function DashboardHubPage() {
   const session = await auth0.getSession();
@@ -18,7 +22,7 @@ export default async function DashboardHubPage() {
   const email = session.user.email ?? "";
   const emailVerified = session.user.email_verified === true;
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -64,7 +68,6 @@ export default async function DashboardHubPage() {
   const bhId = profile?.bh_id || profile?.slug_id || "BH-••••••";
   const role = profile?.role || "hacker";
   const fullName = profile?.full_name || "New Hacker";
-  const xp = profile?.xp || 0;
 
   const locale = 'en' as Locale; // Server component — can't use useLanguage. Falls back to 'en'.
 
@@ -89,14 +92,13 @@ export default async function DashboardHubPage() {
         </div>
 
         {/* ── Section 1: BH-ID Identity Card ── */}
-        <BHIDClaimCard bhId={bhId} role={role} fullName={fullName} xp={xp} />
+        <BHIDClaimCard bhId={bhId} role={role} fullName={fullName} />
 
         {/* ── Section 2: Stats & Activity ── */}
         <DashboardHubStats
           trustMarkerCount={trustMarkerCount ?? 0}
           projectCount={projectCount ?? 0}
           hackathonCount={hackathonCount ?? 0}
-          xp={xp}
         />
 
         {/* ── Section 3: Onboarding Steps ── */}

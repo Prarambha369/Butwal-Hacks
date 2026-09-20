@@ -2,14 +2,14 @@
 
 import { useState } from "react"
 import { Github, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
-import { useUser } from "@auth0/nextjs-auth0/client"
+import { useAuthUser } from "@/components/auth-user-provider"
 import { useRouter } from "next/navigation"
 
 // ponytail: single-file button. Posts to /api/github/sync, shows result inline.
 // No toast library needed — inline status messages are more accessible.
 
 export default function GitHubSyncButton() {
-  const { user } = useUser()
+  const { user } = useAuthUser()
   const isSignedIn = !!user
   const router = useRouter()
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle")

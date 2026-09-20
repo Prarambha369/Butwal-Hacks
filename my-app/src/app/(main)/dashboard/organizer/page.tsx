@@ -1,7 +1,12 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase";
+import { createServiceClient } from "@/utils/supabase";
+import { formatDualDate } from "@/lib/nepali-date";
 import OrganizerDashboardClient from "./organizer-dashboard-client";
+import { buildPageMetadata } from "@/lib/seo"
+
+
+export const metadata = { ...buildPageMetadata({title: "Organizer Dashboard", description: "Organizer workspace", path: "/dashboard/organizer", keywords: []}), robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +15,7 @@ export default async function OrganizerDashboardPage() {
   const userId = session?.user?.sub;
   if (!userId) redirect("/auth/login");
 
-  const db = await createClient();
+  const db = createServiceClient();
 
   // Get organizer profile
   const { data: profile } = await db
@@ -40,7 +45,7 @@ export default async function OrganizerDashboardPage() {
     return {
       id: ev.id,
       name: ev.title,
-      date: `${new Date(ev.start_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}${ev.end_date ? `-${new Date(ev.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : ""}`,
+      date: formatDualDate(new Date(ev.start_date)),
       status,
     };
   });

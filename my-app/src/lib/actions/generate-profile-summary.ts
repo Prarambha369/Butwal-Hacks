@@ -4,6 +4,7 @@ import { createServiceClient } from "@/utils/supabase";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
+import { GROQ_TEXT_MODEL } from "@/lib/ai/groq-client";
 
 function buildPrompt(profile: {
   full_name: string
@@ -90,7 +91,7 @@ export async function generateProfileSummary(profileId: string) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: GROQ_TEXT_MODEL,
         messages: [{ role: "user", content: prompt }],
         max_tokens: 150,
         temperature: 0.7,
