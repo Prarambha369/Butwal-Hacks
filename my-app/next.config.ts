@@ -169,6 +169,10 @@ const nextConfig: NextConfig = {
       { source: "/opportunities", destination: "/support#opportunities", permanent: true },
       // /annual-report folded into /transparency?view=report (tab).
       { source: "/annual-report", destination: "/transparency?view=report", permanent: true },
+      // Auth stubs consolidated: one /sign-in entry (mode + returnTo
+      // passthrough) in front of Auth0 Universal Login.
+      { source: "/login", destination: "/sign-in", permanent: true },
+      { source: "/sign-up", destination: "/sign-in?mode=signup", permanent: true },
     ]
   },
   async headers() {

@@ -52,5 +52,13 @@ describe("consolidation redirects", () => {
       destination: "/transparency?view=report",
       permanent: true,
     });
+    expect(bySource.get("/login")).toMatchObject({
+      destination: "/sign-in",
+      permanent: true,
+    });
+    expect(bySource.get("/sign-up")).toMatchObject({
+      destination: "/sign-in?mode=signup",
+      permanent: true,
+    });
   });
 });
