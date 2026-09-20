@@ -4,6 +4,7 @@ import { ArrowUpRight, DollarSign, TrendingUp, TrendingDown, ExternalLink } from
 
 import Breadcrumbs from "@/components/breadcrumbs"
 import { buildPageMetadata } from "@/lib/seo"
+import AnnualReportVisualization from "@/components/annual-report/annual-report-visualization"
 
 export const dynamic = "force-static";
 export const revalidate = 300;
@@ -58,7 +59,14 @@ function formatCurrency(value: number, currency: string) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 0 }).format(value)
 }
 
-export default async function TransparencyPage() {
+export default async function TransparencyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string; year?: string }>;
+}) {
+  const { view, year: yearParam } = await searchParams;
+  const showReport = view === "report";
+  const year = parseInt(yearParam ?? "", 10) || new Date().getFullYear() - 1;
   const stats = await fetchCollectiveStats()
 
   return (
@@ -77,10 +85,52 @@ export default async function TransparencyPage() {
               Every dollar is publicly tracked on Open Collective. No hidden funds, no opaque budgets — full
               community accountability.
             </p>
+            {/* Money-now vs year-in-review (migrated from /annual-report). */}
+            <div className="mt-7 inline-flex rounded-full border border-border bg-surface p-1" role="tablist" aria-label="Transparency views">
+              <Link
+                href="/transparency"
+                role="tab"
+                aria-selected={!showReport}
+                className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${!showReport ? "bg-bh-red-500 text-white" : "text-muted-foreground hover:text-primary"}`}
+              >
+                Money now
+              </Link>
+              <Link
+                href="/transparency?view=report"
+                role="tab"
+                aria-selected={showReport}
+                className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${showReport ? "bg-bh-red-500 text-white" : "text-muted-foreground hover:text-primary"}`}
+              >
+                Year in review
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
+      {showReport ? (
+        <section className="px-4 py-12">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-8 flex items-center justify-center gap-2">
+              {[2024, 2025, 2026].filter((y) => y <= new Date().getFullYear()).map((y) => (
+                <Link
+                  key={y}
+                  href={`/transparency?view=report&year=${y}`}
+                  className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                    y === year
+                      ? "bg-bh-red-500 text-white shadow-[0_0_15px_rgba(254,0,0,0.3)]"
+                      : "border border-border text-muted-foreground hover:text-primary hover:border-primary-red/30"
+                  }`}
+                >
+                  {y}
+                </Link>
+              ))}
+            </div>
+            <AnnualReportVisualization year={year} />
+          </div>
+        </section>
+      ) : (
+      <>
       {stats ? (
         <>
           <section className="border-b border-border px-4 py-12">
@@ -199,6 +249,8 @@ export default async function TransparencyPage() {
           </div>
         </div>
       </section>
+      </>
+      )}
     </main>
   )
 }

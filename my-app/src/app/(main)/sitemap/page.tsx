@@ -76,7 +76,7 @@ const sections: SiteSection[] = [
     links: [
       { href: "/transparency", label: "Financial Transparency", description: "Live budget data from Open Collective" },
       { href: "/governance", label: "Governance", description: "Board structure, policies, and ethics" },
-      { href: "/annual-report", label: "Annual Report", description: "Yearly impact and growth metrics" },
+      { href: "/transparency?view=report", label: "Annual Report", description: "Yearly impact and growth metrics" },
     ],
   },
   {

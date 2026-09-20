@@ -38,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/resources`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/contact`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/docs`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${siteUrl}/annual-report`, lastModified: today, changeFrequency: 'yearly', priority: 0.7 },
+    { url: `${siteUrl}/transparency?view=report`, lastModified: today, changeFrequency: 'yearly', priority: 0.7 },
 
     // ─── Tier 4: Reference & Legal (priority 0.5-0.6) ─────
     { url: `${siteUrl}/legal/privacy`, lastModified: today, changeFrequency: 'yearly', priority: 0.5 },

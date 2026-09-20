@@ -167,6 +167,8 @@ const nextConfig: NextConfig = {
       // /opportunities folded into /support#opportunities (listings live
       // on the sponsor page now).
       { source: "/opportunities", destination: "/support#opportunities", permanent: true },
+      // /annual-report folded into /transparency?view=report (tab).
+      { source: "/annual-report", destination: "/transparency?view=report", permanent: true },
     ]
   },
   async headers() {
