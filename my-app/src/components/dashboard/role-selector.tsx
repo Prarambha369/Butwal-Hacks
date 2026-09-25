@@ -193,15 +193,30 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
     formData.set("requestedRole", showRequestForm);
     formData.set("message", requestMessage);
 
-    const result = await requestRoleUpgrade(formData);
-    if (result.success) {
-      setRequestSent(true);
-      setRequestMessage("");
-    } else {
-      setRequestError(result.error ?? "Failed to submit request.");
-      toast.error(result.error ?? "Failed to submit request.");
+    // A thrown server action or dropped connection used to escape as an
+    // unhandled rejection: `result` was undefined, `result.success` threw, and
+    // the user saw nothing at all. Keep the form honest in every path.
+    try {
+      const result = await requestRoleUpgrade(formData);
+
+      if (result?.success) {
+        setRequestSent(true);
+        setRequestMessage("");
+      } else {
+        const message = result?.error ?? "Failed to submit request.";
+        setRequestError(message);
+        toast.error(message);
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : "Failed to submit request. Please try again.";
+      setRequestError(message);
+      toast.error(message);
+    } finally {
+      setRequestSubmitting(false);
     }
-    setRequestSubmitting(false);
   }, [showRequestForm, requestMessage]);
 
   const handleBackToRoles = useCallback(() => {

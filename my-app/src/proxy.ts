@@ -75,6 +75,21 @@ function isAppHost(hostname: string): boolean {
   );
 }
 
+/**
+ * The calendar subdomain.
+ *
+ * Without an explicit rule this host matched neither isMarketingHost nor
+ * isAppHost and fell through to the final `NextResponse.next()`, serving
+ * every path on the subdomain with no authentication at all. Naming it here
+ * means the whole host requires a signed-in user.
+ */
+function isCalendarHost(hostname: string): boolean {
+  return (
+    hostname === "calendar.localhost" ||
+    hostname === "calendar.butwalhacks.com"
+  );
+}
+
 function isRouteInSet(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(p));
 }
@@ -167,6 +182,17 @@ export async function proxy(request: NextRequest) {
       return redirectToDomain(request, "app");
     }
     return requireRole(request, pathname, ["sponsor", "recruiter", "organizer", "maintainer"]);
+  }
+
+  // ── Step 2b: Calendar subdomain ─────────────────────────────────
+  // Google Calendar sync is per-user and every route under it touches that
+  // user's credentials, so the entire host is authenticated. Checked before
+  // the app-host block because calendar.* is not an app host.
+  if (isCalendarHost(hostname)) {
+    if (pathname.startsWith("/_next/") || pathname.startsWith("/auth/")) {
+      return NextResponse.next();
+    }
+    return requireAnyAuth(request, pathname);
   }
 
   // ── Step 3: App domain routing ─────────────────────────────
@@ -361,6 +387,7 @@ export function redirectToDomain(request: NextRequest, target: "main" | "app"): 
 /** In local development, let all routes pass through without subdomain enforcement. */
 export async function handleLocalDev(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
+  const hostname = request.headers.get("host")?.split(":")[0] ?? "";
 
   // Auth0 middleware for auth routes
   if (pathname.startsWith("/auth/")) {
@@ -380,6 +407,15 @@ export async function handleLocalDev(request: NextRequest): Promise<NextResponse
 
   // Protect /orgs/* routes (requires any authenticated user in dev too)
   if (pathname.startsWith("/orgs/")) {
+    return requireAnyAuth(request, pathname);
+  }
+
+  // calendar.localhost: require auth for everything except Next internals,
+  // mirroring the production calendar-host rule.
+  if (isCalendarHost(hostname)) {
+    if (pathname.startsWith("/_next/")) {
+      return NextResponse.next();
+    }
     return requireAnyAuth(request, pathname);
   }
 

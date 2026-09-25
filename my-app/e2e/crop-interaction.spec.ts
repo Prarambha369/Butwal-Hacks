@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { skipInCI, signIn } from "./helpers";
 
 /**
@@ -34,7 +34,7 @@ test.describe("Crop Dialog — Interactions", () => {
   test.beforeEach(async ({ page }) => {
     skipInCI();
     await signIn(page);
-    await page.goto("/dashboard/hacker/profile");
+    await page.goto("/dashboard/profile");
     await page.waitForLoadState("networkidle");
 
     // Select a file to trigger the crop dialog

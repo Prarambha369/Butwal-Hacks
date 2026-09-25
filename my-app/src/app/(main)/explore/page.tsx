@@ -1,3 +1,4 @@
+import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 import { createServiceClient } from "@/utils/supabase";
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -115,7 +116,7 @@ export default async function ExplorePage() {
                 Find a mentor <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/dashboard/hacker/profile"
+                href={PROFILE_SETTINGS_PATH}
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-surface-hover"
               >
                 Become one

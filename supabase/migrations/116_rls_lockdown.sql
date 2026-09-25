@@ -108,33 +108,46 @@ ALTER TABLE public.knowledge_embeddings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_content ENABLE ROW LEVEL SECURITY;
 
 -- ─── 4. Public SELECT policies (anon + authenticated) ───
+DROP POLICY IF EXISTS events_select_public ON public.events;
 CREATE POLICY events_select_public ON public.events
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS projects_select_public ON public.projects;
 CREATE POLICY projects_select_public ON public.projects
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS project_likes_select_public ON public.project_likes;
 CREATE POLICY project_likes_select_public ON public.project_likes
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS teams_select_public ON public.teams;
 CREATE POLICY teams_select_public ON public.teams
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS team_members_select_public ON public.team_members;
 CREATE POLICY team_members_select_public ON public.team_members
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS team_invites_select_public ON public.team_invites;
 CREATE POLICY team_invites_select_public ON public.team_invites
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS event_registrations_select_public ON public.event_registrations;
 CREATE POLICY event_registrations_select_public ON public.event_registrations
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS tasks_select_public ON public.tasks;
 CREATE POLICY tasks_select_public ON public.tasks
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS team_messages_select_public ON public.team_messages;
 CREATE POLICY team_messages_select_public ON public.team_messages
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS audit_logs_select_public ON public.audit_logs;
 CREATE POLICY audit_logs_select_public ON public.audit_logs
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS profiles_select_public ON public.profiles;
 CREATE POLICY profiles_select_public ON public.profiles
   FOR SELECT TO anon, authenticated USING (true);
 
 -- Moderated content: only approved rows are public. Pending/rejected
 -- uploads and reviews stay invisible until a maintainer acts.
+DROP POLICY IF EXISTS photos_select_approved ON public.photos;
 CREATE POLICY photos_select_approved ON public.photos
   FOR SELECT TO anon, authenticated USING (status = 'approved');
+DROP POLICY IF EXISTS event_reviews_select_approved ON public.event_reviews;
 CREATE POLICY event_reviews_select_approved ON public.event_reviews
   FOR SELECT TO anon, authenticated USING (status = 'approved');
 

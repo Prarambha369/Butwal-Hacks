@@ -364,6 +364,56 @@ describe("proxy (main handler)", () => {
     expect(location).toContain("/auth/login");
   });
 
+  // ── calendar subdomain ────────────────────────────────────────────
+  // calendar.butwalhacks.com matched no host rule and fell through to the
+  // final NextResponse.next(), so every path on it was served unauthenticated.
+  it("requires auth for the calendar host in local dev", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://calendar.localhost:3000/");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/auth/login");
+  });
+
+  it("requires auth for calendar API routes too", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest(
+      "http://calendar.localhost:3000/api/calendar/google/connect"
+    );
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/auth/login");
+  });
+
+  it("lets an authenticated user through on the calendar host", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    setProfileRole(db, "hacker");
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://calendar.localhost:3000/");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+
+  it("leaves the bare localhost host alone", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://localhost:3000/");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(200);
+  });
+
   it("redirects hackers away from /dashboard/maintainer in local dev", async () => {
     setAuthenticated();
     const db = mockSupabase();

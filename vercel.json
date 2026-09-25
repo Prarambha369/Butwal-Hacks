@@ -8,6 +8,10 @@
     {
       "path": "/api/health",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/calendar/google/cron",
+      "schedule": "17 * * * *"
     }
   ],
   "headers": [

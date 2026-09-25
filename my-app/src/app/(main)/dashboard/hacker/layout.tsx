@@ -1,3 +1,4 @@
+import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 import { redirect } from "next/navigation";
 import NextDynamic from "next/dynamic";
 import { auth0 } from "@/lib/auth0";
@@ -36,7 +37,7 @@ const hackerLinks = [
     icon: <LayoutDashboard className="w-4 h-4" />,
   },
   {
-    href: "/dashboard/hacker/profile",
+    href: PROFILE_SETTINGS_PATH,
     label: "My Profile",
     shortcut: "r",
     icon: <User className="w-4 h-4" />,

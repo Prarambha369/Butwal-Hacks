@@ -21,11 +21,13 @@ DROP POLICY IF EXISTS "Users can view their team memberships" ON public.team_mem
 DROP POLICY IF EXISTS "Users can join teams" ON public.team_members;
 
 -- Users can view their own team memberships
+DROP POLICY IF EXISTS "Users can view their team memberships" ON public.team_members;
 CREATE POLICY "Users can view their team memberships" ON public.team_members
   FOR SELECT
   USING (auth.uid() = profile_id);
 
 -- Users can add themselves to teams
+DROP POLICY IF EXISTS "Users can join teams" ON public.team_members;
 CREATE POLICY "Users can join teams" ON public.team_members
   FOR INSERT
   WITH CHECK (auth.uid() = profile_id);
