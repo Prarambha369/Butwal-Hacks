@@ -6,6 +6,7 @@ import ProfileSettingsForm from '@/components/dashboard/hacker/profile-form';
 import ProfileOnboardingGuide from '@/components/dashboard/hacker/profile-onboarding-guide';
 import { PublicProfileToggle } from '@/components/dashboard/hacker/public-profile-toggle';
 import LinkedAccounts from '@/components/dashboard/hacker/linked-accounts';
+import GoogleCalendarSettings from '@/components/dashboard/google-calendar-settings';
 import { buildPageMetadata } from "@/lib/seo"
 
 
@@ -57,6 +58,7 @@ export default async function HackerProfileSettingsPage() {
 
         <div className="space-y-6">
           <LinkedAccounts />
+          <GoogleCalendarSettings />
 
           <div className="bh-card p-6 space-y-4">
             <h3 className="font-bold flex items-center gap-2">
