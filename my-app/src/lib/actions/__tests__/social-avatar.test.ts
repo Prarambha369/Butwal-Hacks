@@ -37,10 +37,11 @@ describe("importSocialAvatar", () => {
     vi.stubEnv("CLOUDINARY_API_SECRET", "secret");
   }
 
-  function stubDb(error: unknown = null) {
+  function stubDb(error: unknown = null, rows: unknown[] = [{ auth0_user_id: "auth0|abc123" }]) {
     const chain = {
       update: vi.fn(() => chain),
-      eq: vi.fn(() => Promise.resolve({ error })),
+      eq: vi.fn(() => chain),
+      select: vi.fn(() => Promise.resolve({ data: rows, error })),
     };
     const from = vi.fn(() => chain);
     (createServiceClient as ReturnType<typeof vi.fn>).mockReturnValue({ from } as never);
@@ -224,5 +225,20 @@ describe("importSocialAvatar", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/could not save/i);
+  });
+
+  it("does not report success when the update matches no profile row", async () => {
+    stubCloudinaryEnv();
+    stubFetch({});
+    // PostgREST answers error: null with zero rows when the filter matches
+    // nothing, so a user without a profile row would be told the import
+    // worked while the Cloudinary asset was orphaned.
+    stubDb(null, []);
+
+    const result = await importSocialAvatar(GITHUB_PIC);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/could not save/i);
+    expect(logger.error).toHaveBeenCalled();
   });
 });

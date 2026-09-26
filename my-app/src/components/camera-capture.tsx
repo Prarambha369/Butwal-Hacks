@@ -36,6 +36,15 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
       stream?.getTracks().forEach((t) => t.stop());
     };
 
+    // Give up on the preview: stop the camera and detach it. Without this the
+    // track stays live until Retry or close, so the indicator light stays on
+    // with nothing on screen.
+    const abandonStream = () => {
+      stopStream(streamRef.current);
+      streamRef.current = null;
+      if (videoRef.current) videoRef.current.srcObject = null;
+    };
+
     setLoading(true);
     setError(null);
 
@@ -107,12 +116,14 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
       const video = videoRef.current;
       if (!video) {
         finish(null);
+        abandonStream();
         return;
       }
       video.onerror = () => {
         if (settled) return;
         settled = true;
         window.clearTimeout(timer);
+        abandonStream();
         setError("Could not start the camera preview. Please try again.");
         setLoading(false);
       };

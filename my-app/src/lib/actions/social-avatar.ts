@@ -170,14 +170,19 @@ export async function importSocialAvatar(pictureUrl: string): Promise<SocialAvat
   if (!url) return fail("Photo import did not complete. Try uploading one instead.");
 
   const supabase = createServiceClient();
-  const { error } = await supabase
+  // select() so the affected rows come back. Without it PostgREST reports
+  // error: null even when the filter matches nothing, so a user with no profile
+  // row yet would be told the import worked while it was silently discarded.
+  const { data, error } = await supabase
     .from("profiles")
     .update({ avatar_url: url })
-    .eq("auth0_user_id", session.user.sub);
+    .eq("auth0_user_id", session.user.sub)
+    .select("auth0_user_id");
 
-  if (error) {
+  if (error || !data || data.length === 0) {
     logger.error("[social-avatar] Failed to persist the imported avatar", {
       auth0_user_id: session.user.sub,
+      matched_rows: data?.length ?? 0,
     });
     return fail("Could not save that photo. Try uploading one instead.");
   }

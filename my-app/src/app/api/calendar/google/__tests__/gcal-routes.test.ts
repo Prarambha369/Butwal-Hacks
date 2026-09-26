@@ -110,11 +110,53 @@ describe("GET /api/calendar/google/connect", () => {
 // ── GET /api/calendar/google/callback ────────────────────────────────
 
 describe("GET /api/calendar/google/callback", () => {
+  // An earlier describe in this file leaves getSession resolving to null, and
+  // the callback now requires the live session to match the OAuth state, so
+  // each case here sets the account it is exercising.
+  beforeEach(() => {
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|primary" } });
+  });
+
   function stateCookie(value: string) {
     cookieStore.get.mockReturnValue({ value });
   }
 
   const base = "http://localhost:3000/api/calendar/google/callback";
+
+  it("refuses to file the grant when the session changed mid-consent", async () => {
+    // Consent began as auth0|primary; by the time Google redirected back the
+    // browser is signed in as someone else. The state cookie is valid, so
+    // without the session check the grant would land on the wrong account.
+    stateCookie("nonce123:auth0|primary");
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|someone-else" } });
+    (exchangeCode as ReturnType<typeof vi.fn>).mockResolvedValue({
+      access_token: "at",
+      refresh_token: "rt",
+      expires_in: 3600,
+      scope: "s",
+    });
+
+    const { GET } = await import("../callback/route");
+    const res = await GET(get(`${base}?code=abc&state=nonce123`));
+
+    expect(res.status).toBe(307);
+    // The redirect double-encodes, so unwrap both layers before comparing.
+    const location = res.headers.get("location") ?? "";
+    expect(decodeURIComponent(decodeURIComponent(location))).toContain("different account");
+    expect(upsertConnection).not.toHaveBeenCalled();
+    expect(syncUserCalendar).not.toHaveBeenCalled();
+  });
+
+  it("refuses the callback when the session is gone entirely", async () => {
+    stateCookie("nonce123:auth0|primary");
+    mockedGetSession.mockResolvedValue(null);
+
+    const { GET } = await import("../callback/route");
+    const res = await GET(get(`${base}?code=abc&state=nonce123`));
+
+    expect(res.status).toBe(307);
+    expect(upsertConnection).not.toHaveBeenCalled();
+  });
 
   it("deletes the state cookie at the path it was set with", async () => {
     stateCookie("nonce123:auth0|primary");

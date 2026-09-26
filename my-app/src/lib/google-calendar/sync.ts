@@ -129,6 +129,19 @@ export async function syncUserCalendar(
   const failures: SyncOutcome["failures"] = [];
   const logRows: Parameters<typeof appendSyncLog>[0] = [];
 
+  // Disconnect deletes the row, but this sync is already holding a decrypted
+  // access token and would otherwise keep writing events to a calendar the user
+  // just unlinked. Re-read the connection before the first mutation so an
+  // in-flight sync stops rather than finishing against a revoked connection.
+  // This narrows the window to a disconnect that lands mid-loop; closing that
+  // fully would mean a check per event, which is not worth a query each.
+  const stillConnected = await getConnection(auth0UserId);
+  if (!stillConnected) {
+    logger.info("[gcal-sync] Connection disappeared mid-sync; aborting", { auth0UserId });
+    await recordSyncResult({ auth0UserId, googleEventIds: {}, error: "disconnected_mid_sync" });
+    return { ok: false, counts: emptyCounts, fatal: "disconnected", failures: [] };
+  }
+
   for (const item of plan.items) {
     if (item.action === "orphan") {
       // Recorded, never deleted. See plan.ts for why.

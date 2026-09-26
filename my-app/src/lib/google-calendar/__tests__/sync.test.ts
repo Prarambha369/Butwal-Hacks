@@ -103,6 +103,31 @@ beforeEach(() => {
   mockedRecord.mockResolvedValue(undefined);
 });
 
+describe("syncUserCalendar — disconnect during an in-flight sync", () => {
+  it("stops before mutating Google when the connection is gone", async () => {
+    // First read: connected, so the access token gets decrypted. Second read,
+    // after the plan is built: gone, because the user disconnected mid-sync.
+    mockedGetConnection
+      .mockResolvedValueOnce({
+        auth0UserId: "auth0|primary",
+        calendarId: "primary",
+        googleEventIds: {},
+        syncEnabled: true,
+        tokens: { refreshToken: "rt", accessToken: "at", expiresAt: Date.now() + 3_600_000 },
+      })
+      .mockResolvedValueOnce(null);
+    rows.push(eventRow("a"));
+
+    const { syncUserCalendar } = await import("@/lib/google-calendar/sync");
+    const outcome = await syncUserCalendar("auth0|primary");
+
+    expect(outcome.fatal).toBe("disconnected");
+    // Nothing may be written to a calendar the user just unlinked.
+    expect(mockedCreate).not.toHaveBeenCalled();
+    expect(mockedPatch).not.toHaveBeenCalled();
+  });
+});
+
 describe("syncUserCalendar — 409 recovery", () => {
   it("updates in place when the deterministic id already exists on Google", async () => {
     // Disconnect/reconnect: googleEventIds was dropped, so the plan is
