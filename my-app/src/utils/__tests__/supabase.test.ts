@@ -38,4 +38,34 @@ describe("createServiceClient", () => {
     const client = createServiceClient();
     expect(client).toBeDefined();
   });
+
+  it("falls back to the names Vercel's Supabase integration provisions", async () => {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    process.env.SUPABASE_URL = "https://integration.supabase.co";
+    process.env.SUPABASE_SECRET_KEY = "integration-secret";
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { supabaseServerUrl, serviceRoleKey, createServiceClient } = await import(
+      "@/utils/supabase"
+    );
+
+    // Production only has the integration-managed names, so a lookup that
+    // ignored them would silently fall through to the inert client.
+    expect(supabaseServerUrl()).toBe("https://integration.supabase.co");
+    expect(serviceRoleKey()).toBe("integration-secret");
+
+    createServiceClient();
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("prefers the explicit names over the integration fallback", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://explicit.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "explicit-secret";
+    process.env.SUPABASE_URL = "https://integration.supabase.co";
+    process.env.SUPABASE_SECRET_KEY = "integration-secret";
+    const { supabaseServerUrl, serviceRoleKey } = await import("@/utils/supabase");
+    expect(supabaseServerUrl()).toBe("https://explicit.supabase.co");
+    expect(serviceRoleKey()).toBe("explicit-secret");
+  });
 });

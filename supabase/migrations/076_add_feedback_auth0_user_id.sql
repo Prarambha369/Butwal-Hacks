@@ -12,6 +12,7 @@ COMMENT ON COLUMN feedback.auth0_user_id IS 'Auth0 user ID of the submitter (nul
 DROP POLICY IF EXISTS "Maintainers can read feedback" ON feedback;
 
 -- Recreate the maintainer read policy using auth0_user_id
+DROP POLICY IF EXISTS "Maintainers can read feedback" ON feedback;
 CREATE POLICY "Maintainers can read feedback" ON feedback
   FOR SELECT
   USING (

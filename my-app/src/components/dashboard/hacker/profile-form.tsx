@@ -10,9 +10,17 @@ import CameraCapture from '@/components/camera-capture';
 import { useAuthUser } from '@/components/auth-user-provider';
 import { cn, getAvatarUrl } from '@/lib/utils';
 import { getSocialLinkError } from '@/lib/validation';
+import { importSocialAvatar } from '@/lib/actions/social-avatar';
+import { socialProviderFor, type SocialProvider } from '@/lib/social-avatar';
 import AvatarPreviewModal from './avatar-preview-modal';
 
 const BIO_MAX = 500;
+
+const SOCIAL_PROVIDER_LABEL: Record<SocialProvider, string> = {
+  github: 'GitHub',
+  google: 'Google',
+  linkedin: 'LinkedIn',
+};
 
 const inputClass = "w-full bg-background/50 border border-border/30 rounded-lg px-4 py-3 outline-none transition-all duration-200 placeholder:text-muted/50 focus:border-bh-red-500/50 focus:ring-2 focus:ring-bh-red-500/20 hover:border-border/60";
 const inputErrorClass = "border-bh-red-500 focus:ring-2 ring-bh-red-500/50";
@@ -37,11 +45,53 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
+  const [importingPicture, setImportingPicture] = useState(false);
+  const [pictureError, setPictureError] = useState<string | null>(null);
 
   const bhId = initialProfile?.bh_id as string | undefined;
   const fullName = initialProfile?.full_name as string | undefined;
   const auth0UserId = user?.sub;
   const avatarSeed = fullName || bhId || auth0UserId || undefined;
+
+  // Only offer the import when we recognise the provider, so an unexpected
+  // picture host cannot become an upload source.
+  const socialProvider = user?.picture ? socialProviderFor(user.picture) : null;
+  const socialPicture = socialProvider ? (user?.picture as string) : null;
+
+  // The avatar already shows in the round frame above, and provider images can
+  // fail to load in the browser (expired Google URLs, LinkedIn referer rules),
+  // so the button is labelled by provider instead of thumbnailing the picture.
+  const ProviderIcon =
+    socialProvider === 'github' ? Github : socialProvider === 'linkedin' ? Linkedin : Globe;
+
+  /**
+   * Copy the Auth0 social picture into Cloudinary and use it.
+   *
+   * The action returns expected failures as a result rather than throwing,
+   * because Next.js redacts thrown Server Action messages in production. The
+   * catch is therefore only a real bug, and its message is not shown to the
+   * user for that reason.
+   */
+  const handleUseSocialPicture = async () => {
+    if (!socialPicture) return;
+    setImportingPicture(true);
+    setPictureError(null);
+    try {
+      const result = await importSocialAvatar(socialPicture);
+      if (!result.ok) {
+        setPictureError(result.error);
+        toast.error(result.error);
+        return;
+      }
+      setAvatarUrl(result.url);
+      toast.success('Imported your social photo.');
+    } catch {
+      setPictureError('Could not import that photo. Try uploading one instead.');
+      toast.error('Could not import that photo. Try uploading one instead.');
+    } finally {
+      setImportingPicture(false);
+    }
+  };
 
   const bioCharsLeft = BIO_MAX - formData.bio.length;
   const bioOverLimit = formData.bio.length > BIO_MAX;
@@ -148,7 +198,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
             </div>
           </div>
         </button>
-        <div className="flex-1">
+        <div className="flex-1 space-y-3">
           <CloudinaryUpload
             onUpload={handleAvatarChange}
             onOpenCamera={() => setShowCamera(true)}
@@ -158,7 +208,41 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
             entityType="avatar"
             bhId={bhId}
             uploaderAuth0Id={auth0UserId}
+            compact
           />
+
+          {/*
+            Auth0 returns a picture claim for GitHub, Google and LinkedIn
+            logins. It is copied into Cloudinary rather than hotlinked,
+            because Google's URLs are signed and expire within hours.
+          */}
+          {socialPicture && (
+            <button
+              type="button"
+              onClick={handleUseSocialPicture}
+              disabled={importingPicture || avatarSaving}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface/5 hover:bg-surface/10 border border-border/40 text-left transition-colors disabled:opacity-50"
+            >
+              <ProviderIcon className="w-4 h-4 text-secondary shrink-0" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-xs font-semibold text-secondary">
+                  {importingPicture
+                    ? 'Importing photo...'
+                    : `Use my ${socialProvider ? SOCIAL_PROVIDER_LABEL[socialProvider] : 'social'} photo`}
+                </span>
+                <span className="block text-[10px] text-muted-foreground">
+                  Copied to our storage, so it keeps working after you log out
+                </span>
+              </span>
+              {importingPicture && (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-secondary shrink-0" />
+              )}
+            </button>
+          )}
+
+          {pictureError && (
+            <p className="text-[10px] text-primary-red font-medium">{pictureError}</p>
+          )}
         </div>
       </div>
 

@@ -3,7 +3,7 @@
 -- Public reads go through the service-role server action with a static
 -- fallback; RLS deny-by-default like partners/chapters.
 
-CREATE TABLE public.blog_posts (
+CREATE TABLE IF NOT EXISTS public.blog_posts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL,

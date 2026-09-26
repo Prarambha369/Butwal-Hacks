@@ -1,5 +1,6 @@
 "use client";
 
+import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -63,7 +64,7 @@ const toolCatalog: RoleSection[] = [
       {
         name: "My Profile",
         description: "Edit your full name, bio, social links, and avatar to build your public hacker identity.",
-        href: "/dashboard/hacker/profile",
+        href: PROFILE_SETTINGS_PATH,
         icon: <User className="w-4 h-4" />,
         purpose: "Your profile shows who you are. Complete it to connect with the community.",
         howTo: "Fill in your bio, add GitHub/Twitter/LinkedIn links, and upload an avatar. A complete profile unlocks onboarding step 1.",

@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({
 
 const mockLinks: DashboardNavItem[] = [
   { href: "/dashboard/hacker", label: "Overview", shortcut: "h", icon: <span data-testid="icon-overview" /> },
-  { href: "/dashboard/hacker/profile", label: "My Profile", shortcut: "r", icon: <span data-testid="icon-profile" /> },
+  { href: "/dashboard/profile", label: "My Profile", shortcut: "r", icon: <span data-testid="icon-profile" /> },
   { href: "/dashboard/hacker/work", label: "Work", shortcut: "w", icon: <span data-testid="icon-work" /> },
   { href: "/dashboard/hacker/projects", label: "Projects", shortcut: "p", icon: <span data-testid="icon-projects" /> },
 ];
@@ -136,7 +136,7 @@ describe("DashboardCommandPalette", () => {
     fireEvent.keyDown(input, { key: "ArrowDown" });
     fireEvent.keyDown(input, { key: "Enter" });
 
-    expect(mockPush).toHaveBeenCalledWith("/dashboard/hacker/profile");
+    expect(mockPush).toHaveBeenCalledWith("/dashboard/profile");
   });
 
   it("navigates up with ArrowUp and selects with Enter", () => {

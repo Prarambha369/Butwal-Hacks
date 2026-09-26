@@ -34,6 +34,18 @@ interface CloudinaryUploadProps {
   // When set, opens the crop dialog for this file (used by CameraCapture)
   externalFile?: File | null;
   onOpenCamera?: () => void;
+
+  /**
+   * Compact mode: actions only, no image preview.
+   *
+   * For callers that already render the image themselves — the profile avatar
+   * shows it in a round frame — the default layout duplicates the picture and
+   * adds a second, competing remove control. Compact also keeps Upload and
+   * Camera reachable once an image exists, which the default layout does not:
+   * both live in the no-image branch, so a user with an existing image could
+   * only remove it and never replace it.
+   */
+  compact?: boolean;
 }
 
 interface UploadProgress {
@@ -138,6 +150,7 @@ export function CloudinaryUpload({
   uploaderAuth0Id,
   externalFile,
   onOpenCamera,
+  compact = false,
 }: CloudinaryUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -246,7 +259,7 @@ export function CloudinaryUpload({
   return (
     <div className="space-y-2">
       <input ref={inputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-      {currentImage ? (
+      {currentImage && !compact ? (
         <div className="relative w-full h-32 rounded-xl overflow-hidden border border-border">
           <Image src={currentImage} alt="Uploaded" fill className="object-cover" />
           <button
@@ -263,22 +276,91 @@ export function CloudinaryUpload({
             </div>
           )}
         </div>
-      ) : (
-        <div className="flex gap-2">
+      ) : compact ? (
+        /* Actions only: the caller already renders the image. Upload and
+           Camera stay reachable whether or not an image is set, unlike the
+           default layout where both are inside the no-image branch. */
+        <>
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            disabled={uploading}
             onClick={() => inputRef.current?.click()}
-            className={cn(
-              "flex-1 h-32 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2",
-              "text-secondary hover:text-primary hover:border-primary-red/50 transition-all",
-              uploading && "opacity-50 cursor-not-allowed",
-            )}
+            disabled={uploading}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-surface/10 hover:bg-surface/20 text-secondary text-xs font-medium transition-colors disabled:opacity-50"
           >
             {uploading ? (
-              <div className="flex flex-col items-center gap-2 w-full px-6">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Upload className="w-3.5 h-3.5" />
+            )}
+            {uploading
+              ? `Uploading ${uploadProgress}%`
+              : currentImage
+                ? "Replace photo"
+                : label}
+          </button>
+
+          {onOpenCamera && !uploading && (
+            <button
+              type="button"
+              onClick={onOpenCamera}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-surface/10 hover:bg-surface/20 text-secondary text-xs font-medium transition-colors"
+              aria-label="Take a photo"
+              title="Take a photo"
+            >
+              <Camera className="w-3.5 h-3.5" /> Camera
+            </button>
+          )}
+
+          {currentImage && !uploading && (
+            <button
+              type="button"
+              onClick={() => onUpload?.("")}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-surface/5 hover:bg-primary-red/10 text-secondary hover:text-primary-red text-xs font-medium transition-colors"
+              aria-label="Remove photo"
+            >
+              <X className="w-3.5 h-3.5" /> Remove
+            </button>
+          )}
+        </div>
+
+        {uploadError && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-primary-red font-medium">{uploadError}</span>
+            <button
+              type="button"
+              onClick={handleRetry}
+              className="px-2.5 py-1 rounded-lg bg-bh-red-600 hover:bg-primary-red text-primary text-[10px] font-bold transition-all inline-flex items-center gap-1"
+            >
+              <RefreshCw className="w-3 h-3" /> Retry
+            </button>
+            <button
+              type="button"
+              onClick={handleDismissError}
+              className="px-2.5 py-1 rounded-lg bg-surface/10 hover:bg-surface/20 text-secondary text-[10px] font-medium transition-all"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+        </>
+      ) : (
+        <div className="flex gap-2">
+          {/*
+            The shell is a plain div, not a button. It used to be a <button>
+            that contained the Cancel / Retry / Cancel buttons, and nested
+            interactive elements are invalid HTML: the parser closes the outer
+            <button> at the first inner one, so the DOM the browser builds
+            differs from the React tree and hydration breaks.
+            The idle affordance is now its own button filling the same box.
+          */}
+          <div className="flex-1 h-32 rounded-xl border-2 border-dashed border-border relative">
+            {uploading ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                 <Loader2 className="w-6 h-6 animate-spin" />
-                <span className="text-xs font-medium">Uploading {uploadProgress}%</span>
+                <span className="text-xs font-medium text-secondary">
+                  Uploading {uploadProgress}%
+                </span>
                 {uploadSpeed > 0 && (
                   <span className="text-[10px] font-mono text-secondary">
                     {uploadSpeed < 1000
@@ -286,7 +368,7 @@ export function CloudinaryUpload({
                       : `${(uploadSpeed / 1024).toFixed(1)} MB/s`}
                   </span>
                 )}
-                <div className="w-full h-1.5 rounded-full bg-surface/10 overflow-hidden">
+                <div className="w-full max-w-[220px] h-1.5 rounded-full bg-surface/10 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-bh-red-500 transition-all duration-200 ease-out"
                     style={{ width: `${uploadProgress}%` }}
@@ -301,11 +383,13 @@ export function CloudinaryUpload({
                 </button>
               </div>
             ) : uploadError ? (
-              <div className="flex flex-col items-center gap-2 w-full px-6">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6">
                 <div className="w-8 h-8 rounded-full bg-primary-red/20 flex items-center justify-center">
                   <X className="w-4 h-4 text-primary-red" />
                 </div>
-                <span className="text-xs text-primary-red font-medium text-center max-w-[200px]">{uploadError}</span>
+                <span className="text-xs text-primary-red font-medium text-center max-w-[200px]">
+                  {uploadError}
+                </span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -324,15 +408,23 @@ export function CloudinaryUpload({
                 </div>
               </div>
             ) : (
-              <>
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                className={cn(
+                  "absolute inset-0 rounded-xl flex flex-col items-center justify-center gap-2",
+                  "text-secondary hover:text-primary hover:border-primary-red/50 transition-all",
+                )}
+              >
                 <Upload className="w-6 h-6" />
                 <span className="text-xs font-medium">{label}</span>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface/10 border border-border text-[10px] text-secondary font-mono">
-                  <CropIcon className="w-3 h-3" /> {entityType === "avatar" ? "1:1" : "16:9"} — crop after select
+                  <CropIcon className="w-3 h-3" />{" "}
+                  {entityType === "avatar" ? "1:1" : "16:9"} — crop after select
                 </span>
-              </>
+              </button>
             )}
-          </button>
+          </div>
 
           {/* Camera button - available only when no current image and not uploading */}
           {!uploading && !uploadError && onOpenCamera && (

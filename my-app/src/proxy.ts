@@ -60,6 +60,10 @@ const SHARED_PREFIXES = [
 ];
 
 // ─── Host detection helpers ───────────────────────────────────────────
+/**
+ * Whether a hostname serves the public marketing site.
+ * These paths stay indexable and unauthenticated.
+ */
 function isMarketingHost(hostname: string): boolean {
   return (
     hostname === "localhost" ||
@@ -68,6 +72,7 @@ function isMarketingHost(hostname: string): boolean {
   );
 }
 
+/** Whether a hostname serves the authenticated app (dashboards, profiles, APIs). */
 function isAppHost(hostname: string): boolean {
   return (
     hostname === "app.localhost" ||
@@ -75,10 +80,34 @@ function isAppHost(hostname: string): boolean {
   );
 }
 
+/**
+ * The calendar subdomain.
+ *
+ * Without an explicit rule this host matched neither isMarketingHost nor
+ * isAppHost and fell through to the final `NextResponse.next()`, serving
+ * every path on the subdomain with no authentication at all. Naming it here
+ * means the whole host requires a signed-in user.
+ */
+function isCalendarHost(hostname: string): boolean {
+  return (
+    hostname === "calendar.localhost" ||
+    hostname === "calendar.butwalhacks.com"
+  );
+}
+
+/**
+ * Match a pathname against a list of prefixes, boundary-safe.
+ *
+ * Compares the full path and then a trailing-slash prefix, so "/dashboard"
+ * does not match "/dashboard/" while "/dashboard/hacker" does. Exact roots
+ * must be listed without a trailing slash (see the bare "/dashboard"
+ * checks in `proxy`).
+ */
 function isRouteInSet(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(p));
 }
 
+/** Match a pathname against a set of exact routes, with no prefix semantics. */
 function isExactRouteMatch(pathname: string, routeSet: Set<string>): boolean {
   return routeSet.has(pathname);
 }
@@ -169,12 +198,25 @@ export async function proxy(request: NextRequest) {
     return requireRole(request, pathname, ["sponsor", "recruiter", "organizer", "maintainer"]);
   }
 
+  // ── Step 2b: Calendar subdomain ─────────────────────────────────
+  // Google Calendar sync is per-user and every route under it touches that
+  // user's credentials, so the entire host is authenticated. Checked before
+  // the app-host block because calendar.* is not an app host.
+  if (isCalendarHost(hostname)) {
+    if (pathname.startsWith("/_next/") || pathname.startsWith("/auth/")) {
+      return NextResponse.next();
+    }
+    return requireAnyAuth(request, pathname);
+  }
+
   // ── Step 3: App domain routing ─────────────────────────────
   if (isAppHost(hostname)) {
     // Routes explicitly allowed on app domain
-    if (isRouteInSet(pathname, APP_PREFIXES)) {
+    // (bare /dashboard needs an exact match — APP_PREFIXES only holds "/dashboard/")
+    if (pathname === "/dashboard" || isRouteInSet(pathname, APP_PREFIXES)) {
       // Protect dashboard routes with role-based access
-      if (pathname.startsWith("/dashboard/") || pathname.startsWith("/portal/")) {
+      // (bare /dashboard included — it renders the hub, not a redirect)
+      if (pathname === "/dashboard" || pathname.startsWith("/dashboard/") || pathname.startsWith("/portal/")) {
         return requireRoleByPath(request, pathname);
       }
 
@@ -206,7 +248,8 @@ export async function proxy(request: NextRequest) {
     }
 
     // Check if this is an app route hitting the marketing domain → redirect to app
-    if (isRouteInSet(pathname, APP_PREFIXES)) {
+    // (bare /dashboard included — it lives on the app subdomain)
+    if (pathname === "/dashboard" || isRouteInSet(pathname, APP_PREFIXES)) {
       return redirectToDomain(request, "app");
     }
 
@@ -314,7 +357,8 @@ export async function requireRoleByPath(
     return requireRole(request, pathname, ["sponsor", "maintainer"]);
   }
   // /dashboard/hacker and /dashboard/* — require any authenticated user
-  if (pathname.startsWith("/dashboard/")) {
+  // (bare /dashboard hub included)
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
     return requireAnyAuth(request, pathname);
   }
   return NextResponse.next();
@@ -357,6 +401,7 @@ export function redirectToDomain(request: NextRequest, target: "main" | "app"): 
 /** In local development, let all routes pass through without subdomain enforcement. */
 export async function handleLocalDev(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
+  const hostname = request.headers.get("host")?.split(":")[0] ?? "";
 
   // Auth0 middleware for auth routes
   if (pathname.startsWith("/auth/")) {
@@ -364,7 +409,8 @@ export async function handleLocalDev(request: NextRequest): Promise<NextResponse
   }
 
   // Protect dashboard routes with role-based access (even in dev)
-  if (pathname.startsWith("/dashboard/")) {
+  // (bare /dashboard included — it renders the hub, not a redirect)
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
     return requireRoleByPath(request, pathname);
   }
 
@@ -375,6 +421,15 @@ export async function handleLocalDev(request: NextRequest): Promise<NextResponse
 
   // Protect /orgs/* routes (requires any authenticated user in dev too)
   if (pathname.startsWith("/orgs/")) {
+    return requireAnyAuth(request, pathname);
+  }
+
+  // calendar.localhost: require auth for everything except Next internals,
+  // mirroring the production calendar-host rule.
+  if (isCalendarHost(hostname)) {
+    if (pathname.startsWith("/_next/")) {
+      return NextResponse.next();
+    }
     return requireAnyAuth(request, pathname);
   }
 

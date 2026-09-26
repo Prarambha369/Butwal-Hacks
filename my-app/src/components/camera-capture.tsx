@@ -23,18 +23,78 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+  // Generation counter: retry/timeout/flip can overlap async getUserMedia
+  // calls — only the latest generation may touch the video element or state.
+  // Stale generations stop their stream instead of leaking it.
+  const generationRef = useRef(0);
 
   // Request camera access
   const startCamera = useCallback(async (facing: "user" | "environment") => {
+    const generation = ++generationRef.current;
+    const isStale = () => generation !== generationRef.current;
+    const stopStream = (stream: MediaStream | null) => {
+      stream?.getTracks().forEach((t) => t.stop());
+    };
+
+    // Give up on the preview: stop the camera and detach it. Without this the
+    // track stays live until Retry or close, so the indicator light stays on
+    // with nothing on screen.
+    const abandonStream = () => {
+      stopStream(streamRef.current);
+      streamRef.current = null;
+      if (videoRef.current) videoRef.current.srcObject = null;
+    };
+
     setLoading(true);
     setError(null);
 
     // Clean up previous stream
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-    }
+    stopStream(streamRef.current);
+    streamRef.current = null;
+
+    // Guard: onloadedmetadata can fire before we attach the handler on fast
+    // devices (leaving the UI stuck on "Accessing camera..."), so watch for
+    // readiness explicitly and time out instead of spinning forever.
+    let settled = false;
+    const finish = (video: HTMLVideoElement | null) => {
+      if (settled || isStale()) return;
+      settled = true;
+      window.clearTimeout(timer);
+      if (video) {
+        video.onloadedmetadata = null;
+        video.onerror = null;
+        video.play()?.catch(() => {
+          // Autoplay block — user can still tap capture once frames flow.
+        });
+      }
+      setLoading(false);
+    };
+    const timer = window.setTimeout(() => {
+      if (!settled && !isStale()) {
+        settled = true;
+        // Invalidate any still-pending getUserMedia so its late resolution
+        // stops its stream instead of hijacking the preview.
+        generationRef.current++;
+        // getUserMedia can resolve before metadata arrives, in which case
+        // streamRef already holds a live stream. Invalidating the generation
+        // alone would leave the camera light on until Retry or close, so stop
+        // the tracks and detach the element here too.
+        stopStream(streamRef.current);
+        streamRef.current = null;
+        if (videoRef.current) {
+          videoRef.current.onloadedmetadata = null;
+          videoRef.current.onerror = null;
+          videoRef.current.srcObject = null;
+        }
+        setError("Camera is taking too long to start. Please try again.");
+        setLoading(false);
+      }
+    }, 12_000);
 
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new DOMException("Unsupported", "NotSupportedError");
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: facing,
@@ -44,23 +104,47 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
         audio: false,
       });
 
+      // A newer startCamera call (retry/flip/timeout) superseded this one —
+      // stop the orphan stream instead of assigning it to the preview.
+      if (isStale()) {
+        stopStream(stream);
+        return;
+      }
+
       streamRef.current = stream;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        // Wait for video to be ready before removing loading state
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-          setLoading(false);
-        };
+      const video = videoRef.current;
+      if (!video) {
+        finish(null);
+        abandonStream();
+        return;
+      }
+      video.onerror = () => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        abandonStream();
+        setError("Could not start the camera preview. Please try again.");
+        setLoading(false);
+      };
+      video.srcObject = stream;
+      if (video.readyState >= 1) {
+        finish(video);
+      } else {
+        video.onloadedmetadata = () => finish(video);
       }
     } catch (err) {
+      if (isStale()) return;
+      window.clearTimeout(timer);
+      settled = true;
       const message =
         err instanceof DOMException && err.name === "NotAllowedError"
           ? "Camera access denied. Please allow camera permissions in your browser settings."
           : err instanceof DOMException && err.name === "NotFoundError"
             ? "No camera found on this device."
-            : "Could not access the camera. Please check your permissions.";
+            : err instanceof DOMException && err.name === "NotSupportedError"
+              ? "This browser does not support camera capture. Please upload a photo instead."
+              : "Could not access the camera. Please check your permissions.";
       setError(message);
       setLoading(false);
     }
@@ -69,8 +153,12 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
   useEffect(() => {
     startCamera(facingMode);
     return () => {
+      // Invalidate any in-flight request so its late resolution can't
+      // setState on the unmounted modal or leak its stream.
+      generationRef.current++;
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       }
     };
   }, [startCamera, facingMode]);
@@ -79,6 +167,12 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
+
+    // Video not ready yet (0x0) — capturing now would produce a black image.
+    if (!video.videoWidth || !video.videoHeight) {
+      setError("Camera is still starting up. Please wait a moment and try again.");
+      return;
+    }
 
     // Match canvas size to the video's intrinsic dimensions
     canvas.width = video.videoWidth;

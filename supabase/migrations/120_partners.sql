@@ -5,7 +5,7 @@
 -- RLS enabled with NO anon/authenticated policies (deny-by-default, see
 -- 116): all reads go through the service-role server action.
 
-CREATE TABLE public.partners (
+CREATE TABLE IF NOT EXISTS public.partners (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   logo_url TEXT,

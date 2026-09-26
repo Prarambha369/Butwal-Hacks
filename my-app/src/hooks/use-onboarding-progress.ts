@@ -1,5 +1,6 @@
 "use client";
 
+import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 
 
 type Profile = {
@@ -31,7 +32,7 @@ const STEP_DEFINITIONS: Pick<
     title: "Complete Your Profile",
     description:
       "Add your name, bio, and social links so the community knows who you are.",
-    href: "/dashboard/hacker/profile",
+    href: PROFILE_SETTINGS_PATH,
     cta: "Set up profile",
   },
   {

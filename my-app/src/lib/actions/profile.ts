@@ -5,6 +5,7 @@ import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import { sanitizeString, normalizeSocialUrl } from "@/lib/validation";
 import { auth0 } from "@/lib/auth0";
+import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 
 export async function updateProfile(userId: string, updates: { 
   full_name?: string; 
@@ -52,8 +53,7 @@ export async function updateProfile(userId: string, updates: {
     throw new Error('Failed to update profile');
   }
 
-  revalidatePath('/dashboard/hacker/profile');
-  revalidatePath(`/profile/${userId}`);
+  revalidatePath(PROFILE_SETTINGS_PATH);
   return { success: true };
 }
 

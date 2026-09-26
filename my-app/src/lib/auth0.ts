@@ -1,4 +1,5 @@
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
+import { sharedCookieDomain } from "@/lib/cookie-domain";
 
 export const auth0 = new Auth0Client({
   domain: process.env.AUTH0_DOMAIN!,
@@ -8,4 +9,9 @@ export const auth0 = new Auth0Client({
   // SDK v4 renamed AUTH0_BASE_URL to APP_BASE_URL; accept both so the
   // official quickstart env block works unchanged.
   appBaseUrl: process.env.APP_BASE_URL ?? process.env.AUTH0_BASE_URL,
+  session: {
+    cookie: {
+      domain: sharedCookieDomain(),
+    },
+  },
 });

@@ -33,20 +33,25 @@ ALTER TABLE chapters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE chapter_members ENABLE ROW LEVEL SECURITY;
 
 -- RLS: Public can read chapters
+DROP POLICY IF EXISTS "Public can read chapters" ON chapters;
 CREATE POLICY "Public can read chapters" ON chapters FOR SELECT USING (true);
 
 -- RLS: Public can read chapter members
+DROP POLICY IF EXISTS "Public can read chapter members" ON chapter_members;
 CREATE POLICY "Public can read chapter members" ON chapter_members FOR SELECT USING (true);
 
 -- RLS: Users can join chapters (self-service)
+DROP POLICY IF EXISTS "Users can join chapters" ON chapter_members;
 CREATE POLICY "Users can join chapters" ON chapter_members FOR INSERT 
   WITH CHECK (auth.jwt() ->> 'sub' IS NOT NULL);
 
 -- RLS: Chapter admins can update chapter details
+DROP POLICY IF EXISTS "Admins can update chapters" ON chapters;
 CREATE POLICY "Admins can update chapters" ON chapters FOR UPDATE 
   USING (auth.jwt() ->> 'org_role' = 'admin');
 
 -- RLS: Chapter admins can manage members
+DROP POLICY IF EXISTS "Admins can manage members" ON chapter_members;
 CREATE POLICY "Admins can manage members" ON chapter_members FOR ALL
   USING (auth.jwt() ->> 'org_role' = 'admin');
 

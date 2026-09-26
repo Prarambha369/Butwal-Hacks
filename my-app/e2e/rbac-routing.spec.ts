@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 /**
  * E2E tests for the proxy middleware's RBAC and subdomain routing.
@@ -42,6 +42,16 @@ test.describe("Middleware — Auth Redirects (unauthenticated)", () => {
 
   test("/dashboard/hacker/profile redirects to /auth/login", async ({ request }) => {
     const response = await request.get("/dashboard/hacker/profile", { maxRedirects: 0 });
+    expect(response.status()).toBe(307);
+    const location = response.headers()["location"] || "";
+    expect(location).toContain("/auth/login");
+  });
+
+  // The role-neutral alias must be guarded too. It is the path every link now
+  // points at, so an open route here would expose profile settings to
+  // anonymous visitors.
+  test("/dashboard/profile redirects to /auth/login", async ({ request }) => {
+    const response = await request.get("/dashboard/profile", { maxRedirects: 0 });
     expect(response.status()).toBe(307);
     const location = response.headers()["location"] || "";
     expect(location).toContain("/auth/login");

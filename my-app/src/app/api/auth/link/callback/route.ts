@@ -2,16 +2,26 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createServiceClient } from "@/utils/supabase";
+import { describeSupabaseError } from "@/lib/supabase-error";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { logger } from "@/lib/logger";
 import {
   exchangeCodeForTokens,
   linkIdentity,
   getProviderDisplayName,
+  identitySubject,
+  subjectToUserId,
+  Auth0UserError,
 } from "@/lib/auth0-management";
-import type { LinkedAccount } from "@/lib/auth0-management";
-
-const LINK_STATE_COOKIE = "bh_link_state";
+import type { LinkedAccount } from "@/lib/auth0-providers";
+import {
+  LINK_STATE_COOKIE,
+  LINK_RETURN_PATH,
+  appBaseUrl,
+  linkResultRedirect,
+  linkStateCookieDeleteOptions,
+  parseLinkState,
+} from "@/lib/auth0-link-state";
 
 /**
  * GET /api/auth/link/callback
@@ -22,8 +32,8 @@ const LINK_STATE_COOKIE = "bh_link_state";
  * syncs the linked accounts to Supabase.
  *
  * Query params: code, state
- * Redirects to: /dashboard/hacker/profile?linked=success:PROVIDER
- *               or /dashboard/hacker/profile?linked=error:MESSAGE
+ * Redirects to: LINK_RETURN_PATH?linked=success:PROVIDER
+ *               or LINK_RETURN_PATH?linked=error:MESSAGE
  */
 export const GET = withRateLimit(async (request: Request) => {
   const { searchParams } = new URL(request.url);
@@ -38,16 +48,16 @@ export const GET = withRateLimit(async (request: Request) => {
       error: errorParam,
       description: errorDescription,
     });
-    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
-    redirectUrl.searchParams.set("linked", `error:${encodeURIComponent(errorDescription || "Authentication was cancelled or failed")}`);
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(
+      linkResultRedirect("error", errorDescription || "Authentication was cancelled or failed.")
+    );
   }
 
   if (!code || !returnedState) {
     logger.warn("[auth/link/callback] Missing code or state");
-    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
-    redirectUrl.searchParams.set("linked", "error:Missing+authorization+parameters");
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(
+      linkResultRedirect("error", "Missing authorization parameters. Please try again.")
+    );
   }
 
   try {
@@ -57,45 +67,61 @@ export const GET = withRateLimit(async (request: Request) => {
 
     if (!storedState) {
       logger.warn("[auth/link/callback] No stored state cookie - possible CSRF or expired link");
-      const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
-      redirectUrl.searchParams.set("linked", "error:Link+request+expired.+Please+try+again");
-      return NextResponse.redirect(redirectUrl);
+      return NextResponse.redirect(
+        linkResultRedirect("error", "Link request expired. Please try again.")
+      );
     }
 
-    // Parse state: nonce:primaryUserId:provider
-    const stateParts = storedState.split(":");
-    if (stateParts.length < 3) {
+    const state = parseLinkState(storedState);
+    if (!state) {
       logger.warn("[auth/link/callback] Malformed state cookie");
-      const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
-      redirectUrl.searchParams.set("linked", "error:Invalid+link+state.+Please+try+again");
-      return NextResponse.redirect(redirectUrl);
+      return NextResponse.redirect(
+        linkResultRedirect("error", "Invalid link state. Please try again.")
+      );
     }
 
-    const primaryUserId = stateParts[1];
-    const provider = stateParts.slice(2).join(":"); // provider might contain colons
-
-    // Verify the returned state matches (nonce comparison)
+    // Verify the returned state matches exactly (CSRF check)
     if (returnedState !== storedState) {
       logger.warn("[auth/link/callback] State mismatch - possible CSRF");
-      const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
-      redirectUrl.searchParams.set("linked", "error:Security+check+failed.+Please+try+again");
-      return NextResponse.redirect(redirectUrl);
+      return NextResponse.redirect(
+        linkResultRedirect("error", "Security check failed. Please try again.")
+      );
     }
 
-    // Clean up the state cookie
-    cookieStore.delete(LINK_STATE_COOKIE);
+    const { primaryUserId, provider } = state;
+
+    // Clear the state cookie using the SAME path it was set with. Deleting
+    // without the path silently no-ops on a path-scoped cookie, which left the
+    // state replayable for the rest of its 10-minute window.
+    cookieStore.delete(linkStateCookieDeleteOptions());
 
     // Exchange the authorization code for tokens
-    const baseUrl = process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    const redirectUri = `${baseUrl}/api/auth/link/callback`;
+    const redirectUri = `${appBaseUrl()}/api/auth/link/callback`;
     const tokens = await exchangeCodeForTokens(code, redirectUri);
 
-    // Decode the ID token to get secondary user info (just extract the payload)
+    // Decode the ID token to get secondary user info.
+    // Signature is not verified here on purpose: the token was just received
+    // over TLS directly from Auth0's token endpoint, and we only read claims
+    // that Auth0 itself then re-validates when we present it to /identities.
     const idTokenPayload = decodeJwtPayload(tokens.id_token);
-    const secondaryUserId = idTokenPayload["sub"] as string | undefined;
+    const secondarySub = idTokenPayload["sub"];
 
-    if (!secondaryUserId) {
-      throw new Error("Could not extract user ID from secondary identity token");
+    if (typeof secondarySub !== "string" || !secondarySub) {
+      throw new Error("Could not read the user ID from the provider's token.");
+    }
+
+    // Auth0 can link by email on its own when the tenant has automatic account
+    // linking enabled for the connection. In that case the token belongs to
+    // the primary user already and POSTing it to /identities would fail with
+    // "already linked". Detect that and report success instead of an error.
+    if (secondarySub === primaryUserId) {
+      logger.info("[auth/link/callback] Identity already attached to this user", {
+        primaryUserId,
+        provider,
+      });
+      return NextResponse.redirect(
+        linkResultRedirect("success", getProviderDisplayName(provider))
+      );
     }
 
     // Link the identities via Auth0 Management API
@@ -104,108 +130,119 @@ export const GET = withRateLimit(async (request: Request) => {
     // Sync linked accounts to Supabase profile
     const supabase = createServiceClient();
 
-    // Get current linked accounts AND existing socials
-    const { data: profile } = await supabase
+    const { data: profile, error: profileReadError } = await supabase
       .from("profiles")
       .select("linked_accounts, socials")
       .eq("auth0_user_id", primaryUserId)
       .single();
 
-    const existingLinked: LinkedAccount[] = (profile?.linked_accounts as LinkedAccount[]) ?? [];
-    const existingSocials = (profile?.socials as Record<string, string> | null) ?? {};
+    if (profileReadError) {
+      const { diagnostic, userMessage } = describeSupabaseError(profileReadError);
+      logger.error(`[auth/link/callback] Profile read failed: ${diagnostic}`);
+      return NextResponse.redirect(linkResultRedirect("error", userMessage));
+    }
 
-    // Extract nickname from the ID token
+    const existingLinked: LinkedAccount[] =
+      (profile?.linked_accounts as LinkedAccount[]) ?? [];
+    const existingSocials: Record<string, string> =
+      (profile?.socials as Record<string, string> | null) ?? {};
+
     const nickname = (idTokenPayload["nickname"] as string | null) ?? null;
 
-    // Add new linked account
     const newLinkedAccount: LinkedAccount = {
       provider,
       connection: provider,
-      user_id: secondaryUserId.replace(`${provider}|`, ""),
+      user_id: subjectToUserId(secondarySub),
       email: (idTokenPayload["email"] as string | null) ?? null,
       name: (idTokenPayload["name"] as string | null) ?? nickname ?? null,
       linked_at: new Date().toISOString(),
     };
 
-    // Avoid duplicates
+    // Replace any existing entry for this provider+user so re-linking is idempotent
     const updatedLinked = existingLinked.filter(
       (l) => !(l.provider === provider && l.user_id === newLinkedAccount.user_id)
     );
     updatedLinked.push(newLinkedAccount);
 
-    // Auto-populate social URL from linked identity (only if field is empty)
     const profileUpdate: Record<string, unknown> = {
       linked_accounts: JSON.parse(JSON.stringify(updatedLinked)),
     };
 
+    // Auto-populate social URL from the linked identity (only if field is empty)
     if (provider === "github" && nickname && !existingSocials["github"]) {
-      const githubUrl = `https://github.com/${nickname}`;
-      existingSocials["github"] = githubUrl;
+      existingSocials["github"] = `https://github.com/${nickname}`;
       profileUpdate["socials"] = existingSocials;
-      logger.info("[auth/link/callback] Auto-populated GitHub URL", {
-        url: githubUrl,
-      });
     }
 
     if (provider === "linkedin" && nickname && !existingSocials["linkedin"]) {
       // LinkedIn's ID token provides a numeric ID, not the vanity URL name.
       // Skip auto-population if the nickname is purely numeric (dead link).
       if (!/^\d+$/.test(nickname)) {
-        const linkedinUrl = `https://linkedin.com/in/${nickname}`;
-        existingSocials["linkedin"] = linkedinUrl;
+        existingSocials["linkedin"] = `https://linkedin.com/in/${nickname}`;
         profileUpdate["socials"] = existingSocials;
-        logger.info("[auth/link/callback] Auto-populated LinkedIn URL", {
-          url: linkedinUrl,
-        });
       } else {
-        logger.info("[auth/link/callback] Skipped LinkedIn auto-population (numeric ID)", {
-          nickname,
-        });
+        logger.info("[auth/link/callback] Skipped LinkedIn auto-population (numeric ID)");
       }
     }
 
-    await supabase
+    // This update's error was previously discarded, so a failed cache sync
+    // looked like a successful link and the row silently drifted.
+    const { error: profileUpdateError } = await supabase
       .from("profiles")
       .update(profileUpdate)
       .eq("auth0_user_id", primaryUserId);
 
-    // Revalidate the profile page so the new URL shows immediately
-    revalidatePath("/dashboard/hacker/profile");
+    if (profileUpdateError) {
+      const { diagnostic } = describeSupabaseError(profileUpdateError);
+      logger.error(`[auth/link/callback] Profile cache sync failed: ${diagnostic}`);
+      // The Auth0 link itself succeeded, so tell the user that specifically.
+      return NextResponse.redirect(
+        linkResultRedirect(
+          "error",
+          "Your account was connected, but saving it to your profile failed. Please contact a maintainer."
+        )
+      );
+    }
 
-    const displayName = getProviderDisplayName(provider);
+    revalidatePath(LINK_RETURN_PATH);
+
     logger.info("[auth/link/callback] Account linked successfully", {
       primaryUserId,
       provider,
-      auto_populated_url: !!nickname,
+      autoPopulatedUrl: Object.keys(profileUpdate).includes("socials"),
     });
 
-    // Redirect back to profile with success
-    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
-    redirectUrl.searchParams.set("linked", `success:${displayName}`);
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(
+      linkResultRedirect("success", getProviderDisplayName(provider))
+    );
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to link account";
+    // The message goes into a redirect URL the browser renders, so only
+    // surface text that was explicitly marked as user-facing. Anything else
+    // (config problems, upstream Auth0 errors) could leak internals.
+    const message =
+      err instanceof Auth0UserError
+        ? err.message
+        : "Failed to link account. Please try again.";
     logger.error("[auth/link/callback] Error:", err);
-
-    const redirectUrl = new URL("/dashboard/hacker/profile", process.env.APP_BASE_URL || process.env.AUTH0_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
-    redirectUrl.searchParams.set("linked", `error:${encodeURIComponent(message)}`);
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(linkResultRedirect("error", message));
   }
-}, "sensitive")
+}, "sensitive");
 
 /**
  * Decode the payload of a JWT without verifying the signature.
- * Used to extract the secondary user's info from the ID token.
+ * Used to read the secondary user's claims from the ID token.
  */
 function decodeJwtPayload(token: string): Record<string, unknown> {
   const parts = token.split(".");
   if (parts.length !== 3) {
-    throw new Error("Invalid JWT format");
+    throw new Error("Invalid token format.");
   }
   try {
     const payload = Buffer.from(parts[1], "base64url").toString("utf8");
-    return JSON.parse(payload);
+    return JSON.parse(payload) as Record<string, unknown>;
   } catch {
-    throw new Error("Failed to decode JWT payload");
+    throw new Error("Failed to read the provider's token.");
   }
 }
+
+export { identitySubject };
