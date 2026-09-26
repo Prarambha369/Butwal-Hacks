@@ -14,6 +14,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import { APP_URL } from "@/lib/constants";
 
+/**
+ * Switches the active locale (English/Nepali).
+ *
+ * Renders placeholder text until mounted, because the persisted locale is
+ * only readable on the client and a server render would flash the wrong
+ * language.
+ */
 function LanguageToggle() {
   const { locale, setLocale } = useLanguage();
   const [mounted, setMounted] = useState(false);
@@ -128,6 +135,13 @@ function UserMenu({ name, email, picture, locale }: { name?: string; email?: str
   );
 }
 
+/**
+ * Site header.
+ *
+ * Signed-out visitors get Sign in / Sign up; signed-in users get the
+ * avatar UserMenu on both desktop and mobile. All labels go through `t()`
+ * so the Nepali locale is honoured.
+ */
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);

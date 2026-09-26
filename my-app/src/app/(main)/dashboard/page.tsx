@@ -15,6 +15,13 @@ import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata = { ...buildPageMetadata({title: "Dashboard", description: "Your Butwal Hacks dashboard overview", path: "/dashboard", keywords: []}), robots: { index: false, follow: false } };
 
+/**
+ * Role-aware dashboard hub at the bare /dashboard path.
+ *
+ * Redirects to sign-in without a session. Middleware already guards this
+ * route, but the redirect is repeated here so the page can never render
+ * blank if the proxy is ever bypassed.
+ */
 export default async function DashboardHubPage() {
   const session = await auth0.getSession();
   const userId = session?.user?.sub;

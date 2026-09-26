@@ -39,6 +39,12 @@ interface RoleSelectorProps {
 
 export const ROLE_SELECTED_KEY = "bh:role-selected";
 
+/**
+ * First-run role picker, plus the email-verification notice.
+ *
+ * The verification banner renders independently of the role gate so an
+ * established but unverified user is still told to check their inbox.
+ */
 export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

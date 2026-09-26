@@ -12,6 +12,11 @@ import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata = buildPageMetadata({title: "Sign In", description: "Welcome back. Sign in to your free Butwal Hacks account.", path: "/sign-in", keywords: []});
 
+/**
+ * Sign-in page. Defaults `returnTo` to the onboarding hub so a user who
+ * followed a protected link still lands where they were headed; an explicit
+ * `returnTo` (or `mode=signup`) from the Navbar always wins.
+ */
 export default async function SignInPage({
   searchParams,
 }: {

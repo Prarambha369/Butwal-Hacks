@@ -60,6 +60,10 @@ const SHARED_PREFIXES = [
 ];
 
 // ─── Host detection helpers ───────────────────────────────────────────
+/**
+ * Whether a hostname serves the public marketing site.
+ * These paths stay indexable and unauthenticated.
+ */
 function isMarketingHost(hostname: string): boolean {
   return (
     hostname === "localhost" ||
@@ -68,6 +72,7 @@ function isMarketingHost(hostname: string): boolean {
   );
 }
 
+/** Whether a hostname serves the authenticated app (dashboards, profiles, APIs). */
 function isAppHost(hostname: string): boolean {
   return (
     hostname === "app.localhost" ||
@@ -90,10 +95,19 @@ function isCalendarHost(hostname: string): boolean {
   );
 }
 
+/**
+ * Match a pathname against a list of prefixes, boundary-safe.
+ *
+ * Compares the full path and then a trailing-slash prefix, so "/dashboard"
+ * does not match "/dashboard/" while "/dashboard/hacker" does. Exact roots
+ * must be listed without a trailing slash (see the bare "/dashboard"
+ * checks in `proxy`).
+ */
 function isRouteInSet(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(p));
 }
 
+/** Match a pathname against a set of exact routes, with no prefix semantics. */
 function isExactRouteMatch(pathname: string, routeSet: Set<string>): boolean {
   return routeSet.has(pathname);
 }

@@ -23,6 +23,13 @@ const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn
 
 // ─── Mock Database Builder (same pattern as events-teams-projects.test.ts) ──
 
+/**
+ * Chainable no-op Supabase query builder.
+ *
+ * Every method returns the builder so `.from().select().eq().single()`
+ * resolves, letting each test stub only the terminal `single()` call it
+ * cares about.
+ */
 function buildMockDb() {
   const db: Record<string, ReturnType<typeof vi.fn>> = {};
   const methods = [
@@ -53,6 +60,7 @@ function buildMockDb() {
   };
 }
 
+/** Install a fresh chainable builder as the mocked service client. */
 function mockSupabase() {
   const db = buildMockDb();
   mockedCreateServiceClient.mockReturnValue(db);
@@ -61,10 +69,12 @@ function mockSupabase() {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+/** Make `auth0.getSession()` resolve as a signed-in user. */
 function setAuthenticated(sub = "auth0|12345") {
   mockedGetSession.mockResolvedValue({ user: { sub } });
 }
 
+/** Stub the profiles lookup so the role query resolves with `role`. */
 function setProfileRole(db: ReturnType<typeof buildMockDb>, role: string) {
   db.single.mockResolvedValue({ data: { role }, error: null });
 }
