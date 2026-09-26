@@ -64,23 +64,30 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
   const ProviderIcon =
     socialProvider === 'github' ? Github : socialProvider === 'linkedin' ? Linkedin : Globe;
 
-  /** Copy the Auth0 social picture into Cloudinary and use it. */
+  /**
+   * Copy the Auth0 social picture into Cloudinary and use it.
+   *
+   * The action returns expected failures as a result rather than throwing,
+   * because Next.js redacts thrown Server Action messages in production. The
+   * catch is therefore only a real bug, and its message is not shown to the
+   * user for that reason.
+   */
   const handleUseSocialPicture = async () => {
     if (!socialPicture) return;
     setImportingPicture(true);
     setPictureError(null);
     try {
-      const stored = await importSocialAvatar(socialPicture);
-      if (!stored) {
-        setPictureError('Could not import that photo. Try uploading one instead.');
+      const result = await importSocialAvatar(socialPicture);
+      if (!result.ok) {
+        setPictureError(result.error);
+        toast.error(result.error);
         return;
       }
-      setAvatarUrl(stored);
+      setAvatarUrl(result.url);
       toast.success('Imported your social photo.');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Could not import that photo.';
-      setPictureError(message);
-      toast.error(message);
+    } catch {
+      setPictureError('Could not import that photo. Try uploading one instead.');
+      toast.error('Could not import that photo. Try uploading one instead.');
     } finally {
       setImportingPicture(false);
     }

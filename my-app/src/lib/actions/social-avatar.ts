@@ -31,6 +31,17 @@ function ensureCloudinary() {
 }
 
 /**
+ * Outcome of a social-avatar import.
+ *
+ * `error` is safe to show a user: every string here is written for them.
+ */
+export type SocialAvatarResult =
+  | { ok: true; url: string }
+  | { ok: false; error: string };
+
+const fail = (error: string): SocialAvatarResult => ({ ok: false, error });
+
+/**
  * Copy a social-login avatar into our Cloudinary account.
  *
  * Auth0's `picture` claim cannot be stored directly: Google's URLs are signed
@@ -39,19 +50,24 @@ function ensureCloudinary() {
  * persist. See lib/social-avatar.ts for why the incoming URL is treated as
  * hostile.
  *
+ * Expected failures are RETURNED, not thrown. Next.js redacts the message of an
+ * error thrown across a Server Action boundary in production, so a thrown
+ * "That image is too large." reaches the browser as an opaque digest and the
+ * user is told nothing useful. Only a genuine auth failure throws, because that
+ * is a bug rather than a condition to explain.
+ *
  * @param pictureUrl - the `picture` claim from the Auth0 session
- * @returns the stored Cloudinary URL, or null when it could not be imported
  */
-export async function importSocialAvatar(pictureUrl: string): Promise<string | null> {
+export async function importSocialAvatar(pictureUrl: string): Promise<SocialAvatarResult> {
   const session = await auth0.getSession();
   if (!session?.user?.sub) throw new Error("Unauthorized");
 
   if (!pictureUrl || !isAllowedSocialAvatarUrl(pictureUrl)) {
-    throw new Error("That image source is not supported.");
+    return fail("That image source is not supported.");
   }
   if (!configured()) {
     logger.error("[social-avatar] Cloudinary is not configured");
-    return null;
+    return fail("Photo import is unavailable right now. Try uploading a photo instead.");
   }
 
   // SSRF guard: the host is allowlisted, but confirm the address it resolves
@@ -62,50 +78,67 @@ export async function importSocialAvatar(pictureUrl: string): Promise<string | n
   try {
     addresses = await dns.lookup(host, { all: true });
   } catch {
-    throw new Error("Could not reach that image source.");
+    return fail("Could not reach that image source.");
   }
   if (addresses.length === 0 || addresses.some((a) => !isPublicAddress(a.address))) {
     logger.warn("[social-avatar] Refused a non-public address", { host });
-    throw new Error("That image source is not allowed.");
+    return fail("That image source is not allowed.");
   }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   let bytes: Buffer;
   let contentType = "image/jpeg";
+  let res: Response;
   try {
-    const res = await fetch(pictureUrl, {
+    res = await fetch(pictureUrl, {
       signal: controller.signal,
       // Some providers (LinkedIn) reject requests with no referer.
       headers: { Accept: "image/*" },
       redirect: "error",
     });
-    if (!res.ok) {
-      throw new Error(`Image source returned ${res.status}.`);
+  } catch (err) {
+    // A timeout is the common case here and deserves its own wording, rather
+    // than being flattened into a generic download failure.
+    if (err instanceof Error && err.name === "AbortError") {
+      return fail("That photo took too long to download. Try uploading one instead.");
     }
+    logger.warn("[social-avatar] Fetch failed", {
+      host,
+      reason: err instanceof Error ? err.message : String(err),
+    });
+    return fail("Could not download that photo.");
+  }
+
+  if (!res.ok) {
+    logger.warn("[social-avatar] Image source returned an error", { host, status: res.status });
+    return fail("That photo could not be downloaded. Try uploading one instead.");
+  }
+
+  try {
     // Provider photos are usually JPEG but can be PNG or WebP; Cloudinary
     // sniffs the data URI, so mislabelling them makes it guess wrong.
     const served = res.headers.get("content-type")?.split(";")[0].trim();
     if (served?.startsWith("image/")) contentType = served;
     const declared = Number(res.headers.get("content-length") ?? "0");
     if (declared && declared > MAX_BYTES) {
-      throw new Error("That image is too large.");
+      return fail("That photo is too large. Try a smaller one.");
     }
     const buf = Buffer.from(await res.arrayBuffer());
     if (buf.byteLength > MAX_BYTES) {
-      throw new Error("That image is too large.");
+      return fail("That photo is too large. Try a smaller one.");
     }
     bytes = buf;
   } catch (err) {
-    logger.warn("[social-avatar] Fetch failed", {
+    logger.error("[social-avatar] Could not read the downloaded image", {
       host,
       reason: err instanceof Error ? err.message : String(err),
     });
-    throw new Error("Could not download that image.");
+    return fail("Could not read that photo.");
   } finally {
     clearTimeout(timer);
   }
 
-  if (bytes.byteLength === 0) throw new Error("That image was empty.");
+  if (bytes.byteLength === 0) return fail("That photo was empty.");
 
   ensureCloudinary();
   const uploaded = await cloudinary.uploader.upload(
@@ -122,7 +155,7 @@ export async function importSocialAvatar(pictureUrl: string): Promise<string | n
   );
 
   const url = uploaded.secure_url ?? uploaded.url;
-  if (!url) throw new Error("Cloudinary did not return a URL.");
+  if (!url) return fail("Photo import did not complete. Try uploading one instead.");
 
   const supabase = createServiceClient();
   const { error } = await supabase
@@ -134,12 +167,12 @@ export async function importSocialAvatar(pictureUrl: string): Promise<string | n
     logger.error("[social-avatar] Failed to persist the imported avatar", {
       auth0_user_id: session.user.sub,
     });
-    throw new Error("Could not save the imported photo.");
+    return fail("Could not save that photo. Try uploading one instead.");
   }
 
   logger.info("[social-avatar] Imported a social avatar", {
     auth0_user_id: session.user.sub,
     source: host,
   });
-  return url;
+  return { ok: true, url };
 }
