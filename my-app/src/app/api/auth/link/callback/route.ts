@@ -11,6 +11,7 @@ import {
   getProviderDisplayName,
   identitySubject,
   subjectToUserId,
+  Auth0UserError,
 } from "@/lib/auth0-management";
 import type { LinkedAccount } from "@/lib/auth0-providers";
 import {
@@ -215,7 +216,13 @@ export const GET = withRateLimit(async (request: Request) => {
       linkResultRedirect("success", getProviderDisplayName(provider))
     );
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to link account";
+    // The message goes into a redirect URL the browser renders, so only
+    // surface text that was explicitly marked as user-facing. Anything else
+    // (config problems, upstream Auth0 errors) could leak internals.
+    const message =
+      err instanceof Auth0UserError
+        ? err.message
+        : "Failed to link account. Please try again.";
     logger.error("[auth/link/callback] Error:", err);
     return NextResponse.redirect(linkResultRedirect("error", message));
   }

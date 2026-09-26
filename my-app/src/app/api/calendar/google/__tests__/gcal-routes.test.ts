@@ -127,19 +127,20 @@ describe("GET /api/calendar/google/callback", () => {
     (upsertConnection as ReturnType<typeof vi.fn>).mockResolvedValue(true);
 
     const { GET } = await import("../callback/route");
-    await GET(get(`${base}?code=abc&state=nonce123%3Aauth0%7Cprimary`));
+    await GET(get(`${base}?code=abc&state=nonce123`));
 
-    // A delete without the path silently no-ops on a path-scoped cookie.
-    expect(cookieStore.delete.mock.calls[0][0]).toEqual({
+    // A delete without the same path/domain silently no-ops on a scoped cookie.
+    expect(cookieStore.delete.mock.calls[0][0]).toMatchObject({
       name: GOOGLE_OAUTH_STATE_COOKIE,
       path: GOOGLE_OAUTH_STATE_PATH,
     });
+    expect(cookieStore.delete.mock.calls[0][0]).toHaveProperty("domain");
   });
 
   it("rejects a state that does not match the cookie", async () => {
     stateCookie("different:auth0|primary");
     const { GET } = await import("../callback/route");
-    const res = await GET(get(`${base}?code=abc&state=nonce123%3Aauth0%7Cprimary`));
+    const res = await GET(get(`${base}?code=abc&state=nonce123`));
 
     const loc = new URL(res.headers.get("location")!);
     expect(decodeURIComponent(loc.searchParams.get("linked")!)).toMatch(/expired/i);
@@ -156,6 +157,51 @@ describe("GET /api/calendar/google/callback", () => {
     expect(exchangeCode).not.toHaveBeenCalled();
   });
 
+  it("fails visibly when the connection could not be stored", async () => {
+    // upsertConnection returns false when the encrypt RPC or the upsert fails.
+    // Reporting gcal=connected there would show a green tick over an empty
+    // calendar, and the first sync would just return not_connected.
+    stateCookie("nonce123:auth0|primary");
+    (exchangeCode as ReturnType<typeof vi.fn>).mockResolvedValue({
+      access_token: "at",
+      refresh_token: "rt",
+      expires_in: 3600,
+      scope: "scope-a",
+    });
+    (upsertConnection as ReturnType<typeof vi.fn>).mockResolvedValue(false);
+
+    const { GET } = await import("../callback/route");
+    const res = await GET(get(`${base}?code=abc&state=nonce123`));
+
+    const loc = new URL(res.headers.get("location")!);
+    expect(decodeURIComponent(loc.searchParams.get("linked")!)).toMatch(
+      /failed to save/i
+    );
+    expect(loc.searchParams.get("gcal")).not.toBe("connected");
+    expect(syncUserCalendar).not.toHaveBeenCalled();
+  });
+
+  it("fails visibly when a refreshed token cannot be stored", async () => {
+    stateCookie("nonce123:auth0|primary");
+    (exchangeCode as ReturnType<typeof vi.fn>).mockResolvedValue({
+      access_token: "at2",
+      expires_in: 3600,
+      scope: "scope-a",
+    });
+    (getConnection as ReturnType<typeof vi.fn>).mockResolvedValue({
+      tokens: { refreshToken: "existing-rt" },
+      googleEmail: "g@example.com",
+    });
+    (upsertConnection as ReturnType<typeof vi.fn>).mockResolvedValue(false);
+
+    const { GET } = await import("../callback/route");
+    const res = await GET(get(`${base}?code=abc&state=nonce123`));
+
+    const loc = new URL(res.headers.get("location")!);
+    expect(loc.searchParams.get("gcal")).not.toBe("connected");
+    expect(syncUserCalendar).not.toHaveBeenCalled();
+  });
+
   it("stores the tokens and runs a first sync", async () => {
     stateCookie("nonce123:auth0|primary");
     (exchangeCode as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -165,9 +211,8 @@ describe("GET /api/calendar/google/callback", () => {
       scope: "scope-a",
     });
     (upsertConnection as ReturnType<typeof vi.fn>).mockResolvedValue(true);
-
     const { GET } = await import("../callback/route");
-    const res = await GET(get(`${base}?code=abc&state=nonce123%3Aauth0%7Cprimary`));
+    const res = await GET(get(`${base}?code=abc&state=nonce123`));
 
     expect(upsertConnection).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -194,7 +239,7 @@ describe("GET /api/calendar/google/callback", () => {
     (upsertConnection as ReturnType<typeof vi.fn>).mockResolvedValue(true);
 
     const { GET } = await import("../callback/route");
-    await GET(get(`${base}?code=abc&state=nonce123%3Aauth0%7Cprimary`));
+    await GET(get(`${base}?code=abc&state=nonce123`));
 
     // Overwriting with an empty refresh token would silently break background sync.
     expect(upsertConnection).toHaveBeenCalledWith(
@@ -211,7 +256,7 @@ describe("GET /api/calendar/google/callback", () => {
     (getConnection as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
     const { GET } = await import("../callback/route");
-    const res = await GET(get(`${base}?code=abc&state=nonce123%3Aauth0%7Cprimary`));
+    const res = await GET(get(`${base}?code=abc&state=nonce123`));
 
     const loc = new URL(res.headers.get("location")!);
     expect(decodeURIComponent(loc.searchParams.get("linked")!)).toMatch(/offline access/i);

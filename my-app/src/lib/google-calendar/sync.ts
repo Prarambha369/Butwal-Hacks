@@ -158,14 +158,41 @@ export async function syncUserCalendar(
 
     try {
       if (item.action === "create") {
-        const created = await createEvent(
-          auth.accessToken,
-          connection.calendarId,
-          item.googleEventId,
-          payload
-        );
-        nextIds[item.slug] = { id: created.id ?? item.googleEventId, managedHash: hash };
-        logRows.push({ auth0UserId, slug: item.slug, action: "created", googleEventId: created.id, detail: item.reason });
+        try {
+          const created = await createEvent(
+            auth.accessToken,
+            connection.calendarId,
+            item.googleEventId,
+            payload
+          );
+          nextIds[item.slug] = { id: created.id ?? item.googleEventId, managedHash: hash };
+          logRows.push({ auth0UserId, slug: item.slug, action: "created", googleEventId: created.id, detail: item.reason });
+        } catch (err) {
+          // 409 means our deterministic id is already taken, which happens
+          // whenever we lost the mapping while the event survived: a
+          // disconnect drops google_event_ids but leaves the events in place,
+          // and a lost recordSyncResult write drops a single entry. Google also
+          // reserves the id of a deleted event, so the recreate path below hits
+          // this too. Updating in place recovers instead of failing forever.
+          if (err instanceof GoogleApiError && err.isConflict) {
+            const updated = await patchEvent(
+              auth.accessToken,
+              connection.calendarId,
+              item.googleEventId,
+              { ...payload, status: "confirmed" }
+            );
+            nextIds[item.slug] = { id: updated.id ?? item.googleEventId, managedHash: hash };
+            logRows.push({
+              auth0UserId,
+              slug: item.slug,
+              action: "updated",
+              googleEventId: updated.id,
+              detail: "id already existed on Google; updated in place",
+            });
+          } else {
+            throw err;
+          }
+        }
       } else {
         try {
           const updated = await patchEvent(
@@ -180,20 +207,43 @@ export async function syncUserCalendar(
           // The user deleted the event on their side. Self-heal by recreating
           // rather than leaving a permanently broken entry.
           if (err instanceof GoogleApiError && err.isNotFound) {
-            const created = await createEvent(
-              auth.accessToken,
-              connection.calendarId,
-              googleEventIdForSlug(item.slug),
-              payload
-            );
-            nextIds[item.slug] = { id: created.id, managedHash: hash };
-            logRows.push({
-              auth0UserId,
-              slug: item.slug,
-              action: "created",
-              googleEventId: created.id,
-              detail: "previous event was deleted on the user's side; recreated",
-            });
+            try {
+              const created = await createEvent(
+                auth.accessToken,
+                connection.calendarId,
+                googleEventIdForSlug(item.slug),
+                payload
+              );
+              nextIds[item.slug] = { id: created.id, managedHash: hash };
+              logRows.push({
+                auth0UserId,
+                slug: item.slug,
+                action: "created",
+                googleEventId: created.id,
+                detail: "previous event was deleted on the user's side; recreated",
+              });
+            } catch (recreateErr) {
+              // The id stays reserved after a delete, so recreating can 409.
+              // Fall back to updating the tombstoned event, which restores it.
+              if (recreateErr instanceof GoogleApiError && recreateErr.isConflict) {
+                const restored = await patchEvent(
+                  auth.accessToken,
+                  connection.calendarId,
+                  googleEventIdForSlug(item.slug),
+                  { ...payload, status: "confirmed" }
+                );
+                nextIds[item.slug] = { id: restored.id, managedHash: hash };
+                logRows.push({
+                  auth0UserId,
+                  slug: item.slug,
+                  action: "updated",
+                  googleEventId: restored.id,
+                  detail: "previous event was deleted on the user's side; restored in place",
+                });
+              } else {
+                throw recreateErr;
+              }
+            }
           } else {
             throw err;
           }

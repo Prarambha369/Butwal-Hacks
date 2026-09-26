@@ -42,21 +42,20 @@ const DEFAULT_DURATION_MS = 2 * 60 * 60 * 1000;
 /**
  * Deterministic Google event id.
  *
- * Google requires `[a-z0-9_-]{5,1024}`. Deriving it from the slug means the
- * same BH event always maps to the same Google id, so re-syncing after a
- * dropped row in our own mapping still updates in place instead of creating a
- * duplicate.
+ * A client-supplied Google event id must be **base32hex**: 5-1024 characters
+ * drawn from `a-v` and `0-9` only. Letters `w-z`, hyphens, and underscores are
+ * all rejected with a 400, so the id cannot embed the slug — it has to be a
+ * digest.
+ *
+ * Deriving it from the slug means the same BH event always maps to the same
+ * Google id, so re-syncing after a dropped row in our own mapping still
+ * updates in place instead of creating a duplicate.
  */
 export function googleEventIdForSlug(slug: string): string {
-  const safe = slug
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
-
-  const suffix = createHash("sha256").update(slug).digest("hex").slice(0, 12);
-  return `bh-${safe || "event"}-${suffix}`;
+  // `bh` + 32 hex chars = 34, inside Google's 5-1024 window, and every
+  // character is valid base32hex.
+  const digest = createHash("sha256").update(slug).digest("hex").slice(0, 32);
+  return `bh${digest}`;
 }
 
 export interface EventPayload {

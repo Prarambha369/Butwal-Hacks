@@ -54,7 +54,9 @@ export const GET = withRateLimit(async (request: Request) => {
         return fail("Google did not grant offline access. Please try again.");
       }
 
-      await upsertConnection({
+      // false means the encrypt RPC or the upsert itself failed. Reporting
+      // success here would show "connected" with nothing stored.
+      const refreshed = await upsertConnection({
         auth0UserId: parsed.auth0UserId,
         refreshToken: existing.tokens.refreshToken,
         accessToken: tokens.access_token,
@@ -62,8 +64,14 @@ export const GET = withRateLimit(async (request: Request) => {
         scopes: tokens.scope ?? null,
         googleEmail: existing.googleEmail,
       });
+      if (!refreshed) {
+        logger.error("[gcal] Failed to persist refreshed tokens", {
+          userId: parsed.auth0UserId,
+        });
+        return fail("Failed to save your Google Calendar connection.");
+      }
     } else {
-      await upsertConnection({
+      const stored = await upsertConnection({
         auth0UserId: parsed.auth0UserId,
         refreshToken: tokens.refresh_token,
         accessToken: tokens.access_token,
@@ -71,6 +79,12 @@ export const GET = withRateLimit(async (request: Request) => {
         scopes: tokens.scope ?? null,
         googleEmail: null,
       });
+      if (!stored) {
+        logger.error("[gcal] Failed to persist new connection", {
+          userId: parsed.auth0UserId,
+        });
+        return fail("Failed to save your Google Calendar connection.");
+      }
     }
 
     // First sync inline so the calendar is populated on arrival.

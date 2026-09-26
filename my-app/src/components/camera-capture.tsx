@@ -66,6 +66,17 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
         // Invalidate any still-pending getUserMedia so its late resolution
         // stops its stream instead of hijacking the preview.
         generationRef.current++;
+        // getUserMedia can resolve before metadata arrives, in which case
+        // streamRef already holds a live stream. Invalidating the generation
+        // alone would leave the camera light on until Retry or close, so stop
+        // the tracks and detach the element here too.
+        stopStream(streamRef.current);
+        streamRef.current = null;
+        if (videoRef.current) {
+          videoRef.current.onloadedmetadata = null;
+          videoRef.current.onerror = null;
+          videoRef.current.srcObject = null;
+        }
         setError("Camera is taking too long to start. Please try again.");
         setLoading(false);
       }

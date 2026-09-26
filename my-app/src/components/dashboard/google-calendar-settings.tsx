@@ -253,9 +253,9 @@ export default function GoogleCalendarSettings({ className }: { className?: stri
       </dl>
 
       <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
-        One-way sync. We add and update Butwal Hacks events only. Events you
-        remove from Google are re-added on the next sync, and we never delete
-        anything from your calendar.
+        One-way sync. We add and update Butwal Hacks events only, and we never
+        delete anything from your calendar. Date or detail changes you make in
+        Butwal Hacks are applied to Google automatically.
       </p>
 
       <div className="flex gap-2">

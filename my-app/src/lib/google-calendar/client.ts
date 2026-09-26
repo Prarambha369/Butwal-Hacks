@@ -31,6 +31,18 @@ export class GoogleApiError extends Error {
     return this.status === 401 || this.status === 403;
   }
 
+  /**
+   * 409 on a client-supplied event id means the id is already taken.
+   *
+   * Google also keeps a deleted event's id reserved, so this fires both when
+   * the event still exists (we lost our mapping) and when the user deleted it
+   * (the 404 self-heal path recreates the same id). Either way the recovery is
+   * the same: update the existing event rather than inserting a duplicate.
+   */
+  get isConflict(): boolean {
+    return this.status === 409;
+  }
+
   /** 403 with a quota/rate reason means back off, not that the token is bad. */
   get isRateLimited(): boolean {
     return this.status === 429 || (this.status === 403 && /rate|quota/i.test(this.body));

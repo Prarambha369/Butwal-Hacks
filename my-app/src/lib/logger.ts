@@ -88,11 +88,19 @@ function log(level: Level, args: unknown[], errorId?: string) {
         extra: { context: serializable(context) },
       });
     } else {
-      // logger.error("something went wrong") with no Error instance -- still
-      // worth an issue, just without a stack.
-      Sentry.captureMessage(`${prefix} ${context.map((c) => String(c)).join(" ")}`.trim(), {
+      // logger.error("something went wrong", { code, message }) with no Error
+      // instance -- still worth an issue, just without a stack. String() on an
+      // object yields "[object Object]", which throws away the Supabase error
+      // code and message, so keep the label as the message and attach the
+      // context as structured extra. errorId is tagged here too, matching the
+      // exception branch, so searching by the documented tag finds both paths.
+      Sentry.captureMessage(`${prefix} ${label ?? "error"}`.trim(), {
         level: "error",
-        tags: label ? { scope: label } : undefined,
+        tags: {
+          ...(errorId ? { errorId } : {}),
+          ...(label ? { scope: label } : {}),
+        },
+        extra: { context: serializable(context) },
       });
     }
   } catch {

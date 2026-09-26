@@ -152,6 +152,11 @@ async function assertOk(
   });
 
   if (res.status === 401 || res.status === 403) {
+    // A rejected token is cached until its natural expiry, so every later
+    // Management call in this instance would reuse it and fail identically.
+    // Revocation, a scope change, or an audience change all land here, so
+    // drop the cache and let the next call fetch a fresh one.
+    cachedToken = null;
     throw new Error(
       "Auth0 rejected the request. This usually means the Management API token's audience or issuer does not match the tenant."
     );
@@ -232,6 +237,9 @@ export async function linkIdentity(
     throw new Auth0UserError("That account is already connected to a different profile.");
   }
   if (res.status === 401 || res.status === 403) {
+    // Same reasoning as assertOk: clear the rejected token so the retry after a
+    // scope or audience fix can actually obtain a new one.
+    cachedToken = null;
     throw new Auth0UserError("Auth0 rejected the link request. Please contact a maintainer.");
   }
 

@@ -45,12 +45,12 @@ describe("googleEventIdForSlug", () => {
 
   it("produces a valid Google id", () => {
     const id = googleEventIdForSlug("HackDay Butwal 2026!! @#$");
-    expect(id).toMatch(/^[a-z0-9_-]{5,1024}$/);
+    expect(id).toMatch(/^[a-v0-9]{5,1024}$/);
   });
 
   it("handles an empty or symbol-only slug", () => {
-    expect(googleEventIdForSlug("")).toMatch(/^[a-z0-9_-]{5,1024}$/);
-    expect(googleEventIdForSlug("!!!")).toMatch(/^[a-z0-9_-]{5,1024}$/);
+    expect(googleEventIdForSlug("")).toMatch(/^[a-v0-9]{5,1024}$/);
+    expect(googleEventIdForSlug("!!!")).toMatch(/^[a-v0-9]{5,1024}$/);
   });
 
   it("stays under Google's 1024-char limit for a long slug", () => {
