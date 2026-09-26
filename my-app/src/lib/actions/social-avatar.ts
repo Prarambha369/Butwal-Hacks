@@ -41,6 +41,8 @@ export type SocialAvatarResult =
 
 const fail = (error: string): SocialAvatarResult => ({ ok: false, error });
 
+const TOO_SLOW = "That photo took too long to download. Try uploading one instead.";
+
 /**
  * Copy a social-login avatar into our Cloudinary account.
  *
@@ -86,35 +88,38 @@ export async function importSocialAvatar(pictureUrl: string): Promise<SocialAvat
   }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const timedOut = (err: unknown) =>
+    controller.signal.aborted || (err instanceof Error && err.name === "AbortError");
+
   let bytes: Buffer;
   let contentType = "image/jpeg";
-  let res: Response;
+  // One try/finally owns the timer, so every early return below still clears
+  // it. A pending timer keeps a serverless invocation alive past its work.
   try {
-    res = await fetch(pictureUrl, {
-      signal: controller.signal,
-      // Some providers (LinkedIn) reject requests with no referer.
-      headers: { Accept: "image/*" },
-      redirect: "error",
-    });
-  } catch (err) {
-    // A timeout is the common case here and deserves its own wording, rather
-    // than being flattened into a generic download failure.
-    if (err instanceof Error && err.name === "AbortError") {
-      return fail("That photo took too long to download. Try uploading one instead.");
+    let res: Response;
+    try {
+      res = await fetch(pictureUrl, {
+        signal: controller.signal,
+        // Some providers (LinkedIn) reject requests with no referer.
+        headers: { Accept: "image/*" },
+        redirect: "error",
+      });
+    } catch (err) {
+      // A timeout is the common case here and deserves its own wording, rather
+      // than being flattened into a generic download failure.
+      if (timedOut(err)) return fail(TOO_SLOW);
+      logger.warn("[social-avatar] Fetch failed", {
+        host,
+        reason: err instanceof Error ? err.message : String(err),
+      });
+      return fail("Could not download that photo.");
     }
-    logger.warn("[social-avatar] Fetch failed", {
-      host,
-      reason: err instanceof Error ? err.message : String(err),
-    });
-    return fail("Could not download that photo.");
-  }
 
-  if (!res.ok) {
-    logger.warn("[social-avatar] Image source returned an error", { host, status: res.status });
-    return fail("That photo could not be downloaded. Try uploading one instead.");
-  }
+    if (!res.ok) {
+      logger.warn("[social-avatar] Image source returned an error", { host, status: res.status });
+      return fail("That photo could not be downloaded. Try uploading one instead.");
+    }
 
-  try {
     // Provider photos are usually JPEG but can be PNG or WebP; Cloudinary
     // sniffs the data URI, so mislabelling them makes it guess wrong.
     const served = res.headers.get("content-type")?.split(";")[0].trim();
@@ -123,17 +128,24 @@ export async function importSocialAvatar(pictureUrl: string): Promise<SocialAvat
     if (declared && declared > MAX_BYTES) {
       return fail("That photo is too large. Try a smaller one.");
     }
-    const buf = Buffer.from(await res.arrayBuffer());
+
+    let buf: Buffer;
+    try {
+      buf = Buffer.from(await res.arrayBuffer());
+    } catch (err) {
+      // The timer can fire after the headers arrive, while the body is still
+      // streaming. That is a timeout, not a corrupt download.
+      if (timedOut(err)) return fail(TOO_SLOW);
+      logger.error("[social-avatar] Could not read the downloaded image", {
+        host,
+        reason: err instanceof Error ? err.message : String(err),
+      });
+      return fail("Could not read that photo.");
+    }
     if (buf.byteLength > MAX_BYTES) {
       return fail("That photo is too large. Try a smaller one.");
     }
     bytes = buf;
-  } catch (err) {
-    logger.error("[social-avatar] Could not read the downloaded image", {
-      host,
-      reason: err instanceof Error ? err.message : String(err),
-    });
-    return fail("Could not read that photo.");
   } finally {
     clearTimeout(timer);
   }

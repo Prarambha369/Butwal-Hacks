@@ -146,7 +146,7 @@ describe("importSocialAvatar", () => {
     if (!result.ok) expect(result.error).toMatch(/too large/i);
   });
 
-  it("reports a timeout as its own condition, not a download failure", async () => {
+  it("reports a fetch-level abort as a timeout, not a download failure", async () => {
     stubCloudinaryEnv();
     const abort = Object.assign(new Error("aborted"), { name: "AbortError" });
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(abort));
@@ -155,6 +155,64 @@ describe("importSocialAvatar", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/too long/i);
+  });
+
+  it("reports a timeout when the body read is aborted after headers arrive", async () => {
+    stubCloudinaryEnv();
+    vi.useFakeTimers();
+    try {
+      let rejectBody!: (e: unknown) => void;
+      const body = new Promise<ArrayBuffer>((_, rej) => {
+        rejectBody = rej;
+      });
+      // Headers arrive fine; the body then stalls until the timer aborts it.
+      stubFetch({ arrayBuffer: () => body });
+
+      const pending = importSocialAvatar(GITHUB_PIC);
+      await vi.advanceTimersByTimeAsync(11_000);
+      rejectBody(Object.assign(new Error("aborted"), { name: "AbortError" }));
+      const result = await pending;
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error).toMatch(/too long/i);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // The timer is created before the fetch, so an early return that skipped the
+  // finally left a live 10s timer behind and held the invocation open.
+  it.each([
+    ["the provider returns an error", { ok: false, status: 403 }],
+    ["the connection fails", "__throw__"],
+  ])("clears the timeout when %s", async (_label, behaviour) => {
+    stubCloudinaryEnv();
+    vi.useFakeTimers();
+    try {
+      if (behaviour === "__throw__") {
+        vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNRESET")));
+      } else {
+        stubFetch(behaviour as Partial<Response>);
+      }
+
+      await importSocialAvatar(GITHUB_PIC);
+
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("clears the timeout on the success path", async () => {
+    stubCloudinaryEnv();
+    vi.useFakeTimers();
+    try {
+      stubFetch({});
+      await importSocialAvatar(GITHUB_PIC);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("returns, not throws, when the profile row cannot be saved", async () => {
