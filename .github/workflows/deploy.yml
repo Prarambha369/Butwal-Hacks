@@ -73,54 +73,13 @@ jobs:
           fi
           supabase db push --db-url "$SUPABASE_DB_URL"
 
-  # ─── Seed embeddings ───────────────────────────────────────────────────
-  # Supabase credentials are required (the script cannot run without them).
-  # HF_API_TOKEN stays optional because embeddings degrade search quality
-  # rather than correctness, and this step must not block a deploy for it.
-  seed-embeddings:
-    name: Seed Embeddings
-    needs: migrate
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: my-app
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4.4.0
-        with:
-          # Match ci.yml, which is what every pull-request check runs on.
-          # No `cache: npm` here: package-lock.json is gitignored and never
-          # committed, so setup-node has no lockfile to key the cache on and
-          # fails the step outright.
-          node-version: 22
-
-      - run: npm install --legacy-peer-deps
-
-      - name: Seed knowledge embeddings
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
-        run: |
-          if [ -z "${NEXT_PUBLIC_SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
-            echo "::error::Supabase secrets are required to seed embeddings."
-            exit 1
-          fi
-          if [ -z "${HF_API_TOKEN}" ]; then
-            echo "::warning::HF_API_TOKEN not set. Skipping embedding seed; search will run unembedded."
-            exit 0
-          fi
-          npx tsx scripts/seed-embeddings.ts
-
   # ─── Deploy ────────────────────────────────────────────────────────────
   # Without the hook this workflow accomplishes nothing, so a green result
   # would be actively misleading.
   vercel-deploy:
     name: Vercel Deploy
-    needs: seed-embeddings
+    needs: migrate
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - name: Trigger Vercel Deploy Hook
         env:

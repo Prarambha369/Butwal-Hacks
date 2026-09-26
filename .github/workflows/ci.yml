@@ -200,41 +200,6 @@ jobs:
       - name: Check for dead code
         run: node .github/actions/ponytail-audit/audit.mjs
 
-  content-seed:
-    name: Content Embeddings
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    defaults:
-      run:
-        working-directory: my-app
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Check if content.ts changed
-        id: changed
-        run: |
-          CHANGED=$(git diff --name-only ${{ github.event.before }} HEAD | grep -c 'my-app/src/lib/content.ts' || true)
-          echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/setup-node@v4.4.0
-        if: steps.changed.outputs.changed != '0'
-        with:
-          node-version: 22
-
-      - run: npm install --legacy-peer-deps
-        if: steps.changed.outputs.changed != '0'
-
-      - name: Seed knowledge embeddings
-        if: steps.changed.outputs.changed != '0'
-        run: npx tsx scripts/seed-embeddings.ts
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
-
   e2e:
     name: E2E Tests
     needs: build

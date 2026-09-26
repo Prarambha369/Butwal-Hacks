@@ -39,27 +39,40 @@ after the deploy is safe either way.
 
 ## Step 0 — Prerequisite (blocks the first deploy)
 
-Add the GitHub Actions secret the hardened workflow now requires:
+Generate a strong pooler password and apply it via Supabase SQL:
+
+```bash
+# Generate a password (do not print it)
+NEW_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | head -c 32)
+
+# Apply via Supabase SQL (do not print the password)
+# Use the Supabase Dashboard SQL editor or:
+# supabase db push --db-url "$SUPABASE_DB_URL" --file <(echo "ALTER ROLE postgres WITH PASSWORD '$NEW_DB_PASSWORD';")
+```
+
+Then add the GitHub Actions secret the hardened workflow now requires:
 
 ```
 Settings → Secrets and variables → Actions → New repository secret
-  SUPABASE_DB_URL   = postgres://postgres.<ref>:<NEW_DB_PASSWORD>@aws-0-<region>.pooler.supabase.com:5432/postgres
+  SUPABASE_DB_URL   = postgres://postgres.ieagwnhsgjtbqlwptgei:<url-encoded-password>@aws-1-ap-south-1:5432/postgres
 ```
 
 Until this exists, `migrate` exits 1 on purpose (`.github/workflows/deploy.yml`).
 That is the intended behaviour, not a regression.
 
 Other secrets the workflow reads: `NEXT_PUBLIC_SUPABASE_URL`,
-`SUPABASE_SERVICE_ROLE_KEY`, `HF_API_TOKEN` (optional), `VERCEL_DEPLOY_HOOK_URL`.
+`SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_DEPLOY_HOOK_URL`.
 
 ---
 
 ## Step 1 — Rotate Supabase credentials
 
-Dashboard: **Project Settings → API** (service_role key) and
+Dashboard: **Project Settings → API** (service-role key) and
 **Project Settings → Database** (password).
 
-1. Generate a new database password.
+Rotate in this order:
+
+1. Generate a new database password (see Step 0).
 2. Click **Reset** next to the service-role key to mint a new one.
 3. Rebuild `SUPABASE_DB_URL` with the new password.
 
