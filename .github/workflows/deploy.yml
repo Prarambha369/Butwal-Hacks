@@ -3,6 +3,8 @@ name: Deploy
 on:
   push:
     branches: [main]
+  # Manual runs make a failed migration recoverable without a dummy commit.
+  workflow_dispatch:
 
 # Let main pushes run to completion; cancel any in-progress deploy for same branch
 concurrency:
@@ -10,8 +12,44 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # ─── Verify ────────────────────────────────────────────────────────────
+  # Nothing ran tests, lint, or typecheck in CI before this. That is why a
+  # nested-button hydration break, a duplicated revalidatePath, and swallowed
+  # Supabase errors could all reach main unnoticed.
+  verify:
+    name: Verify (typecheck, lint, test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: my-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: my-app/package-lock.json
+
+      - run: npm install --legacy-peer-deps
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+  # ─── Migrate ───────────────────────────────────────────────────────────
+  # MUST NOT exit 0 when the secret is missing. The previous version logged a
+  # warning and continued, so the pipeline went green while shipping code
+  # against a schema that had never been migrated. A green build has to mean
+  # the migrations actually ran.
   migrate:
     name: Database Migration
+    needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -26,18 +64,22 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          if [ -z "$SUPABASE_DB_URL" ]; then
-            echo "WARNING: SUPABASE_DB_URL not set. Skipping migration step."
-            echo "Run migrations manually: supabase db push --db-url \"\$SUPABASE_DB_URL\""
-            exit 0
+          if [ -z "${SUPABASE_DB_URL}" ]; then
+            echo "::error::SUPABASE_DB_URL is not set. Refusing to report success with unapplied migrations."
+            echo "Add it under Settings -> Secrets and variables -> Actions."
+            exit 1
           fi
           supabase db push --db-url "$SUPABASE_DB_URL"
 
+  # ─── Seed embeddings ───────────────────────────────────────────────────
+  # Supabase credentials are required (the script cannot run without them).
+  # HF_API_TOKEN stays optional because embeddings degrade search quality
+  # rather than correctness, and this step must not block a deploy for it.
   seed-embeddings:
     name: Seed Embeddings
     needs: migrate
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: my-app
@@ -46,6 +88,8 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
+          cache: npm
+          cache-dependency-path: my-app/package-lock.json
 
       - run: npm install --legacy-peer-deps
 
@@ -55,12 +99,19 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
         run: |
-          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] || [ -z "$HF_API_TOKEN" ]; then
-            echo "WARNING: Supabase/HF secrets missing. Skipping embedding seed."
+          if [ -z "${NEXT_PUBLIC_SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
+            echo "::error::Supabase secrets are required to seed embeddings."
+            exit 1
+          fi
+          if [ -z "${HF_API_TOKEN}" ]; then
+            echo "::warning::HF_API_TOKEN not set. Skipping embedding seed; search will run unembedded."
             exit 0
           fi
           npx tsx scripts/seed-embeddings.ts
 
+  # ─── Deploy ────────────────────────────────────────────────────────────
+  # Without the hook this workflow accomplishes nothing, so a green result
+  # would be actively misleading.
   vercel-deploy:
     name: Vercel Deploy
     needs: seed-embeddings
@@ -71,11 +122,15 @@ jobs:
         env:
           VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
         run: |
-          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
-            echo "WARNING: VERCEL_DEPLOY_HOOK_URL not set. Skipping deployment."
-            exit 0
+          if [ -z "${VERCEL_DEPLOY_HOOK_URL}" ]; then
+            echo "::error::VERCEL_DEPLOY_HOOK_URL is not set. Nothing was deployed."
+            exit 1
           fi
           echo "Triggering Vercel deployment..."
-          curl -X POST -s -o /dev/null -w "HTTP %{http_code}" "$VERCEL_DEPLOY_HOOK_URL"
-          echo ""
+          code="$(curl -X POST -s -o /dev/null -w '%{http_code}' "$VERCEL_DEPLOY_HOOK_URL")"
+          echo "HTTP $code"
+          if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+            echo "::error::Deploy hook returned HTTP $code"
+            exit 1
+          fi
           echo "Deployment triggered."

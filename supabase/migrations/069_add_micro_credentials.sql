@@ -1,7 +1,7 @@
 -- Skill Trees / Micro-Credentials (Phase 15, Days 341-360)
 -- Hackers unlock credentials by completing specific project combos.
 
-CREATE TABLE micro_credentials (
+CREATE TABLE IF NOT EXISTS micro_credentials (
   id text PRIMARY KEY, -- e.g. 'react-pro', 'full-stack'
   name text NOT NULL,
   description text NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE micro_credentials (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE profile_micro_credentials (
+CREATE TABLE IF NOT EXISTS profile_micro_credentials (
   profile_id uuid REFERENCES profiles(id) ON DELETE CASCADE,
   credential_id text REFERENCES micro_credentials(id) ON DELETE CASCADE,
   unlocked_at timestamptz NOT NULL DEFAULT now(),

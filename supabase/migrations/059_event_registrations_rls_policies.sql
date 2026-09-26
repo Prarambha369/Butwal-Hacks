@@ -21,11 +21,13 @@ DROP POLICY IF EXISTS "Users can view their own registrations" ON public.event_r
 DROP POLICY IF EXISTS "Users can register for events" ON public.event_registrations;
 
 -- Users can view their own registrations
+DROP POLICY IF EXISTS "Users can view their own registrations" ON public.event_registrations;
 CREATE POLICY "Users can view their own registrations" ON public.event_registrations
   FOR SELECT
   USING (auth.uid() = profile_id);
 
 -- Users can register themselves for events
+DROP POLICY IF EXISTS "Users can register for events" ON public.event_registrations;
 CREATE POLICY "Users can register for events" ON public.event_registrations
   FOR INSERT
   WITH CHECK (auth.uid() = profile_id);

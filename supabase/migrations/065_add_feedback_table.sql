@@ -31,12 +31,14 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS auth0_user_id TEXT;
 ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
 
 -- Anyone (including anonymous) can submit feedback
+DROP POLICY IF EXISTS "Anyone can insert feedback" ON feedback;
 CREATE POLICY "Anyone can insert feedback" ON feedback
   FOR INSERT
   WITH CHECK (true);
 
 -- Only maintainers can read feedback entries
 -- Auth0 user ID is available via JWT 'sub' claim, matched against profiles.auth0_user_id
+DROP POLICY IF EXISTS "Maintainers can read feedback" ON feedback;
 CREATE POLICY "Maintainers can read feedback" ON feedback
   FOR SELECT
   USING (

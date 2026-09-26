@@ -14,8 +14,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { getProviderDisplayName } from "@/lib/auth0-management";
-import type { LinkedAccount } from "@/lib/auth0-management";
+// Client-safe module only. Importing from @/lib/auth0-management here would
+// pull the Management API (and its secret lookups) into the browser bundle.
+import { getProviderDisplayName } from "@/lib/auth0-providers";
+import type { LinkedAccount } from "@/lib/auth0-providers";
 
 interface LinkedAccountsProps {
   className?: string;
@@ -198,7 +200,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
     { id: "github", name: "GitHub", description: "Connect your GitHub account for automatic repo syncing and contribution tracking." },
     { id: "linkedin", name: "LinkedIn", description: "Display your LinkedIn profile and professional experience." },
     { id: "google-oauth2", name: "Google", description: "Use your Google account for quick sign-in." },
-  ];
+  ] as const;
 
   if (loading) {
     return (

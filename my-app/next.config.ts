@@ -38,7 +38,7 @@ const baseCSP = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://auth.butwalhacks.com https://*.posthog.com https://va.vercel-scripts.com;
   style-src 'self' 'unsafe-inline';
-  img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://api.dicebear.com https://api.qrserver.com;
+  img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://api.dicebear.com https://api.qrserver.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://media.licdn.com https://cdn.auth0.com https://s.gravatar.com;
   font-src 'self';
   worker-src 'self' blob:;
   object-src 'none';
@@ -137,6 +137,27 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "api.qrserver.com",
       },
+      // Auth0 profile pictures (Google, GitHub, LinkedIn, Auth0 default, Gravatar)
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "media.licdn.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.auth0.com",
+      },
+      {
+        protocol: "https",
+        hostname: "s.gravatar.com",
+      },
     ],
   },
   // ─── Consolidation redirects (permanent, SEO-safe) ───
@@ -201,7 +222,7 @@ const nextConfig: NextConfig = {
 // SENTRY_DSN must be set in the environment. In dev, Sentry is
 // initialized but traces are sampled at 0% unless SENTRY_DSN is set.
 
-import { withSentryConfig } from "@sentry/nextjs/config";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const sentryOptions = {
   org: process.env.SENTRY_ORG,

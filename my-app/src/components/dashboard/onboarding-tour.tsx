@@ -1,5 +1,6 @@
 "use client";
 
+import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useAuthUser } from "@/components/auth-user-provider";
@@ -39,7 +40,7 @@ const HACKER_STEPS: StepConfig[] = [
     description:
       "Set up your profile with your full name, bio, and social links to claim your unique BH-ID. This is your portable identity across the platform.",
     icon: <User className="w-5 h-5" />,
-    href: "/dashboard/hacker/profile",
+    href: PROFILE_SETTINGS_PATH,
     cta: "Go to Profile",
   },
   {

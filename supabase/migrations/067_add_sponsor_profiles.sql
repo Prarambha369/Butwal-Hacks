@@ -34,6 +34,7 @@ ALTER TABLE sponsor_profiles ENABLE ROW LEVEL SECURITY;
 
 -- Sponsors can read their own profile
 -- Auth0 user ID comes from JWT 'sub' claim, matched against profiles.auth0_user_id
+DROP POLICY IF EXISTS "Sponsors can view own company profile" ON sponsor_profiles;
 CREATE POLICY "Sponsors can view own company profile" ON sponsor_profiles
   FOR SELECT
   USING (profile_id IN (
@@ -41,6 +42,7 @@ CREATE POLICY "Sponsors can view own company profile" ON sponsor_profiles
   ));
 
 -- Sponsors can insert their own profile
+DROP POLICY IF EXISTS "Sponsors can create own company profile" ON sponsor_profiles;
 CREATE POLICY "Sponsors can create own company profile" ON sponsor_profiles
   FOR INSERT
   WITH CHECK (profile_id IN (
@@ -48,6 +50,7 @@ CREATE POLICY "Sponsors can create own company profile" ON sponsor_profiles
   ));
 
 -- Sponsors can update their own profile
+DROP POLICY IF EXISTS "Sponsors can update own company profile" ON sponsor_profiles;
 CREATE POLICY "Sponsors can update own company profile" ON sponsor_profiles
   FOR UPDATE
   USING (profile_id IN (
@@ -55,6 +58,7 @@ CREATE POLICY "Sponsors can update own company profile" ON sponsor_profiles
   ));
 
 -- Maintainers can read all sponsor profiles
+DROP POLICY IF EXISTS "Maintainers can view all sponsor profiles" ON sponsor_profiles;
 CREATE POLICY "Maintainers can view all sponsor profiles" ON sponsor_profiles
   FOR SELECT
   USING (EXISTS (

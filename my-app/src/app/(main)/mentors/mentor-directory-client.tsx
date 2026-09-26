@@ -1,5 +1,6 @@
 "use client"
 
+import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 import { useState, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
@@ -194,7 +195,7 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
           </p>
           {mentors.length === 0 && (
             <Link
-              href="/dashboard/hacker/profile"
+              href={PROFILE_SETTINGS_PATH}
               className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary-red/10 text-primary-red text-xs font-bold hover:bg-primary-red/20 transition-all"
             >
               <MessageSquare className="w-3.5 h-3.5" />

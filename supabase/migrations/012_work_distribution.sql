@@ -62,6 +62,7 @@ ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 
 -- Team members can read their workspace
+DROP POLICY IF EXISTS "team_members_read_workspace" ON workspaces;
 CREATE POLICY "team_members_read_workspace"
   ON workspaces FOR SELECT
   USING (
@@ -73,6 +74,7 @@ CREATE POLICY "team_members_read_workspace"
   );
 
 -- Team members can update their workspace
+DROP POLICY IF EXISTS "team_members_update_workspace" ON workspaces;
 CREATE POLICY "team_members_update_workspace"
   ON workspaces FOR UPDATE
   USING (
@@ -84,6 +86,7 @@ CREATE POLICY "team_members_update_workspace"
   );
 
 -- Team members can read tasks in their workspace
+DROP POLICY IF EXISTS "team_members_read_tasks" ON tasks;
 CREATE POLICY "team_members_read_tasks"
   ON tasks FOR SELECT
   USING (
@@ -96,6 +99,7 @@ CREATE POLICY "team_members_read_tasks"
   );
 
 -- Team members can create tasks in their workspace
+DROP POLICY IF EXISTS "team_members_create_tasks" ON tasks;
 CREATE POLICY "team_members_create_tasks"
   ON tasks FOR INSERT
   WITH CHECK (
@@ -108,6 +112,7 @@ CREATE POLICY "team_members_create_tasks"
   );
 
 -- Team members can update tasks in their workspace
+DROP POLICY IF EXISTS "team_members_update_tasks" ON tasks;
 CREATE POLICY "team_members_update_tasks"
   ON tasks FOR UPDATE
   USING (
@@ -120,6 +125,7 @@ CREATE POLICY "team_members_update_tasks"
   );
 
 -- Team members can delete tasks in their workspace
+DROP POLICY IF EXISTS "team_members_delete_tasks" ON tasks;
 CREATE POLICY "team_members_delete_tasks"
   ON tasks FOR DELETE
   USING (

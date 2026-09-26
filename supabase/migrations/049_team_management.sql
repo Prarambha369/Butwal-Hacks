@@ -30,4 +30,4 @@ CREATE TABLE IF NOT EXISTS team_members (
 );
 
 -- Add column to teams table
-ALTER TABLE teams ADD COLUMN max_members INTEGER DEFAULT 10;
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS max_members INTEGER DEFAULT 10;

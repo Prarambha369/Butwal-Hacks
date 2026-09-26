@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { skipInCI, signIn } from "./helpers";
 
 /**
@@ -34,7 +34,7 @@ test.describe("Avatar Upload — Unauthenticated", () => {
     // Uses APIRequestContext with maxRedirects: 0 so we can inspect the
     // actual redirect response rather than following it — matching the
     // pattern established in rbac-routing.spec.ts.
-    const response = await request.get("/dashboard/hacker/profile", { maxRedirects: 0 });
+    const response = await request.get("/dashboard/profile", { maxRedirects: 0 });
 
     // The proxy middleware should redirect to /auth/login
     expect(response.status()).toBe(307);
@@ -51,7 +51,7 @@ test.describe("Avatar Upload — Authenticated", () => {
   });
 
   test("profile page renders avatar section with upload area", async ({ page }) => {
-    await page.goto("/dashboard/hacker/profile");
+    await page.goto("/dashboard/profile");
     await page.waitForLoadState("networkidle");
 
     // Avatar preview button (clickable round thumbnail)
@@ -73,7 +73,7 @@ test.describe("Avatar Upload — Authenticated", () => {
   });
 
   test("selecting a file opens the crop dialog", async ({ page }) => {
-    await page.goto("/dashboard/hacker/profile");
+    await page.goto("/dashboard/profile");
     await page.waitForLoadState("networkidle");
 
     // The file input is hidden — setInputFiles works directly on hidden inputs
@@ -123,7 +123,7 @@ test.describe("Avatar Upload — Authenticated", () => {
   });
 
   test("avatar preview modal opens and closes", async ({ page }) => {
-    await page.goto("/dashboard/hacker/profile");
+    await page.goto("/dashboard/profile");
     await page.waitForLoadState("networkidle");
 
     // Click the avatar preview button
@@ -144,7 +144,7 @@ test.describe("Avatar Upload — Authenticated", () => {
   });
 
   test("avatar removal triggers auto-save feedback", async ({ page }) => {
-    await page.goto("/dashboard/hacker/profile");
+    await page.goto("/dashboard/profile");
     await page.waitForLoadState("networkidle");
 
     // This test only applies if there IS an uploaded avatar to remove.
@@ -165,7 +165,7 @@ test.describe("Avatar Upload — Authenticated", () => {
   });
 
   test("social link validation shows error on invalid URLs", async ({ page }) => {
-    await page.goto("/dashboard/hacker/profile");
+    await page.goto("/dashboard/profile");
     await page.waitForLoadState("networkidle");
 
     // Find the GitHub input and fill with an invalid URL

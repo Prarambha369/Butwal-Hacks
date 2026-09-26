@@ -73,6 +73,7 @@ const routes = [
   { name: "/dashboard/hacker/teams", path: "@/app/(main)/dashboard/hacker/teams/page" },
   { name: "/dashboard/hacker/team-matching", path: "@/app/(main)/dashboard/hacker/team-matching/page" },
   { name: "/dashboard/hacker/profile", path: "@/app/(main)/dashboard/hacker/profile/page" },
+  { name: "/dashboard/profile", path: "@/app/(main)/dashboard/profile/page" },
 
   // Organizer Dashboard Pages
   { name: "/dashboard/organizer", path: "@/app/(main)/dashboard/organizer/page" },
@@ -124,31 +125,40 @@ const routes = [
   { name: "/dashboard", path: "@/app/(main)/dashboard/page" },
 ];
 
+/**
+ * These assertions are almost entirely module-load cost: each one dynamically
+ * imports a full Next.js page/route module. On a cold cache, or when the rest
+ * of the suite is running in parallel, that regularly exceeds Vitest's 5s
+ * default and reports a bogus failure (it was the only red test in a full run,
+ * while passing 142/142 in isolation).
+ */
+const MODULE_LOAD_TIMEOUT = 20_000;
+
 describe.each(routes)("$name", ({ name: _name, path, hasGenMeta, dynamic, revalidate }) => {
   it("exports a default page component", async () => {
     const mod = await import(path);
     expect(mod.default).toBeDefined();
-  });
+  }, MODULE_LOAD_TIMEOUT);
 
   if (hasGenMeta) {
     it("exports generateMetadata", async () => {
       const mod = await import(path);
       expect(mod.generateMetadata).toBeDefined();
-    });
+    }, MODULE_LOAD_TIMEOUT);
   }
 
   if (revalidate) {
     it(`revalidates at ${revalidate}s`, async () => {
       const mod = await import(path);
       expect(mod.revalidate).toBe(revalidate);
-    });
+    }, MODULE_LOAD_TIMEOUT);
   }
 
   if (dynamic) {
     it(`is ${dynamic}`, async () => {
       const mod = await import(path);
       expect(mod.dynamic).toBe(dynamic);
-    });
+    }, MODULE_LOAD_TIMEOUT);
   }
 });
 

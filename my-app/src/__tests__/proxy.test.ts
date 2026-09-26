@@ -23,6 +23,13 @@ const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn
 
 // ─── Mock Database Builder (same pattern as events-teams-projects.test.ts) ──
 
+/**
+ * Chainable no-op Supabase query builder.
+ *
+ * Every method returns the builder so `.from().select().eq().single()`
+ * resolves, letting each test stub only the terminal `single()` call it
+ * cares about.
+ */
 function buildMockDb() {
   const db: Record<string, ReturnType<typeof vi.fn>> = {};
   const methods = [
@@ -53,6 +60,7 @@ function buildMockDb() {
   };
 }
 
+/** Install a fresh chainable builder as the mocked service client. */
 function mockSupabase() {
   const db = buildMockDb();
   mockedCreateServiceClient.mockReturnValue(db);
@@ -61,10 +69,12 @@ function mockSupabase() {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+/** Make `auth0.getSession()` resolve as a signed-in user. */
 function setAuthenticated(sub = "auth0|12345") {
   mockedGetSession.mockResolvedValue({ user: { sub } });
 }
 
+/** Stub the profiles lookup so the role query resolves with `role`. */
 function setProfileRole(db: ReturnType<typeof buildMockDb>, role: string) {
   db.single.mockResolvedValue({ data: { role }, error: null });
 }
@@ -270,6 +280,42 @@ describe("requireRoleByPath", () => {
     expect(location).toContain("returnTo=%2Fdashboard%2Fhacker");
   });
 
+  it("redirects unauthenticated users from bare /dashboard hub to login", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const { requireRoleByPath } = await import("@/proxy");
+    const request = new NextRequest("https://app.butwalhacks.com/dashboard");
+
+    const response = await requireRoleByPath(request, "/dashboard");
+
+    expect(response.status).toBe(307);
+    const location = response.headers.get("location")!;
+    expect(location).toContain("/auth/login");
+    expect(location).toContain("returnTo=%2Fdashboard");
+  });
+
+  it("guards bare /dashboard through proxy() on the app host (not just requireRoleByPath)", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("https://app.butwalhacks.com/dashboard");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    const location = response.headers.get("location")!;
+    expect(location).toContain("/auth/login");
+    expect(location).toContain("returnTo=%2Fdashboard");
+  });
+
+  it("redirects bare /dashboard on the marketing host to the app subdomain", async () => {
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("https://butwalhacks.com/dashboard");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")!).toContain("app.butwalhacks.com/dashboard");
+  });
+
   it("passes through for authenticated hackers on /dashboard/hacker", async () => {
     setAuthenticated();
     const { requireRoleByPath } = await import("@/proxy");
@@ -326,6 +372,56 @@ describe("proxy (main handler)", () => {
     expect(response.status).toBe(307);
     const location = response.headers.get("location")!;
     expect(location).toContain("/auth/login");
+  });
+
+  // ── calendar subdomain ────────────────────────────────────────────
+  // calendar.butwalhacks.com matched no host rule and fell through to the
+  // final NextResponse.next(), so every path on it was served unauthenticated.
+  it("requires auth for the calendar host in local dev", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://calendar.localhost:3000/");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/auth/login");
+  });
+
+  it("requires auth for calendar API routes too", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest(
+      "http://calendar.localhost:3000/api/calendar/google/connect"
+    );
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/auth/login");
+  });
+
+  it("lets an authenticated user through on the calendar host", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    setProfileRole(db, "hacker");
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://calendar.localhost:3000/");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+
+  it("leaves the bare localhost host alone", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://localhost:3000/");
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(200);
   });
 
   it("redirects hackers away from /dashboard/maintainer in local dev", async () => {

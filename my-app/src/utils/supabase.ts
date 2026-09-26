@@ -72,14 +72,36 @@ function createUnconfiguredClient() {
  * that fails fast (no network round-trips); a loud warning marks the
  * fallback so a misconfigured production is visible in logs, not as 500s.
  */
+/**
+ * Supabase project URL, for server-side code only.
+ *
+ * Falls back to `SUPABASE_URL` because Vercel's Supabase integration
+ * provisions that name, not the `NEXT_PUBLIC_` one. Never use this in
+ * browser code: `NEXT_PUBLIC_*` is inlined at build time, `SUPABASE_URL`
+ * is not, so a client bundle would ship a literal `undefined`.
+ */
+export function supabaseServerUrl() {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+}
+
+/**
+ * Service-role key, for server-side code only. Prefers the explicit
+ * `SUPABASE_SERVICE_ROLE_KEY`; falls back to `SUPABASE_SECRET_KEY`, which
+ * is what Vercel's Supabase integration keeps in sync when the key rotates.
+ */
+export function serviceRoleKey() {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+}
+
 export function createServiceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = supabaseServerUrl();
+  const key = serviceRoleKey();
   if (!url || !key) {
     console.warn(
       "[supabase] Service-role config missing — using inert client. " +
       "Reads will fail fast (empty states). Set NEXT_PUBLIC_SUPABASE_URL " +
-      "and SUPABASE_SERVICE_ROLE_KEY to fix.",
+      "and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_URL and " +
+      "SUPABASE_SECRET_KEY) to fix.",
     );
     return createUnconfiguredClient();
   }

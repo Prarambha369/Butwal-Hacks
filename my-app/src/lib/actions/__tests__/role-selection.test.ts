@@ -164,7 +164,21 @@ describe("selectRole", () => {
     const result = await selectRole(makeFormData({ role: "hacker" }));
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe("Failed to update role. Please try again.");
+    expect(result.error).toBe("Something went wrong on our side. Please try again.");
+  });
+
+  it("surfaces a readable message when Supabase is not configured", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    db.eq.mockResolvedValue({
+      error: { message: "Supabase not configured", code: "SUPABASE_NOT_CONFIGURED" },
+    });
+
+    const { selectRole } = await import("../role-selection");
+    const result = await selectRole(makeFormData({ role: "hacker" }));
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("temporarily unavailable");
   });
 });
 
@@ -253,6 +267,66 @@ describe("requestRoleUpgrade", () => {
     const insertData = db.insert.mock.calls[0][0];
     expect(insertData.message.length).toBe(1000);
     expect(insertData.message).not.toContain("  "); // trimmed
+  });
+
+  // ── The cases that were previously untested, and which is why the
+  // "Failed to submit request" message was untraceable in production.
+
+  it("fails closed when the pending-request lookup errors", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    db.maybeSingle.mockResolvedValue({
+      data: null,
+      error: { message: "connection refused", code: "PGRST205" },
+    });
+
+    const { requestRoleUpgrade } = await import("../role-selection");
+    const result = await requestRoleUpgrade(makeFormData({
+      requestedRole: "organizer",
+      message: "I have experience running local hackathons",
+    }));
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("being set up");
+    // A failed lookup must not be treated as "no duplicate exists".
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  it("reports the real reason when the insert fails", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    db.maybeSingle.mockResolvedValue({ data: null, error: null });
+    db.insert.mockResolvedValue({
+      error: { message: "new row violates row-level security policy", code: "42501" },
+    });
+
+    const { requestRoleUpgrade } = await import("../role-selection");
+    const result = await requestRoleUpgrade(makeFormData({
+      requestedRole: "organizer",
+      message: "I have experience running local hackathons",
+    }));
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("You do not have permission to do that.");
+  });
+
+  it("treats a unique violation as an existing pending request", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    db.maybeSingle.mockResolvedValue({ data: null, error: null });
+    db.insert.mockResolvedValue({
+      error: { message: "duplicate key value", code: "23505" },
+    });
+
+    const { requestRoleUpgrade } = await import("../role-selection");
+    const result = await requestRoleUpgrade(makeFormData({
+      requestedRole: "organizer",
+      message: "I have experience running local hackathons",
+    }));
+
+    // Raced with a concurrent submit -- the partial unique index caught it.
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("already have a pending");
   });
 });
 

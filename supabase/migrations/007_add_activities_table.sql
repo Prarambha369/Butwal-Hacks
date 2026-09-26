@@ -1,5 +1,5 @@
 -- Day 28: Community Wall Activity Feed
-CREATE TABLE activities (
+CREATE TABLE IF NOT EXISTS activities (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   profile_id uuid REFERENCES profiles(id) ON DELETE CASCADE,
   type text NOT NULL CHECK (type IN ('onboarding', 'registration', 'achievement')),
@@ -9,4 +9,4 @@ CREATE TABLE activities (
 );
 
 -- Index for fast retrieval of latest activity
-CREATE INDEX idx_activities_created_at ON activities(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activities_created_at ON activities(created_at DESC);

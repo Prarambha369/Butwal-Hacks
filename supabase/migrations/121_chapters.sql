@@ -3,7 +3,7 @@
 -- three-chapter list). Public reads go through the service-role server
 -- action; RLS deny-by-default like partners (see 116/120).
 
-CREATE TABLE public.chapters (
+CREATE TABLE IF NOT EXISTS public.chapters (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,

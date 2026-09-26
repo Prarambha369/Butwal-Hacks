@@ -1,5 +1,6 @@
 "use client";
 
+import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -18,7 +19,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", i18nKey: "nav.dashboard", icon: LayoutDashboard },
   { href: "/events", i18nKey: "nav.events", icon: CalendarDays },
   { href: "/explore", i18nKey: "nav.explore", icon: Search },
-  { href: "/dashboard/hacker/profile", i18nKey: "nav.profile", icon: User },
+  { href: PROFILE_SETTINGS_PATH, i18nKey: "nav.profile", icon: User },
 ];
 
 /**

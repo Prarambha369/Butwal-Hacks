@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
 import { BHIDClaimCard } from "@/components/dashboard/bhid-claim-card";
@@ -14,10 +15,19 @@ import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata = { ...buildPageMetadata({title: "Dashboard", description: "Your Butwal Hacks dashboard overview", path: "/dashboard", keywords: []}), robots: { index: false, follow: false } };
 
+/**
+ * Role-aware dashboard hub at the bare /dashboard path.
+ *
+ * Redirects to sign-in without a session. Middleware already guards this
+ * route, but the redirect is repeated here so the page can never render
+ * blank if the proxy is ever bypassed.
+ */
 export default async function DashboardHubPage() {
   const session = await auth0.getSession();
   const userId = session?.user?.sub;
-  if (!userId) return null;
+  // Middleware guards /dashboard, but never render a blank page if the
+  // session is missing (e.g. expired mid-render) — send them to login.
+  if (!userId) redirect("/auth/login?returnTo=/dashboard/onboarding");
 
   const email = session.user.email ?? "";
   const emailVerified = session.user.email_verified === true;

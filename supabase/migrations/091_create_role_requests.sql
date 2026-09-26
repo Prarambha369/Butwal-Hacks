@@ -31,6 +31,7 @@ GRANT ALL ON public.role_requests TO service_role;
 ALTER TABLE public.role_requests ENABLE ROW LEVEL SECURITY;
 
 -- Service role policies (bypass RLS for the backend)
+DROP POLICY IF EXISTS "service_role_all" ON public.role_requests;
 CREATE POLICY "service_role_all" ON public.role_requests
   FOR ALL
   TO service_role

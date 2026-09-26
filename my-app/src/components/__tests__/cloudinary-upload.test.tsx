@@ -282,3 +282,86 @@ describe("CloudinaryUpload — Upload States", () => {
     });
   });
 });
+
+// ── Compact mode ───────────────────────────────────────────────────
+// The profile avatar renders the picture itself in a round frame, so the
+// default layout showed it a second time as a large rectangle and offered a
+// second, competing remove control. Compact drops the duplicate and keeps
+// every action reachable.
+describe("CloudinaryUpload compact mode", () => {
+  const baseProps = {
+    onUpload: vi.fn(),
+    entityType: "avatar" as const,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("does not render a duplicate image when the caller already shows it", () => {
+    render(
+      <CloudinaryUpload
+        {...baseProps}
+        compact
+        currentImage="https://res.cloudinary.com/demo/avatar.jpg"
+      />
+    );
+
+    expect(
+      screen.queryByRole("img", { name: /uploaded|preview/i })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByAltText(/uploaded|preview/i)).not.toBeInTheDocument();
+  });
+
+  it("keeps Upload reachable when an image already exists", () => {
+    // The original bug: Upload and Camera only rendered in the no-image
+    // branch, so a user with an existing avatar could only remove it.
+    render(
+      <CloudinaryUpload
+        {...baseProps}
+        compact
+        currentImage="https://res.cloudinary.com/demo/avatar.jpg"
+      />
+    );
+
+    expect(screen.getByRole("button", { name: /replace photo/i })).toBeInTheDocument();
+  });
+
+  it("keeps Camera reachable when an image already exists", () => {
+    render(
+      <CloudinaryUpload
+        {...baseProps}
+        compact
+        onOpenCamera={vi.fn()}
+        currentImage="https://res.cloudinary.com/demo/avatar.jpg"
+      />
+    );
+
+    expect(screen.getByRole("button", { name: /take a photo/i })).toBeInTheDocument();
+  });
+
+  it("hides Remove when there is no image", () => {
+    render(<CloudinaryUpload {...baseProps} compact />);
+    expect(screen.queryByRole("button", { name: /remove photo/i })).not.toBeInTheDocument();
+  });
+
+  it("clears the value from Remove so the caller can unset the avatar", () => {
+    const onUpload = vi.fn();
+    render(
+      <CloudinaryUpload
+        {...baseProps}
+        onUpload={onUpload}
+        compact
+        currentImage="https://res.cloudinary.com/demo/avatar.jpg"
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /remove photo/i }));
+    expect(onUpload).toHaveBeenCalledWith("");
+  });
+
+  it("still labels the first upload rather than saying Replace", () => {
+    render(<CloudinaryUpload {...baseProps} compact label="Upload Avatar" />);
+    expect(screen.getByRole("button", { name: /upload avatar/i })).toBeInTheDocument();
+  });
+});

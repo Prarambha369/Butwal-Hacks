@@ -2,6 +2,7 @@
 
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
+import { describeSupabaseError } from "@/lib/supabase-error";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logger } from "@/lib/logger";
@@ -64,8 +65,9 @@ export async function selectRole(formData: FormData) {
     .eq("auth0_user_id", session.user.sub);
 
   if (error) {
-    logger.error("[role-selection] Failed to update role:", error);
-    return { success: false, error: "Failed to update role. Please try again." };
+    const { diagnostic, userMessage } = describeSupabaseError(error);
+    logger.error(`[role-selection] Failed to update role: ${diagnostic}`);
+    return { success: false, error: userMessage };
   }
 
   revalidatePath("/dashboard");
@@ -99,14 +101,25 @@ export async function requestRoleUpgrade(formData: FormData) {
 
   const db = createServiceClient();
 
-  // Check if there's already a pending request
-  const { data: existing } = await db
+  // Check if there's already a pending request.
+  //
+  // The error is inspected deliberately. This read used to be destructured
+  // down to `{ data }`, so a failed lookup looked identical to "no duplicate
+  // exists" and the guard failed open -- every submit went through whenever
+  // the database was unreachable.
+  const { data: existing, error: lookupError } = await db
     .from("role_requests")
     .select("id, status")
     .eq("auth0_user_id", session.user.sub)
     .eq("requested_role", requestedRole)
     .eq("status", "pending")
     .maybeSingle();
+
+  if (lookupError) {
+    const { diagnostic, userMessage } = describeSupabaseError(lookupError);
+    logger.error(`[role-selection] Pending-request lookup failed: ${diagnostic}`);
+    return { success: false, error: userMessage };
+  }
 
   if (existing) {
     return {
@@ -124,8 +137,20 @@ export async function requestRoleUpgrade(formData: FormData) {
   });
 
   if (error) {
-    logger.error("[role-selection] Failed to create role request:", error);
-    return { success: false, error: "Failed to submit request. Please try again." };
+    // The read above and this write are not atomic, so two concurrent submits
+    // can both pass the duplicate check. The partial unique index
+    // (migration 123) is the real authority, so a unique violation means
+    // "already pending", not "failed".
+    if (error.code === "23505") {
+      return {
+        success: false,
+        error: `You already have a pending ${requestedRole} request. A maintainer will review it shortly.`,
+      };
+    }
+
+    const { diagnostic, userMessage } = describeSupabaseError(error);
+    logger.error(`[role-selection] Failed to create role request: ${diagnostic}`);
+    return { success: false, error: userMessage };
   }
 
   logger.info(`[role-selection] Role upgrade request: ${session.user.email} → ${requestedRole}`);

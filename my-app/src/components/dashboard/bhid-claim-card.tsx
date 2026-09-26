@@ -1,5 +1,6 @@
 "use client";
 
+import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Copy, Check, ExternalLink, User, ShieldCheck } from "lucide-react";
@@ -95,7 +96,7 @@ export function BHIDClaimCard({ bhId, role, fullName }: BHIDClaimCardProps) {
               Public Profile
             </Link>
             <Link
-              href="/dashboard/hacker/profile"
+              href={PROFILE_SETTINGS_PATH}
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full border border-border bg-surface text-primary text-xs font-bold hover:bg-surface-hover transition-all active:scale-[0.97]"
             >
               <User className="w-3.5 h-3.5" />

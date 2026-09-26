@@ -17,6 +17,7 @@ GRANT DELETE ON public.team_members TO authenticated;
 -- Drop existing policy if re-running migration
 DROP POLICY IF EXISTS "Captains can manage their team roster" ON public.team_members;
 
+DROP POLICY IF EXISTS "Captains can manage their team roster" ON public.team_members;
 CREATE POLICY "Captains can manage their team roster" ON public.team_members
   FOR DELETE
   USING (

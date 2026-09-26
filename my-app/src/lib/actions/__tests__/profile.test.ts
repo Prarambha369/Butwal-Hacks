@@ -232,8 +232,23 @@ describe("updateProfile", () => {
     const { updateProfile } = await import("../profile");
     await updateProfile("auth0|12345", { full_name: "Test User" });
 
-    expect(revalidatePath).toHaveBeenCalledWith("/dashboard/hacker/profile");
-    expect(revalidatePath).toHaveBeenCalledWith("/profile/auth0|12345");
+    expect(revalidatePath).toHaveBeenCalledWith("/dashboard/profile");
+  });
+
+  it("does not revalidate a /profile/<auth0-sub> path", async () => {
+    // There is no /profile/[id] route in this app, and the Auth0 subject
+    // contains a "|", so interpolating it produced a path that could never
+    // match. Assert it stays gone so it does not creep back in.
+    setAuthenticated();
+
+    const { revalidatePath } = await import("next/cache");
+    const { updateProfile } = await import("../profile");
+    await updateProfile("auth0|12345", { full_name: "Test User" });
+
+    const calledWith = (revalidatePath as ReturnType<typeof vi.fn>).mock.calls.map(
+      (c) => c[0]
+    );
+    expect(calledWith.some((p) => String(p).startsWith("/profile/"))).toBe(false);
   });
 
   it("throws on Supabase error", async () => {
