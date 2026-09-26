@@ -52,7 +52,7 @@ INSERT INTO public.chapters
 VALUES
   ('bhawani-secondary-school', 'Bhawani Secondary School', 'Bhawani Secondary School', 'Sushant Acharya', 'Siddharthanagar', 'Rupandehi', 'active', '2025', 35,
    'Partnered with the school''s coding club to run monthly hackathons and weekend coding workshops. Students are building everything from quiz platforms to local marketplace tools.',
-   to_jsonb(ARRAY['Bi-weekly coding circles with 15+ regular attendees', 'Inter-school hackathon 2026 — 8 teams participated', 'Student-built quiz platform used by the school', 'Mentorship partnership with Butwal tech professionals']::text[]),
+   to_jsonb(ARRAY['Bi-weekly coding circles with 15+ regular attendees', 'Inter-school hackathon 2025 — 8 teams participated', 'Student-built quiz platform used by the school', 'Mentorship partnership with Butwal tech professionals']::text[]),
    'https://chat.whatsapp.com/bhawani-chapter', 0),
   ('adarsha-secondary-school', 'Adarsha Secondary School', 'Adarsha Secondary School', 'Pooja Thapa', 'Butwal', 'Rupandehi', 'active', '2025', 28,
    'A high-energy chapter focused on introducing younger students to programming through game jams and creative coding projects in partnership with the school''s tech club.',
