@@ -170,7 +170,7 @@ async function runAuthMiddleware(request: NextRequest): Promise<NextResponse> {
  * Users landing on the wrong subdomain get redirected to the correct one.
  * Shared routes (auth, static files) work on both domains.
  */
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { hostname, pathname } = request.nextUrl;
 
   // ── Local dev: skip subdomain enforcement ─────────────────

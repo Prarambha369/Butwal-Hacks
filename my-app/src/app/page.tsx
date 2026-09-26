@@ -24,7 +24,7 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/",
 });
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 /**
  * Landing page — one calm narrative, no filler:
