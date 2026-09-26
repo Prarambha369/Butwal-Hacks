@@ -29,7 +29,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: my-app/package-lock.json
+          # The lockfile lives at the repo root: my-app is an npm workspace, so
+          # there is no my-app/package-lock.json. Pointing at the old path made
+          # setup-node fail to resolve it, failing the whole job.
+          cache-dependency-path: package-lock.json
 
       - run: npm install --legacy-peer-deps
 
@@ -89,7 +92,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: my-app/package-lock.json
+          # The lockfile lives at the repo root: my-app is an npm workspace, so
+          # there is no my-app/package-lock.json. Pointing at the old path made
+          # setup-node fail to resolve it, failing the whole job.
+          cache-dependency-path: package-lock.json
 
       - run: npm install --legacy-peer-deps
 
