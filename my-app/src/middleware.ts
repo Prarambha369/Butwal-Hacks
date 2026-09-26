@@ -57,6 +57,7 @@ const APP_PREFIXES = [
 const SHARED_PREFIXES = [
   "/auth/",
   "/_next/",
+  "/api/",
 ];
 
 // ─── Host detection helpers ───────────────────────────────────────────
@@ -170,7 +171,7 @@ async function runAuthMiddleware(request: NextRequest): Promise<NextResponse> {
  * Users landing on the wrong subdomain get redirected to the correct one.
  * Shared routes (auth, static files) work on both domains.
  */
-export async function middleware(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { hostname, pathname } = request.nextUrl;
 
   // ── Local dev: skip subdomain enforcement ─────────────────
