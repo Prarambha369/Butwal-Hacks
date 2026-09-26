@@ -1,7 +1,7 @@
 "use server";
 
 import { logger } from "@/lib/logger";
-import { createServiceClient } from "@/utils/supabase";
+import { createServiceClient, supabaseServerUrl } from "@/utils/supabase";
 import { resolveProfileId } from "@/lib/profile-resolver";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
@@ -142,7 +142,7 @@ export async function getMessages(teamId: string): Promise<ChatMessage[]> {
  * is sent via the anon key connection that clients are subscribed to.
  */
 async function broadcastMessage(teamId: string, message: ChatMessage): Promise<void> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = supabaseServerUrl();
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return;
 
