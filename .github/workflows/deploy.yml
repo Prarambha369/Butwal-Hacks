@@ -27,12 +27,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4.4.0
         with:
-          node-version: 20
-          cache: npm
-          # The lockfile lives at the repo root: my-app is an npm workspace, so
-          # there is no my-app/package-lock.json. Pointing at the old path made
-          # setup-node fail to resolve it, failing the whole job.
-          cache-dependency-path: package-lock.json
+          # Match ci.yml, which is what every pull-request check runs on.
+          # No `cache: npm` here: package-lock.json is gitignored and never
+          # committed, so setup-node has no lockfile to key the cache on and
+          # fails the step outright.
+          node-version: 22
 
       - run: npm install --legacy-peer-deps
 
@@ -90,12 +89,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4.4.0
         with:
-          node-version: 20
-          cache: npm
-          # The lockfile lives at the repo root: my-app is an npm workspace, so
-          # there is no my-app/package-lock.json. Pointing at the old path made
-          # setup-node fail to resolve it, failing the whole job.
-          cache-dependency-path: package-lock.json
+          # Match ci.yml, which is what every pull-request check runs on.
+          # No `cache: npm` here: package-lock.json is gitignored and never
+          # committed, so setup-node has no lockfile to key the cache on and
+          # fails the step outright.
+          node-version: 22
 
       - run: npm install --legacy-peer-deps
 
