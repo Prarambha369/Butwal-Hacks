@@ -179,7 +179,7 @@ All routes must fit into one of nine zones:
 | 🔴 **Maintainer** | Red | All permissions + revoke markers, view audit log, manage users, dedicate schools |
 | 🤝 **Sponsor** | Blue | View talent search, post bounties, manage sponsorships |
 
-Roles are stored in Supabase `profiles.role` column. Enforcement via middleware and server-side checks.
+Roles are stored in Supabase `profiles.role` column. Enforcement via proxy and server-side checks.
 
 ---
 
@@ -264,8 +264,7 @@ Butwal-Hacks/
 │   │   │   ├── orgs/                 # Zone 7 organizations
 │   │   │   ├── teams/                # Zone 8 teams
 │   │   │   └── api/                  # Zone 9 API endpoints
-│   │   ├── proxy.ts                  # Middleware: auth + subdomain routing
-│   │   ├── instrumentation.ts        # Next.js instrumentation (no-op)
+│   │   ├── proxy.ts                  # Proxy: auth + subdomain routing
 │   │   ├── components/
 │   │   │   ├── sections/             # Navbar, Hero, Footer, ContactCTA
 │   │   │   ├── home/                 # Landing page sections

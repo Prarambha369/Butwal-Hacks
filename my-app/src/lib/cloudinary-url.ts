@@ -37,18 +37,6 @@ export function cloudinaryDownloadUrl(url: string): string {
 // commas, or known transform prefixes. Version segments look like "v123".
 const TRANSFORM_SEGMENT = /[,]|^(w|h|c|q|f|e|l|fl|g|x|y|o|r|a|b|d|p|t|u|w)_/;
 
-export function cloudinaryUrl(url: string, width: number): string {
-  if (!url || !Number.isFinite(width) || width <= 0) return url;
-  const match = CLOUDINARY_DELIVERY.exec(url);
-  if (!match) return url;
-  const [, cloud, path] = match;
-  const [first] = path.split("/");
-  // Already carries a transform (or an unrecognized shape) — leave alone.
-  if (TRANSFORM_SEGMENT.test(first)) return url;
-  const w = Math.round(width);
-  return `https://res.cloudinary.com/${cloud}/image/upload/w_${w},q_auto,f_auto/${path}`;
-}
-
 /** Fixed recipe set maintainers can apply per photo. No freeform input. */
 export const OPTIMIZE_RECIPES = {
   balanced: "q_auto,f_auto",
@@ -67,15 +55,24 @@ export function isValidRecipe(recipe: string): recipe is string {
 }
 
 /**
- * Public display URL honoring a maintainer-chosen recipe.
- * Falls back to default sized delivery for null/invalid recipes.
+ * Apply a width transform to a Cloudinary delivery URL, skipping any URL
+ * that already carries a transform segment. Shared by displayPhotoUrl for
+ * both the default and recipe paths.
  */
-export function displayPhotoUrl(url: string, recipe: string | null, width: number): string {
-  if (!recipe || !isValidRecipe(recipe)) return cloudinaryUrl(url, width);
+function withWidthTransform(url: string, width: number, transform: string): string {
   if (!url || !Number.isFinite(width) || width <= 0) return url;
   const match = CLOUDINARY_DELIVERY.exec(url);
   if (!match) return url;
   const [, cloud, path] = match;
   if (TRANSFORM_SEGMENT.test(path.split("/")[0])) return url;
-  return `https://res.cloudinary.com/${cloud}/image/upload/w_${Math.round(width)},${recipe}/${path}`;
+  return `https://res.cloudinary.com/${cloud}/image/upload/w_${Math.round(width)},${transform}/${path}`;
+}
+
+/**
+ * Public display URL honoring a maintainer-chosen recipe.
+ * Falls back to default sized delivery for null/invalid recipes.
+ */
+export function displayPhotoUrl(url: string, recipe: string | null, width: number): string {
+  if (!recipe || !isValidRecipe(recipe)) return withWidthTransform(url, width, "q_auto,f_auto");
+  return withWidthTransform(url, width, recipe);
 }

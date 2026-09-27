@@ -109,7 +109,7 @@ export const POST = withRateLimit(async (request: Request) => {
 
     const { error: updateError } = await supabase
       .from("profiles")
-      .update({ linked_accounts: JSON.parse(JSON.stringify(updatedLinked)) })
+      .update({ linked_accounts: structuredClone(updatedLinked) })
       .eq("auth0_user_id", userId);
 
     if (updateError) {

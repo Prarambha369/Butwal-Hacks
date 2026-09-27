@@ -165,7 +165,7 @@ export const GET = withRateLimit(async (request: Request) => {
     updatedLinked.push(newLinkedAccount);
 
     const profileUpdate: Record<string, unknown> = {
-      linked_accounts: JSON.parse(JSON.stringify(updatedLinked)),
+      linked_accounts: structuredClone(updatedLinked),
     };
 
     // Auto-populate social URL from the linked identity (only if field is empty)

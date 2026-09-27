@@ -11,7 +11,6 @@ import CalendarErrorBoundary from '@/components/home/calendar-error-boundary';
 import TrustedBy from '@/components/home/trusted-by';
 import ContactCTA from '@/components/sections/ContactCTA';
 import Footer from '@/components/sections/Footer';
-import { FadeIn } from '@/components/home/shared-primitives';
 import { getFeaturedProjects } from '@/lib/actions/projects';
 import { createServiceClient } from '@/utils/supabase';
 import { buildPageMetadata } from '@/lib/seo';
@@ -31,11 +30,6 @@ export const dynamic = "force-dynamic";
  *   belong (Hero) → proof (live stats) → values → tools →
  *   real work (featured builds) → how it goes (steps) →
  *   answers (FAQ) → one invitation (ContactCTA).
- *
- * Retired from this composition (files kept for later real-data use):
- * database-table (showcase rows), typography-blocks (manifesto
- * repetition), event-gallery (stock photos), features-cta (duplicate
- * cards).
  *
  * Restored with real data: event-calendar (published events plotted,
  * organizer publishing flows through automatically) and trusted-by
@@ -74,14 +68,14 @@ export default async function LandingPage() {
         <ImpactMetrics />
 
         {/* 4. Tools */}
-        <FadeIn>
+        <div>
           <StaggeredFeatures />
-        </FadeIn>
+        </div>
 
         {/* 5. Real work — community builds, honest empty state */}
-        <FadeIn delay={120}>
+        <div>
           <FeaturedProjects projects={projects} />
-        </FadeIn>
+        </div>
 
         {/* 5b. When — published events on the calendar, with .ics sync */}
         <CalendarErrorBoundary>
@@ -89,9 +83,9 @@ export default async function LandingPage() {
         </CalendarErrorBoundary>
 
         {/* 6. How it goes — orientation, no ask */}
-        <FadeIn delay={180}>
+        <div>
           <StepsStrip />
-        </FadeIn>
+        </div>
 
         {/* 7. Answers */}
         <NonProfitFAQ />

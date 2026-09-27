@@ -4,32 +4,11 @@ import { cn } from "@/lib/utils"
 
 /* ─── Base primitive ───────────────────────────────────────────────── */
 
-interface SkeletonProps {
-  className?: string
-  variant?: "default" | "card" | "text" | "circle" | "image"
-  count?: number
-}
+// ponytail: no variant/count props — every call site passes only className,
+// which already encodes the shape (h-4 w-32, rounded-full, ...).
 
-export function Skeleton({ className, variant = "default", count = 1 }: SkeletonProps) {
-  const baseClasses = "animate-pulse bg-muted rounded-md"
-
-  const variantClasses = {
-    default: "h-4 w-full",
-    card: "h-48 w-full",
-    text: "h-4 w-3/4",
-    circle: "h-12 w-12 rounded-full",
-    image: "h-40 w-full",
-  }
-
-  const items = Array.from({ length: count }, (_, i) => (
-    <div
-      key={i}
-      className={cn(baseClasses, variantClasses[variant], className)}
-    />
-  ))
-
-  if (count === 1) return items[0]
-  return <div className="space-y-2">{items}</div>
+export function Skeleton({ className }: { className?: string }) {
+  return <div className={cn("animate-pulse bg-muted rounded-md", className)} />
 }
 
 /* ─── Card skeleton — generic card with icon area + title + lines ─── */
