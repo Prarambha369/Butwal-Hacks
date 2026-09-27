@@ -12,6 +12,7 @@
  *   - Total retry budget capped at 80% of caller's timeout
  */
 
+import { setTimeout as sleep } from "node:timers/promises";
 import { captureLLMCall } from "./posthog-llm";
 
 const GROQ_API_BASE = "https://api.groq.com/openai/v1/chat/completions";
@@ -186,9 +187,4 @@ export async function callGroq(options: GroqOptions): Promise<GroqResult> {
 
   // All retries exhausted
   throw lastError ?? new Error("Groq API request failed after retries");
-}
-
-/** Promise-based sleep helper. */
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

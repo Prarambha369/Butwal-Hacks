@@ -27,23 +27,17 @@ describe("Skeleton primitive", () => {
     expect(el).toHaveClass("animate-pulse", "bg-muted", "rounded-md");
   });
 
-  it("renders count items in a wrapper when count > 1", () => {
-    const { container } = render(<Skeleton count={3} />);
-    const wrapper = container.firstElementChild;
-    expect(wrapper?.children.length).toBe(3);
+  it("renders exactly one div", () => {
+    const { container } = render(<Skeleton />);
+    expect(container.firstElementChild?.children.length).toBe(0);
   });
 
-  it("applies variant classes", () => {
-    const { container: c1 } = render(<Skeleton variant="circle" />);
+  it("applies custom className for shape", () => {
+    const { container: c1 } = render(<Skeleton className="h-12 w-12 rounded-full" />);
     expect(c1.firstElementChild).toHaveClass("rounded-full");
 
-    const { container: c4 } = render(<Skeleton variant="card" />);
+    const { container: c4 } = render(<Skeleton className="h-48 w-full" />);
     expect(c4.firstElementChild).toHaveClass("h-48");
-  });
-
-  it("applies custom className", () => {
-    const { container } = render(<Skeleton className="w-64" />);
-    expect(container.firstElementChild).toHaveClass("w-64");
   });
 });
 

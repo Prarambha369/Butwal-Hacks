@@ -402,3 +402,23 @@ export async function getFeaturedProjects(limit = 3) {
 
   return data;
 }
+
+/** Community-verified projects, newest first. Backs the /projects featured strip. */
+export async function getVerifiedProjects(limit = 3) {
+  const supabase = createServiceClient();
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select('id, title, description, cover_image, event_id')
+    .eq('github_verified', true)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+    .abortSignal(AbortSignal.timeout(5000));
+
+  if (error) {
+    logger.error("Error fetching verified projects:", error);
+    return [];
+  }
+
+  return data;
+}

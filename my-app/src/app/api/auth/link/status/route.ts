@@ -65,7 +65,7 @@ export const GET = withRateLimit(async () => {
       // Update Supabase cache in the background
       supabase
         .from("profiles")
-        .update({ linked_accounts: JSON.parse(JSON.stringify(linkedAccounts)) })
+        .update({ linked_accounts: structuredClone(linkedAccounts) })
         .eq("auth0_user_id", userId)
         .then(({ error }) => {
           if (error) {

@@ -57,22 +57,10 @@ function fmt(csp: string): string {
 const mainCSP = `${baseCSP}  frame-ancestors 'none';`
 const widgetCSP = `${baseCSP}  frame-ancestors *;`
 
-const securityHeaders = [
+const cspOnlyHeaders = [
   {
     key: "Content-Security-Policy",
     value: fmt(mainCSP),
-  },
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload",
-  },
-  {
-    key: "X-Content-Type-Options",
-    value: "nosniff",
-  },
-  {
-    key: "Referrer-Policy",
-    value: "strict-origin-when-cross-origin",
   },
   {
     key: "Permissions-Policy",
@@ -80,23 +68,10 @@ const securityHeaders = [
   },
 ]
 
-/** Minimal set for the embeddable widget iframe — relaxed framing only. */
-const widgetHeaders = [
+const widgetCspHeaders = [
   {
     key: "Content-Security-Policy",
     value: fmt(widgetCSP),
-  },
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload",
-  },
-  {
-    key: "X-Content-Type-Options",
-    value: "nosniff",
-  },
-  {
-    key: "Referrer-Policy",
-    value: "strict-origin-when-cross-origin",
   },
   {
     key: "Permissions-Policy",
@@ -201,15 +176,13 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      // Widget route — must remain iframe-embeddable (verified BH-ID widgets)
       {
         source: "/widget/:path*",
-        headers: widgetHeaders,
+        headers: widgetCspHeaders,
       },
-      // All other routes — strict framing protection
       {
         source: "/:path*",
-        headers: securityHeaders,
+        headers: cspOnlyHeaders,
       },
     ]
   },

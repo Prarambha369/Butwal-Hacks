@@ -4,6 +4,7 @@ import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
 import { ghostMarkerNotificationHtml } from "@/lib/ghost-marker-email"
+import { sendResendEmail } from "@/lib/resend"
 import { signTrustMarker } from "@/lib/crypto-sign"
 import { bustCache } from "@/lib/cache"
 import { z } from "zod"
@@ -204,14 +205,8 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         .single()
 
       // ponytail: 10s timeout — background notification email. Generous window for Resend + HTML rendering.
-      const res = await fetch("https://api.resend.com/emails", {
-        signal: AbortSignal.timeout(10_000),
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
+      const res = await sendResendEmail(
+        {
           from: "notifications@mail.butwalhacks.com",
           to: [normalizedEmail],
           subject: `You've received a Trust Marker from Butwal Hacks`,
@@ -221,11 +216,12 @@ export const POST = withRateLimit(async (req: NextRequest) => {
             safeDescription,
             claimUrl,
           ),
-        }),
-      })
+        },
+        { timeoutMs: 10_000, label: "issue-marker" },
+      )
 
       if (!res.ok) {
-        logger.warn("[issue-marker] email send failed:", await res.text())
+        logger.warn("[issue-marker] email send failed:", `http_${res.status}`)
       }
     } else {
       logger.info("[issue-marker] no RESEND_API_KEY — skipped email for", normalizedEmail)

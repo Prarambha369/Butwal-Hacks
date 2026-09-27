@@ -17,7 +17,7 @@ Browser ──► Vercel (Next.js 16) ──┬── Auth0 (Authentication)
 
 - **Subdomain routing:** `butwalhacks.com` (public) vs `app.butwalhacks.com` (dashboards/API) via `src/proxy.ts`
 - **Auth:** Auth0 v4 SDK. Supabase Auth disabled — database only via Service Role Key.
-- **RBAC:** 3 roles (Hacker, Organizer, Maintainer) enforced in middleware + API routes.
+- **RBAC:** 3 roles (Hacker, Organizer, Maintainer) enforced in proxy + API routes.
 
 ---
 

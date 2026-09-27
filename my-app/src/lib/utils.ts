@@ -18,8 +18,8 @@ export function cloudinaryUrl(url: string | null | undefined, width = 800): stri
 /**
  * Build a generic DiceBear placeholder URL for any style.
  * Defaults to `shapes` (abstract geometric patterns), which is appropriate
- * for photo/image fallbacks. For avatars, use `getDiceBearUrl` which uses
- * the `avataaars` style.
+ * for photo/image fallbacks. For avatars, pass the `avataaars` style
+ * (see `getAvatarUrl`).
  *
  * @param seed - Deterministic seed string (photo ID, name, etc.)
  * @param style - DiceBear style name (default: "shapes")
@@ -31,14 +31,6 @@ export function getDiceBearPlaceholder(
 ): string {
   const safeSeed = (seed || "default").trim().toLowerCase().replace(/\s+/g, "-");
   return `https://api.dicebear.com/7.x/${style}/svg?seed=${encodeURIComponent(safeSeed)}`;
-}
-
-/**
- * Build a DiceBear avatar URL from a seed string.
- * Uses the `avataaars` style for cartoon-style face avatars.
- */
-export function getDiceBearUrl(seed: string | null | undefined): string {
-  return getDiceBearPlaceholder(seed, "avataaars");
 }
 
 /**
@@ -57,5 +49,5 @@ export function getAvatarUrl(
   seed: string | null | undefined,
 ): string {
   if (avatarUrl) return avatarUrl;
-  return getDiceBearUrl(seed);
+  return getDiceBearPlaceholder(seed, "avataaars");
 }

@@ -3,7 +3,7 @@ import { createServiceClient } from "@/utils/supabase";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
-import { getYearMetrics } from "@/lib/metrics";
+import { generateAnnualReport } from "@/lib/actions/annual-report";
 import { withRateLimit } from "@/lib/rate-limiter";
 
 /**
@@ -48,7 +48,7 @@ export const GET = withRateLimit(async (request: Request) => {
       });
     const year = yearSchema.parse(url.searchParams.get("year") ?? undefined);
 
-    const report = await getYearMetrics(year, true);
+    const report = await generateAnnualReport(year);
 
     return NextResponse.json(report, {
       headers: { "Cache-Control": "private, max-age=3600" },

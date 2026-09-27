@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cloudinaryUrl, getDiceBearUrl, getDiceBearPlaceholder, getAvatarUrl } from "@/lib/utils";
+import { cloudinaryUrl, getDiceBearPlaceholder, getAvatarUrl } from "@/lib/utils";
 
 // ─── cloudinaryUrl ──────────────────────────────────────────────────────
 
@@ -103,43 +103,46 @@ describe("getDiceBearPlaceholder", () => {
   });
 });
 
-// ─── getDiceBearUrl ─────────────────────────────────────────────────────
+const getDiceBearPlaceholder2 = (seed: string | null | undefined) =>
+  getDiceBearPlaceholder(seed, "avataaars");
 
-describe("getDiceBearUrl", () => {
+// ─── avataaars seed handling (via getDiceBearPlaceholder) ──────────────
+
+describe("getDiceBearPlaceholder avataaars", () => {
   it("returns a DiceBear avataaars SVG URL with the seed", () => {
-    const url = getDiceBearUrl("John Doe");
+    const url = getDiceBearPlaceholder2("John Doe");
     expect(url).toContain("api.dicebear.com/7.x/avataaars/svg");
     expect(url).toContain("seed=john-doe");
   });
 
   it("lowercases and hyphenates the seed", () => {
-    const url = getDiceBearUrl("Alice Wonderland");
+    const url = getDiceBearPlaceholder2("Alice Wonderland");
     expect(url).toContain("seed=alice-wonderland");
   });
 
   it("uses 'default' when seed is null", () => {
-    const url = getDiceBearUrl(null);
+    const url = getDiceBearPlaceholder2(null);
     expect(url).toContain("seed=default");
   });
 
   it("uses 'default' when seed is undefined", () => {
-    const url = getDiceBearUrl(undefined);
+    const url = getDiceBearPlaceholder2(undefined);
     expect(url).toContain("seed=default");
   });
 
   it("URL-encodes special characters in the seed", () => {
-    const url = getDiceBearUrl("John & Jane");
+    const url = getDiceBearPlaceholder2("John & Jane");
     expect(url).toContain("seed=john-");
     expect(url).not.toContain(" ");
   });
 
   it("handles an empty string seed", () => {
-    const url = getDiceBearUrl("");
+    const url = getDiceBearPlaceholder2("");
     expect(url).toContain("seed=default");
   });
 
-  it("uses avataaars style via getDiceBearPlaceholder internally", () => {
-    const result = getDiceBearUrl("test-seed");
+  it("matches the avataaars style build", () => {
+    const result = getDiceBearPlaceholder2("test-seed");
     const expected = getDiceBearPlaceholder("test-seed", "avataaars");
     expect(result).toBe(expected);
   });

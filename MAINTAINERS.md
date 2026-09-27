@@ -272,7 +272,7 @@ The following artifacts should never be committed to the repository:
 - Local logs: `dev_log.txt`, `lint_output.txt`, any `.log` files
 - Browser downloads: `chrome/` directory (use Playwright-managed browsers)
 - History rewrite artifacts: `.git-rewrite/`
-- Temporary audit output: `.audit.json`, `tmp/`
+- Temporary audit output: `tmp/`
 - Editor config: `.vscode/`, `.idea/`
 - OS files: `.DS_Store`, `Thumbs.db`
 

@@ -87,7 +87,7 @@ describe("redirectToDomain", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("redirects to butwalhacks.com for main target", async () => {
-    const { redirectToDomain } = await import("@/proxy");
+    const { redirectToDomain } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/hacker");
 
     const response = redirectToDomain(request, "main");
@@ -99,7 +99,7 @@ describe("redirectToDomain", () => {
   });
 
   it("redirects to app.butwalhacks.com for app target", async () => {
-    const { redirectToDomain } = await import("@/proxy");
+    const { redirectToDomain } = await import("@/proxy-helpers");
     const request = new NextRequest("https://butwalhacks.com/events/hackathon");
 
     const response = redirectToDomain(request, "app");
@@ -111,7 +111,7 @@ describe("redirectToDomain", () => {
   });
 
   it("preserves query parameters in the redirect", async () => {
-    const { redirectToDomain } = await import("@/proxy");
+    const { redirectToDomain } = await import("@/proxy-helpers");
     const request = new NextRequest("https://butwalhacks.com/explore?q=test&page=1");
 
     const response = redirectToDomain(request, "app");
@@ -122,7 +122,7 @@ describe("redirectToDomain", () => {
   });
 
   it("preserves the pathname", async () => {
-    const { redirectToDomain } = await import("@/proxy");
+    const { redirectToDomain } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/p/BH-26-ABCD");
 
     const response = redirectToDomain(request, "main");
@@ -141,7 +141,7 @@ describe("requireRole", () => {
 
   it("redirects to /auth/login when unauthenticated", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { requireRole } = await import("@/proxy");
+    const { requireRole } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/maintainer");
 
     const response = await requireRole(request, "/dashboard/maintainer", ["maintainer"]);
@@ -156,7 +156,7 @@ describe("requireRole", () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileRole(db, "maintainer");
-    const { requireRole } = await import("@/proxy");
+    const { requireRole } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/maintainer");
 
     const response = await requireRole(request, "/dashboard/maintainer", ["maintainer"]);
@@ -169,7 +169,7 @@ describe("requireRole", () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileRole(db, "hacker");
-    const { requireRole } = await import("@/proxy");
+    const { requireRole } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/maintainer");
 
     const response = await requireRole(request, "/dashboard/maintainer", ["maintainer"]);
@@ -184,7 +184,7 @@ describe("requireRole", () => {
     const db = mockSupabase();
     // No profile found — single returns null
     db.single.mockResolvedValue({ data: null, error: null });
-    const { requireRole } = await import("@/proxy");
+    const { requireRole } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/maintainer");
 
     const response = await requireRole(request, "/dashboard/maintainer", ["maintainer"]);
@@ -198,7 +198,7 @@ describe("requireRole", () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileRole(db, "organizer");
-    const { requireRole } = await import("@/proxy");
+    const { requireRole } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/organizer");
 
     const response = await requireRole(request, "/dashboard/organizer", ["organizer", "maintainer"]);
@@ -211,7 +211,7 @@ describe("requireRole", () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileRole(db, "hacker");
-    const { requireRole } = await import("@/proxy");
+    const { requireRole } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/organizer");
 
     const response = await requireRole(request, "/dashboard/organizer", ["organizer", "maintainer"]);
@@ -224,7 +224,7 @@ describe("requireRole", () => {
     setAuthenticated();
     const db = mockSupabase();
     db.single.mockRejectedValue(new Error("Connection failed"));
-    const { requireRole } = await import("@/proxy");
+    const { requireRole } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/maintainer");
 
     const response = await requireRole(request, "/dashboard/maintainer", ["maintainer"]);
@@ -244,7 +244,7 @@ describe("requireRoleByPath", () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileRole(db, "maintainer");
-    const { requireRoleByPath } = await import("@/proxy");
+    const { requireRoleByPath } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/maintainer");
 
     const response = await requireRoleByPath(request, "/dashboard/maintainer/audit-log");
@@ -259,7 +259,7 @@ describe("requireRoleByPath", () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileRole(db, "organizer");
-    const { requireRoleByPath } = await import("@/proxy");
+    const { requireRoleByPath } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/organizer");
 
     const response = await requireRoleByPath(request, "/dashboard/organizer/events");
@@ -269,7 +269,7 @@ describe("requireRoleByPath", () => {
 
   it("redirects unauthenticated users from /dashboard/hacker to login", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { requireRoleByPath } = await import("@/proxy");
+    const { requireRoleByPath } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/hacker");
 
     const response = await requireRoleByPath(request, "/dashboard/hacker");
@@ -282,7 +282,7 @@ describe("requireRoleByPath", () => {
 
   it("redirects unauthenticated users from bare /dashboard hub to login", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { requireRoleByPath } = await import("@/proxy");
+    const { requireRoleByPath } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard");
 
     const response = await requireRoleByPath(request, "/dashboard");
@@ -295,7 +295,7 @@ describe("requireRoleByPath", () => {
 
   it("guards bare /dashboard through proxy() on the app host (not just requireRoleByPath)", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard");
 
     const response = await proxy(request);
@@ -307,7 +307,7 @@ describe("requireRoleByPath", () => {
   });
 
   it("redirects bare /dashboard on the marketing host to the app subdomain", async () => {
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("https://butwalhacks.com/dashboard");
 
     const response = await proxy(request);
@@ -318,7 +318,7 @@ describe("requireRoleByPath", () => {
 
   it("passes through for authenticated hackers on /dashboard/hacker", async () => {
     setAuthenticated();
-    const { requireRoleByPath } = await import("@/proxy");
+    const { requireRoleByPath } = await import("@/proxy-helpers");
     const request = new NextRequest("https://app.butwalhacks.com/dashboard/hacker");
 
     const response = await requireRoleByPath(request, "/dashboard/hacker");
@@ -335,7 +335,7 @@ describe("proxy (main handler)", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("passes through public routes in local dev", async () => {
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/");
 
     const response = await proxy(request);
@@ -345,7 +345,7 @@ describe("proxy (main handler)", () => {
   });
 
   it("passes through /p/[slug_id] in local dev", async () => {
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/p/BH-26-ABCD");
 
     const response = await proxy(request);
@@ -354,7 +354,7 @@ describe("proxy (main handler)", () => {
   });
 
   it("passes through explore page in local dev", async () => {
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/explore");
 
     const response = await proxy(request);
@@ -364,7 +364,7 @@ describe("proxy (main handler)", () => {
 
   it("requires auth for /dashboard/hacker in local dev", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/dashboard/hacker");
 
     const response = await proxy(request);
@@ -379,7 +379,7 @@ describe("proxy (main handler)", () => {
   // final NextResponse.next(), so every path on it was served unauthenticated.
   it("requires auth for the calendar host in local dev", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://calendar.localhost:3000/");
 
     const response = await proxy(request);
@@ -388,24 +388,23 @@ describe("proxy (main handler)", () => {
     expect(response.headers.get("location")).toContain("/auth/login");
   });
 
-  it("requires auth for calendar API routes too", async () => {
+  it("passes through calendar API routes without auth", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest(
       "http://calendar.localhost:3000/api/calendar/google/connect"
     );
 
     const response = await proxy(request);
 
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toContain("/auth/login");
+    expect(response.status).toBe(200);
   });
 
   it("lets an authenticated user through on the calendar host", async () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileRole(db, "hacker");
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://calendar.localhost:3000/");
 
     const response = await proxy(request);
@@ -416,7 +415,7 @@ describe("proxy (main handler)", () => {
 
   it("leaves the bare localhost host alone", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/");
 
     const response = await proxy(request);
@@ -428,7 +427,7 @@ describe("proxy (main handler)", () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileRole(db, "hacker");
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/dashboard/maintainer");
 
     const response = await proxy(request);
@@ -440,7 +439,7 @@ describe("proxy (main handler)", () => {
 
   it("requires auth for /portal/ in local dev", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/portal/sponsors");
 
     const response = await proxy(request);
@@ -453,7 +452,7 @@ describe("proxy (main handler)", () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileRole(db, "sponsor");
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/portal/sponsors");
 
     const response = await proxy(request);
@@ -465,13 +464,220 @@ describe("proxy (main handler)", () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileRole(db, "hacker");
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/portal/sponsors");
 
     const response = await proxy(request);
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toContain("/dashboard/hacker");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// proxy — production host routing and chapter-subdomain rewrite
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Every branch below is unreachable from the e2e suite: Playwright drives
+// http://localhost, which the proxy short-circuits into handleLocalDev on its
+// first line. That left the whole production host router — cross-host
+// redirects, the app-host role gates, and the subdomain rewrite — with zero
+// coverage until this block.
+//
+// A NextRequest built from a full URL carries that URL's hostname, so the
+// branches are reachable here even though they are not reachable over the dev
+// server (which resolves every request to localhost regardless of Host).
+//
+// These tests pin CURRENT behaviour. They are the safety net for collapsing
+// the duplicated role guards, so any intentional behaviour change during that
+// refactor has to show up here as a deliberate edit.
+
+describe("proxy (production host routing)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  /** Run the proxy against a full URL, so the request carries that hostname. */
+  async function runProxy(url: string) {
+    const { default: proxy } = await import("@/proxy");
+    return proxy(new NextRequest(url));
+  }
+
+  // ── marketing host: butwalhacks.com ────────────────────────────────
+  it("serves marketing routes on the marketing host without auth", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const response = await runProxy("https://butwalhacks.com/events");
+
+    expect(response.status).toBe(200);
+  });
+
+  // /orgs/ is a member of APP_PREFIXES, so on the marketing host it is
+  // *redirected*, not gated — the auth check happens on the second hop, pinned
+  // by the app-host /orgs test below. Two hops, but gated either way.
+  it.each([
+    "/dashboard/hacker",
+    "/portal/sponsors",
+    "/orgs/pokhara/dashboard",
+  ])("308s %s from the marketing host to the app host", async (path) => {
+    const response = await runProxy(`https://butwalhacks.com${path}`);
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")).toBe(`https://app.butwalhacks.com${path}`);
+  });
+
+  it("preserves the query string when bouncing between hosts", async () => {
+    const response = await runProxy(
+      "https://butwalhacks.com/dashboard/hacker?tab=profile",
+    );
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")).toBe(
+      "https://app.butwalhacks.com/dashboard/hacker?tab=profile",
+    );
+  });
+
+  // ── app host: app.butwalhacks.com ──────────────────────────────────
+  it("308s marketing routes off the app host back to the marketing host", async () => {
+    const response = await runProxy("https://app.butwalhacks.com/events");
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")).toBe("https://butwalhacks.com/events");
+  });
+
+  it("requires auth for /dashboard/* on the app host", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const response = await runProxy("https://app.butwalhacks.com/dashboard/hacker");
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/auth/login");
+    expect(response.headers.get("location")).toContain(
+      encodeURIComponent("/dashboard/hacker"),
+    );
+  });
+
+  it("enforces the maintainer role on the app host", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    setProfileRole(db, "hacker");
+    const response = await runProxy("https://app.butwalhacks.com/dashboard/maintainer");
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/dashboard/hacker");
+  });
+
+  it("requires auth for /orgs/* on the app host", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const response = await runProxy(
+      "https://app.butwalhacks.com/orgs/pokhara/dashboard",
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/auth/login");
+  });
+
+  it("passes other APP_PREFIXES on the app host through without auth", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const response = await runProxy("https://app.butwalhacks.com/teams/abc");
+
+    expect(response.status).toBe(200);
+  });
+
+  // ── shared prefixes ────────────────────────────────────────────────
+  it.each(["https://app.butwalhacks.com", "https://butwalhacks.com"])(
+    "dispatches /auth/* to the Auth0 middleware on %s",
+    async (host) => {
+      (auth0 as unknown as Record<string, unknown>).middleware = vi.fn(
+        () => Promise.resolve({ status: 200, headers: new Headers() }),
+      );
+      const response = await runProxy(`${host}/auth/login`);
+
+      expect(response.status).toBe(200);
+    },
+  );
+
+  it("passes /_next/ and /api/ through untouched", async () => {
+    const asset = await runProxy("https://app.butwalhacks.com/_next/static/chunk.js");
+    expect(asset.status).toBe(200);
+
+    const api = await runProxy("https://app.butwalhacks.com/api/health");
+    expect(api.status).toBe(200);
+  });
+
+  // ── calendar host ──────────────────────────────────────────────────
+  it("requires auth for the production calendar host", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const response = await runProxy("https://calendar.butwalhacks.com/");
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/auth/login");
+  });
+
+  it("passes production calendar API routes through without auth", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const response = await runProxy(
+      "https://calendar.butwalhacks.com/api/calendar/google/connect",
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  // ── chapter subdomain rewrite ──────────────────────────────────────
+  it("rewrites a chapter subdomain root to that chapter's dashboard", async () => {
+    const response = await runProxy("https://pokhara.butwalhacks.com/");
+
+    expect(response.headers.get("x-middleware-rewrite")).toContain(
+      "/orgs/pokhara/dashboard",
+    );
+  });
+
+  it("rewrites a chapter subdomain path under /orgs/<slug>", async () => {
+    const response = await runProxy("https://pokhara.butwalhacks.com/members");
+
+    expect(response.headers.get("x-middleware-rewrite")).toContain(
+      "/orgs/pokhara/members",
+    );
+  });
+
+  it("rewrites every mapped chapter subdomain", async () => {
+    for (const slug of ["pokhara", "kathmandu", "chitwan"]) {
+      const response = await runProxy(`https://${slug}.butwalhacks.com/events`);
+      expect(response.headers.get("x-middleware-rewrite")).toContain(
+        `/orgs/${slug}/events`,
+      );
+    }
+  });
+
+  it("passes /api/ and /auth/ on a chapter subdomain straight through", async () => {
+    const api = await runProxy("https://pokhara.butwalhacks.com/api/health");
+    expect(api.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(api.status).toBe(200);
+
+    const auth = await runProxy("https://pokhara.butwalhacks.com/auth/login");
+    expect(auth.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(auth.status).toBe(200);
+  });
+
+  it("does not rewrite subdomains whose first label is not a mapped slug", async () => {
+    const response = await runProxy("https://dehradun.butwalhacks.com/members");
+
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(response.status).toBe(200);
+  });
+
+  // The rewrite is terminal — Next does not re-enter the proxy for the
+  // rewritten path — so a chapter subdomain gets NO proxy-level auth gate.
+  // That is intentional: OrgLayout resolves chapter_members and redirects to
+  // /dashboard when the viewer is not a member, which is where Next's own
+  // guidance says authorization belongs. Pinned because it is the one place
+  // the router relies solely on the layout: on localhost the same /orgs/ path
+  // is gated by handleLocalDev, and on the marketing host it is redirected to
+  // the app host and gated there.
+  it("applies no proxy-level auth gate to the rewritten chapter path", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const response = await runProxy("https://pokhara.butwalhacks.com/dashboard");
+
+    expect(response.headers.get("x-middleware-rewrite")).toContain(
+      "/orgs/pokhara/dashboard",
+    );
+    expect(response.status).toBe(200);
   });
 });
 
@@ -496,7 +702,7 @@ describe("auth middleware misconfiguration", () => {
 
   it("redirects to sign-in instead of 500 when Auth0 is unconfigured (local)", async () => {
     setMiddlewareImpl(() => { throw configError(); });
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/auth/profile");
 
     const response = await proxy(request);
@@ -507,7 +713,7 @@ describe("auth middleware misconfiguration", () => {
 
   it("redirects to sign-in instead of 500 when Auth0 is unconfigured (prod domain)", async () => {
     setMiddlewareImpl(() => { throw configError(); });
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("https://butwalhacks.com/auth/login");
 
     const response = await proxy(request);
@@ -518,7 +724,7 @@ describe("auth middleware misconfiguration", () => {
 
   it("rethrows non-config auth errors to preserve SDK behavior", async () => {
     setMiddlewareImpl(() => { throw new Error("callback failed"); });
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/auth/callback?code=x");
 
     await expect(proxy(request)).rejects.toThrow("callback failed");
@@ -538,7 +744,7 @@ describe("auth middleware misconfiguration", () => {
     wrapped.code = "domain_resolution_error";
     wrapped.cause = cause;
     setMiddlewareImpl(() => { throw wrapped; });
-    const { proxy } = await import("@/proxy");
+    const { default: proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/auth/profile");
 
     const response = await proxy(request);
