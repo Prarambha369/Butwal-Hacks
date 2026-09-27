@@ -126,7 +126,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     );
 
     return NextResponse.json({
-      ok: true,
+      ok: res.ok,
       slack_status: res.ok ? "sent" : `http_${res.status}`,
     });
   } catch {

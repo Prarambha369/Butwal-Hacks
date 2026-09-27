@@ -14,6 +14,13 @@ import { cn, cloudinaryUrl } from "@/lib/utils";
 export default async function FeaturedProjects() {
   const projects = await getVerifiedProjects(3);
 
+  // Nothing verified to feature: omit the section instead of rendering a
+  // "Featured Innovations" heading over an empty grid. ProjectGrid below owns
+  // this page's empty state already, so a second message here would just
+  // duplicate it. Also the right degradation when the query errors, since
+  // getVerifiedProjects returns [] on failure.
+  if (projects.length === 0) return null;
+
   return (
     <section className="space-y-8 py-12">
       <div className="flex items-center justify-between">

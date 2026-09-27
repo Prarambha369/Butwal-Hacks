@@ -27,7 +27,7 @@ export const POST = withRateLimit(async (request: Request) => {
           from: "sponsors@mail.butwalhacks.com",
           to: [CONTACT_EMAIL],
           reply_to: data.email,
-          subject: `[SponsorInquiry] ${data.company} — ${data.tier}`,
+          subject: `[Sponsor Inquiry] ${data.company} — ${data.tier}`,
           // SECURITY: escape HTML to prevent injection in email client rendering
           html: `<h1 style="color:#FE0000;">New Sponsorship Inquiry</h1>
                <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
