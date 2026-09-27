@@ -70,3 +70,43 @@ describe("consolidation redirects", () => {
     });
   });
 });
+
+// The consolidation redirects above and sitemap.ts are maintained by hand and
+// have drifted before: the sitemap listed /community, /initiatives, /donors,
+// /opportunities, /philosophy and /docs, every one of which only ever 308s.
+// That asks crawlers to fetch URLs that cannot rank, and spends crawl budget
+// on a redirect hop. This pins the two files together.
+describe("sitemap contains no redirect sources", () => {
+  /** Pathnames listed in the sitemap, trailing slash and query stripped. */
+  async function listedPaths() {
+    const sitemap = await import("../app/sitemap");
+    const entries = await sitemap.default();
+    return new Set(
+      entries.map((e) => new URL(e.url).pathname.replace(/\/$/, "")),
+    );
+  }
+
+  it("does not list any URL that next.config redirects", async () => {
+    const config = await import("../../next.config");
+    const redirectSources = (await config.default.redirects!()).map((r) => r.source);
+    const listed = await listedPaths();
+
+    const offenders = [...listed]
+      .map((path) => path || "/")
+      .filter((path) => redirectSources.includes(path));
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("still lists every destination the removed entries pointed at", async () => {
+    // The six stale entries were deleted rather than repointed, so their
+    // destinations have to be discoverable on their own. Listed explicitly
+    // rather than derived from next.config: the auth-stub redirects point at
+    // /sign-in, which robots.ts deliberately keeps out of the index.
+    const listed = await listedPaths();
+
+    for (const path of ["/explore", "/events", "/partners", "/about", "/learn", "/support"]) {
+      expect(listed.has(path)).toBe(true);
+    }
+  });
+});
