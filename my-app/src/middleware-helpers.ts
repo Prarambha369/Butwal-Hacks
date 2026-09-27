@@ -15,7 +15,10 @@ export async function requireRole(
   pathname: string,
   allowedRoles: string[]
 ): Promise<NextResponse> {
-  const session = await auth0.getSession();
+  // Middleware must pass the request. The no-arg overload reads cookies via
+  // the App Router `headers()` dynamic API, which has no request scope here
+  // and throws "headers was called outside a request scope" -> 500.
+  const session = await auth0.getSession(request);
   if (!session?.user?.sub) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("returnTo", pathname);
@@ -73,7 +76,8 @@ export async function requireAnyAuth(
   request: NextRequest,
   pathname: string
 ): Promise<NextResponse> {
-  const session = await auth0.getSession();
+  // See requireRole: middleware needs the request-scoped overload.
+  const session = await auth0.getSession(request);
   if (!session?.user?.sub) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("returnTo", pathname);
