@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { withRateLimit } from "@/lib/rate-limiter";
+import { sendResendEmail } from "@/lib/resend";
 
 const SLACK_EMAIL_CHANNEL = process.env.SLACK_EMAIL_CHANNEL ?? "";
 const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://butwalhacks.com";
@@ -114,20 +115,15 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     const emailBody = sections.join("\n");
 
     // Fire-and-forget — never block the error page render
-    const res = await fetch("https://api.resend.com/emails", {
-      signal: AbortSignal.timeout(5_000),
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
+    const res = await sendResendEmail(
+      {
         from: "errors@mail.butwalhacks.com",
         to: [SLACK_EMAIL_CHANNEL],
         subject: `Error #${body.error_id || "???"} on Butwal Hacks`,
         text: emailBody,
-      }),
-    });
+      },
+      { label: "report-error" },
+    );
 
     return NextResponse.json({
       ok: true,

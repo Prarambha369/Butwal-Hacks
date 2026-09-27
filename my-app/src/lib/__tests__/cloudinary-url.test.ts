@@ -1,29 +1,32 @@
 import { describe, it, expect } from "vitest";
-import { cloudinaryUrl, cloudinaryDownloadUrl, displayPhotoUrl, isValidRecipe } from "../cloudinary-url";
+import { cloudinaryDownloadUrl, displayPhotoUrl, isValidRecipe } from "../cloudinary-url";
+
+// The default-transform behavior lives in displayPhotoUrl's null-recipe path.
+const sized = (url: string, width: number) => displayPhotoUrl(url, null, width);
 
 const PLAIN = "https://res.cloudinary.com/demo/image/upload/sample.jpg";
 const VERSIONED = "https://res.cloudinary.com/demo/image/upload/v123/sample.jpg";
 const FOLDER = "https://res.cloudinary.com/demo/image/upload/butwal-hacks/u1/photo.jpg";
 const TRANSFORMED = "https://res.cloudinary.com/demo/image/upload/w_600,q_auto,f_auto/sample.jpg";
 
-describe("cloudinaryUrl", () => {
+describe("sized display transform", () => {
   it("injects a sized delivery transform into plain asset URLs", () => {
-    expect(cloudinaryUrl(PLAIN, 600)).toBe(
+    expect(sized(PLAIN, 600)).toBe(
       "https://res.cloudinary.com/demo/image/upload/w_600,q_auto,f_auto/sample.jpg",
     );
   });
 
   it("handles versioned and folder paths", () => {
-    expect(cloudinaryUrl(VERSIONED, 800)).toContain("w_800,q_auto,f_auto/v123/sample.jpg");
-    expect(cloudinaryUrl(FOLDER, 400)).toContain("w_400,q_auto,f_auto/butwal-hacks/u1/photo.jpg");
+    expect(sized(VERSIONED, 800)).toContain("w_800,q_auto,f_auto/v123/sample.jpg");
+    expect(sized(FOLDER, 400)).toContain("w_400,q_auto,f_auto/butwal-hacks/u1/photo.jpg");
   });
 
   it("rounds widths", () => {
-    expect(cloudinaryUrl(PLAIN, 599.7)).toContain("w_600,");
+    expect(sized(PLAIN, 599.7)).toContain("w_600,");
   });
 
   it("leaves already-transformed URLs alone", () => {
-    expect(cloudinaryUrl(TRANSFORMED, 300)).toBe(TRANSFORMED);
+    expect(sized(TRANSFORMED, 300)).toBe(TRANSFORMED);
   });
 });
 
@@ -59,9 +62,9 @@ describe("displayPhotoUrl", () => {
   });
 
   it("falls back to default delivery for null/invalid recipes", () => {
-    expect(displayPhotoUrl(PLAIN, null, 600)).toBe(cloudinaryUrl(PLAIN, 600));
-    expect(displayPhotoUrl(PLAIN, "w_9999/e_evil", 600)).toBe(cloudinaryUrl(PLAIN, 600));
-    expect(displayPhotoUrl(PLAIN, "fl_attachment", 600)).toBe(cloudinaryUrl(PLAIN, 600));
+    expect(displayPhotoUrl(PLAIN, null, 600)).toBe(sized(PLAIN, 600));
+    expect(displayPhotoUrl(PLAIN, "w_9999/e_evil", 600)).toBe(sized(PLAIN, 600));
+    expect(displayPhotoUrl(PLAIN, "fl_attachment", 600)).toBe(sized(PLAIN, 600));
   });
 
   it("validates recipes against the allowlist", () => {
@@ -73,14 +76,14 @@ describe("displayPhotoUrl", () => {
   });
 });
 
-describe("cloudinaryUrl passthrough", () => {
+describe("sized display passthrough", () => {
   it("passes through videos, external URLs, and garbage", () => {
-    expect(cloudinaryUrl("https://res.cloudinary.com/demo/video/upload/clip.mp4", 600))
+    expect(sized("https://res.cloudinary.com/demo/video/upload/clip.mp4", 600))
       .toBe("https://res.cloudinary.com/demo/video/upload/clip.mp4");
-    expect(cloudinaryUrl("https://images.unsplash.com/photo-123", 600))
+    expect(sized("https://images.unsplash.com/photo-123", 600))
       .toBe("https://images.unsplash.com/photo-123");
-    expect(cloudinaryUrl("", 600)).toBe("");
-    expect(cloudinaryUrl(PLAIN, 0)).toBe(PLAIN);
-    expect(cloudinaryUrl(PLAIN, NaN)).toBe(PLAIN);
+    expect(sized("", 600)).toBe("");
+    expect(sized(PLAIN, 0)).toBe(PLAIN);
+    expect(sized(PLAIN, NaN)).toBe(PLAIN);
   });
 });

@@ -3,6 +3,7 @@ import { z } from "zod"
 import { sanitizeEmail, sanitizeString, escapeHtml } from "@/lib/validation"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
+import { sendResendEmail } from "@/lib/resend"
 
 const schema = z.object({
   name: z.string().min(2).transform(v => sanitizeString(v, 100)),
@@ -21,18 +22,12 @@ export const POST = withRateLimit(async (request: Request) => {
 
     if (process.env.RESEND_API_KEY) {
       // ponytail: 5s timeout — user-facing sponsor form. Slow email shouldn't block the response.
-      const res = await fetch("https://api.resend.com/emails", {
-        signal: AbortSignal.timeout(5_000),
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
+      const res = await sendResendEmail(
+        {
           from: "sponsors@mail.butwalhacks.com",
           to: [CONTACT_EMAIL],
           reply_to: data.email,
-          subject: `[Sponsor Inquiry] ${data.company} — ${data.tier}`,
+          subject: `[SponsorInquiry] ${data.company} — ${data.tier}`,
           // SECURITY: escape HTML to prevent injection in email client rendering
           html: `<h1 style="color:#FE0000;">New Sponsorship Inquiry</h1>
                <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
@@ -41,8 +36,9 @@ export const POST = withRateLimit(async (request: Request) => {
                <p><strong>Tier:</strong> ${escapeHtml(data.tier)}</p>
                ${data.message ? `<p><strong>Message:</strong> ${escapeHtml(data.message)}</p>` : ""}`.replace(/\s{2,}/g, " "),
           text: `Name: ${data.name}\nEmail: ${data.email}\nCompany: ${data.company}\nTier: ${data.tier}\n\n${data.message ?? ""}`,
-        }),
-      })
+        },
+        { label: "sponsor" },
+      )
       if (!res.ok) throw new Error("Email provider error")
     } else {
       logger.info("[sponsor inquiry]", { to: CONTACT_EMAIL, from: data.email, company: data.company, tier: data.tier })

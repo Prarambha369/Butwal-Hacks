@@ -87,8 +87,8 @@ const ALWAYS_ENTRY = [
 
 // Files to always skip in the unused-files check  
 const ALWAYS_SKIP = [
-  "src/proxy.ts",        // Middleware, referenced by next.config
-  "src/instrumentation.ts",
+  "src/proxy.ts",        // Legacy name; middleware now lives in src/middleware.ts
+  "src/middleware.ts",   // Next.js middleware, loaded by the framework
   "src/app/globals.css",
 ];
 

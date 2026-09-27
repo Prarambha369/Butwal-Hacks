@@ -264,8 +264,7 @@ Butwal-Hacks/
 │   │   │   ├── orgs/                 # Zone 7 organizations
 │   │   │   ├── teams/                # Zone 8 teams
 │   │   │   └── api/                  # Zone 9 API endpoints
-│   │   ├── proxy.ts                  # Middleware: auth + subdomain routing
-│   │   ├── instrumentation.ts        # Next.js instrumentation (no-op)
+│   │   ├── middleware.ts             # Middleware: auth + subdomain routing
 │   │   ├── components/
 │   │   │   ├── sections/             # Navbar, Hero, Footer, ContactCTA
 │   │   │   ├── home/                 # Landing page sections
