@@ -7,7 +7,7 @@ import {
   requireRole,
   requireRoleByPath,
   runAuthMiddleware,
-} from "@/middleware-helpers";
+} from "@/proxy-helpers";
 
 const MARKETING_ROUTES = new Set([
   "/",
@@ -90,7 +90,7 @@ function isExactRouteMatch(pathname: string, routeSet: Set<string>): boolean {
   return routeSet.has(pathname);
 }
 
-export default async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { hostname, pathname } = request.nextUrl;
 
   if (hostname === "localhost" || hostname === "app.localhost" || hostname === "127.0.0.1") {
