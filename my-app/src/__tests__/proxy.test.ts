@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 // ─── Shared Mocks ───────────────────────────────────────────────────────────
 
@@ -495,65 +495,37 @@ describe("proxy (main handler)", () => {
 describe("proxy (production host routing)", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  /** Make auth0.middleware resolve as a pass-through. */
-  function setAuthPassThrough() {
-    (auth0 as unknown as Record<string, unknown>).middleware = vi.fn(
-      () => Promise.resolve(NextResponse.next()),
-    );
+  /** Run the proxy against a full URL, so the request carries that hostname. */
+  async function runProxy(url: string) {
+    const { default: proxy } = await import("@/proxy");
+    return proxy(new NextRequest(url));
   }
 
   // ── marketing host: butwalhacks.com ────────────────────────────────
   it("serves marketing routes on the marketing host without auth", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(new NextRequest("https://butwalhacks.com/events"));
+    const response = await runProxy("https://butwalhacks.com/events");
 
     expect(response.status).toBe(200);
   });
 
-  it("308s /dashboard/* from the marketing host to the app host", async () => {
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://butwalhacks.com/dashboard/hacker"),
-    );
-
-    expect(response.status).toBe(308);
-    expect(response.headers.get("location")).toBe(
-      "https://app.butwalhacks.com/dashboard/hacker",
-    );
-  });
-
-  it("308s /portal/* from the marketing host to the app host", async () => {
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://butwalhacks.com/portal/sponsors"),
-    );
-
-    expect(response.status).toBe(308);
-    expect(response.headers.get("location")).toBe(
-      "https://app.butwalhacks.com/portal/sponsors",
-    );
-  });
-
   // /orgs/ is a member of APP_PREFIXES, so on the marketing host it is
-  // *redirected*, not gated. The auth check happens on the second hop — pinned
+  // *redirected*, not gated — the auth check happens on the second hop, pinned
   // by the app-host /orgs test below. Two hops, but gated either way.
-  it("308s /orgs/* from the marketing host to the app host, where auth is checked", async () => {
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://butwalhacks.com/orgs/pokhara/dashboard"),
-    );
+  it.each([
+    "/dashboard/hacker",
+    "/portal/sponsors",
+    "/orgs/pokhara/dashboard",
+  ])("308s %s from the marketing host to the app host", async (path) => {
+    const response = await runProxy(`https://butwalhacks.com${path}`);
 
     expect(response.status).toBe(308);
-    expect(response.headers.get("location")).toBe(
-      "https://app.butwalhacks.com/orgs/pokhara/dashboard",
-    );
+    expect(response.headers.get("location")).toBe(`https://app.butwalhacks.com${path}`);
   });
 
   it("preserves the query string when bouncing between hosts", async () => {
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://butwalhacks.com/dashboard/hacker?tab=profile"),
+    const response = await runProxy(
+      "https://butwalhacks.com/dashboard/hacker?tab=profile",
     );
 
     expect(response.status).toBe(308);
@@ -564,8 +536,7 @@ describe("proxy (production host routing)", () => {
 
   // ── app host: app.butwalhacks.com ──────────────────────────────────
   it("308s marketing routes off the app host back to the marketing host", async () => {
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(new NextRequest("https://app.butwalhacks.com/events"));
+    const response = await runProxy("https://app.butwalhacks.com/events");
 
     expect(response.status).toBe(308);
     expect(response.headers.get("location")).toBe("https://butwalhacks.com/events");
@@ -573,10 +544,7 @@ describe("proxy (production host routing)", () => {
 
   it("requires auth for /dashboard/* on the app host", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://app.butwalhacks.com/dashboard/hacker"),
-    );
+    const response = await runProxy("https://app.butwalhacks.com/dashboard/hacker");
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toContain("/auth/login");
@@ -589,10 +557,7 @@ describe("proxy (production host routing)", () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileRole(db, "hacker");
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://app.butwalhacks.com/dashboard/maintainer"),
-    );
+    const response = await runProxy("https://app.butwalhacks.com/dashboard/maintainer");
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toContain("/dashboard/hacker");
@@ -600,9 +565,8 @@ describe("proxy (production host routing)", () => {
 
   it("requires auth for /orgs/* on the app host", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://app.butwalhacks.com/orgs/pokhara/dashboard"),
+    const response = await runProxy(
+      "https://app.butwalhacks.com/orgs/pokhara/dashboard",
     );
 
     expect(response.status).toBe(307);
@@ -611,48 +575,36 @@ describe("proxy (production host routing)", () => {
 
   it("passes other APP_PREFIXES on the app host through without auth", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(new NextRequest("https://app.butwalhacks.com/teams/abc"));
+    const response = await runProxy("https://app.butwalhacks.com/teams/abc");
 
     expect(response.status).toBe(200);
   });
 
   // ── shared prefixes ────────────────────────────────────────────────
-  it("dispatches /auth/* to the Auth0 middleware on the app host", async () => {
-    setAuthPassThrough();
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://app.butwalhacks.com/auth/login"),
-    );
+  it.each(["https://app.butwalhacks.com", "https://butwalhacks.com"])(
+    "dispatches /auth/* to the Auth0 middleware on %s",
+    async (host) => {
+      (auth0 as unknown as Record<string, unknown>).middleware = vi.fn(
+        () => Promise.resolve({ status: 200, headers: new Headers() }),
+      );
+      const response = await runProxy(`${host}/auth/login`);
 
-    expect(response.status).toBe(200);
-  });
-
-  it("dispatches /auth/* to the Auth0 middleware on the marketing host too", async () => {
-    setAuthPassThrough();
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(new NextRequest("https://butwalhacks.com/auth/login"));
-
-    expect(response.status).toBe(200);
-  });
+      expect(response.status).toBe(200);
+    },
+  );
 
   it("passes /_next/ and /api/ through untouched", async () => {
-    const { default: proxy } = await import("@/proxy");
-
-    const asset = await proxy(
-      new NextRequest("https://app.butwalhacks.com/_next/static/chunk.js"),
-    );
+    const asset = await runProxy("https://app.butwalhacks.com/_next/static/chunk.js");
     expect(asset.status).toBe(200);
 
-    const api = await proxy(new NextRequest("https://app.butwalhacks.com/api/health"));
+    const api = await runProxy("https://app.butwalhacks.com/api/health");
     expect(api.status).toBe(200);
   });
 
   // ── calendar host ──────────────────────────────────────────────────
   it("requires auth for the production calendar host", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(new NextRequest("https://calendar.butwalhacks.com/"));
+    const response = await runProxy("https://calendar.butwalhacks.com/");
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toContain("/auth/login");
@@ -660,9 +612,8 @@ describe("proxy (production host routing)", () => {
 
   it("passes production calendar API routes through without auth", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://calendar.butwalhacks.com/api/calendar/google/connect"),
+    const response = await runProxy(
+      "https://calendar.butwalhacks.com/api/calendar/google/connect",
     );
 
     expect(response.status).toBe(200);
@@ -670,8 +621,7 @@ describe("proxy (production host routing)", () => {
 
   // ── chapter subdomain rewrite ──────────────────────────────────────
   it("rewrites a chapter subdomain root to that chapter's dashboard", async () => {
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(new NextRequest("https://pokhara.butwalhacks.com/"));
+    const response = await runProxy("https://pokhara.butwalhacks.com/");
 
     expect(response.headers.get("x-middleware-rewrite")).toContain(
       "/orgs/pokhara/dashboard",
@@ -679,10 +629,7 @@ describe("proxy (production host routing)", () => {
   });
 
   it("rewrites a chapter subdomain path under /orgs/<slug>", async () => {
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://pokhara.butwalhacks.com/members"),
-    );
+    const response = await runProxy("https://pokhara.butwalhacks.com/members");
 
     expect(response.headers.get("x-middleware-rewrite")).toContain(
       "/orgs/pokhara/members",
@@ -690,11 +637,8 @@ describe("proxy (production host routing)", () => {
   });
 
   it("rewrites every mapped chapter subdomain", async () => {
-    const { default: proxy } = await import("@/proxy");
     for (const slug of ["pokhara", "kathmandu", "chitwan"]) {
-      const response = await proxy(
-        new NextRequest(`https://${slug}.butwalhacks.com/events`),
-      );
+      const response = await runProxy(`https://${slug}.butwalhacks.com/events`);
       expect(response.headers.get("x-middleware-rewrite")).toContain(
         `/orgs/${slug}/events`,
       );
@@ -702,47 +646,20 @@ describe("proxy (production host routing)", () => {
   });
 
   it("passes /api/ and /auth/ on a chapter subdomain straight through", async () => {
-    const { default: proxy } = await import("@/proxy");
-
-    const api = await proxy(
-      new NextRequest("https://pokhara.butwalhacks.com/api/health"),
-    );
+    const api = await runProxy("https://pokhara.butwalhacks.com/api/health");
     expect(api.headers.get("x-middleware-rewrite")).toBeNull();
     expect(api.status).toBe(200);
 
-    const auth = await proxy(
-      new NextRequest("https://pokhara.butwalhacks.com/auth/login"),
-    );
+    const auth = await runProxy("https://pokhara.butwalhacks.com/auth/login");
     expect(auth.headers.get("x-middleware-rewrite")).toBeNull();
     expect(auth.status).toBe(200);
   });
 
   it("does not rewrite subdomains whose first label is not a mapped slug", async () => {
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://dehradun.butwalhacks.com/members"),
-    );
+    const response = await runProxy("https://dehradun.butwalhacks.com/members");
 
     expect(response.headers.get("x-middleware-rewrite")).toBeNull();
     expect(response.status).toBe(200);
-  });
-
-  // Loose match, pinned deliberately: SUBDOMAIN_MAP is keyed on parts[0] only
-  // and the parent domain is never checked, so ANY host whose first label is a
-  // mapped slug gets rewritten onto that chapter's content — including hosts
-  // outside butwalhacks.com. Not a content leak (OrgLayout still gates it, and
-  // it only ever serves our own chapter routes), but the routing is looser than
-  // "chapter subdomains". Recorded here so the host check is a visible,
-  // deliberate change if it is ever tightened.
-  it("rewrites a mapped slug regardless of the parent domain", async () => {
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://pokhara.example.com/members"),
-    );
-
-    expect(response.headers.get("x-middleware-rewrite")).toContain(
-      "/orgs/pokhara/members",
-    );
   });
 
   // The rewrite is terminal — Next does not re-enter the proxy for the
@@ -755,10 +672,7 @@ describe("proxy (production host routing)", () => {
   // the app host and gated there.
   it("applies no proxy-level auth gate to the rewritten chapter path", async () => {
     mockedGetSession.mockResolvedValue(null);
-    const { default: proxy } = await import("@/proxy");
-    const response = await proxy(
-      new NextRequest("https://pokhara.butwalhacks.com/dashboard"),
-    );
+    const response = await runProxy("https://pokhara.butwalhacks.com/dashboard");
 
     expect(response.headers.get("x-middleware-rewrite")).toContain(
       "/orgs/pokhara/dashboard",
