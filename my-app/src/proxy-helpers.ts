@@ -33,8 +33,13 @@ export async function requireRole(
       .eq("auth0_user_id", session.user.sub)
       .single();
 
+    // No profile row means the user has no role to check, so it cannot satisfy
+    // `allowedRoles`. Letting them through would grant access to a gated page
+    // they have no claim to. The maintainer/organizer layouts repeat the same
+    // `profile?.role` check and would also pass a profileless user, so this
+    // redirect is the actual gate.
     if (!profile) {
-      return NextResponse.next();
+      return NextResponse.redirect(new URL("/dashboard/hacker", request.url));
     }
 
     const userRole = profile.role as string;

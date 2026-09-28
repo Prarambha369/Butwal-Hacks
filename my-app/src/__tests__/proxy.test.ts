@@ -179,7 +179,7 @@ describe("requireRole", () => {
     expect(location).toContain("/dashboard/hacker");
   });
 
-  it("passes through when profile does not exist yet (no redirect loop)", async () => {
+  it("redirects when profile does not exist yet, with no redirect loop", async () => {
     setAuthenticated();
     const db = mockSupabase();
     // No profile found — single returns null
@@ -189,7 +189,23 @@ describe("requireRole", () => {
 
     const response = await requireRole(request, "/dashboard/maintainer", ["maintainer"]);
 
-    // Should pass through so dashboard layout can create the profile
+    // No profile means no role to check, so it cannot satisfy ["maintainer"].
+    // The dashboard layout still bootstraps the profile on the landing page
+    // with initialRole "hacker", so redirecting here is the intended path —
+    // and /dashboard/hacker only runs requireAnyAuth, so it cannot loop.
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/dashboard/hacker");
+  });
+
+  it("does not loop: a profileless user passes /dashboard/hacker through requireAnyAuth", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    db.single.mockResolvedValue({ data: null, error: null });
+    const { requireRoleByPath } = await import("@/proxy-helpers");
+    const request = new NextRequest("https://app.butwalhacks.com/dashboard/hacker");
+
+    const response = await requireRoleByPath(request, "/dashboard/hacker");
+
     expect(response.status).toBe(200);
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
