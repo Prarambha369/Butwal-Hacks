@@ -37,7 +37,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: ${{ runner.os }}-node-
 
-      - run: npm install --legacy-peer-deps
+      - run: npm install
 
       - name: Typecheck
         run: npm run typecheck
