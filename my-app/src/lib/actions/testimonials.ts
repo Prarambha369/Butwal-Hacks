@@ -23,7 +23,10 @@ export interface ModeratedTestimonial {
 }
 
 function revalidateAll() {
-  revalidatePath('/community');
+  // Testimonials render on /explore. /community 308s there (see the
+  // consolidation redirects in next.config.ts) and has no page of its own,
+  // so revalidating it was a no-op and /explore served stale testimonials.
+  revalidatePath('/explore');
   revalidatePath('/dashboard/maintainer/testimonials');
 }
 

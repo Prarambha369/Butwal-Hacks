@@ -54,7 +54,9 @@ export default async function InitiativeDetailPage({ params }: InitiativeDetailP
         <Breadcrumbs
           items={[
             { label: "Home", href: "/" },
-            { label: "Initiatives", href: "/initiatives" },
+            // /initiatives 308s to /events#initiatives (next.config.ts); link
+            // the destination directly so the crumb costs no redirect hop.
+            { label: "Initiatives", href: "/events#initiatives" },
             { label: initiative.name },
           ]}
         />

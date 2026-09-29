@@ -284,7 +284,11 @@ export async function applyForOpportunity(opportunityId: string, message?: strin
       throw error;
     }
 
-    revalidatePath(`/opportunities`);
+    // Opportunities render on /support. /opportunities 308s there (see the
+    // consolidation redirects in next.config.ts) and has no page of its own,
+    // so revalidating it was a no-op and /support served a stale list.
+    // No `#opportunities` fragment: revalidatePath takes a path, not an anchor.
+    revalidatePath('/support');
     return { success: true };
   } catch (error) {
     logger.error("[sponsor-opportunities] Error applying:", error);
