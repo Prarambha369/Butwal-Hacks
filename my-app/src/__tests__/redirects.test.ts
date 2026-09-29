@@ -136,7 +136,14 @@ describe("sitemap contains no redirect sources", () => {
    */
   function sourceToRegExp(source: string): RegExp {
     let pattern = "";
-    for (const segment of source.replace(/\/+$/, "").split("/")) {
+    // Strip the leading slash before splitting: otherwise the empty first
+    // segment would emit its own "/" and every pattern would come out as
+    // "^//community" instead of "^/community".
+    const segments = source
+      .replace(/\/+$/, "")
+      .replace(/^\//, "")
+      .split("/");
+    for (const segment of segments) {
       const param = /^:([^*+?()]+)(\*|\+|\?)?(\(.*\))?$/.exec(segment);
       if (!param) {
         pattern += `/${segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`;
@@ -261,5 +268,59 @@ describe("sitemap contains no redirect sources", () => {
     }
 
     expect(missing).toEqual([]);
+  });
+
+  it("has no href or revalidatePath pointing at a redirect source", async () => {
+    // The sitemap was the third place drift showed up: next.config.ts and the
+    // app's own links and server actions drifted independently. This covers
+    // the other two, so a consolidation redirect is never the only way a path
+    // gets into the codebase.
+    //
+    // ponytail: source-text scan, not an AST walk. It reads the two call sites
+    // that take a literal path, which is the whole problem here. Known
+    // ceilings, both deliberate: a path assembled from a template literal is
+    // not checked, and route-config lists (proxy.ts's MARKETING_ROUTES) are
+    // out of scope because those name prefixes whose children have real pages.
+    const { readdirSync, readFileSync } = await import("node:fs");
+    const { join, relative } = await import("node:path");
+
+    const root = join(process.cwd(), "src");
+    const files: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name !== "__tests__") walk(full);
+        } else if (/\.tsx?$/.test(entry.name)) {
+          files.push(full);
+        }
+      }
+    };
+    walk(root);
+    // If the walk or the config ever yields nothing, `offenders` would be []
+    // for the wrong reason and this test would assert nothing at all.
+    expect(files.length).toBeGreaterThan(0);
+
+    const patterns = (await redirectRules()).map((r) => ({
+      source: r.source,
+      re: sourceToRegExp(r.source),
+    }));
+    const CALL_SITES =
+      /(?:href\s*[:=]\s*|revalidatePath\(\s*)['"`]([^'"`]+)['"`]/g;
+
+    const offenders: string[] = [];
+    for (const file of files) {
+      const source = readFileSync(file, "utf8");
+      for (const [, value] of source.matchAll(CALL_SITES)) {
+        if (!value.startsWith("/") || value.includes("${")) continue;
+        for (const { source, re } of patterns) {
+          if (re.test(value)) {
+            offenders.push(`${relative(root, file)}: ${value}  <- ${source}`);
+          }
+        }
+      }
+    }
+
+    expect(offenders).toEqual([]);
   });
 });
