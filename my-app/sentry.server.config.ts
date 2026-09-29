@@ -1,11 +1,17 @@
 /**
  * sentry.server.config.ts — Server-side Sentry initialization.
  *
- * Captures unhandled exceptions and errors in API routes, server components,
- * and server actions. Reports them to the Sentry project dashboard.
+ * Captures unhandled exceptions and errors in the proxy, API routes,
+ * server components, and server actions. Reports them to the Sentry
+ * project dashboard.
+ *
+ * This is the only Sentry runtime config: the app has no Edge routes, and
+ * the proxy runs on Node, so there is nothing left for sentry.edge.config.ts
+ * to instrument.
  *
  * Performance monitoring:
- *   - Automatic HTTP client instrumentation (fetch, NextResponse, etc.)
+ *   - Automatic HTTP client instrumentation (fetch, NextResponse, etc.),
+ *     which now also covers the proxy's Supabase and Auth0 calls
  *   - Manual API route spans via withSentrySpan() wrapper
  *   - Vercel Cron Monitor integration for /api/health
  *

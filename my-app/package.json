@@ -14,7 +14,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^4.25.0",
+    "@auth0/nextjs-auth0": "^4.30.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^3.10.0",
     "@sentry/nextjs": "^10.65.0",

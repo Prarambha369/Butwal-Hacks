@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Rate limit tiers - each named tier gets its own sliding window.
- * Public export for route inventory checks.
  */
 const TIERS = {
   public_form: { requests: 5, window: "60 s" },
@@ -14,13 +13,9 @@ const TIERS = {
   bulk: { requests: 30, window: "60 s" },
 } as const;
 
-// Public aliases for third-party use and route inventory
-export const RATE_LIMIT_TIERS = TIERS;
-export type RateLimitTier = keyof typeof TIERS;
-
-export type RateLimitResult = { allowed: boolean; remaining: number; reset: number };
-
 type Tier = keyof typeof TIERS;
+
+type RateLimitResult = { allowed: boolean; remaining: number; reset: number };
 
 /**
  * Creates a rate limiter for the specified tier when Redis is configured.

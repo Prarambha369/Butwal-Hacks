@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceClient } from "@/utils/supabase"
 import { withRateLimit } from "@/lib/rate-limiter"
-
-/** Escape HTML special characters to prevent XSS in interpolated output. */
-function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
-}
+import { escapeHtml as esc } from "@/lib/validation"
 
 /**
  * Verify Anywhere — Embeddable verification badge.

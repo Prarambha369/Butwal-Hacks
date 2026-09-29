@@ -6,7 +6,6 @@ import { type Chapter } from "@/lib/content"
 import { getActiveChapters } from "@/lib/actions/chapters"
 import Breadcrumbs from "@/components/breadcrumbs"
 import SafeJsonLd from "@/lib/json-ld"
-import { FadeIn } from "@/components/home/shared-primitives"
 
 export const revalidate = 300;
 
@@ -36,12 +35,12 @@ const gradientPairs: Record<string, string> = {
   "butwal-multiple-campus": "from-primary-red/15 to-primary-red/10 border-primary-red/25",
 }
 
-function ChapterCard({ chapter, index }: { chapter: Chapter; index: number }) {
+function ChapterCard({ chapter }: { chapter: Chapter }) {
   const status = statusConfig[chapter.status] ?? statusConfig.inactive
   const gradient = gradientPairs[chapter.slug] ?? "from-surface to-surface/50 border-border"
 
   return (
-    <FadeIn delay={index * 100}>
+    <div>
       <article className="bh-card overflow-hidden hover:shadow-md transition-all group">
         {/* Card header with gradient accent */}
         <div className={`h-2 bg-gradient-to-r ${gradient.split(" ")[0]} ${gradient.split(" ")[1]}`} />
@@ -120,7 +119,7 @@ function ChapterCard({ chapter, index }: { chapter: Chapter; index: number }) {
           </div>
         </div>
       </article>
-    </FadeIn>
+    </div>
   )
 }
 
@@ -219,8 +218,8 @@ export default async function ChaptersPage() {
         <section className="py-16 md:py-24" aria-label="Chapter Listings">
           <div className="mx-auto max-w-6xl px-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {activeChapters.map((chapter, index) => (
-                <ChapterCard key={chapter.slug} chapter={chapter} index={index} />
+              {activeChapters.map((chapter) => (
+                <ChapterCard key={chapter.slug} chapter={chapter} />
               ))}
             </div>
           </div>
@@ -233,7 +232,7 @@ export default async function ChaptersPage() {
 
         {/* ── WHY JOIN A CHAPTER ──────────────────────────────── */}
         <section className="py-20 md:py-28" aria-label="Why Join a Chapter">
-          <FadeIn className="mx-auto max-w-6xl px-4">
+          <div className="mx-auto max-w-6xl px-4">
             <div className="text-center mb-14">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <div className="w-1.5 h-1.5 rounded-full bg-bh-red-500" />
@@ -286,7 +285,7 @@ export default async function ChaptersPage() {
                 )
               })}
             </div>
-          </FadeIn>
+          </div>
         </section>
 
         {/* ── DIVIDER ─────────────────────────────────────────── */}
@@ -299,7 +298,7 @@ export default async function ChaptersPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-primary-red/5 to-transparent pointer-events-none" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-primary-red/10 blur-[120px] pointer-events-none" />
 
-          <FadeIn className="relative mx-auto max-w-3xl px-4 text-center">
+          <div className="relative mx-auto max-w-3xl px-4 text-center">
             <School className="w-10 h-10 text-primary-red mx-auto mb-6" />
             <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">
               Don&apos;t See Your School?
@@ -322,7 +321,7 @@ export default async function ChaptersPage() {
                 Explore Community <Users className="w-4 h-4" />
               </Link>
             </div>
-          </FadeIn>
+          </div>
         </section>
       </main>
     </>

@@ -6,7 +6,6 @@ import {
   ArrowUpRight,
 } from "lucide-react"
 import { communityLinks } from "@/lib/content"
-import { FadeIn } from "@/components/home/shared-primitives"
 
 const platformIcons: Record<string, typeof MessageSquare> = {
   MessageSquare,
@@ -27,7 +26,7 @@ const fallbackGradient = "from-surface to-surface/50 border-border/40"
 export function CommunityPlatforms() {
   return (
     <section className="relative py-20 md:py-28 overflow-hidden" aria-label="Community Platforms">
-      <FadeIn className="mx-auto max-w-6xl px-4">
+      <div className="mx-auto max-w-6xl px-4">
         <div className="text-center mb-14">
           <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary-red/10 text-primary-red mb-4">
             <MessageSquare className="w-5 h-5" />
@@ -79,7 +78,7 @@ export function CommunityPlatforms() {
             )
           })}
         </div>
-      </FadeIn>
+      </div>
     </section>
   )
 }

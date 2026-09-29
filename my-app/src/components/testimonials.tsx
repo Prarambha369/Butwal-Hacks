@@ -1,4 +1,3 @@
-import { FadeIn } from "@/components/home/shared-primitives"
 import TestimonialCarousel, { type CarouselTestimonial } from "@/components/testimonials-carousel"
 import { getApprovedTestimonials } from "@/lib/actions/testimonials"
 
@@ -24,7 +23,7 @@ export async function TestimonialsSection() {
 
   return (
     <section className="border-b border-border bg-background/30 px-6 py-28" aria-label="Testimonials">
-      <FadeIn className="mx-auto w-full max-w-4xl text-center">
+      <div className="mx-auto w-full max-w-4xl text-center">
         <p className="text-xs font-bold uppercase tracking-[0.15em] text-primary-red">
           Voices from the Community
         </p>
@@ -40,7 +39,7 @@ export async function TestimonialsSection() {
         ) : (
           <TestimonialCarousel items={items} />
         )}
-      </FadeIn>
+      </div>
     </section>
   )
 }

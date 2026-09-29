@@ -1,9 +1,6 @@
 // ponytail: inline HTML template for Resend. No template engine needed for one email.
 
-/** Escape HTML special characters to prevent injection. */
-function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
-}
+import { escapeHtml as esc } from "@/lib/validation";
 
 export function ghostMarkerNotificationHtml(
   issuerName: string,
