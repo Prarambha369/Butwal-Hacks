@@ -16,10 +16,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/projects`, lastModified: today, changeFrequency: 'daily', priority: 0.9 },
 
     // ─── Tier 2: Important content (priority 0.8) ──────────
+    // Only canonical URLs go here. /community, /initiatives and /donors were
+    // folded into /explore, /events and /partners by the consolidation
+    // redirects in next.config.ts; listing them asked crawlers to fetch URLs
+    // that only ever 308. Their destinations are listed below.
     { url: `${siteUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${siteUrl}/community`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/chapters`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${siteUrl}/initiatives`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/gallery`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/sitemap`, lastModified: today, changeFrequency: 'monthly', priority: 0.8 },
 
@@ -30,15 +32,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ─── Tier 3: Supporting pages (priority 0.7) ──────────
     { url: `${siteUrl}/about`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/support`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${siteUrl}/donors`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/partners`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/transparency`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/governance`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${siteUrl}/philosophy`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${siteUrl}/opportunities`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${siteUrl}/learn`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/contact`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${siteUrl}/docs`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/transparency?view=report`, lastModified: today, changeFrequency: 'yearly', priority: 0.7 },
 
     // ─── Tier 4: Reference & Legal (priority 0.5-0.6) ─────

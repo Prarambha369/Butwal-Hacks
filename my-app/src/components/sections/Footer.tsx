@@ -19,10 +19,10 @@ const sitemapGroups = [
   {
     labelKey: 'footer.community',
     links: [
-      { nameKey: 'footer.community_hub', href: '/community' },
+      { nameKey: 'footer.community_hub', href: '/explore' },
       { nameKey: 'footer.explore_members', href: '/explore' },
       { nameKey: 'footer.chapters', href: '/chapters' },
-      { nameKey: 'footer.opportunities', href: '/opportunities' },
+      { nameKey: 'footer.opportunities', href: '/support#opportunities' },
       { nameKey: 'footer.sponsor_portal', href: '/portal/sponsors' },
     ],
   },
