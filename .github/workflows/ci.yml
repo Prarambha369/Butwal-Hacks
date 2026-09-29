@@ -23,6 +23,12 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 22
+      - uses: actions/cache@v4
+        with:
+          # Repo-root relative: actions/cache ignores defaults.run.working-directory,
+          # and my-app is a workspace whose 35 deps all hoist to this node_modules.
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
       - run: npm install --legacy-peer-deps
       - name: Lint
         run: npm run lint
@@ -35,6 +41,12 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 22
+      - uses: actions/cache@v4
+        with:
+          # Repo-root relative: actions/cache ignores defaults.run.working-directory,
+          # and my-app is a workspace whose 35 deps all hoist to this node_modules.
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
       - run: npm install --legacy-peer-deps
       - name: npm Audit
         run: npm audit --legacy-peer-deps --audit-level=high
@@ -50,6 +62,12 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 22
+      - uses: actions/cache@v4
+        with:
+          # Repo-root relative: actions/cache ignores defaults.run.working-directory,
+          # and my-app is a workspace whose 35 deps all hoist to this node_modules.
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
       - run: npm install --legacy-peer-deps
       - name: Typecheck
         run: npx tsc --noEmit
@@ -66,6 +84,12 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 22
+      - uses: actions/cache@v4
+        with:
+          # Repo-root relative: actions/cache ignores defaults.run.working-directory,
+          # and my-app is a workspace whose 35 deps all hoist to this node_modules.
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
       - run: npm install --legacy-peer-deps
 
       - name: Check for secrets
@@ -113,6 +137,12 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 22
+      - uses: actions/cache@v4
+        with:
+          # Repo-root relative: actions/cache ignores defaults.run.working-directory,
+          # and my-app is a workspace whose 35 deps all hoist to this node_modules.
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
       - run: npm install --legacy-peer-deps
       - name: Tests
         run: npx vitest run
@@ -125,8 +155,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - run: npm install --legacy-peer-deps
-        working-directory: my-app
       - name: Audit for leaked secrets
         run: node .github/actions/secrets-audit/audit.mjs
 
@@ -139,6 +167,12 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 22
+      - uses: actions/cache@v4
+        with:
+          # Repo-root relative: actions/cache ignores defaults.run.working-directory,
+          # and my-app is a workspace whose 35 deps all hoist to this node_modules.
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
         run: npm install --legacy-peer-deps
         working-directory: my-app
@@ -174,8 +208,6 @@ jobs:
           echo "$DIFF" >> $GITHUB_OUTPUT
           echo "DIFF_EOF" >> $GITHUB_OUTPUT
 
-      - run: npm install --legacy-peer-deps
-        working-directory: my-app
       - name: AI Code Review
         if: steps.diff.outputs.diff != ''
         env:
@@ -195,14 +227,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - run: npm install --legacy-peer-deps
-        working-directory: my-app
       - name: Check for dead code
         run: node .github/actions/ponytail-audit/audit.mjs
 
   e2e:
     name: E2E Tests
-    needs: build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -212,7 +241,17 @@ jobs:
       - uses: actions/setup-node@v4.4.0
         with:
           node-version: 22
+      - uses: actions/cache@v4
+        with:
+          # Repo-root relative: actions/cache ignores defaults.run.working-directory,
+          # and my-app is a workspace whose 35 deps all hoist to this node_modules.
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
       - run: npm install --legacy-peer-deps
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
       - name: Run E2E tests
