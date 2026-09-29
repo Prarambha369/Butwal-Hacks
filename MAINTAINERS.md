@@ -124,7 +124,7 @@ Key Vercel settings:
 - **Root Directory**: `my-app/`
 - **Build Command**: `npm run build`
 - **Output Directory**: `.next`
-- **Install Command**: `npm ci --legacy-peer-deps`
+- **Install Command**: `npm ci`
 - **Framework**: Next.js
 
 Preview deployments are created for each PR branch with a unique URL.
