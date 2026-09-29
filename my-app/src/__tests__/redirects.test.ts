@@ -77,6 +77,28 @@ describe("consolidation redirects", () => {
 // That asks crawlers to fetch URLs that cannot rank, and spends crawl budget
 // on a redirect hop. This pins the two files together.
 describe("sitemap contains no redirect sources", () => {
+  /**
+   * Convert a Next.js redirect `source` pattern (segment wildcards like
+   * `:id`, `:path*`) into an anchored RegExp that matches full pathnames.
+   */
+  function sourceToRegExp(source: string): RegExp {
+    const pattern = source
+      .split("/")
+      .map((segment) => {
+        const param = /^:([^*+?]+)([*+?])?$/.exec(segment);
+        if (param) {
+          const suffix = param[2];
+          if (suffix === "*") return ".*";
+          if (suffix === "+") return ".+";
+          if (suffix === "?") return "[^/]*";
+          return "[^/]+";
+        }
+        return segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      })
+      .join("/");
+    return new RegExp(`^${pattern}$`);
+  }
+
   /** Pathnames listed in the sitemap, trailing slash and query stripped. */
   async function listedPaths() {
     const sitemap = await import("../app/sitemap");
@@ -93,7 +115,7 @@ describe("sitemap contains no redirect sources", () => {
 
     const offenders = [...listed]
       .map((path) => path || "/")
-      .filter((path) => redirectSources.includes(path));
+      .filter((path) => redirectSources.some((source) => sourceToRegExp(source).test(path)));
 
     expect(offenders).toEqual([]);
   });
