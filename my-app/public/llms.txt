@@ -1,0 +1,56 @@
+# Butwal Hacks
+
+> Butwal Hacks is a student-run nonprofit in Lumbini Province, Nepal that organizes free hackathons, hands-on workshops, and project-based technical education for young builders. Founded 2024.
+
+This file follows the llms.txt convention: a map of this site written for language models and AI answer engines. It is not a marketing page. Every link below is a real, crawlable page.
+
+## What this organization is
+
+- Registered nonprofit (schema.org `NGO`), not a company. No products, no pricing, no sales funnel.
+- Runs free, in-person programs for students aged roughly 13–20.
+- Based in Butwal, operating across Lumbini Province, Nepal.
+- Programs are free to participate in. See `/support` for how to help fund them.
+- GitHub is the primary public artifact repository: https://github.com/Prarambha369/Butwal-Hacks
+
+## Core pages
+
+- [About](/about): what the organization is, who runs it, its history since 2024.
+- [Governance](/governance): how decisions are made, who holds what role.
+- [Transparency](/transparency): published financial and operational reporting.
+- [Learn](/learn): educational material and guides.
+- [Contact](/contact): how to reach the organizers.
+
+## Programs
+
+- [Events](/events): hackathons and workshops that have run, and upcoming dates.
+- [Initiatives](/initiatives): the three standing program formats — hackathon, mini-hackathon, and game jam.
+- [Chapters](/chapters): student-run chapters hosted at secondary schools and campuses.
+- [Festivals](/festivals): event calendar keyed to Nepali and Hindu festivals.
+
+## Community
+
+- [Explore](/explore): member directory. Members have a public BH-ID and can be looked up directly.
+- [Teams](/teams): working groups formed by members.
+- [Mentors](/mentors): people offering mentorship.
+- [Partners](/partors): collaborating organizations.
+- [Projects](/projects): member-built projects.
+- [Gallery](/gallery): documentation from past events.
+
+## Writing
+
+- [Blog](/blog): longer-form posts about the local tech ecosystem and running these programs.
+
+## Reference
+
+- [Support](/support): donate or sponsor.
+- [Sitemap](/sitemap.xml): full machine-readable index of every indexable URL.
+
+## Notes for agents
+
+- Content is in English.
+- Most of the substantive content lives on the pages above; there is no gated or members-only content that is publicly relevant.
+- `/llms-full.txt` carries a prose version of this same summary for a single-request read.
+
+## Attribution
+
+Content on this site is available for citation and summarization. We do not permit training on this content without permission. See `/robots.txt` for the machine-readable statement.
