@@ -32,13 +32,23 @@ function TerminalTyper({ locale }: { locale: "en" | "ne" }) {
     return () => clearTimeout(timer);
   }, [count, script, line1.length]);
 
-  const typed = script.slice(0, count);
-  const [first, ...rest] = typed.split("\n");
+  // Split the FULL script, not the typed prefix, so the number of rendered
+  // lines is constant. Rendering a variable number of <p>s made this box grow
+  // mid-loop, which reflowed the Hero and moved every absolutely-positioned
+  // child (including the .bh-bg-grid backdrop) on every cycle. Because the
+  // typer loops forever, CLS never settled — it was the site's dominant score.
+  const fullLines = script.split("\n");
+  const typedLines = script.slice(0, count).split("\n");
+  const typedFirst = typedLines[0] ?? "";
+  const typedSecond = typedLines[1] ?? "";
+
+  const done = count >= script.length;
+  const onLineOne = count <= line1.length;
 
   return (
     <div
       aria-hidden="true"
-      className="mx-auto w-fit max-w-full overflow-hidden rounded-xl border border-border bg-surface-inverse shadow-sm"
+      className="mx-auto w-full max-w-md overflow-hidden rounded-xl border border-border bg-surface-inverse shadow-sm"
     >
       {/* Terminal title bar */}
       <div className="flex items-center gap-1.5 border-b border-border/60 px-4 py-2">
@@ -49,20 +59,16 @@ function TerminalTyper({ locale }: { locale: "en" | "ne" }) {
       </div>
       <div className="px-4 py-3 text-left font-mono text-xs sm:text-sm">
         <p className="text-text-secondary break-all">
-          <span className="text-status-green">$</span> {first}
-          {count < script.length && count >= 0 && rest.length === 0 && <span className="bh-caret text-primary-red">▍</span>}
+          <span className="text-status-green">$</span> {typedFirst}
+          {onLineOne && !done && <span className="bh-caret text-primary-red">▍</span>}
         </p>
-        {rest.length > 0 && (
-          <p className="text-status-green break-words">
-            {rest.join("\n")}
-            {count < script.length && <span className="bh-caret text-primary-red">▍</span>}
-          </p>
-        )}
-        {count >= script.length && (
-          <p>
-            <span className="text-status-green">$</span> <span className="bh-caret text-primary-red">▍</span>
-          </p>
-        )}
+        <p className="text-status-green break-words">
+          {typedSecond || <span className="invisible">{fullLines[1]}</span>}
+          {!onLineOne && !done && <span className="bh-caret text-primary-red">▍</span>}
+        </p>
+        <p aria-hidden="true" className={done ? undefined : "invisible"}>
+          <span className="text-status-green">$</span> <span className="bh-caret text-primary-red">▍</span>
+        </p>
       </div>
     </div>
   );
