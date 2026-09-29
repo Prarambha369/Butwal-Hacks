@@ -107,11 +107,11 @@ export default function EnvironmentSetupDocPage() {
             </div>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <Link href="/docs" className="rounded-xl border border-border bg-surface p-4 hover:bg-surface/50">
+              <Link href="/learn#guides" className="rounded-xl border border-border bg-surface p-4 hover:bg-surface/50">
                 <p className="text-xs uppercase tracking-wide text-secondary">Previous</p>
                 <p className="mt-1 text-lg font-semibold text-primary">Introduction</p>
               </Link>
-              <Link href="/resources" className="rounded-xl border border-border bg-surface p-4 hover:bg-surface/50 text-right">
+              <Link href="/learn#resources" className="rounded-xl border border-border bg-surface p-4 hover:bg-surface/50 text-right">
                 <p className="text-xs uppercase tracking-wide text-secondary">Next</p>
                 <p className="mt-1 text-lg font-semibold text-primary">Project Structure</p>
               </Link>
