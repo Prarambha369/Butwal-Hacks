@@ -8,7 +8,9 @@ import path from "path";
  *  - poweredByHeader: disabled (removes "X-Powered-By: Next.js" response header)
  *  - reactStrictMode: enabled (catches common React pitfalls early)
  *  - images.remotePatterns: whitelist for external images (CDN, avatars)
- *  - Security headers: CSP (per-route frame-ancestors), HSTS, X-Content-Type-Options
+ *  - Security headers: CSP (per-route frame-ancestors), HSTS,
+ *    X-Content-Type-Options, Referrer-Policy, Permissions-Policy.
+ *    All owned by this file — see securityHeaders below.
  *  - Sentry: error monitoring via withSentryConfig wrapper
  */
 
@@ -57,26 +59,46 @@ function fmt(csp: string): string {
 const mainCSP = `${baseCSP}  frame-ancestors 'none';`
 const widgetCSP = `${baseCSP}  frame-ancestors *;`
 
+// Transport-level headers for every route. These used to live in vercel.json
+// under a /(.*) source, but next.config headers() takes precedence over
+// vercel.json for overlapping sources, so that block was shadowed and
+// nosniff/referrer-policy never reached production. One owner, one rule.
+const securityHeaders = [
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  {
+    key: "Referrer-Policy",
+    value: "strict-origin-when-cross-origin",
+  },
+]
+
+const permissionsPolicy = {
+  key: "Permissions-Policy",
+  value: "camera=(self), microphone=(), geolocation=()",
+}
+
 const cspOnlyHeaders = [
+  ...securityHeaders,
   {
     key: "Content-Security-Policy",
     value: fmt(mainCSP),
   },
-  {
-    key: "Permissions-Policy",
-    value: "camera=(self), microphone=(), geolocation=()",
-  },
+  permissionsPolicy,
 ]
 
 const widgetCspHeaders = [
+  ...securityHeaders,
   {
     key: "Content-Security-Policy",
     value: fmt(widgetCSP),
   },
-  {
-    key: "Permissions-Policy",
-    value: "camera=(self), microphone=(), geolocation=()",
-  },
+  permissionsPolicy,
 ]
 
 const nextConfig: NextConfig = {
@@ -176,13 +198,16 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      {
-        source: "/widget/:path*",
-        headers: widgetCspHeaders,
-      },
+      // Catch-all first, /widget second. Later rules win for duplicate keys, so
+      // the widget's permissive frame-ancestors must come after the catch-all
+      // or the catch-all's 'none' overrides it and widgets cannot be embedded.
       {
         source: "/:path*",
         headers: cspOnlyHeaders,
+      },
+      {
+        source: "/widget/:path*",
+        headers: widgetCspHeaders,
       },
     ]
   },
