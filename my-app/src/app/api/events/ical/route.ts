@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
+import { SITE_URL } from '@/lib/constants';
 import { createServiceClient } from '@/utils/supabase';
 import { withRateLimit } from '@/lib/rate-limiter';
 
@@ -8,7 +9,7 @@ import { withRateLimit } from '@/lib/rate-limiter';
 // for route segment config semantics.
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://butwalhacks.com';
+
 
 /** Escape text per RFC 5545 (commas, semicolons, backslashes, newlines). */
 function escText(value: string): string {

@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
-
-const SITE_URL = "https://butwalhacks.com"
+import { SITE_URL } from "@/lib/constants"
 const SITE_NAME = "Butwal Hacks"
 const DEFAULT_KEYWORDS = ["Butwal Hacks", "youth tech community Nepal", "hackathons Western Nepal", "student innovation Lumbini", "nonprofit technology Nepal", "mentorship for youth Nepal"]
 

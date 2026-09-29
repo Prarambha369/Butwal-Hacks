@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { SITE_URL } from "@/lib/constants"
 import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
@@ -196,7 +197,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
 
     // Send email notification if Resend is configured
     if (process.env.RESEND_API_KEY) {
-      const claimUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://butwalhacks.com"}/claim/${claimToken}`
+      const claimUrl = `${SITE_URL}/claim/${claimToken}`
       // Get issuer name for the email
       const { data: issuer } = await supabase
         .from("profiles")

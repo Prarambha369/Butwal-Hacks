@@ -1,3 +1,4 @@
+import { SITE_URL } from '@/lib/constants'
 import { createServiceClient } from '@/utils/supabase';
 import { redirect } from 'next/navigation';
 import { auth0 } from "@/lib/auth0";
@@ -72,7 +73,7 @@ export default async function HackerProfileSettingsPage() {
 
             <div className="border-t border-border/20 pt-4">
               <a
-                href={`${process.env.NEXT_PUBLIC_SITE_URL || "https://butwalhacks.com"}/p/${profile?.slug_id || profile?.bh_id}`}
+                href={`${SITE_URL}/p/${profile?.slug_id || profile?.bh_id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between p-3 rounded-lg bg-primary-red/10 border border-primary-red/20 hover:bg-primary-red/15 active:scale-100 transition-all duration-150 ease-out group"
