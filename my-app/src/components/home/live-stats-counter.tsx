@@ -12,12 +12,22 @@ interface Stats {
   total_trust_markers: number;
 }
 
+/**
+ * Mirrors the loaded stat's markup and line boxes exactly (text-5xl/6xl, the
+ * 3px rule, the text-sm label) instead of approximating them with hand-picked
+ * pixel heights. Same elements + same classes => zero height delta when the
+ * real numbers replace the skeleton, so the section stops reflowing the page.
+ */
 function SkeletonStat() {
   return (
-    <div className="animate-pulse">
-      <div className="h-12 md:h-14 w-24 bg-surface-hover rounded mx-auto lg:mx-0" />
-      <div className="mx-auto lg:mx-0 mt-3 h-0.5 w-10 bg-surface-hover" />
-      <div className="h-3 w-20 bg-surface-hover rounded mx-auto lg:mx-0 mt-3" />
+    <div className="text-center lg:text-left">
+      <p className="font-mono text-5xl md:text-6xl font-black tabular-nums text-primary">
+        <span className="animate-pulse inline-block h-10 w-24 rounded bg-surface-hover align-middle" />
+      </p>
+      <div aria-hidden="true" className="mx-auto lg:mx-0 mt-3 h-[3px] w-10 animate-pulse bg-surface-hover" />
+      <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-text-secondary">
+        <span className="animate-pulse inline-block h-3 w-20 rounded bg-surface-hover align-middle" />
+      </p>
     </div>
   );
 }
@@ -103,6 +113,11 @@ export default function LiveStatsCounter() {
             <SkeletonStat />
             <SkeletonStat />
           </div>
+          {/* Reserve the footnote's line box — it used to mount only after
+              load, shifting every section below it down by ~55px. */}
+          <p className="mt-10 text-center font-mono text-[11px] text-muted-foreground" aria-hidden="true">
+            &nbsp;
+          </p>
         </div>
       </section>
     );
