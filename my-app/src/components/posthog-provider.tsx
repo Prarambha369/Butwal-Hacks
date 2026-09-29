@@ -18,14 +18,22 @@ import { hasCookieConsent } from "@/components/cookie-consent-banner"
  * ponytail: single useEffect with cleanup, no complex state.
  */
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
+  // ponytail: the tracker calls useSearchParams, which opts it into client
+  // rendering. Wrapping {children} in that <Suspense fallback={null}> made
+  // the entire app SSR to null — every page served an empty body to crawlers
+  // and AI agents, with content only arriving via the RSC payload. Track in a
+  // sibling instead so suspending never gates the page.
   return (
-    <Suspense fallback={null}>
-      <PostHogInner>{children}</PostHogInner>
-    </Suspense>
+    <>
+      <Suspense fallback={null}>
+        <PostHogTracker />
+      </Suspense>
+      {children}
+    </>
   )
 }
 
-function PostHogInner({ children }: { children: React.ReactNode }) {
+function PostHogTracker() {
   const { user, isLoading } = useAuthUser()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -115,5 +123,5 @@ function PostHogInner({ children }: { children: React.ReactNode }) {
     })
   }, [pathname, searchParams])
 
-  return <>{children}</>
+  return null
 }
