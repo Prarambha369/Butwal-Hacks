@@ -49,6 +49,8 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
-    host: siteUrl,
+    // No `host` directive: it is Yandex-only, Google ignores it, and emitting
+    // a full URL (`host: https://...`) is malformed — Search Console reports
+    // "1 error" on the robots.txt served from every host as a result.
   }
 }
