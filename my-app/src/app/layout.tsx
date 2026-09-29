@@ -18,7 +18,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 import { LanguageProvider } from "@/components/language-provider";
 import { AuthUserProvider } from "@/components/auth-user-provider";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/react"
+import { SITE_URL } from "@/lib/constants";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PostHogProvider } from "@/components/posthog-provider";
 import PWARegister from "@/components/pwa-register";
@@ -32,7 +33,7 @@ import MobileBottomNav from "@/components/mobile-bottom-nav";
 import SwipeNavigator from "@/components/swipe-navigator";
 import CookieConsentBanner from "@/components/cookie-consent-banner";
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://butwalhacks.com";
+const baseUrl = SITE_URL;
 
 const jsonLd = {
   "@context": "https://schema.org",

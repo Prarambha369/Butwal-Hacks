@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { SITE_URL } from "@/lib/constants"
 import { createServiceClient } from "@/utils/supabase"
 import { withRateLimit } from "@/lib/rate-limiter"
 
@@ -31,7 +32,7 @@ export const GET = withRateLimit(async (
     )
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://butwalhacks.com"
+  const siteUrl = SITE_URL
 
   const assertion = {
     "@context": [

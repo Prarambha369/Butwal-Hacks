@@ -1,9 +1,10 @@
 import type { MetadataRoute } from 'next'
+import { SITE_URL } from '@/lib/constants'
 import { createServiceClient } from '@/utils/supabase'
 import { blogPosts, initiatives, events, chapters } from '@/lib/content'
 import { ALL_FESTIVALS } from '@/lib/festivals'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://butwalhacks.com'
+const siteUrl = SITE_URL
 const today = new Date()
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

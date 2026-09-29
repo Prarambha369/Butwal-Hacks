@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { SITE_URL } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { sendResendEmail } from "@/lib/resend";
 
 const SLACK_EMAIL_CHANNEL = process.env.SLACK_EMAIL_CHANNEL ?? "";
-const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://butwalhacks.com";
+const APP_URL = SITE_URL;
 
 /**
  * POST /api/report-error
