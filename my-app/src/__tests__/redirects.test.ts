@@ -305,16 +305,22 @@ describe("sitemap contains no redirect sources", () => {
       source: r.source,
       re: sourceToRegExp(r.source),
     }));
+    // `\{?` for the JSX expression form, so <Link href={"/docs"}> is captured
+    // as well as href="/docs" and href: '/docs'.
     const CALL_SITES =
-      /(?:href\s*[:=]\s*|revalidatePath\(\s*)['"`]([^'"`]+)['"`]/g;
+      /(?:href\s*[:=]\s*\{?\s*|revalidatePath\(\s*)['"`]([^'"`]+)['"`]/g;
 
     const offenders: string[] = [];
     for (const file of files) {
       const source = readFileSync(file, "utf8");
       for (const [, value] of source.matchAll(CALL_SITES)) {
         if (!value.startsWith("/") || value.includes("${")) continue;
+        // Compare the pathname, not the raw literal: href="/docs#guides" and
+        // href="/docs?view=guides" both request /docs, which is the redirect
+        // source, so the anchor/query must be stripped before matching.
+        const target = pathOf(value);
         for (const { source, re } of patterns) {
-          if (re.test(value)) {
+          if (re.test(target)) {
             offenders.push(`${relative(root, file)}: ${value}  <- ${source}`);
           }
         }
