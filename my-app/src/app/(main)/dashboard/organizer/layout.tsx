@@ -18,6 +18,7 @@ import {
   KeyRound,
   KanbanSquare,
 } from "lucide-react";
+import { roleRedirect } from "@/lib/role-gate";
 
 const organizerLinks = [
   {
@@ -67,8 +68,9 @@ export default async function OrganizerDashboardLayout({
     .eq("auth0_user_id", userId)
     .single();
 
-  if (profile?.role && profile.role !== "organizer" && profile.role !== "maintainer") {
-    redirect(`/dashboard/${profile.role}`);
+  const blocked = roleRedirect(profile?.role, ["organizer", "maintainer"]);
+  if (blocked) {
+    redirect(blocked);
   }
 
   const slugId = profile?.slug_id ?? userId.slice(0, 8).toUpperCase();

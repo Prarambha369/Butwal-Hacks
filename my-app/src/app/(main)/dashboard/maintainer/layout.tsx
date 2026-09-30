@@ -22,6 +22,7 @@ import {
   Image as ImageIcon,
   Handshake,
 } from "lucide-react";
+import { roleRedirect } from "@/lib/role-gate";
 
 const maintainerLinks = [
   {
@@ -107,8 +108,9 @@ export default async function MaintainerDashboardLayout({
     .eq("auth0_user_id", userId)
     .single();
 
-  if (profile?.role && profile.role !== "maintainer") {
-    redirect(`/dashboard/${profile.role}`);
+  const blocked = roleRedirect(profile?.role, ["maintainer"]);
+  if (blocked) {
+    redirect(blocked);
   }
 
   const slugId = profile?.slug_id ?? userId.slice(0, 8).toUpperCase();
