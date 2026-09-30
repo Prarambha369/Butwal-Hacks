@@ -63,6 +63,22 @@ describe("next.config headers()", () => {
     expect(csp("/:path*")).toContain("frame-ancestors 'none';");
   });
 
+  it("allows the app subdomain in connect-src so RSC prefetch is not blocked", async () => {
+    const rules = await loadHeaders();
+    const csp = rules
+      .find((r: Rule) => r.source === "/:path*")!
+      .headers.find((h: { key: string }) => h.key === "Content-Security-Policy")!
+      .value;
+
+    // Nav links are 308s to app.butwalhacks.com, and Next prefetches their RSC
+    // payloads (?_rsc=). Those are connect-src requests, so an omitted app host
+    // made every /dashboard link log a CSP violation and surface in Lighthouse
+    // Best Practices and the DevTools Issues panel.
+    const connectSrc = csp.split(";").find((d) => d.trim().startsWith("connect-src"));
+    expect(connectSrc, "connect-src directive must exist").toBeDefined();
+    expect(connectSrc).toContain("https://app.butwalhacks.com");
+  });
+
   it("no longer leaves security headers to vercel.json", async () => {
     const { readFile } = await import("node:fs/promises");
     const raw = await readFile(
