@@ -32,7 +32,7 @@ This file follows the llms.txt convention: a map of this site written for langua
 - [Explore](/explore): member directory. Members have a public BH-ID and can be looked up directly.
 - [Teams](/teams): working groups formed by members.
 - [Mentors](/mentors): people offering mentorship.
-- [Partners](/partors): collaborating organizations.
+- [Partners](/partners): collaborating organizations.
 - [Projects](/projects): member-built projects.
 - [Gallery](/gallery): documentation from past events.
 

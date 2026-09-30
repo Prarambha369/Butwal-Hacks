@@ -60,7 +60,7 @@ Everything above is derived from these public pages:
 - `/transparency` — financial and operational reporting
 - `/learn` — educational material
 - `/events` — events run, and dates
-- `/initiatives` — hackathon, mini-hackathon, game jam
+- `/events#initiatives` — hackathon, mini-hackathon, game jam
 - `/chapters` — school and campus chapters
 - `/festivals` — festival-keyed event calendar
 - `/explore` — public member directory, searchable by BH-ID
