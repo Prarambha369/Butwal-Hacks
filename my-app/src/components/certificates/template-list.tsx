@@ -81,7 +81,7 @@ export function TemplateList({
                       })
                     }
                     disabled={busy}
-                    className="rounded bg-bh-red-500 px-2 py-0.5 text-xs font-semibold text-white disabled:opacity-60"
+                    className="rounded bg-bh-red-action px-2 py-0.5 text-xs font-semibold text-white disabled:opacity-60"
                   >
                     Yes
                   </button>
@@ -97,7 +97,7 @@ export function TemplateList({
                 <button
                   type="button"
                   onClick={() => setPendingDelete(t.id as string)}
-                  className="rounded px-2 py-0.5 text-xs text-stone-500 hover:text-bh-red-600"
+                  className="inline-flex min-h-6 items-center rounded px-2 text-xs text-stone-600 hover:bg-stone-200 hover:text-bh-red-600"
                 >
                   Delete
                 </button>

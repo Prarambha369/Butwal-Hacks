@@ -196,10 +196,21 @@ export default function CertificateTemplateEditor({
     setSaved("idle");
   };
 
+  const listRef = useRef<HTMLUListElement>(null);
+
   const removeField = (index: number) => {
     setTpl((t) => ({ ...t, fields: t.fields.filter((_, i) => i !== index) }));
-    setSelected((s) => Math.max(0, Math.min(s, fields.length - 2)));
+    const nextSelected = Math.max(0, Math.min(index, fields.length - 2));
+    setSelected(nextSelected);
     setSaved("idle");
+    // When the focused field is unmounted the browser drops focus to <body>,
+    // which loses a keyboard user's place in the sidebar entirely. Move focus
+    // to the equivalent entry in the field list, where the same field is still
+    // addressable.
+    queueMicrotask(() => {
+      const buttons = listRef.current?.querySelectorAll<HTMLButtonElement>("li > div > button:first-of-type");
+      buttons?.[nextSelected]?.focus();
+    });
   };
 
   const moveOrder = (index: number, delta: number) => {
@@ -276,7 +287,7 @@ export default function CertificateTemplateEditor({
               className="absolute inset-0 h-full w-full object-contain"
             />
           ) : (
-            <div className="absolute inset-0 grid place-items-center text-sm text-stone-400">
+            <div className="absolute inset-0 grid place-items-center text-sm text-stone-600">
               No background uploaded
             </div>
           )}
@@ -291,7 +302,14 @@ export default function CertificateTemplateEditor({
                 onPointerDown={(e) => onPointerDown(e, i)}
                 onKeyDown={(e) => onKeyDown(e, i)}
                 onFocus={() => setSelected(i)}
-                aria-label={`${f.label} field, ${isSel ? "selected" : "not selected"}. Arrow keys to move, delete to remove.`}
+                // Selection is state, so it is exposed as state. Putting it in
+                // the accessible name meant focusing a field changed its own
+                // name, which screen readers announce only at focus time -- so
+                // the announcement could be stale ("not selected" for the field
+                // you just selected) and the trailing instruction was re-read
+                // on every toggle.
+                aria-current={isSel ? "true" : undefined}
+                aria-label={`${f.label} field. Arrow keys to move, delete to remove.`}
                 className={`absolute cursor-move rounded border-2 text-left ${
                   isSel ? "border-bh-red-500 bg-bh-red-500/10" : "border-transparent hover:border-bh-red-500/50"
                 }`}
@@ -389,7 +407,7 @@ export default function CertificateTemplateEditor({
             </button>
           </div>
 
-          <ul className="space-y-1">
+          <ul ref={listRef} className="space-y-1">
             {fields.map((f, i) => (
               <li key={f.token}>
                 <div
@@ -402,14 +420,16 @@ export default function CertificateTemplateEditor({
                     className="flex-1 truncate py-1 text-left text-sm text-stone-700"
                   >
                     {f.label}
-                    <span className="ml-1 text-xs text-stone-400">({f.token})</span>
+                    <span className="ml-1 text-xs text-stone-600">({f.token})</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => moveOrder(i, -1)}
                     disabled={i === 0}
                     aria-label={`Move ${f.label} up`}
-                    className="px-1 text-stone-500 disabled:opacity-30"
+                    // Sole path to reordering, so the target must clear the
+                    // 24x24 minimum (WCAG 2.2 SC 2.5.8).
+                    className="inline-flex size-6 items-center justify-center rounded text-stone-500 hover:bg-stone-200 disabled:opacity-30"
                   >
                     ↑
                   </button>
@@ -418,7 +438,7 @@ export default function CertificateTemplateEditor({
                     onClick={() => moveOrder(i, 1)}
                     disabled={i === fields.length - 1}
                     aria-label={`Move ${f.label} down`}
-                    className="px-1 text-stone-500 disabled:opacity-30"
+                    className="inline-flex size-6 items-center justify-center rounded text-stone-500 hover:bg-stone-200 disabled:opacity-30"
                   >
                     ↓
                   </button>
@@ -427,7 +447,7 @@ export default function CertificateTemplateEditor({
                     onClick={() => removeField(i)}
                     disabled={fields.length <= 1}
                     aria-label={`Remove ${f.label}`}
-                    className="px-1 text-bh-red-600 disabled:opacity-30"
+                    className="inline-flex size-6 items-center justify-center rounded text-bh-red-600 hover:bg-stone-200 disabled:opacity-30"
                   >
                     ×
                   </button>
@@ -482,8 +502,12 @@ export default function CertificateTemplateEditor({
             </div>
 
             <div>
-              <span className="mb-1 block text-xs font-medium text-stone-600">Colour</span>
-              <div className="flex flex-wrap gap-1.5">
+              <span id="colour-label" className="mb-1 block text-xs font-medium text-stone-600">
+                Colour
+              </span>
+              {/* A plain div gave the swatches no group name, so a screen reader
+                  announced six unlabelled colour buttons. */}
+              <div role="group" aria-labelledby="colour-label" className="flex flex-wrap gap-1.5">
                 {COLORS.map((c) => (
                   <button
                     key={c}
@@ -567,20 +591,23 @@ export default function CertificateTemplateEditor({
             type="button"
             onClick={onSave}
             disabled={isPending}
-            className="rounded bg-bh-red-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            aria-busy={isPending}
+            className="rounded bg-bh-red-action px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
             {isPending ? "Saving…" : "Save template"}
           </button>
-          {saved === "saved" && (
-            <span role="status" className="text-sm text-teal-700">
-              Saved
-            </span>
-          )}
-          {saved === "error" && (
-            <span role="alert" className="text-sm text-bh-red-600">
-              Could not save. Check you still have the organiser or maintainer role.
-            </span>
-          )}
+          {/* Rendered from first paint, with the text swapped. A live region
+              inserted together with its content is not announced. */}
+          <span role="status" aria-live="polite" className="empty:hidden">
+            {saved === "saved" && <span className="text-sm text-teal-700">Saved</span>}
+          </span>
+          <span role="alert" className="empty:hidden">
+            {saved === "error" && (
+              <span className="text-sm text-bh-red-600">
+                Could not save. Check you still have the organiser or maintainer role.
+              </span>
+            )}
+          </span>
         </div>
       </aside>
     </div>

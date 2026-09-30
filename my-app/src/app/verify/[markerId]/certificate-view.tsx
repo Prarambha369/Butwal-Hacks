@@ -47,10 +47,17 @@ export function CertificateView({ certificate }: { certificate: VerifiedCertific
             <p className="pt-2">
               <a
                 href={`/api/certificates/${certificate.id}/pdf`}
-                className="inline-flex items-center gap-2 rounded-full bg-primary-red px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                // The route serves Content-Disposition: inline so the PDF can be
+                // read and printed in place, which means the browser navigates
+                // the current tab into its viewer. New tab keeps the
+                // verification page -- the thing being verified -- in reach.
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
               >
                 <Download size={16} aria-hidden="true" />
-                Download certificate
+                View or print certificate
+                <span className="sr-only">(opens in a new tab)</span>
               </a>
             </p>
           )}

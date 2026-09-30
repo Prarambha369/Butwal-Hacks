@@ -139,6 +139,7 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
             type="button"
             onClick={doPreview}
             disabled={busy || csv.trim().length === 0}
+            aria-busy={phase === "previewing"}
             className="rounded bg-stone-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
           >
             {phase === "previewing" ? "Checking…" : "Check roster"}
@@ -147,17 +148,23 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
             type="button"
             onClick={doIssue}
             disabled={busy || csv.trim().length === 0 || !preview}
-            className="rounded bg-bh-red-500 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+            aria-busy={phase === "issuing"}
+            className="rounded bg-bh-red-action px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {phase === "issuing" ? "Issuing…" : "Issue certificates"}
           </button>
         </div>
 
-        {/* Deliberately disabled until previewed: issuing 240 of 300 without
-            seeing the 60 first is the mistake this prevents. */}
-        {!preview && csv.trim().length > 0 && (
+        {/* Always rendered. A disabled control is removed from the tab order,
+            so its accessible name is never spoken at all; the hint is the only
+            thing that tells a screen reader user the action exists and why it
+            is unavailable. Gating it on "a CSV has been typed" meant the empty
+            state gave no explanation whatsoever. */}
+        {!preview && (
           <p className="mt-2 text-xs text-stone-500">
-            Check the roster first — issuance is a separate, deliberate step.
+            {csv.trim().length === 0
+              ? "Paste or upload a roster to begin. Certificates are only issued after you have checked the roster."
+              : "Check the roster first — issuance is a separate, deliberate step."}
           </p>
         )}
       </section>
@@ -207,12 +214,21 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
         </section>
       )}
 
-      {issue && (
-        <p role="status" className="rounded bg-teal-50 p-3 text-sm text-teal-900">
-          Issued {issue.issued} certificate{issue.issued === 1 ? "" : "s"}
-          {issue.skipped > 0 && `; skipped ${issue.skipped} row(s) that were duplicates or already issued`}.
-        </p>
-      )}
+      {/* Always rendered, never conditionally. A live region introduced at the
+          same moment as its text is not announced by NVDA, JAWS or VoiceOver --
+          the container has to be in the accessibility tree first. The
+          confirmation that an irreversible bulk operation succeeded is exactly
+          the thing that must not be silent. */}
+      <p role="status" aria-live="polite" className="empty:hidden">
+        {issue && (
+          <span className="block rounded bg-teal-50 p-3 text-sm text-teal-900">
+            Issued {issue.issued} certificate{issue.issued === 1 ? "" : "s"}
+            {issue.skipped > 0 &&
+              `; skipped ${issue.skipped} row(s) that were duplicates or already issued`}
+            .
+          </span>
+        )}
+      </p>
 
       {/* ── Step 3: send ── */}
       <section aria-labelledby="step-send" className="rounded-lg border border-stone-200 p-4">
@@ -235,8 +251,12 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
               placeholder="butwalhacks.com"
-              aria-describedby="domain-help"
-              aria-invalid={unknownDomain}
+              // The error text has to be IN the description, not merely present
+              // on the page. A screen reader user focusing this field heard
+              // "Domain, invalid" and then the recipient count, never the
+              // reason -- which is the entire content of aria-invalid.
+              aria-describedby={unknownDomain ? "domain-help domain-error" : "domain-help"}
+              aria-invalid={unknownDomain || undefined}
               className="rounded border border-stone-300 px-2 py-1.5 text-sm"
             />
           </div>
@@ -248,11 +268,19 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
             type="button"
             onClick={doSend}
             disabled={busy || domain.trim().length === 0}
-            className="rounded bg-bh-red-500 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+            aria-busy={phase === "sending"}
+            className="rounded bg-bh-red-action px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {phase === "sending" ? "Sending…" : "Send"}
           </button>
         </div>
+
+        {unknownDomain && (
+          <p id="domain-error" className="mt-1 text-xs text-amber-800">
+            No address in this roster uses <strong>{domain}</strong>. Sending will reach nobody —
+            check the spelling.
+          </p>
+        )}
 
         <p id="domain-help" className="mt-2 text-xs text-stone-500">
           {selectedDomain
@@ -262,21 +290,18 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
               : "Check a roster first to see which domains are present."}
         </p>
 
-        {unknownDomain && (
-          <p className="mt-1 text-xs text-amber-800">
-            No address in this roster uses <strong>{domain}</strong>. Sending will reach nobody — check
-            the spelling.
-          </p>
-        )}
-
-        {summary && (
-          <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Stat label="Matched" value={summary.candidates} />
-            <Stat label="Sent" value={summary.sent} tone="good" />
-            <Stat label="Failed" value={summary.failed} tone={summary.failed > 0 ? "bad" : undefined} />
-            <Stat label="Already sent" value={summary.skippedAlreadySent} />
-          </dl>
-        )}
+        {/* Live for the same reason as the issuance status: previously the
+            whole send produced no announcement at all. */}
+        <div role="status" aria-live="polite" className="empty:hidden">
+          {summary && (
+            <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <Stat label="Matched" value={summary.candidates} />
+              <Stat label="Sent" value={summary.sent} tone="good" />
+              <Stat label="Failed" value={summary.failed} tone={summary.failed > 0 ? "bad" : undefined} />
+              <Stat label="Already sent" value={summary.skippedAlreadySent} />
+            </dl>
+          )}
+        </div>
       </section>
 
       {error && (

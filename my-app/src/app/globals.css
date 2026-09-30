@@ -10,11 +10,20 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Light mode (default) ────────────────────────────────────────── */
-:root {
-  /* 🔴 Brand red — same in both modes */
-  --bh-primary-red: #FE0000;
-  --bh-deep-red: #B10000;
-  --bh-dark-red: #7b0000;
+  :root {
+    /* 🔴 Brand red — same in both modes */
+    --bh-primary-red: #FE0000;
+    --bh-deep-red: #B10000;
+    --bh-dark-red: #7b0000;
+
+    /* Filled action buttons that carry small white text.
+       White on --bh-primary-red is 4.03:1, which fails WCAG AA for anything
+       under 18.66px bold / 24px — and every button label is text-sm. #E60000
+       measures 4.81:1 and is visually the same red, so use this for CTA fills
+       rather than re-tuning the brand token, which would restyle the whole
+       site. Large graphics and borders on the brand red are unaffected. */
+    --bh-red-action: #E60000;
+
   --bh-light-red: #ff7c7c;
   --bh-light-red-soft: #ffb9b9;
 
@@ -107,10 +116,13 @@
   @apply ring-offset-white;
 }
 
-@theme {
-  /* 🔴 Brand */
-  --color-primary-red: var(--bh-primary-red);
-  --color-deep-red: var(--bh-deep-red);
+  @theme {
+    /* 🔴 Brand */
+    --color-primary-red: var(--bh-primary-red);
+    /* Filled CTA background; see --bh-red-action for why it is not the brand
+       red. Registered here so `bg-bh-red-action` resolves as a utility. */
+    --color-bh-red-action: var(--bh-red-action);
+    --color-deep-red: var(--bh-deep-red);
   --color-dark-red: var(--bh-dark-red);
   --color-light-red: var(--bh-light-red);
   --color-light-red-soft: var(--bh-light-red-soft);
