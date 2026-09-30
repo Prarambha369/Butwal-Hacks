@@ -12,6 +12,7 @@ import {
   Briefcase,
   Building2,
 } from "lucide-react";
+import { roleRedirect } from "@/lib/role-gate";
 
 const sponsorLinks = [
   {
@@ -51,8 +52,9 @@ export default async function SponsorDashboardLayout({
     .eq("auth0_user_id", userId)
     .single();
 
-  if (profile?.role && profile.role !== "sponsor" && profile.role !== "maintainer") {
-    redirect(`/dashboard/${profile.role}`);
+  const blocked = roleRedirect(profile?.role, ["sponsor", "maintainer"]);
+  if (blocked) {
+    redirect(blocked);
   }
 
   const slugId = profile?.slug_id ?? userId.slice(0, 8).toUpperCase();
