@@ -215,8 +215,13 @@ function buildCertificatePageContent(
   // ── Footer ──
   t(fontHo, 8, MARGIN, MARGIN + 30, "Issued by Butwal Hacks — butwalhacks.com", "0.5 0.5 0.5 rg");
   t(fontHo, 8, MARGIN, MARGIN + 18, `Issue date: ${cert.issueDate}`, "0.5 0.5 0.5 rg");
-  t(fontHo, 8, PAGE_W - MARGIN - 140, MARGIN + 30, "Verify at butwalhacks.com/verify", "0.5 0.5 0.5 rg");
-  t(fontCo, 7, PAGE_W - MARGIN - 140, MARGIN + 10, `ID: ${cert.certificateId ?? cert.bhId}`, "0.6 0.6 0.6 rg");
+  // Print the full URL, not a bare host plus a separate id. "Verify at
+  // butwalhacks.com/verify" left the participant to guess how to attach the id
+  // printed on the line below; combined with a /verify that only resolved
+  // trust_markers, every certificate was unverifiable.
+  const verifyId = cert.certificateId ?? cert.bhId;
+  t(fontHo, 8, PAGE_W - MARGIN - 200, MARGIN + 30, "Verify at butwalhacks.com/verify", "0.5 0.5 0.5 rg");
+  t(fontCo, 7, PAGE_W - MARGIN - 200, MARGIN + 18, `/${verifyId}`, "0.6 0.6 0.6 rg");
 
   return lines.join("\n");
 }
