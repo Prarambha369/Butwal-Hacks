@@ -5,7 +5,7 @@ import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { createServiceClient } from "@/utils/supabase";
 import { SITE_URL } from "@/lib/constants";
-import { normaliseTemplate, type CertificateTemplate } from "@/lib/certificates/template";
+import { normaliseTemplate } from "@/lib/certificates/template";
 import { matchRoster, parseRosterCsv, type ImportRow } from "@/lib/certificates/csv";
 import { dedupeEmails, domainsIn, filterByDomain } from "@/lib/certificates/email-filter";
 
@@ -21,6 +21,17 @@ import { dedupeEmails, domainsIn, filterByDomain } from "@/lib/certificates/emai
  */
 
 const ISSUER_ROLES = new Set(["organizer", "maintainer"]);
+
+/**
+ * Hard ceiling on one bulk-send invocation.
+ *
+ * The send loop awaits Resend per recipient with a 10s timeout, so 5,000
+ * recipients is not slow -- it is a request the platform will kill mid-loop,
+ * leaving a partial send with no rollback and no cursor to resume from. A
+ * capped batch is resumable because the next call simply skips what is already
+ * marked sent.
+ */
+const SEND_BATCH_LIMIT = 500;
 
 /**
  * Resolve the caller and assert they may issue for this event.
@@ -61,6 +72,64 @@ async function requireIssuer(eventId: string): Promise<{ profileId: string; role
   return { profileId: caller.id, role: caller.role };
 }
 
+/**
+ * Assert the caller may modify templates scoped to `eventId`.
+ *
+ * A bare role check was not enough: any `organizer` could pass another
+ * organizer's `event_id` and overwrite the artwork printed on their
+ * certificates, because event ids are public and the template's own id was
+ * discoverable. Maintainers are organisation-wide and stay unrestricted.
+ */
+async function assertTemplateScope(
+  profileId: string,
+  role: string,
+  eventId: string | null,
+): Promise<void> {
+  if (role === "maintainer") return;
+  if (!eventId) return; // organisation-wide default; maintainer-owned in practice
+
+  const { data: event } = await createServiceClient()
+    .from("events")
+    .select("organizer_id")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (!event) throw new Error("Event not found");
+  if (event.organizer_id !== profileId) {
+    throw new Error("Forbidden — you do not organise this event");
+  }
+}
+
+/**
+ * Load a template and check the caller may touch it.
+ *
+ * Resolving through the row (rather than trusting an id) is what closes the
+ * delete-by-guessed-id hole: there is no path that deletes a row the caller
+ * cannot see.
+ */
+async function requireOwnedTemplate(
+  templateId: string,
+): Promise<{ template: Record<string, unknown>; profileId: string; role: string }> {
+  const { profileId, role } = await requireTemplateEditor();
+
+  const { data: template } = await createServiceClient()
+    .from("certificate_templates")
+    .select("id, event_id, created_by, is_default")
+    .eq("id", templateId)
+    .maybeSingle();
+
+  if (!template) throw new Error("Template not found");
+
+  const eventId = (template.event_id as string | null) ?? null;
+  // The creator may always edit their own template; otherwise fall back to
+  // event ownership, then to maintainer.
+  if ((template.created_by as string | null) !== profileId) {
+    await assertTemplateScope(profileId, role, eventId);
+  }
+
+  return { template: template as Record<string, unknown>, profileId, role };
+}
+
 /** Same role gate, for template management which is not event-scoped. */
 async function requireTemplateEditor(): Promise<{ profileId: string; role: string }> {
   const session = await auth0.getSession();
@@ -94,8 +163,16 @@ export type SaveTemplateInput = {
 };
 
 export async function saveTemplate(input: SaveTemplateInput) {
-  const { profileId } = await requireTemplateEditor();
   const supabase = createServiceClient();
+
+  // Editing an existing template is authorized against the template's own
+  // event, not against whatever eventId the payload claims.
+  if (input.id) {
+    await requireOwnedTemplate(input.id);
+  }
+
+  const { profileId, role } = await requireTemplateEditor();
+  await assertTemplateScope(profileId, role, input.eventId ?? null);
 
   const template = normaliseTemplate({
     name: input.name,
@@ -137,48 +214,22 @@ export async function saveTemplate(input: SaveTemplateInput) {
 }
 
 export async function deleteTemplate(templateId: string) {
-  await requireTemplateEditor();
+  await requireOwnedTemplate(templateId);
   const supabase = createServiceClient();
-  const { error } = await supabase.from("certificate_templates").delete().eq("id", templateId);
+  // Guarded on created_by/event scope already proven above; the delete is
+  // additionally restricted to the same row so a concurrent swap cannot widen
+  // it.
+  const { error, count } = await supabase
+    .from("certificate_templates")
+    .delete({ count: "exact" })
+    .eq("id", templateId);
   if (error) throw new Error(`Could not delete template: ${error.message}`);
+  // Previously this returned ok:true even when nothing matched, so a caller
+  // could not tell a delete from a no-op.
+  if (!count) throw new Error("Template not found");
   revalidatePath("/dashboard/maintainer/certificates/templates");
   revalidatePath("/dashboard/organizer/certificates/templates");
   return { ok: true };
-}
-
-/**
- * The template an event should render with: that event's own default, else
- * any event template, else the organisation-wide default. Falls back to a
- * built-in so issuance never fails for want of artwork.
- */
-export async function resolveTemplateForEvent(
-  eventId: string,
-): Promise<CertificateTemplate | null> {
-  const supabase = createServiceClient();
-  const { data } = await supabase
-    .from("certificate_templates")
-    .select("*")
-    .or(`event_id.eq.${eventId},event_id.is.null`)
-    .order("is_default", { ascending: false });
-
-  const rows = (data ?? []) as Array<Record<string, unknown>>;
-  const eventDefault = rows.find((r) => r.event_id === eventId && r.is_default === true);
-  const globalDefault = rows.find((r) => r.event_id === null && r.is_default === true);
-  const anyForEvent = rows.find((r) => r.event_id === eventId);
-  const chosen = eventDefault ?? globalDefault ?? anyForEvent ?? null;
-
-  if (!chosen) return null;
-
-  return normaliseTemplate({
-    id: chosen.id,
-    eventId: chosen.event_id,
-    name: chosen.name,
-    backgroundUrl: chosen.background_url,
-    pageWidth: chosen.page_width,
-    pageHeight: chosen.page_height,
-    fields: chosen.fields,
-    isDefault: chosen.is_default,
-  });
 }
 
 // ─── Roster import + issuance ───────────────────────────────────────────────
@@ -242,16 +293,20 @@ async function lookupCandidates(emails: string[], eventId: string) {
   const supabase = createServiceClient();
   if (emails.length === 0) return new Map();
 
+
   // Chunked so a 5,000-row import cannot build a URL Postgres or PostgREST
   // will reject.
   const chunkSize = 200;
-  const found = new Map<string, { profileId: string; bhId: string | null; hasCertificate: boolean }>();
+  const found = new Map<
+    string,
+    { profileId: string; bhId: string | null; auth0UserId: string | null; hasCertificate: boolean }
+  >();
 
   for (let i = 0; i < emails.length; i += chunkSize) {
     const chunk = emails.slice(i, i + chunkSize);
     const { data: registrations } = await supabase
       .from("event_registrations")
-      .select("profile:profiles!inner(id, bh_id, email)")
+      .select("profile:profiles!inner(id, bh_id, email, auth0_user_id)")
       .in("profile.email", chunk)
       .eq("event_id", eventId);
 
@@ -270,11 +325,14 @@ async function lookupCandidates(emails: string[], eventId: string) {
     const already = new Set((existing ?? []).map((c) => c.profile_id as string));
 
     for (const reg of registrations ?? []) {
-      const profile = reg.profile as { id?: string; bh_id?: string; email?: string } | null;
+      const profile = reg.profile as
+        | { id?: string; bh_id?: string; email?: string; auth0_user_id?: string | null }
+        | null;
       if (!profile?.id || !profile.email) continue;
       found.set(profile.email.trim().toLowerCase(), {
         profileId: profile.id,
         bhId: profile.bh_id ?? null,
+        auth0UserId: profile.auth0_user_id ?? null,
         hasCertificate: already.has(profile.id),
       });
     }
@@ -312,7 +370,9 @@ export async function issueCertificatesFromRoster(
   const payload = matched.map((r) => ({
     profile_id: r.profileId,
     event_id: eventId,
-    auth0_user_id: null,
+    // Not left null: api/certificates/route.ts filters on this column, so a
+    // null here made every bulk-issued certificate invisible to its recipient.
+    auth0_user_id: r.auth0UserId ?? null,
     status: "issued",
   }));
 
@@ -360,6 +420,7 @@ export async function issueCertificatesFromRoster(
 export type SendSummary = {
   domain: string;
   subdomains: boolean;
+  dryRun: boolean;
   /** Candidates under the filter, before dedupe. */
   candidates: number;
   sent: number;
@@ -376,7 +437,7 @@ export type SendSummary = {
  */
 export async function sendCertificateEmails(
   eventId: string,
-  options: { domain: string; subdomains?: boolean },
+  options: { domain: string; subdomains?: boolean; dryRun?: boolean },
 ): Promise<SendSummary> {
   const { profileId } = await requireIssuer(eventId);
   const supabase = createServiceClient();
@@ -402,6 +463,14 @@ export async function sendCertificateEmails(
   const { matched } = filterByDomain(roster, domain, { subdomains: options.subdomains !== false });
   const unique = dedupeEmails(matched);
 
+  const dryRun = options.dryRun === true;
+
+  if (unique.length === 0) {
+    // The UI warns about this, but a client-side warning is not enforcement:
+    // without this, a typo'd domain silently sends nothing and reports success.
+    throw new Error(`No certificate recipient uses ${domain}. Check the spelling.`);
+  }
+
   const alreadySent = new Set<string>();
   if (unique.length > 0) {
     const { data: sent } = await supabase
@@ -413,11 +482,34 @@ export async function sendCertificateEmails(
     for (const row of sent ?? []) alreadySent.add(row.certificate_id as string);
   }
 
+  const pending = unique.filter((r) => !alreadySent.has(r.certificateId));
+  const skippedAlreadySent = unique.length - pending.length;
+
+  if (dryRun) {
+    return {
+      domain,
+      subdomains: options.subdomains !== false,
+      dryRun: true,
+      candidates: unique.length,
+      sent: 0,
+      failed: 0,
+      skippedAlreadySent,
+    };
+  }
+
+  if (pending.length > SEND_BATCH_LIMIT) {
+    // Refuse rather than truncate: a silently partial send looks identical to
+    // a complete one in the delivery report.
+    throw new Error(
+      `${pending.length} recipients match, above the ${SEND_BATCH_LIMIT} limit for one batch. Narrow the domain, or send again to continue from where this stopped.`,
+    );
+  }
+
   let sent = 0;
   let failed = 0;
   let skipped = 0;
 
-  for (const recipient of unique) {
+  for (const recipient of pending) {
     if (alreadySent.has(recipient.certificateId)) {
       skipped++;
       continue;
@@ -478,6 +570,7 @@ export async function sendCertificateEmails(
   return {
     domain,
     subdomains: options.subdomains !== false,
+    dryRun: false,
     candidates: unique.length,
     sent,
     failed,

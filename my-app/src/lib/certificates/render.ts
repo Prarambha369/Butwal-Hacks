@@ -77,11 +77,79 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   };
 }
 
-async function defaultFetchImage(url: string): Promise<Uint8Array> {
-  const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
-  if (!res.ok) throw new Error(`image fetch failed: ${res.status}`);
-  return new Uint8Array(await res.arrayBuffer());
-}
+  /** Artwork is a Cloudinary asset; nothing else is a legitimate source. */
+  const ALLOWED_IMAGE_HOSTS = new Set(["res.cloudinary.com"]);
+
+  /** A certificate background is a background, not a payload. */
+  const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+  /**
+   * Fetch certificate artwork under constraints.
+   *
+   * The background URL is organizer-supplied and gets fetched from the
+   * *unauthenticated* PDF route, so an unconstrained fetch was both SSRF and a
+   * memory-exhaustion amplifier: point it at a fast multi-gigabyte stream and
+   * anyone can OOM the function by requesting a certificate. The write needed
+   * `organizer`; the amplification did not.
+   *
+   * Constrained to https, to the upload host, with redirects refused rather
+   * than followed -- a 302 to 169.254.169.254 is the entire attack -- and with
+   * a hard byte ceiling. `arrayBuffer()` on an unbounded body is the specific
+   * call that had to go.
+   */
+  async function defaultFetchImage(url: string): Promise<Uint8Array> {
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      throw new Error("background url is not a valid URL");
+    }
+
+    if (parsed.protocol !== "https:") {
+      throw new Error("background url must be https");
+    }
+    if (!ALLOWED_IMAGE_HOSTS.has(parsed.hostname)) {
+      throw new Error(`background host not allowed: ${parsed.hostname}`);
+    }
+
+    const res = await fetch(parsed, {
+      signal: AbortSignal.timeout(10_000),
+      redirect: "error",
+    });
+    if (!res.ok) throw new Error(`image fetch failed: ${res.status}`);
+
+    const declared = Number(res.headers.get("content-length") ?? "0");
+    if (declared > MAX_IMAGE_BYTES) {
+      throw new Error("background image is too large");
+    }
+
+    // Enforce the ceiling on the read itself, not just the header: a lying or
+    // absent content-length is the normal case for a chunked response.
+    const reader = res.body?.getReader();
+    if (!reader) throw new Error("background response had no body");
+
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > MAX_IMAGE_BYTES) {
+        await reader.cancel();
+        throw new Error("background image is too large");
+      }
+      chunks.push(value);
+    }
+
+    const out = new Uint8Array(total);
+    let at = 0;
+    for (const chunk of chunks) {
+      out.set(chunk, at);
+      at += chunk.byteLength;
+    }
+    return out;
+  }
 
 /** pdf-lib picks the embedder by format, so sniff the magic bytes. */
 function looksLikeJpeg(bytes: Uint8Array): boolean {

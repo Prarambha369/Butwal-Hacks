@@ -175,12 +175,20 @@ export async function closeEvent(eventId: string) {
         status: "issued"
       }));
 
-      const { error: certError } = await supabase
-        .from("certificates")
-        .insert(certificates);
+        // ignoreDuplicates is load-bearing, not defensive. Migration 126 adds
+        // UNIQUE (event_id, profile_id) to stop double-issuance, and this
+        // insert used to be unconditional with `throw certError`. So after an
+        // organizer bulk-issued from a roster, closing the event hit a unique
+        // violation for every attendee who already had a certificate -- which
+        // aborted the close before step 4, meaning the event could never be
+        // closed and every retry failed identically. Re-issuing is the
+        // intended no-op, not an error.
+        const { error: certError } = await supabase
+          .from("certificates")
+          .upsert(certificates, { onConflict: "event_id,profile_id", ignoreDuplicates: true });
 
-      if (certError) throw certError;
-    }
+        if (certError) throw certError;
+      }
 
     // 4. Mark event as closed
     const { error: statusError } = await supabase

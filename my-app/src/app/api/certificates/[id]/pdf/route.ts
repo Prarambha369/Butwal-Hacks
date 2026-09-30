@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/utils/supabase";
 import { resolveVerifiable, isCertificateActive } from "@/lib/verify/resolve";
-import { resolveTemplateForEvent } from "@/lib/actions/certificates";
+import { resolveTemplateForEvent } from "@/lib/certificates/templates";
 import { renderCertificate } from "@/lib/certificates/render";
 import { normaliseTemplate } from "@/lib/certificates/template";
 import { SITE_URL } from "@/lib/constants";

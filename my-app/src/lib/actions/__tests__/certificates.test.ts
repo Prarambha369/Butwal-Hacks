@@ -39,7 +39,10 @@ function chain(rows: Row[] | null) {
   }
   q.single = vi.fn(async () => ({ data: rows?.[0] ?? null, error: null }));
   q.maybeSingle = vi.fn(async () => ({ data: rows?.[0] ?? null, error: null }));
-  q.then = (fn: (v: unknown) => unknown) => Promise.resolve(fn({ data: rows ?? [], error: null }));
+  // PostgREST returns `count` alongside `data` when count:"exact" is asked
+  // for, which deleteTemplate relies on to distinguish a delete from a no-op.
+  q.then = (fn: (v: unknown) => unknown) =>
+    Promise.resolve(fn({ data: rows ?? [], error: null, count: rows?.length ?? 0 }));
   return q;
 }
 
@@ -239,5 +242,97 @@ describe("template management authorization", () => {
     const { saveTemplate } = await loadActions();
     const res = await saveTemplate({ name: "Default" });
     expect(res).toHaveProperty("id");
+  });
+
+  // ── Cross-tenant template writes ──────────────────────────────────────────
+  // A role check alone let any organizer overwrite the artwork printed on
+  // another organizer's certificates, because event ids are public.
+  it("refuses to save a template scoped to another organizer's event", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [{ id: "evt-1", organizer_id: "someone-else" }];
+    const { saveTemplate } = await loadActions();
+    await expect(
+      saveTemplate({ name: "Hijack", eventId: "evt-1", isDefault: true }),
+    ).rejects.toThrow(/do not organise this event/);
+  });
+
+  it("refuses to delete a template belonging to another organizer's event", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [{ id: "evt-1", organizer_id: "someone-else" }];
+    templates = [{ id: "tpl-1", event_id: "evt-1", created_by: "someone-else", is_default: true }];
+    const { deleteTemplate } = await loadActions();
+    await expect(deleteTemplate("tpl-1")).rejects.toThrow(/do not organise this event/);
+  });
+
+  it("refuses to delete a template it cannot see", async () => {
+    signedInAs(MAINTAINER);
+    profiles = [MAINTAINER];
+    templates = [];
+    const { deleteTemplate } = await loadActions();
+    // Previously this returned ok:true for a no-op, so a caller could not tell
+    // a delete from a miss.
+    await expect(deleteTemplate("tpl-missing")).rejects.toThrow(/not found/);
+  });
+
+  it("lets a maintainer delete an organisation template", async () => {
+    signedInAs(MAINTAINER);
+    profiles = [MAINTAINER];
+    templates = [{ id: "tpl-1", event_id: null, created_by: "someone-else", is_default: true }];
+    const { deleteTemplate } = await loadActions();
+    await expect(deleteTemplate("tpl-1")).resolves.toEqual({ ok: true });
+  });
+});
+
+// ── Send guards: zero-match, batch cap, dry run ───────────────────────────────
+describe("bulk send guards", () => {
+  const certsFor = (emails: string[]) => ({
+    id: "c1",
+    profile: { id: "p1", full_name: "A", email: emails[0], bh_id: "bh-1" },
+  });
+
+  it("refuses a domain that matches nobody instead of silently sending nothing", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    certificates = [certsFor(["a@butwalhacks.com"])];
+    const { sendCertificateEmails } = await loadActions();
+    // The UI warned about this, but a client-side warning is not enforcement.
+    await expect(
+      sendCertificateEmails("evt-1", { domain: "typo-domain.com" }),
+    ).rejects.toThrow(/No certificate recipient uses/);
+  });
+
+  it("refuses a batch above the cap rather than truncating it", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    // 501 recipients, all distinct, all under the domain.
+    certificates = Array.from({ length: 501 }, (_, i) => ({
+      id: `c${i}`,
+      profile: { id: `p${i}`, full_name: `P${i}`, email: `p${i}@butwalhacks.com`, bh_id: null },
+    }));
+    const { sendCertificateEmails } = await loadActions();
+    // A partial send is indistinguishable from a complete one in the report.
+    await expect(
+      sendCertificateEmails("evt-1", { domain: "butwalhacks.com" }),
+    ).rejects.toThrow(/above the 500 limit/);
+  });
+
+  it("sends nothing on a dry run but still counts the recipients", async () => {
+    const { sendCertificateEmail } = await import("@/lib/certificates/email");
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    certificates = [certsFor(["a@butwalhacks.com"])];
+    const { sendCertificateEmails } = await loadActions();
+
+    const res = await sendCertificateEmails("evt-1", { domain: "butwalhacks.com", dryRun: true });
+    expect(res.dryRun).toBe(true);
+    expect(res.candidates).toBe(1);
+    expect(res.sent).toBe(0);
+    // The dry run has to be free of side effects, or it is just a send.
+    expect(vi.mocked(sendCertificateEmail)).not.toHaveBeenCalled();
   });
 });

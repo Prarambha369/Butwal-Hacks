@@ -185,7 +185,7 @@ export function parseRosterCsv(
 
 export type MatchResult = {
   /** Row matched an existing registration/profile by email. */
-  matched: Array<ImportRow & { profileId: string; bhId: string | null }>;
+  matched: Array<ImportRow & { profileId: string; bhId: string | null; auth0UserId: string | null }>;
   /** No registration or profile for this address. */
   unmatched: ImportRow[];
   /** Same email appearing more than once in the file. */
@@ -194,7 +194,13 @@ export type MatchResult = {
   alreadyIssued: ImportRow[];
 };
 
-type Candidate = { profileId: string; bhId: string | null; hasCertificate: boolean };
+type Candidate = {
+  profileId: string;
+  bhId: string | null;
+  /** Carried through so issuance can populate certificates.auth0_user_id. */
+  auth0UserId?: string | null;
+  hasCertificate: boolean;
+};
 
 /**
  * Reconcile parsed rows against what the database already knows.
@@ -226,7 +232,12 @@ export function matchRoster(rows: ImportRow[], candidates: Map<string, Candidate
       alreadyIssued.push(row);
       continue;
     }
-    matched.push({ ...row, profileId: candidate.profileId, bhId: candidate.bhId });
+    matched.push({
+      ...row,
+      profileId: candidate.profileId,
+      bhId: candidate.bhId,
+      auth0UserId: candidate.auth0UserId ?? null,
+    });
   }
 
   return { matched, unmatched, duplicate, alreadyIssued };
