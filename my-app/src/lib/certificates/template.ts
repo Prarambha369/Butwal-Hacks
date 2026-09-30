@@ -146,7 +146,20 @@ export function standardFontKey(field: Pick<TemplateField, "fontFamily" | "bold"
   // Times field produced an invalid lookup and silently fell back to
   // Helvetica -- the same class of bug this function exists to remove.
   const base = family.replace("-", "");
-  const suffix = field.bold && field.italic ? "BoldOblique" : field.bold ? "Bold" : field.italic ? "Oblique" : "";
+  // The italic suffix is FAMILY-DEPENDENT. Courier and Helvetica use
+  // "Oblique"; Times uses "Italic". Building "TimesRomanOblique" produced an
+  // undefined lookup, which `render.ts` swallows with
+  // `?? StandardFonts.Helvetica` -- so an author who chose Times + Italic got
+  // a sans-serif face with no warning.
+  const oblique = family === "Times-Roman" ? "Italic" : "Oblique";
+  const suffix =
+    field.bold && field.italic
+      ? `Bold${oblique}`
+      : field.bold
+        ? "Bold"
+        : field.italic
+          ? oblique
+          : "";
   return suffix === "" ? base : base + suffix;
 }
 

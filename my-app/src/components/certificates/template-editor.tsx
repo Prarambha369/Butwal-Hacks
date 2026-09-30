@@ -6,7 +6,6 @@ import {
   BUILTIN_TOKENS,
   FONT_FAMILIES,
   cssFontFor,
-  isLatinEncodable,
   normaliseTemplate,
   type CertificateTemplate,
   type FieldAlign,
@@ -236,7 +235,18 @@ export default function CertificateTemplateEditor({
     });
   };
 
-  const unsupported = field ? !isLatinEncodable(SAMPLES[field.token] ?? "") : false;
+  // The Devanagari advisory is shown for the fields that actually carry a
+  // recipient's name, not derived from the sample string.
+  //
+  // It used to test `isLatinEncodable(SAMPLES[token])`, and every sample was
+  // hardcoded ASCII -- so the condition could never be true and the amber panel
+  // was unreachable. A warning nobody can trigger is worse than none, because
+  // it looks like the risk was considered and handled.
+  //
+  // The real question an author needs answered is "if a participant's name is
+  // in Nepali, what will this field print?" -- and the answer is always "?",
+  // because pdf-lib cannot shape Devanagari. So it is stated, not detected.
+  const nameBearing = field ? field.token === "name" || field.token === "bh_id" : false;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -542,7 +552,7 @@ export default function CertificateTemplateEditor({
               </label>
             </div>
 
-            {unsupported && (
+            {nameBearing && (
               <p className="rounded bg-amber-50 p-2 text-xs text-amber-900">
                 This renderer uses standard PDF fonts, which cannot shape Devanagari. Values outside
                 Latin-1 will print as <code>?</code> and generate a warning on download. Transliterate

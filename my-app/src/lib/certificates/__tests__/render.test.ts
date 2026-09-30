@@ -140,20 +140,35 @@ describe("renderCertificate", () => {
     }
   });
 
-  it("actually embeds a bold font when the field asks for bold", async () => {
-    // The renderer used to look up StandardFonts[field.fontFamily], so a
-    // "Helvetica-Bold" family name resolved to undefined and printed regular
-    // text with no warning. Fonts are now keyed off the bold/italic flags.
-    const plain = await renderCertificate({ template: template(), values: VALUES, verifyUrl: URL });
-    const bold = await renderCertificate({
-      template: normaliseTemplate({
-        fields: [{ ...defaultFields()[0], token: "name", bold: true }],
-      }),
+  it("changes the output when bold is toggled on an otherwise identical field", async () => {
+    // Only meaningful because both renders use the SAME single field with the
+    // same text, so the only variable is the bold flag. (The earlier version of
+    // this test compared a 3-field render with a 1-field one, which would have
+    // differed in length even if bold were a no-op.)
+    //
+    // The exhaustive check that every family x bold x italic combination
+    // resolves to a key pdf-lib actually has lives in template.test.ts, because
+    // font programs are named inside compressed object streams that a
+    // byte-level assertion here cannot see.
+    const oneField = (bold?: boolean) =>
+      normaliseTemplate({
+        fields: [
+          { ...defaultFields()[0], token: "name", label: "Name", ...(bold ? { bold: true } : {}) },
+        ],
+      });
+
+    const regular = await renderCertificate({
+      template: oneField(),
       values: { name: "Asha Sharma" },
       verifyUrl: URL,
     });
-    // Two different embedded font programs means a different byte stream.
-    expect(bold.bytes.length).not.toBe(plain.bytes.length);
+    const bold = await renderCertificate({
+      template: oneField(true),
+      values: { name: "Asha Sharma" },
+      verifyUrl: URL,
+    });
+
+    expect(bold.bytes.length).not.toBe(regular.bytes.length);
   });
 
   it("keeps the QR on the page for a narrow template", async () => {

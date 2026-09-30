@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { StandardFonts } from "pdf-lib";
 import {
   standardFontKey,
   BUILTIN_TOKENS,
@@ -88,6 +89,38 @@ describe("normaliseField", () => {
     );
     // No style flags means the plain family key, which exists.
     expect(standardFontKey(normaliseField({ fontFamily: "Times-Roman" }))).toBe("TimesRoman");
+  });
+
+  it("resolves every family x bold x italic combination to a key pdf-lib has", () => {
+    // The real guarantee. An earlier version hardcoded "Oblique" as the italic
+    // suffix for all families, but Times uses "Italic" -- so Times + Italic
+    // produced "TimesRomanOblique", which does not exist, and render.ts
+    // swallows the undefined with a Helvetica fallback. An author who chose
+    // Times + Italic got sans-serif and no warning.
+    const real = new Set(Object.keys(StandardFonts));
+    const families = ["Helvetica", "Times-Roman", "Courier"];
+    const missing: string[] = [];
+
+    for (const family of families) {
+      for (const bold of [false, true]) {
+        for (const italic of [false, true]) {
+          const key = standardFontKey(normaliseField({ fontFamily: family, bold, italic }));
+          if (!real.has(key)) missing.push(`${family} b=${bold} i=${italic} -> ${key}`);
+        }
+      }
+    }
+
+    expect(missing).toEqual([]);
+    // Spot-check the two that were wrong.
+    expect(standardFontKey(normaliseField({ fontFamily: "Times-Roman", italic: true }))).toBe(
+      "TimesRomanItalic",
+    );
+    expect(
+      standardFontKey(normaliseField({ fontFamily: "Times-Roman", bold: true, italic: true })),
+    ).toBe("TimesRomanBoldItalic");
+    expect(standardFontKey(normaliseField({ fontFamily: "Courier", italic: true }))).toBe(
+      "CourierOblique",
+    );
   });
 
   it("normalises align to one of the three values", () => {

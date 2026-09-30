@@ -116,18 +116,46 @@ CREATE UNIQUE INDEX IF NOT EXISTS certificates_event_profile_uniq
 --
 -- Email local parts are case-insensitive per RFC 5321, so folding stored
 -- addresses to lower case is semantically correct rather than a convenience.
--- Checked for lower()-collisions before applying: zero, so the UNIQUE
--- constraint on email cannot be violated by this rewrite.
+--
+-- Skipped entirely if folding would collide with the UNIQUE constraint, which
+-- would abort the whole migration. Two profiles differing only in email case
+-- are a genuine data problem worth surfacing on its own rather than as a
+-- mysterious index violation; the app-side lower-casing (Auth0 webhook, both
+-- branches) plus the CHECK below means the situation cannot grow.
 
-UPDATE public.profiles
-SET email = lower(email)
-WHERE email IS NOT NULL
-  AND email <> lower(email);
+UPDATE public.profiles p
+SET email = lower(p.email)
+WHERE p.email IS NOT NULL
+  AND p.email <> lower(p.email)
+  AND NOT EXISTS (
+    SELECT 1 FROM public.profiles other
+    WHERE other.id <> p.id
+      AND lower(other.email) = lower(p.email)
+  );
 
--- The lookup uses lower(email); without this the fix above would still leave
--- every match as a sequential scan.
-CREATE INDEX IF NOT EXISTS profiles_email_lower_idx
-  ON public.profiles (lower(email));
+-- The app fixes the two paths it controls; this makes it impossible for any
+-- path -- the Auth0 webhook's insert branch, the handle_new_user trigger from
+-- migration 002, a future import -- to reintroduce a mixed-case address and
+-- silently break bulk roster matching.
+--
+-- Added only once the table is actually clean. If a lower()-collision above
+-- left a mixed-case row behind, adding the constraint would abort the whole
+-- migration, which is a worse outcome than leaving one bad address in place to
+-- be reported.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM public.profiles WHERE email IS NOT NULL AND email <> lower(email))
+    THEN
+      RAISE NOTICE
+        '126: skipping profiles_email_lowercase -- mixed-case addresses remain (see the lower()-collision guard above)';
+  ELSIF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'profiles_email_lowercase'
+  ) THEN
+    ALTER TABLE public.profiles
+      ADD CONSTRAINT profiles_email_lowercase
+      CHECK (email IS NULL OR email = lower(email));
+  END IF;
+END $$;
 
 -- api/certificates/route.ts filters on auth0_user_id but there was no index,
 -- so every authenticated certificate read was a sequential scan.
@@ -137,16 +165,20 @@ CREATE INDEX IF NOT EXISTS certificates_auth0_user_id_idx
 
 -- 'issued' is the only value any code writes. Constrain it so a typo cannot
 -- invent a status the revocation logic has never heard of.
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'certificates_status_check'
-  ) THEN
-    ALTER TABLE public.certificates
-      ADD CONSTRAINT certificates_status_check
-      CHECK (status IN ('issued', 'revoked', 'void'));
-  END IF;
-END $$;
+--
+-- NOT VALID on purpose. A validating ADD CONSTRAINT scans existing rows and
+-- aborts the ENTIRE migration on any pre-existing rogue status -- templates,
+-- deliveries and the download counter would all be lost to one bad row. NOT
+-- VALID enforces every future write while leaving history alone, which is the
+-- right trade for a constraint whose value set is a policy rather than data
+-- integrity. Only certificates.ts and events.ts write this column, both
+-- writing 'issued'.
+ALTER TABLE public.certificates
+  DROP CONSTRAINT IF EXISTS certificates_status_check;
+
+ALTER TABLE public.certificates
+  ADD CONSTRAINT certificates_status_check
+  CHECK (status IN ('issued', 'revoked', 'void')) NOT VALID;
 
 -- ─── Delivery + download tracking ───────────────────────────────────────────
 
