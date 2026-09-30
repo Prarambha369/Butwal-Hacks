@@ -70,11 +70,15 @@ describe("CookieConsentBanner link text", () => {
     }
   });
 
-  it("keeps decorative icons out of the accessibility tree", () => {
-    const icons = banner.querySelectorAll('a[href="/cookie-policy"] svg');
-    expect(icons.length).toBe(2);
-    for (const svg of Array.from(icons)) {
-      expect(svg.closest("[aria-hidden='true']")).not.toBeNull();
+  it("keeps every decorative icon out of the accessibility tree", () => {
+    // All five icons in the banner are decorative: the X labels via the
+    // button's aria-label, and the Cookie/Shield glyphs sit beside real text.
+    // Asserting on the svg itself rather than via closest(), which would also
+    // pass if an ancestor were hidden.
+    const icons = Array.from(banner.querySelectorAll("svg"));
+    expect(icons.length, "five decorative icons").toBe(5);
+    for (const svg of icons) {
+      expect(svg.getAttribute("aria-hidden"), "svg must be aria-hidden").toBe("true");
     }
   });
 });
