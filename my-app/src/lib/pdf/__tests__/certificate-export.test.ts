@@ -119,16 +119,33 @@ describe("generateCertificatesPdf", () => {
       expect(text).toContain("butwalhacks.com/verify");
     });
 
-    it("includes the certificate ID in the footer when provided", async () => {
+    it("prints the certificate ID as a resolvable /verify path", async () => {
+      // The participant must be able to type one URL. Previously the footer
+      // said "Verify at butwalhacks.com/verify" on one line and "ID: <uuid>"
+      // on the next, leaving the join to the reader -- and /verify only
+      // resolved trust_markers, so neither form worked.
       const pdf = await generateCertificatesPdf([SAMPLE_CERT], SAMPLE_EVENT);
       const text = pdfToString(pdf);
-      expect(text).toContain("ID: cert-abc-123");
+      expect(text).toContain("butwalhacks.com/verify");
+      expect(text).toContain("/cert-abc-123");
+      expect(text).not.toContain("ID: cert-abc-123");
     });
 
-    it("falls back to BH-ID in footer when certificateId is not provided", async () => {
+    it("falls back to BH-ID in the verify path when certificateId is not provided", async () => {
       const pdf = await generateCertificatesPdf([SAMPLE_CERT_2], SAMPLE_EVENT);
       const text = pdfToString(pdf);
-      expect(text).toContain("ID: BH-26-043");
+      expect(text).toContain("/BH-26-043");
+    });
+
+    it("keeps the verify host and the id on the certificate", async () => {
+      const pdf = await generateCertificatesPdf([SAMPLE_CERT], SAMPLE_EVENT);
+      const text = pdfToString(pdf);
+      // Guards the join being dropped in a future edit: host without id, or
+      // id without host, is the exact shape that made this unverifiable.
+      const hostAt = text.indexOf("butwalhacks.com/verify");
+      const idAt = text.indexOf("/cert-abc-123");
+      expect(hostAt).toBeGreaterThan(-1);
+      expect(idAt).toBeGreaterThan(-1);
     });
 
     it("includes the event location when provided", async () => {
