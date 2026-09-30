@@ -15,7 +15,9 @@
  *   - Manual API route spans via withSentrySpan() wrapper
  *   - Vercel Cron Monitor integration for /api/health
  *
- * This file is automatically loaded by @sentry/nextjs at build time.
+ * Loaded at runtime by `register()` in `src/instrumentation.ts`. The SDK
+ * auto-injects only the client config, so without that hook this file never
+ * runs and server-side Sentry stays uninitialised.
  *
  * Docs: https://docs.sentry.io/platforms/javascript/guides/nextjs/
  */
