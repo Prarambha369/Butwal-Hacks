@@ -29,6 +29,25 @@ const FLOOR_BS = { y: 2081, m: 9 };
 type CalendarView = "bs" | "ad";
 const VIEW_KEY = "bh-calendar-view";
 
+/**
+ * Chunk cells into rows of 7 for role="row" wrappers.
+ *
+ * Both calendars used to put role="columnheader" and role="gridcell" directly
+ * inside role="grid", with no row between them. That is an invalid grid: ARIA
+ * requires row -> gridcell/columnheader, so Lighthouse and axe both reported
+ * "ARIA roles must contain particular children" and "roles are not contained by
+ * their required parent", and the Agentic Browsing audit failed on a malformed
+ * accessibility tree.
+ *
+ * The rows use `display: contents` (Tailwind `contents`) so the outer
+ * `grid-cols-7` still lays every cell out in one visual grid — no visual change.
+ */
+function chunkWeek<T>(cells: T[]): T[][] {
+  const rows: T[][] = [];
+  for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+  return rows;
+}
+
 type BhFilter = "all" | BhEventCategory;
 const BH_ORDER: BhEventCategory[] = ["Hackathon", "Workshop", "Game Jam", "Meetup"];
 
@@ -533,43 +552,55 @@ function AdGrid({ date, byAdDay, festivalsByAd, holidaysByAd, today, weekdays, l
   });
   const hasAny = hasEvents || hasFestivals || hasHolidays;
 
-  // The grid always renders — even with zero items — so month dates are
-  // never hidden. A slim note replaces the old full-panel empty state.
-  return (
-    <>
-      <div className="grid grid-cols-7 gap-px bg-border border border-border rounded-lg overflow-hidden" role="grid" aria-label={monthLabel}>
-        {weekdays.map((d) => (
-          <div key={d} role="columnheader" className="bg-surface p-2 sm:p-3 text-[10px] font-bold text-center uppercase text-muted-foreground">{d}</div>
-        ))}
-        {Array.from({ length: firstDay }).map((_, i) => <div key={`empty-${i}`} className="bg-background p-4" />)}
-        {Array.from({ length: daysInMonth }).map((_, i) => {
-          const day = i + 1;
-          const d = new Date(date.getFullYear(), date.getMonth(), day);
-          const isToday = d.toDateString() === today;
-          const dayBs = adToBs(d);
-            const dayEvents = byAdDay.get(serialKey(cellSerial(date.getFullYear(), date.getMonth(), day))) ?? [];
-          const dayFestivals = festivalsByAd.get(serialKey(cellSerial(date.getFullYear(), date.getMonth(), day))) ?? [];
-          const dayHolidays = holidaysByAd.get(serialKey(cellSerial(date.getFullYear(), date.getMonth(), day))) ?? [];
-          const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-          return (
-            <div
-              key={day}
-              role="gridcell"
-              aria-label={`${iso}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length === 1 ? "" : "s"}` : ""}${dayFestivals.length > 0 ? `, ${dayFestivals.length} festival${dayFestivals.length === 1 ? "" : "s"}` : ""}${dayHolidays.length > 0 ? `, ${dayHolidays.length} public holiday${dayHolidays.length === 1 ? "" : "s"}` : ""}`}
-              className={`p-2 sm:p-3 h-20 sm:h-28 transition-colors border-t border-border ${isToday ? "bg-primary-red/5 hover:bg-primary-red/10 ring-1 ring-inset ring-primary-red/40" : "bg-background hover:bg-surface-hover"}`}
-            >
-              <time dateTime={iso} className={`text-xs font-bold block ${isToday ? "text-primary-red" : "text-primary"}`}>
-                {day}
-                {isToday && <span className="sr-only"> ({t("home.calendar.today", locale)})</span>}
-              </time>
-              <span className="text-[9px] font-mono text-muted-foreground mt-1 hidden min-[420px]:block" aria-hidden="true">{dayBs.month}/{dayBs.day}</span>
-              {dayEvents.length > 0 && <EventLinks dayEvents={dayEvents} locale={locale} />}
-              {dayFestivals.length > 0 && <FestivalLinks festivals={dayFestivals} locale={locale} />}
-              {dayHolidays.length > 0 && <HolidayLinks holidays={dayHolidays} locale={locale} />}
+    // The grid always renders — even with zero items — so month dates are
+    // never hidden. A slim note replaces the old full-panel empty state.
+    const adCells = [
+      ...Array.from({ length: firstDay }).map((_, i) => (
+        <div key={`empty-${i}`} role="gridcell" aria-hidden="true" className="bg-background p-4" />
+      )),
+      ...Array.from({ length: daysInMonth }).map((_, i) => {
+        const day = i + 1;
+        const d = new Date(date.getFullYear(), date.getMonth(), day);
+        const isToday = d.toDateString() === today;
+        const dayBs = adToBs(d);
+        const dayEvents = byAdDay.get(serialKey(cellSerial(date.getFullYear(), date.getMonth(), day))) ?? [];
+        const dayFestivals = festivalsByAd.get(serialKey(cellSerial(date.getFullYear(), date.getMonth(), day))) ?? [];
+        const dayHolidays = holidaysByAd.get(serialKey(cellSerial(date.getFullYear(), date.getMonth(), day))) ?? [];
+        const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        return (
+          <div
+            key={day}
+            role="gridcell"
+            aria-label={`${iso}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length === 1 ? "" : "s"}` : ""}${dayFestivals.length > 0 ? `, ${dayFestivals.length} festival${dayFestivals.length === 1 ? "" : "s"}` : ""}${dayHolidays.length > 0 ? `, ${dayHolidays.length} public holiday${dayHolidays.length === 1 ? "" : "s"}` : ""}`}
+            className={`p-2 sm:p-3 h-20 sm:h-28 transition-colors border-t border-border ${isToday ? "bg-primary-red/5 hover:bg-primary-red/10 ring-1 ring-inset ring-primary-red/40" : "bg-background hover:bg-surface-hover"}`}
+          >
+            <time dateTime={iso} className={`text-xs font-bold block ${isToday ? "text-primary-red" : "text-primary"}`}>
+              {day}
+              {isToday && <span className="sr-only"> ({t("home.calendar.today", locale)})</span>}
+            </time>
+            <span className="text-[9px] font-mono text-muted-foreground mt-1 hidden min-[420px]:block" aria-hidden="true">{dayBs.month}/{dayBs.day}</span>
+            {dayEvents.length > 0 && <EventLinks dayEvents={dayEvents} locale={locale} />}
+            {dayFestivals.length > 0 && <FestivalLinks festivals={dayFestivals} locale={locale} />}
+            {dayHolidays.length > 0 && <HolidayLinks holidays={dayHolidays} locale={locale} />}
+          </div>
+        );
+      }),
+    ];
+
+    return (
+      <>
+        <div className="grid grid-cols-7 gap-px bg-border border border-border rounded-lg overflow-hidden" role="grid" aria-label={monthLabel}>
+          <div role="row" className="contents">
+            {weekdays.map((d) => (
+              <div key={d} role="columnheader" className="bg-surface p-2 sm:p-3 text-[10px] font-bold text-center uppercase text-muted-foreground">{d}</div>
+            ))}
+          </div>
+          {chunkWeek(adCells).map((week, i) => (
+            <div key={`ad-week-${i}`} role="row" className="contents">
+              {week}
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
       {!hasAny && (
         <p className="mt-3 text-center text-xs text-muted-foreground">
           {t("home.calendar.empty", locale)}{" "}
@@ -616,42 +647,54 @@ function BsGrid({ bsView, byBsDay, festivalsByBs, holidaysByBs, today, weekdays,
     return y === bsView.y && m === bsView.m;
   });
 
-  return (
-    <>
-      <div className="grid grid-cols-7 gap-px bg-border border border-border rounded-lg overflow-hidden" role="grid" aria-label={monthLabel}>
-        {weekdays.map((d) => (
-          <div key={d} role="columnheader" className="bg-surface p-2 sm:p-3 text-[10px] font-bold text-center uppercase text-muted-foreground">{d}</div>
-        ))}
-        {Array.from({ length: firstDay }).map((_, i) => <div key={`empty-${i}`} className="bg-background p-4" />)}
-        {Array.from({ length: dim }).map((_, i) => {
-          const day = i + 1;
-          const isToday = todayBs !== null && todayBs.year === bsView.y && todayBs.month === bsView.m && todayBs.day === day;
-          const dayEvents = byBsDay.get(`${bsView.y}-${bsView.m}-${day}`) ?? [];
-          const dayFestivals = festivalsByBs.get(`${bsView.y}-${bsView.m}-${day}`) ?? [];
-          const dayHolidays = holidaysByBs.get(`${bsView.y}-${bsView.m}-${day}`) ?? [];
-          const ad = bsToAd(bsView.y, bsView.m, day);
-          const iso = ad.toISOString().slice(0, 10);
-          return (
-            <div
-              key={day}
-              role="gridcell"
-              aria-label={`${iso}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length === 1 ? "" : "s"}` : ""}${dayFestivals.length > 0 ? `, ${dayFestivals.length} festival${dayFestivals.length === 1 ? "" : "s"}` : ""}${dayHolidays.length > 0 ? `, ${dayHolidays.length} public holiday${dayHolidays.length === 1 ? "" : "s"}` : ""}`}
-              className={`p-2 sm:p-3 h-20 sm:h-28 transition-colors border-t border-border ${isToday ? "bg-primary-red/5 hover:bg-primary-red/10 ring-1 ring-inset ring-primary-red/40" : "bg-background hover:bg-surface-hover"}`}
-            >
-              <time dateTime={iso} className={`text-xs font-bold block ${isToday ? "text-primary-red" : "text-primary"}`}>
-                {locale === "ne" ? toNepaliDigits(day) : day}
-                {isToday && <span className="sr-only"> ({t("home.calendar.today", locale)})</span>}
-              </time>
-              <span className="text-[9px] font-mono text-muted-foreground mt-1 hidden min-[420px]:block" aria-hidden="true">
-                {ad.getUTCMonth() + 1}/{ad.getUTCDate()}
-              </span>
+    const bsCells = [
+      ...Array.from({ length: firstDay }).map((_, i) => (
+        <div key={`empty-${i}`} role="gridcell" aria-hidden="true" className="bg-background p-4" />
+      )),
+      ...Array.from({ length: dim }).map((_, i) => {
+        const day = i + 1;
+        const isToday = todayBs !== null && todayBs.year === bsView.y && todayBs.month === bsView.m && todayBs.day === day;
+        const dayEvents = byBsDay.get(`${bsView.y}-${bsView.m}-${day}`) ?? [];
+        const dayFestivals = festivalsByBs.get(`${bsView.y}-${bsView.m}-${day}`) ?? [];
+        const dayHolidays = holidaysByBs.get(`${bsView.y}-${bsView.m}-${day}`) ?? [];
+        const ad = bsToAd(bsView.y, bsView.m, day);
+        const iso = ad.toISOString().slice(0, 10);
+        return (
+          <div
+            key={day}
+            role="gridcell"
+            aria-label={`${iso}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length === 1 ? "" : "s"}` : ""}${dayFestivals.length > 0 ? `, ${dayFestivals.length} festival${dayFestivals.length === 1 ? "" : "s"}` : ""}${dayHolidays.length > 0 ? `, ${dayHolidays.length} public holiday${dayHolidays.length === 1 ? "" : "s"}` : ""}`}
+            className={`p-2 sm:p-3 h-20 sm:h-28 transition-colors border-t border-border ${isToday ? "bg-primary-red/5 hover:bg-primary-red/10 ring-1 ring-inset ring-primary-red/40" : "bg-background hover:bg-surface-hover"}`}
+          >
+            <time dateTime={iso} className={`text-xs font-bold block ${isToday ? "text-primary-red" : "text-primary"}`}>
+              {locale === "ne" ? toNepaliDigits(day) : day}
+              {isToday && <span className="sr-only"> ({t("home.calendar.today", locale)})</span>}
+            </time>
+            <span className="text-[9px] font-mono text-muted-foreground mt-1 hidden min-[420px]:block" aria-hidden="true">
+              {ad.getUTCMonth() + 1}/{ad.getUTCDate()}
+            </span>
               {dayEvents.length > 0 && <EventLinks dayEvents={dayEvents} locale={locale} />}
               {dayFestivals.length > 0 && <FestivalLinks festivals={dayFestivals} locale={locale} />}
               {dayHolidays.length > 0 && <HolidayLinks holidays={dayHolidays} locale={locale} />}
+          </div>
+        );
+      }),
+    ];
+
+    return (
+      <>
+        <div className="grid grid-cols-7 gap-px bg-border border border-border rounded-lg overflow-hidden" role="grid" aria-label={monthLabel}>
+          <div role="row" className="contents">
+            {weekdays.map((d) => (
+              <div key={d} role="columnheader" className="bg-surface p-2 sm:p-3 text-[10px] font-bold text-center uppercase text-muted-foreground">{d}</div>
+            ))}
+          </div>
+          {chunkWeek(bsCells).map((week, i) => (
+            <div key={`bs-week-${i}`} role="row" className="contents">
+              {week}
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
       {!hasAny && (
         <p className="mt-3 text-center text-xs text-muted-foreground">
           {t("home.calendar.empty", locale)}{" "}
