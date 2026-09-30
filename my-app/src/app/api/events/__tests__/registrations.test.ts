@@ -148,4 +148,24 @@ describe("GET /api/events/[eventId]/registrations", () => {
     expect(res.status).toBe(200);
     expect(body.registrations).toEqual([]);
   });
+
+  it("returns 500 when database operation throws", async () => {
+    // Salvaged from the draft Sentinel PR (#16); the only test in it that was
+    // not already on main. A thrown DB error must not escape as an unhandled
+    // rejection -- it has to surface as a 500 and leak no internals.
+    const db = buildMockDb();
+    db.single.mockImplementationOnce(() => {
+      throw new Error("DB Connection Error");
+    });
+    mockedCreateServiceClient.mockReturnValue(db);
+
+    const { GET } = await import("../[eventId]/registrations/route");
+    const res = await GET(mockRequest(), { params: Promise.resolve({ eventId: "event-123" }) });
+    const body = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(body.error).toBe("Internal Server Error");
+    // The raw error message must not reach the client.
+    expect(JSON.stringify(body)).not.toContain("DB Connection Error");
+  });
 });
