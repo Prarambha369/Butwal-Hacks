@@ -100,8 +100,8 @@ export default function CookieConsentBanner() {
                   href="/cookie-policy"
                   className="inline-flex items-center gap-1 ml-1 text-primary-red hover:underline font-medium"
                 >
-                  <Shield className="w-3 h-3" />
-                  Learn more
+                  <Shield className="w-3 h-3" aria-hidden="true" />
+                  Cookie policy
                 </Link>
               </p>
               <p className="hidden sm:block text-xs text-muted-foreground leading-relaxed max-w-lg">
@@ -111,8 +111,8 @@ export default function CookieConsentBanner() {
                   href="/cookie-policy"
                   className="inline-flex items-center gap-1 ml-1 text-primary-red hover:underline font-medium"
                 >
-                  <Shield className="w-3 h-3" />
-                  Learn more
+                  <Shield className="w-3 h-3" aria-hidden="true" />
+                  Cookie policy
                 </Link>
               </p>
 
