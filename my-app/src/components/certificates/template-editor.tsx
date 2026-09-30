@@ -4,6 +4,8 @@ import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   BUILTIN_TOKENS,
+  FONT_FAMILIES,
+  cssFontFor,
   isLatinEncodable,
   normaliseTemplate,
   type CertificateTemplate,
@@ -47,7 +49,7 @@ const TOKEN_CHOICES = BUILTIN_TOKENS.map((t) => ({
   label: TOKEN_LABELS[t] ?? t,
 }));
 
-const FONTS = ["Helvetica", "Times", "Courier", "Times-Bold", "Courier-Bold", "Helvetica-Bold"];
+const FONTS = FONT_FAMILIES;
 const COLORS = ["#1c1917", "#0f766e", "#b91c1c", "#1e3a8a", "#ffffff", "#78350f"];
 
 const SAMPLES: Record<string, string> = {
@@ -68,10 +70,20 @@ const SAMPLES: Record<string, string> = {
  */
 function toPixels(field: TemplateField, pageWidth: number, pageHeight: number) {
   const size = Math.max(6, field.fontSize * pageWidth);
+  // The renderer anchors on the alignment point: x is the left edge for
+  // "left", the centre for "center", the right edge for "right". An
+  // absolutely-positioned shrink-to-fit box has no width for text-align to act
+  // on, so the preview has to apply the same shift explicitly. Without this
+  // every centred field -- which is all of them, by default -- previewed half
+  // its width to the right of the printed position.
+  const shift = field.align === "center" ? "-50%" : field.align === "right" ? "-100%" : "0%";
   return {
     left: field.x * pageWidth,
     top: field.y * pageHeight,
     fontSize: size,
+    transform: `translateX(${shift}) rotate(${field.rotation}deg)`,
+    // Honour the field's own width so the preview wraps where the PDF shrinks.
+    maxWidth: field.width ? field.width * 100 : undefined,
   };
 }
 
@@ -278,17 +290,14 @@ export default function CertificateTemplateEditor({
                   top: pos.top,
                   fontSize: pos.fontSize,
                   color: f.color,
-                  fontFamily: f.fontFamily.startsWith("Times")
-                    ? "serif"
-                    : f.fontFamily.startsWith("Courier")
-                      ? "monospace"
-                      : "sans-serif",
-                  fontWeight: f.bold ? 700 : 400,
-                  fontStyle: f.italic ? "italic" : "normal",
-                  textAlign: f.align,
-                  width: "auto",
-                  maxWidth: "70%",
-                  transform: `rotate(${f.rotation}deg)`,
+                  ...(() => {
+                    const css = cssFontFor(f);
+                    return { fontFamily: css.family, fontWeight: css.weight, fontStyle: css.style };
+                  })(),
+                  // The box shrinks to the text, so text-align has nothing to
+                  // align within; the anchor shift lives in toPixels.
+                  textAlign: "left",
+                  transform: pos.transform,
                 }}
               >
                 {SAMPLES[f.token] ?? f.token}
@@ -487,14 +496,12 @@ export default function CertificateTemplateEditor({
                 <select
                   id="f-font"
                   value={field.fontFamily}
-                  onChange={(e) =>
-                    patch({ fontFamily: e.target.value, bold: e.target.value.includes("Bold") })
-                  }
+                  onChange={(e) => patch({ fontFamily: e.target.value })}
                   className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm"
                 >
                   {FONTS.map((f) => (
                     <option key={f} value={f}>
-                      {f}
+                      {f === "Times-Roman" ? "Times" : f === "Helvetica" ? "Sans" : "Monospace"}
                     </option>
                   ))}
                 </select>
@@ -514,6 +521,25 @@ export default function CertificateTemplateEditor({
                   <option value="right">Right</option>
                 </select>
               </div>
+            </div>
+
+            <div className="flex gap-4">
+              <label className="flex items-center gap-1.5 text-sm text-stone-700">
+                <input
+                  type="checkbox"
+                  checked={field.bold === true}
+                  onChange={(e) => patch({ bold: e.target.checked || undefined })}
+                />
+                Bold
+              </label>
+              <label className="flex items-center gap-1.5 text-sm text-stone-700">
+                <input
+                  type="checkbox"
+                  checked={field.italic === true}
+                  onChange={(e) => patch({ italic: e.target.checked || undefined })}
+                />
+                Italic
+              </label>
             </div>
 
             {unsupported && (

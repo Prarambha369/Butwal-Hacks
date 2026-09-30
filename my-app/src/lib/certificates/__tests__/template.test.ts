@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  BOLD_FONT,
+  standardFontKey,
   BUILTIN_TOKENS,
   defaultFields,
   isLatinEncodable,
@@ -27,8 +27,21 @@ describe("isLatinEncodable", () => {
     expect(isLatinEncodable("Priya 🎉")).toBe(false);
   });
 
-  it("tolerates control characters", () => {
-    expect(isLatinEncodable("a\tb\nc")).toBe(true);
+  it("rejects the C1 control block, which WinAnsi cannot encode", () => {
+    // Asserted the opposite for a while. 32..255 looked like a safe range, but
+    // U+007F..U+009F sits inside it and WinAnsi has no glyph for any of it, so
+    // a name containing U+0085 made widthOfTextAtSize throw from inside the
+    // renderer -- and that call sits outside every try/catch, so the whole
+    // certificate 500'd rather than degrading.
+    for (const code of [0x7f, 0x85, 0x9f]) {
+      expect(isLatinEncodable(String.fromCharCode(code)), `U+00${code.toString(16)}`).toBe(false);
+    }
+  });
+
+  it("accepts printable ASCII and the Latin-1 supplement", () => {
+    expect(isLatinEncodable("Asha Sharma")).toBe(true);
+    expect(isLatinEncodable("Zoë Müller")).toBe(true);
+    expect(isLatinEncodable("Prize €50")).toBe(true);
   });
 });
 
@@ -55,7 +68,26 @@ describe("normaliseField", () => {
 
   it("falls back to a font pdf-lib can actually resolve", () => {
     expect(normaliseField({ fontFamily: "Comic Papyrus" }).fontFamily).toBe("Helvetica");
-    expect(normaliseField({ fontFamily: BOLD_FONT }).fontFamily).toBe(BOLD_FONT);
+  });
+
+  it("treats bold and italic as properties, not font names", () => {
+    // Previously KNOWN_FONTS contained "Helvetica-Bold", but pdf-lib's
+    // StandardFonts keys have no hyphen, so that lookup was undefined and every
+    // "bold" field silently printed regular text.
+    const bolded = normaliseField({ fontFamily: "Helvetica", bold: true });
+    expect(bolded.bold).toBe(true);
+    expect(standardFontKey(bolded)).toBe("HelveticaBold");
+    expect(standardFontKey(normaliseField({ fontFamily: "Times-Roman", bold: true }))).toBe(
+      "TimesRomanBold",
+    );
+    expect(standardFontKey(normaliseField({ fontFamily: "Courier", italic: true }))).toBe(
+      "CourierOblique",
+    );
+    expect(standardFontKey(normaliseField({ fontFamily: "Courier", bold: true, italic: true }))).toBe(
+      "CourierBoldOblique",
+    );
+    // No style flags means the plain family key, which exists.
+    expect(standardFontKey(normaliseField({ fontFamily: "Times-Roman" }))).toBe("TimesRoman");
   });
 
   it("normalises align to one of the three values", () => {

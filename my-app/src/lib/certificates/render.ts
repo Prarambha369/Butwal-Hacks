@@ -2,6 +2,8 @@ import { PDFDocument, StandardFonts, degrees, rgb, type PDFFont, type PDFPage } 
 import QRCode from "qrcode";
 import {
   isLatinEncodable,
+  isWinAnsi,
+  standardFontKey,
   normaliseTemplate,
   resolveFieldValue,
   type CertificateTemplate,
@@ -51,22 +53,27 @@ export type RenderOptions = {
   includeQr?: boolean;
 };
 
-/** Replace characters the standard fonts cannot encode. */
-function sanitiseForStandardFonts(text: string): { text: string; replaced: boolean } {
-  if (isLatinEncodable(text)) return { text, replaced: false };
-  let replaced = false;
-  let out = "";
-  for (const ch of text) {
-    const code = ch.codePointAt(0)!;
-    if (code < 32 || code > 255) {
-      out += "?";
-      replaced = true;
-    } else {
-      out += ch;
+  /**
+   * Replace characters the standard fonts cannot encode.
+   *
+   * Uses isWinAnsi rather than a 32..255 range test. Letting the C1 block
+   * through moved the failure from "prints ?" to "throws from inside pdf-lib",
+   * because the text-measurement call is not inside a try/catch.
+   */
+  function sanitiseForStandardFonts(text: string): { text: string; replaced: boolean } {
+    if (isLatinEncodable(text)) return { text, replaced: false };
+    let replaced = false;
+    let out = "";
+    for (const ch of text) {
+      if (isWinAnsi(ch.codePointAt(0)!)) {
+        out += ch;
+      } else {
+        out += "?";
+        replaced = true;
+      }
     }
+    return { text: out, replaced };
   }
-  return { text: out, replaced };
-}
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const clean = hex.replace("#", "");
@@ -174,7 +181,9 @@ export async function renderCertificate(options: RenderOptions): Promise<RenderR
       : normaliseTemplate(template as Record<string, unknown>);
 
   const doc = await PDFDocument.create();
-  // TrimBox of 0 removes the default 1/2-inch margin some viewers add.
+  // The 1/2-inch viewer margin is NOT removed. This comment used to claim a
+  // TrimBox did that, but no TrimBox is ever set -- and the QR below is drawn
+  // inside the margin it claimed to have eliminated.
   doc.setTitle(`${tpl.name} certificate`);
   doc.setProducer("Butwal Hacks");
   doc.setCreator("Butwal Hacks certificate renderer");
@@ -203,10 +212,16 @@ export async function renderCertificate(options: RenderOptions): Promise<RenderR
   // ── Fonts ────────────────────────────────────────────────────────────────
   const fonts = new Map<string, PDFFont>();
   const fontFor = async (field: TemplateField): Promise<PDFFont> => {
-    const key = field.bold ? `${field.fontFamily}-bold` : field.fontFamily;
+    // standardFontKey resolves family + bold + italic to a key that actually
+    // exists in StandardFonts. The previous lookup used field.fontFamily
+    // directly, so a "Helvetica-Bold" family name resolved to undefined and
+    // every bold field printed regular text with no warning.
+    const key = standardFontKey(field);
     const cached = fonts.get(key);
     if (cached) return cached;
-    const font = await doc.embedFont(StandardFonts[field.fontFamily as never] ?? StandardFonts.Helvetica);
+    const font = await doc.embedFont(
+      StandardFonts[key as keyof typeof StandardFonts] ?? StandardFonts.Helvetica,
+    );
     fonts.set(key, font);
     return font;
   };
@@ -266,7 +281,9 @@ export async function renderCertificate(options: RenderOptions): Promise<RenderR
       const qr = await doc.embedPng(new Uint8Array(png));
       const side = Math.min(90, pageH * 0.16);
       page.drawImage(qr, {
-        x: pageW - side - 28,
+        // Clamped: page_width has a 200px floor, and at that size
+      // `pageW - side - 28` goes negative and clips the QR off the left edge.
+      x: Math.max(0, pageW - side - 28),
         y: 28,
         width: side,
         height: side,

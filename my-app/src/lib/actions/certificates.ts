@@ -86,7 +86,13 @@ async function assertTemplateScope(
   eventId: string | null,
 ): Promise<void> {
   if (role === "maintainer") return;
-  if (!eventId) return; // organisation-wide default; maintainer-owned in practice
+
+  if (!eventId) {
+    // An organisation-wide default is the fallback template for EVERY event,
+    // so letting any organizer set it is cross-tenant write access by another
+    // name -- `null` used to short-circuit straight past this check.
+    throw new Error("Forbidden — only a maintainer can set the organisation-wide default");
+  }
 
   const { data: event } = await createServiceClient()
     .from("events")
@@ -259,8 +265,11 @@ export async function previewRosterCsv(eventId: string, csv: string) {
   const candidates = await lookupCandidates(emails, eventId);
   const result = matchRoster(parsed.rows, candidates);
 
+  // Counted across every resolved row, not just `matched`: an event where
+  // everything is already issued still has a domain, and the send filter needs
+  // to show it.
   const domainCounts = new Map<string, number>();
-  for (const r of result.matched) {
+  for (const r of [...result.matched, ...result.alreadyIssued]) {
     const domain = r.email.slice(r.email.lastIndexOf("@") + 1);
     domainCounts.set(domain, (domainCounts.get(domain) ?? 0) + 1);
   }
@@ -507,13 +516,8 @@ export async function sendCertificateEmails(
 
   let sent = 0;
   let failed = 0;
-  let skipped = 0;
 
   for (const recipient of pending) {
-    if (alreadySent.has(recipient.certificateId)) {
-      skipped++;
-      continue;
-    }
     const verifyUrl = `${SITE_URL}/verify/${recipient.certificateId}`;
     const result = await sendCertificateEmail({
       to: recipient.email,
@@ -562,7 +566,7 @@ export async function sendCertificateEmails(
     candidates: unique.length,
     sent,
     failed,
-    skipped,
+    skippedAlreadySent,
   });
 
   revalidatePath(`/dashboard/organizer/events/${eventId}/certificates`);
@@ -574,7 +578,11 @@ export async function sendCertificateEmails(
     candidates: unique.length,
     sent,
     failed,
-    skippedAlreadySent: skipped,
+    // `pending` is already filtered by alreadySent, so this is computed rather
+    // than counted in the loop -- a re-check inside the loop could never fire,
+    // which made this report 0 on exactly the resumable-batch case the cap
+    // exists to support.
+    skippedAlreadySent,
   };
 }
 

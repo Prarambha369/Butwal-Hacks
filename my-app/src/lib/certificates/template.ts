@@ -108,6 +108,10 @@ function clamp01(n: number): number {
 }
 
 function num(value: unknown, fallback: number): number {
+  // Number(null) is 0, and 0 is finite, so a null dimension previously
+  // returned 0 and then clamped to the 200px floor instead of the intended
+  // default. Empty string has the same problem.
+  if (value === null || value === undefined || value === "") return fallback;
   const n = typeof value === "number" ? value : Number(value);
   return Number.isFinite(n) ? n : fallback;
 }
@@ -115,7 +119,47 @@ function num(value: unknown, fallback: number): number {
 const HEX = /^#[0-9a-f]{6}$/i;
 
 /** Font families pdf-lib can actually resolve. Anything else renders blank. */
-const KNOWN_FONTS = new Set(["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Times-Roman", "Courier"]);
+const KNOWN_FONTS = new Set(["Helvetica", "Times-Roman", "Courier"]);
+
+/**
+ * The three base families an author may choose from.
+ *
+ * Bold and italic are separate boolean properties on a field, not font names.
+ * That is deliberate: the editor previously offered "Helvetica-Bold" and
+ * "Times-Bold" as font options, but pdf-lib's StandardFonts keys are
+ * "HelveticaBold" and "TimesRomanBold" with no hyphen, so every one of those
+ * lookups was undefined and silently fell back to Helvetica. An author who
+ * picked "bold" got regular text and no warning.
+ */
+export const FONT_FAMILIES = ["Helvetica", "Times-Roman", "Courier"] as const;
+
+/**
+ * Map a field onto the pdf-lib StandardFonts key that actually exists.
+ *
+ * Single source of truth for the renderer, so bold/italic cannot be a
+ * decoration that only one side honours.
+ */
+export function standardFontKey(field: Pick<TemplateField, "fontFamily" | "bold" | "italic">): string {
+  const family = KNOWN_FONTS.has(field.fontFamily) ? field.fontFamily : "Helvetica";
+  // Strip the hyphen unconditionally, not only when a style suffix is added.
+  // pdf-lib's key is "TimesRoman", so returning the bare family for an unstyled
+  // Times field produced an invalid lookup and silently fell back to
+  // Helvetica -- the same class of bug this function exists to remove.
+  const base = family.replace("-", "");
+  const suffix = field.bold && field.italic ? "BoldOblique" : field.bold ? "Bold" : field.italic ? "Oblique" : "";
+  return suffix === "" ? base : base + suffix;
+}
+
+/** CSS font stack + weight/style for the editor preview, matching the above. */
+export function cssFontFor(field: Pick<TemplateField, "fontFamily" | "bold" | "italic">): {
+  family: string;
+  weight: number;
+  style: "normal" | "italic";
+} {
+  const family =
+    field.fontFamily === "Courier" ? "monospace" : field.fontFamily === "Times-Roman" ? "serif" : "sans-serif";
+  return { family, weight: field.bold ? 700 : 400, style: field.italic ? "italic" : "normal" };
+}
 
 /**
  * pdf-lib's standard fonts are WinAnsi-encoded: Latin-1 only. Devanagari
@@ -126,12 +170,39 @@ const KNOWN_FONTS = new Set(["Helvetica", "Helvetica-Bold", "Helvetica-Oblique",
  */
 export function isLatinEncodable(text: string): boolean {
   for (const ch of text) {
-    const code = ch.codePointAt(0)!;
-    // Control chars, then anything above U+00FF.
-    if (code < 32) continue;
-    if (code > 255) return false;
+    if (!isWinAnsi(ch.codePointAt(0)!)) return false;
   }
   return true;
+}
+
+/**
+ * Whether pdf-lib's standard fonts can encode a code point as WinAnsi.
+ *
+ * "32..255" is NOT the answer, which this function originally assumed. The C1
+ * block U+007F..U+009F sits inside that range and WinAnsi has no glyph for any
+ * of it, so a name containing U+0085 made `widthOfTextAtSize` throw from
+ * inside the renderer -- and that call sits outside every try/catch, so the
+ * whole certificate 500'd instead of degrading. `profiles.full_name` is taken
+ * verbatim from the user-controlled Auth0 `name` claim, which made that
+ * reachable by anyone who could edit their own profile.
+ *
+ * A conservative allow-list rather than probing the font per character: the
+ * WinAnsi-encodable set is fixed and known, and a probe would cost time on a
+ * long name for no extra safety.
+ */
+export function isWinAnsi(code: number): boolean {
+  // Printable ASCII.
+  if (code >= 0x20 && code <= 0x7e) return true;
+  // Latin-1 supplement. U+00A0..U+00FF all have WinAnsi positions; the C1 gap
+  // U+007F..U+009F deliberately falls through to false.
+  if (code >= 0xa0 && code <= 0xff) return true;
+  // The handful of WinAnsi specials inside 0x80..0x9F that do have glyphs.
+  const WINANSI_SPECIALS = new Set([
+    0x20ac, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030,
+    0x0160, 0x2039, 0x0152, 0x017d, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022,
+    0x2013, 0x2014, 0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0x017e, 0x0178,
+  ]);
+  return WINANSI_SPECIALS.has(code);
 }
 
 export function normaliseField(raw: unknown, index = 0): TemplateField {
@@ -160,10 +231,6 @@ export function normaliseField(raw: unknown, index = 0): TemplateField {
 export interface NormalisedTemplate extends CertificateTemplate {
   /** True when the template has artwork to draw behind the fields. */
   hasBackground: boolean;
-  /** Fields that pdf-lib's standard fonts can actually render. */
-  latinSafeFields: TemplateField[];
-  /** Fields bound to a token with no value for a given recipient. */
-  unresolvableFields: TemplateField[];
 }
 
 /**
@@ -187,8 +254,6 @@ export function normaliseTemplate(raw: Record<string, unknown>): NormalisedTempl
     fields,
     isDefault: raw.isDefault === true,
     hasBackground: typeof raw.backgroundUrl === "string" && raw.backgroundUrl.length > 0,
-    latinSafeFields: fields,
-    unresolvableFields: [],
   };
 }
 

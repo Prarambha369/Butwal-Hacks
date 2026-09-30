@@ -69,10 +69,17 @@ export async function GET(
     email: certificate.profile?.email ?? "",
     bh_id: certificate.profile?.bh_id ?? "",
     title: "Certificate of Participation",
+    // Pinned to Nepal time, not the server's zone. Without this the printed day
+    // depends on where the render ran: Vercel is UTC, a laptop in Kathmandu is
+    // +05:45, so a certificate issued at 18:30 UTC printed "October 1" in
+    // production and "October 2" in development. issue_date is TIMESTAMPTZ, so
+    // the discrepancy was real and silent. A date-only fixture never showed it
+    // because +05:45 does not cross midnight for a midnight-UTC timestamp.
     date: new Date(certificate.issue_date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
+      timeZone: "Asia/Katmandu",
     }),
     event: (certificate.events as { title?: string } | null)?.title ?? "",
   };
@@ -98,10 +105,17 @@ export async function GET(
 
     // Counting goes through a function so the increment is atomic; a plain
     // upsert here would reset the counter to 1 on every print.
-    await supabase.rpc("record_certificate_download", {
+    const { error: countError } = await supabase.rpc("record_certificate_download", {
       p_certificate_id: id,
       p_event_id: eventId,
     });
+    // Deliberately not fatal. A missing download count is an audit-trail
+    // problem, and failing the request would hand the recipient a broken
+    // certificate for it. But it was previously discarded entirely, so the
+    // counter could be permanently frozen at 0 with nothing logged.
+    if (countError) {
+      logger.warn("certificate.pdf.download_count_failed", { id, error: countError.message });
+    }
 
     const safeName = (values.name || "certificate")
       .replace(/[^a-zA-Z0-9 ]/g, "")

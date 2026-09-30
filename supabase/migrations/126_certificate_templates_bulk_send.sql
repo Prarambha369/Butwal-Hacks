@@ -87,10 +87,47 @@ COMMENT ON TABLE public.certificate_templates IS
 --
 -- ─── Integrity of the existing certificates table ───────────────────────────
 
+-- Dedupe FIRST. The unique index below aborts the entire migration -- templates,
+-- deliveries, the download counter, everything -- on any database where
+-- closeEvent() ran twice, which is precisely the pre-state this migration
+-- exists to fix. Verified against Postgres 16: a duplicate key aborts the
+-- CREATE UNIQUE INDEX, it does not warn.
+--
+-- Keep the earliest row: it is the one the original issuance created, so its
+-- issue_date is the real one.
+DELETE FROM public.certificates a
+USING public.certificates b
+WHERE a.id > b.id
+  AND a.event_id IS NOT NULL
+  AND a.profile_id IS NOT NULL
+  AND a.event_id = b.event_id
+  AND a.profile_id = b.profile_id;
+
 -- Stop closeEvent() double-issuing. See the note at the top of this file.
 -- Plain unique index, not partial -- see the ON CONFLICT note above.
 CREATE UNIQUE INDEX IF NOT EXISTS certificates_event_profile_uniq
   ON public.certificates (event_id, profile_id);
+
+-- ─── Case-insensitive email matching ─────────────────────────────────────────
+-- Bulk roster matching filters on profiles.email, and PostgREST's `= ANY` on
+-- text is case-sensitive. The roster side is lowercased by the parser, so a
+-- stored "Asha@Example.com" would never match and the organizer would be told
+-- "no profile" for someone who is registered.
+--
+-- Email local parts are case-insensitive per RFC 5321, so folding stored
+-- addresses to lower case is semantically correct rather than a convenience.
+-- Checked for lower()-collisions before applying: zero, so the UNIQUE
+-- constraint on email cannot be violated by this rewrite.
+
+UPDATE public.profiles
+SET email = lower(email)
+WHERE email IS NOT NULL
+  AND email <> lower(email);
+
+-- The lookup uses lower(email); without this the fix above would still leave
+-- every match as a sequential scan.
+CREATE INDEX IF NOT EXISTS profiles_email_lower_idx
+  ON public.profiles (lower(email));
 
 -- api/certificates/route.ts filters on auth0_user_id but there was no index,
 -- so every authenticated certificate read was a sequential scan.

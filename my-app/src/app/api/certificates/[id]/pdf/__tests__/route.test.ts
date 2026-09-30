@@ -160,6 +160,32 @@ describe("certificate PDF route", () => {
     expect(h.mockRender).not.toHaveBeenCalled();
   });
 
+  it("pins the issue date to Nepal time, not the server's zone", async () => {
+    // issue_date is TIMESTAMPTZ and toLocaleDateString without a timeZone
+    // follows the host: Vercel is UTC, a Kathmandu laptop is +05:45. An
+    // evening-UTC issue date printed a different day in each. The fixture is
+    // late-evening UTC specifically so a UTC render and a Kathmandu render
+    // disagree.
+    h.mockResolve.mockResolvedValue(cert({ issue_date: "2026-10-01T18:30:00Z" }));
+    await GET(req, ctx(ID));
+    const values = h.mockRender.mock.calls[0]?.[0]?.values;
+    expect(values.date).toBe("October 2, 2026");
+  });
+
+  it("does not fail the download when the counter errors", async () => {
+    // A missing count is an audit-trail problem; failing the request would hand
+    // the recipient a broken certificate for it. But it used to be discarded
+    // silently, so the counter could stay frozen at 0 forever.
+    h.rpc.mockResolvedValue({ data: null, error: { message: "permission denied" } });
+    h.mockResolve.mockResolvedValue(cert());
+    const res = await GET(req, ctx(ID));
+    expect(res.status).toBe(200);
+    expect(h.logger.warn).toHaveBeenCalledWith(
+      "certificate.pdf.download_count_failed",
+      expect.objectContaining({ error: "permission denied" }),
+    );
+  });
+
   it("passes the recipient name and a verification URL to the renderer", async () => {
     h.mockResolve.mockResolvedValue(cert());
     await GET(req, ctx(ID));

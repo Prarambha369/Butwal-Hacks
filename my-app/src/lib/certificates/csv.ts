@@ -14,8 +14,6 @@ export type ImportRow = {
   line: number;
   name: string;
   email: string;
-  /** Anything else the organiser supplied, preserved for custom fields. */
-  extra: Record<string, string>;
 };
 
 export type RejectedRow = {
@@ -144,8 +142,14 @@ export function parseRosterCsv(
     if (line.trim().length === 0) continue;
     const cells = parseCsvLine(line, delimiter);
 
-    const name = (mapping.name !== undefined ? cells[mapping.name] : "").trim();
-    const email = (mapping.email !== undefined ? cells[mapping.email] : "").trim();
+    // `?? ""` is load-bearing. A row with fewer cells than the header made
+    // cells[i] undefined, and .trim() on undefined threw a TypeError that
+    // escaped parseRosterCsv entirely -- so one short row rejected the whole
+    // file with an opaque 500 instead of landing in `rejected` with a line
+    // number. The doc comment promises per-row rejection; it has to survive
+    // ragged rows to keep that promise.
+    const name = (mapping.name !== undefined ? (cells[mapping.name] ?? "") : "").trim();
+    const email = (mapping.email !== undefined ? (cells[mapping.email] ?? "") : "").trim();
 
     if (!name && !email) {
       rejected.push({ line: lineNo, raw: line, reason: "empty row" });
@@ -164,20 +168,14 @@ export function parseRosterCsv(
       continue;
     }
 
-    const extra: Record<string, string> = {};
-    const claimed = new Set([mapping.name, mapping.email].filter((n) => n !== undefined));
-    headers.forEach((h, idx) => {
-      if (claimed.has(idx)) return;
-      const value = (cells[idx] ?? "").trim();
-      if (value) {
-        // Prefer the alias so "BH ID" and "bh id" both surface as "bh_id",
-        // matching what the renderer will look up.
-        const canon = canonHeader(h);
-        extra[HEADER_ALIASES[canon] ?? (canon || `col${idx}`)] = value;
-      }
-    });
-
-    rows.push({ line: lineNo, name, email: email.toLowerCase(), extra });
+    // Columns beyond name/email are ignored. They used to be collected into
+    // row.extra "for custom fields", but nothing ever read it: the PDF renders
+    // from the certificate row in the database, not from the CSV, so arbitrary
+    // spreadsheet columns had no path to the artefact. A BH ID column is
+    // deliberately redundant -- the authoritative one is on the profile, and
+    // accepting a second one from a spreadsheet would let a typo contradict the
+    // database.
+    rows.push({ line: lineNo, name, email: email.toLowerCase() });
   }
 
   return { rows, rejected, headers };

@@ -124,6 +124,50 @@ describe("renderCertificate", () => {
     expect(bytes.length).toBeGreaterThan(500);
   });
 
+  // ── Degradation, not a crash ─────────────────────────────────────────────
+  it("replaces C1 control characters instead of throwing from inside pdf-lib", async () => {
+    // profiles.full_name comes from the user-controlled Auth0 `name` claim, and
+    // U+0085 previously made widthOfTextAtSize throw from a call site with no
+    // try/catch around it -- a 500 on the certificate, not a "?" on the name.
+    for (const code of [0x7f, 0x85, 0x9f]) {
+      const { bytes, drawn } = await renderCertificate({
+        template: template(),
+        values: { ...VALUES, name: `Ram${String.fromCharCode(code)} Bahadur` },
+        verifyUrl: URL,
+      });
+      expect(bytes.length, `U+00${code.toString(16)}`).toBeGreaterThan(500);
+      expect(drawn.name).not.toContain(String.fromCharCode(code));
+    }
+  });
+
+  it("actually embeds a bold font when the field asks for bold", async () => {
+    // The renderer used to look up StandardFonts[field.fontFamily], so a
+    // "Helvetica-Bold" family name resolved to undefined and printed regular
+    // text with no warning. Fonts are now keyed off the bold/italic flags.
+    const plain = await renderCertificate({ template: template(), values: VALUES, verifyUrl: URL });
+    const bold = await renderCertificate({
+      template: normaliseTemplate({
+        fields: [{ ...defaultFields()[0], token: "name", bold: true }],
+      }),
+      values: { name: "Asha Sharma" },
+      verifyUrl: URL,
+    });
+    // Two different embedded font programs means a different byte stream.
+    expect(bold.bytes.length).not.toBe(plain.bytes.length);
+  });
+
+  it("keeps the QR on the page for a narrow template", async () => {
+    // page_width has a 200px floor, and pageW - side - 28 went negative there,
+    // clipping the QR off the left edge.
+    const { bytes, warnings } = await renderCertificate({
+      template: template({ pageWidth: 200, pageHeight: 200 }),
+      values: VALUES,
+      verifyUrl: URL,
+    });
+    expect(bytes.length).toBeGreaterThan(500);
+    expect(warnings.join(" ")).not.toMatch(/off the page|negative/i);
+  });
+
   it("renders at a different page size from the same normalised template", async () => {
     // This is the property that makes coordinates normalised worth it: the
     // same template at A4 and at Letter must both place fields proportionally.

@@ -55,10 +55,46 @@ describe("parseRosterCsv", () => {
     expect(rows[0].email).toBe("asha@butwalhacks.com");
   });
 
-  it("preserves unclaimed columns as custom field values", () => {
-    const { rows } = parseRosterCsv("Name,Email,Team,BH ID\nAsha,a@b.com,Codebreakers,BH-01");
-    expect(rows[0].extra).toEqual({ team: "Codebreakers", bh_id: "BH-01" });
-  });
+    it("ignores columns beyond name and email", () => {
+      // This used to assert that extra columns were collected into row.extra,
+      // which was true and meaningless: the PDF renders from the certificate
+      // row in the database, so a "Team" column from a spreadsheet had no path
+      // to the artefact. A BH ID column is redundant on purpose -- the
+      // authoritative one lives on the profile, and honouring a second one
+      // would let a spreadsheet typo contradict the database.
+      const { rows, rejected } = parseRosterCsv(
+        "Name,Email,Team,BH ID\nAsha,a@b.com,Codebreakers,BH-01",
+      );
+      expect(rejected).toHaveLength(0);
+      expect(rows[0]).toEqual({ line: 2, name: "Asha", email: "a@b.com" });
+    });
+
+    it("does not reject a row merely because it carries extra columns", () => {
+      const { rows, rejected } = parseRosterCsv("Name,Email,Notes\nAsha,a@b.com,anything");
+      expect(rejected).toHaveLength(0);
+      expect(rows).toHaveLength(1);
+    });
+
+    // ── Ragged rows must not throw ──────────────────────────────────────────
+    // Each of these threw a TypeError out of parseRosterCsv, which rejected the
+    // whole file with an opaque 500 instead of listing the offending row. The
+    // module's contract is per-row rejection, so ragged input has to survive.
+    it.each([
+      ["a row with fewer cells than the header", "Name,Email\nAsha"],
+      ["a quoted field containing a newline", 'Name,Email\n"Alice\nSmith",a@b.com\nCara,c@d.com'],
+      ["an unterminated quote", 'Name,Email\nAsha,a@b.com\n"x,y'],
+      ["a bare single column", "Asha"],
+    ])("survives %s", (_label, input) => {
+      expect(() => parseRosterCsv(input)).not.toThrow();
+    });
+
+    it("rejects the bad row by line number rather than dropping the file", () => {
+      const { rows, rejected } = parseRosterCsv("Name,Email\nAsha,a@b.com\nRam");
+      expect(rows.map((r) => r.name)).toEqual(["Asha"]);
+      expect(rejected).toHaveLength(1);
+      expect(rejected[0].line).toBe(3);
+      expect(rejected[0].reason).toMatch(/missing email/);
+    });
 
   it("handles CRLF line endings", () => {
     const { rows } = parseRosterCsv("Name,Email\r\nAsha,a@b.com\r\nBikram,c@d.com");
