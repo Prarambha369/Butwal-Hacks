@@ -80,6 +80,36 @@ function referencedPaths(src: string): string[] {
   return [...out].map((p) => p.split("#")[0]).filter(Boolean);
 }
 
+/**
+ * Paths that `next.config.ts` redirects away from.
+ *
+ * These are not crawlable destinations. `/initiatives` is the trap: an
+ * `initiatives/[slug]` page directory exists, so a filesystem walk happily
+ * reports `/initiatives` as a real route — while `next.config.ts` permanently
+ * redirects it to `/events#initiatives`. A link there violates llms.txt's own
+ * claim that every reference is "a real, crawlable page".
+ */
+function redirectSources(): string[] {
+  const cfg = readFileSync(join(ROOT, "next.config.ts"), "utf8");
+  const sources = new Set<string>();
+  for (const m of cfg.matchAll(/source:\s*["']([^"']+)["']/g)) sources.add(m[1]);
+  return [...sources];
+}
+
+/** True when `path` is, or is a child of, a declared redirect source. */
+function isRedirectSource(path: string, sources: string[]): boolean {
+  return sources.some((s) => {
+    // Next path-to-regexp: ":param" segments and trailing "*" are wildcards.
+    const prefix = s
+      .split("/")
+      .filter((seg) => seg && !seg.startsWith(":") && seg !== "*")
+      .join("/");
+    if (!prefix) return false;
+    const normalised = "/" + prefix;
+    return path === normalised || path.startsWith(`${normalised}/`);
+  });
+}
+
 const FILES = ["public/llms.txt", "public/llms-full.txt"];
 
 function read(name: string): string {
@@ -109,7 +139,16 @@ describe("llms.txt", () => {
     expect(broken, `every path in ${file} must exist as a page route`).toEqual([]);
   });
 
-  it("never repeats the /partors typo", () => {
+  it.each(FILES)("%s links no redirect source", (file) => {
+    // Separate from the existence check above on purpose: a path can be a real
+    // route *and* permanently redirected away from. Only this catches that.
+    const redirected = referencedPaths(read(file)).filter((p) =>
+      isRedirectSource(p, redirectSources()),
+    );
+    expect(redirected, `link a redirect destination, not a source, in ${file}`).toEqual([]);
+  });
+
+  it("does not regress the /partors typo", () => {
     for (const f of FILES) {
       expect(read(f), f).not.toContain("/partors");
     }
