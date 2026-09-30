@@ -79,17 +79,17 @@ export default function CookieConsentBanner() {
             className="absolute right-2 top-2 min-w-[44px] min-h-[44px] p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-surface-hover transition-colors flex items-center justify-center"
             aria-label="Dismiss cookie notice"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
 
           <div className="flex items-start gap-3 md:gap-4">
             <div className="hidden sm:flex w-10 h-10 rounded-xl bg-primary-red/10 items-center justify-center shrink-0">
-              <Cookie className="w-5 h-5 text-primary-red" />
+              <Cookie className="w-5 h-5 text-primary-red" aria-hidden="true" />
             </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 md:mb-1.5">
-                <Cookie className="w-4 h-4 text-primary-red sm:hidden" />
+                <Cookie className="w-4 h-4 text-primary-red sm:hidden" aria-hidden="true" />
                 <p className="text-sm font-bold text-primary">This site uses cookies</p>
               </div>
 
