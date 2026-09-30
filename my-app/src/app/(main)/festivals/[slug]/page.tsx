@@ -7,9 +7,11 @@ import {
   getFestivalAll,
   getFestivalsByGroupAll,
   TRADITION_META,
+  festivalEventJsonLd,
 } from "@/lib/festivals";
 import { BS_MONTH_NAMES, BS_MONTH_NAMES_NE } from "@/lib/nepali-date";
 import { buildPageMetadata } from "@/lib/seo";
+import SafeJsonLd from "@/lib/json-ld";
 
 export async function generateStaticParams() {
   return ALL_FESTIVALS.map((f) => ({ slug: f.slug }));
@@ -67,6 +69,7 @@ export default async function FestivalPage({
   return (
     <div className="min-h-dvh bg-background px-6 pb-24 pt-32 md:px-20">
       <div className="mx-auto max-w-3xl">
+        <SafeJsonLd data={festivalEventJsonLd(f)} />
         <Link
           href="/festivals"
           className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary-red"
