@@ -23,7 +23,7 @@ This file follows the llms.txt convention: a map of this site written for langua
 ## Programs
 
 - [Events](/events): hackathons and workshops that have run, and upcoming dates.
-- [Initiatives](/initiatives): the three standing program formats — hackathon, mini-hackathon, and game jam.
+- [Initiatives](/events#initiatives): the three standing program formats — hackathon, mini-hackathon, and game jam.
 - [Chapters](/chapters): student-run chapters hosted at secondary schools and campuses.
 - [Festivals](/festivals): event calendar keyed to Nepali and Hindu festivals.
 
