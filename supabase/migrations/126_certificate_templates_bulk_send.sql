@@ -25,13 +25,22 @@
 --
 --  - The unique index on (event_id, profile_id) is what makes bulk issuance
 --    idempotent. closeEvent() currently inserts unconditionally, so closing
---    an event twice produced duplicate certificates. Adding the index is
---    safe now precisely because duplicates are rare in practice; the ON
---    CONFLICT DO NOTHING in the new issuance path handles the rest.
+--    an event twice produced duplicate certificates.
 --
---  - certificate_deliveries is append-only and deliberately denormalised
---    from certificates: a delivery record must survive the certificate row
---    it refers to being re-issued, so the audit trail does not collapse.
+--    It is deliberately NOT a partial index. A partial unique index cannot be
+--    named as an ON CONFLICT arbiter -- Postgres rejects it with "there is no
+--    unique or exclusion constraint matching the ON CONFLICT specification" --
+--    and the issuance path in lib/actions/certificates.ts relies on
+--    `onConflict: "event_id,profile_id"`. Verified against this database, not
+--    assumed.
+--
+--    Dropping WHERE loses nothing: Postgres treats NULLs as distinct in a unique
+--    index, so rows with a NULL event_id or profile_id are still all allowed.
+--    Also verified.
+--
+--  - certificate_deliveries is denormalised from certificates on purpose: a
+--    delivery record must survive the certificate row it refers to being
+--    re-issued, so the audit trail does not collapse.
 
 -- ─── Templates ──────────────────────────────────────────────────────────────
 
@@ -71,21 +80,17 @@ COMMENT ON TABLE public.certificate_templates IS
   'Reusable certificate artwork plus field placement. Coordinates in fields jsonb are normalised 0..1 of page size.';
 
 -- ─── Per-event access control ───────────────────────────────────────────────
-
-ALTER TABLE public.events
-  ADD COLUMN IF NOT EXISTS certificate_access text NOT NULL DEFAULT 'public'
-    CHECK (certificate_access IN ('public', 'registered', 'password')),
-  ADD COLUMN IF NOT EXISTS certificate_password text;
-
-COMMENT ON COLUMN public.events.certificate_access IS
-  'Who may download a certificate: anyone with the link, only registered attendees, or anyone with the shared password.';
-
+-- Intentionally absent: a certificate_access enum and a password hash. Three
+-- access modes with no code implementing them is schema that reads as a
+-- finished feature and is not one, and a future migration adds two columns in
+-- about the same time it takes to build the route that would use them.
+--
 -- ─── Integrity of the existing certificates table ───────────────────────────
 
--- stop closeEvent() double-issuing. See the note at the top of this file.
+-- Stop closeEvent() double-issuing. See the note at the top of this file.
+-- Plain unique index, not partial -- see the ON CONFLICT note above.
 CREATE UNIQUE INDEX IF NOT EXISTS certificates_event_profile_uniq
-  ON public.certificates (event_id, profile_id)
-  WHERE event_id IS NOT NULL AND profile_id IS NOT NULL;
+  ON public.certificates (event_id, profile_id);
 
 -- api/certificates/route.ts filters on auth0_user_id but there was no index,
 -- so every authenticated certificate read was a sequential scan.
@@ -119,7 +124,7 @@ CREATE TABLE IF NOT EXISTS public.certificate_deliveries (
   channel text NOT NULL CHECK (channel IN ('email', 'download', 'widget')),
   recipient_email text,
   -- 'queued' | 'sent' | 'delivered' | 'failed'
-  status text NOT NULL DEFAULT 'sent'
+  status text NOT NULL DEFAULT 'queued'
     CHECK (status IN ('queued', 'sent', 'delivered', 'failed')),
   error text,
   sent_at timestamptz NOT NULL DEFAULT now(),
@@ -129,10 +134,10 @@ CREATE TABLE IF NOT EXISTS public.certificate_deliveries (
 
 -- One row per (certificate, channel): re-sending the same channel updates the
 -- existing record rather than accumulating duplicates, which is what makes the
--- "already emailed?" check a single indexed lookup.
+-- "already emailed?" check a single indexed lookup. Plain unique index so it
+-- can serve as an ON CONFLICT arbiter -- see the note at the top of this file.
 CREATE UNIQUE INDEX IF NOT EXISTS certificate_deliveries_once_per_channel
-  ON public.certificate_deliveries (certificate_id, channel)
-  WHERE certificate_id IS NOT NULL;
+  ON public.certificate_deliveries (certificate_id, channel);
 
 -- Supports the export query: everything sent for one event, newest first.
 CREATE INDEX IF NOT EXISTS certificate_deliveries_event_sent_idx
@@ -146,10 +151,45 @@ CREATE INDEX IF NOT EXISTS certificate_deliveries_recipient_email_idx
 COMMENT ON TABLE public.certificate_deliveries IS
   'Append-only log of certificate emails and downloads. Powers the delivery report and the domain-filtered mass send.';
 
--- ─── Grants ─────────────────────────────────────────────────────────────────
--- Server paths use the service role, which bypasses RLS. These grants keep
--- anon/authenticated denied on the new tables by default, consistent with the
--- lockdown in 116: templates are organiser data, deliveries are recipient data.
+-- ─── Download counter ────────────────────────────────────────────────────────
+-- A plain upsert from the app would set download_count to 1 on every print.
+-- Incrementing needs the previous value, which means the arithmetic has to
+-- happen where the row is locked -- a read-then-write from the route would
+-- lose counts whenever two people open the link at the same moment.
+
+CREATE OR REPLACE FUNCTION public.record_certificate_download(
+  p_certificate_id uuid,
+  p_event_id uuid
+)
+RETURNS void
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  INSERT INTO public.certificate_deliveries
+    (certificate_id, event_id, channel, status, downloaded_at, download_count)
+  VALUES
+    (p_certificate_id, p_event_id, 'download', 'sent', now(), 1)
+  ON CONFLICT (certificate_id, channel) DO UPDATE
+    SET download_count = public.certificate_deliveries.download_count + 1,
+        downloaded_at = now();
+$$;
+
+COMMENT ON FUNCTION public.record_certificate_download(uuid, uuid) IS
+  'Records a certificate print, incrementing download_count atomically. Called only from the service role.';
+
+REVOKE ALL ON FUNCTION public.record_certificate_download(uuid, uuid) FROM public, anon, authenticated;
+
+-- ─── Grants and RLS ─────────────────────────────────────────────────────────
+-- Every existing public table has RLS on, so the new ones match. With RLS
+-- enabled and no policies, anon and authenticated are denied outright;
+-- server paths use the service role, which bypasses RLS. The REVOKE is the
+-- belt to that braces, consistent with the lockdown in 116. Templates are
+-- organiser data and deliveries are recipient data -- neither belongs in a
+-- browser.
+
+ALTER TABLE public.certificate_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.certificate_deliveries ENABLE ROW LEVEL SECURITY;
 
 REVOKE ALL ON public.certificate_templates FROM anon, authenticated;
 REVOKE ALL ON public.certificate_deliveries FROM anon, authenticated;
