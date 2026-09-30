@@ -2,6 +2,7 @@ import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 import { createServiceClient } from "@/utils/supabase";
 import CertificateTemplateEditor from "@/components/certificates/template-editor";
+import { templateFromRow } from "@/lib/certificates/templates";
 import { TemplateList } from "@/components/certificates/template-list";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
@@ -10,12 +11,23 @@ export const metadata: Metadata = {
   ...buildPageMetadata({
     title: "Certificate Templates",
     description: "Design and manage certificate templates",
-    path: "/dashboard/maintainer/certificates/templates",
+    path: "/dashboard/organizer/certificates/templates",
     keywords: [],
   }),
   robots: { index: false, follow: false },
 };
 
+/**
+ * Lives under /dashboard/organizer, not /dashboard/maintainer.
+ *
+ * The maintainer layout calls roleRedirect(role, ["maintainer"]), so an
+ * organizer is bounced before reaching anything in that namespace -- widening
+ * the middleware was not enough, because the layout is a second, independent
+ * gate. The organizer layout admits both roles.
+ *
+ * Organisation-wide defaults stay maintainer-only, enforced in
+ * assertTemplateScope rather than by routing.
+ */
 const EDITOR_ROLES = new Set(["organizer", "maintainer"]);
 
 export default async function CertificateTemplatesPage({
@@ -79,7 +91,11 @@ export default async function CertificateTemplatesPage({
           key={selectedId ?? "new"}
           eventId={eventId ?? null}
           eventOptions={eventOptions}
-          template={selected}
+          // Mapped, not raw. Passing the snake_case row straight to the editor
+          // lost backgroundUrl, pageWidth/Height and isDefault, so opening a
+          // saved template and clicking Save wiped the artwork and reset the
+          // page size. The editor also re-checks ownership on save.
+          template={selected ? templateFromRow(selected) : null}
         />
       </div>
     </div>

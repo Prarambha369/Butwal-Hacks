@@ -50,7 +50,7 @@ export function TemplateList({
               }`}
             >
               <Link
-                href={`/dashboard/maintainer/certificates/templates?template=${t.id}`}
+                href={`/dashboard/organizer/certificates/templates?template=${t.id}`}
                 aria-current={isSelected ? "true" : undefined}
                 className="flex-1 text-sm font-medium text-stone-800 underline-offset-2 hover:underline"
               >

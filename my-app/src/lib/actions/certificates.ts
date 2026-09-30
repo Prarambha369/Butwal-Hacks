@@ -202,7 +202,7 @@ export async function saveTemplate(input: SaveTemplateInput) {
   if (input.id) {
     const { error } = await supabase.from("certificate_templates").update(row).eq("id", input.id);
     if (error) throw new Error(`Could not update template: ${error.message}`);
-    revalidatePath("/dashboard/maintainer/certificates/templates");
+    revalidatePath("/dashboard/organizer/certificates/templates");
     revalidatePath("/dashboard/organizer/certificates/templates");
     return { id: input.id as string };
   }
@@ -214,7 +214,7 @@ export async function saveTemplate(input: SaveTemplateInput) {
     .single();
   if (error) throw new Error(`Could not create template: ${error.message}`);
 
-  revalidatePath("/dashboard/maintainer/certificates/templates");
+  revalidatePath("/dashboard/organizer/certificates/templates");
   revalidatePath("/dashboard/organizer/certificates/templates");
   return { id: data.id as string };
 }
@@ -233,7 +233,7 @@ export async function deleteTemplate(templateId: string) {
   // Previously this returned ok:true even when nothing matched, so a caller
   // could not tell a delete from a no-op.
   if (!count) throw new Error("Template not found");
-  revalidatePath("/dashboard/maintainer/certificates/templates");
+  revalidatePath("/dashboard/organizer/certificates/templates");
   revalidatePath("/dashboard/organizer/certificates/templates");
   return { ok: true };
 }

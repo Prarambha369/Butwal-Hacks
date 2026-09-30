@@ -48,6 +48,7 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
       return;
     }
     setCsv(await file.text());
+    setPreview(null);
   };
 
   const run = (p: Phase, fn: () => Promise<void>) => {
@@ -113,6 +114,7 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
             type="button"
             onClick={() => {
               setCsv(CSV_PLACEHOLDER);
+              setPreview(null);
               fileRef.current?.blur();
             }}
             className="rounded border border-stone-300 px-2 py-1 text-xs"
@@ -127,7 +129,14 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
         <textarea
           id="csv"
           value={csv}
-          onChange={(e) => setCsv(e.target.value)}
+          onChange={(e) => {
+            setCsv(e.target.value);
+            // Any edit invalidates the preview. Without this an organiser could
+            // check roster A, paste roster B, and issue B while the panel still
+            // displayed A's counts -- defeating the preview-before-issuing gate
+            // on an action that cannot be undone.
+            setPreview(null);
+          }}
           placeholder={CSV_PLACEHOLDER}
           rows={8}
           spellCheck={false}

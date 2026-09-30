@@ -69,7 +69,7 @@ export default async function EventCertificatesPage({
           Certificates render with this event&apos;s template, falling back to the organisation default.
         </p>
         <Link
-          href={`/dashboard/maintainer/certificates/templates?event=${eventId}`}
+          href={`/dashboard/organizer/certificates/templates?event=${eventId}`}
           className="inline-block rounded bg-stone-900 px-3 py-1.5 text-sm font-medium text-white"
         >
           Edit the template

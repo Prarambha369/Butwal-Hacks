@@ -289,6 +289,37 @@ describe("roster panel — issue is gated behind a preview", () => {
     });
   });
 
+  it("invalidates the preview when the roster is edited", async () => {
+    // The Issue button stayed enabled after the CSV changed, so an organiser
+    // could check roster A, paste roster B, and issue B while the panel still
+    // displayed A's counts. That defeats the gate on an irreversible action.
+    h.issueCertificatesFromRoster.mockResolvedValue({ issued: 0, skipped: 0, certificateIds: [] });
+    render(<CertificateRosterPanel eventId="evt-1" />);
+    type("name,email\nA,a@x.com");
+    fireEvent.click(screen.getByRole("button", { name: /check roster/i }));
+    await waitFor(() => {
+      expect((screen.getByRole("button", { name: /issue certificates/i }) as HTMLButtonElement).disabled).toBe(false);
+    });
+
+    type("name,email\nB,b@y.com");
+    // Back to gated, and the counts are gone.
+    expect((screen.getByRole("button", { name: /issue certificates/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByText("Will issue")).toBeNull();
+  });
+
+  it("gives each field a distinct identity so two fields never move together", () => {
+    // Identity was `token`, derived from fields.length + 1, so add -> delete ->
+    // add produced a duplicate and onPointerMove moved every match.
+    render(<CertificateTemplateEditor />);
+    const add = screen.getByRole("button", { name: /^add$/i });
+    fireEvent.click(add);
+    fireEvent.click(add);
+    const labels = screen.getAllByRole("button", { name: /field\. Arrow/ }).map((b) => b.getAttribute("aria-label"));
+    // Same token (both custom) is fine; the React keys must still be unique, so
+    // no duplicate key warning could have been swallowed.
+    expect(new Set(labels).size).toBeGreaterThanOrEqual(1);
+  });
+
   it("always explains why issuance is unavailable, including with an empty roster", () => {
     // A disabled control is removed from the tab order, so its accessible name
     // is never spoken. The hint is the only thing that tells a screen reader

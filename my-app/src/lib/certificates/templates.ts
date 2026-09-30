@@ -18,6 +18,30 @@ import { normaliseTemplate, type CertificateTemplate } from "@/lib/certificates/
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
+ * Map a `certificate_templates` row to the shape `normaliseTemplate` expects.
+ *
+ * The row is snake_case; the template model is camelCase. Passing the row
+ * straight through loses everything but `id`, `name` and `fields` -- and since
+ * the editor saves whatever it was given, opening a saved template and clicking
+ * Save silently nulled its background, reset the page size to 1056x816, and
+ * cleared `is_default`. Verified against a real row before fixing.
+ *
+ * Shared by the resolver and the editor page so the two cannot drift again.
+ */
+export function templateFromRow(row: Record<string, unknown>): Record<string, unknown> {
+  return {
+    id: row.id,
+    name: row.name,
+    fields: row.fields,
+    eventId: row.event_id ?? null,
+    backgroundUrl: row.background_url ?? null,
+    pageWidth: row.page_width,
+    pageHeight: row.page_height,
+    isDefault: row.is_default === true,
+  };
+}
+
+/**
  * The template an event should render with: that event's own default, then
  * the organisation-wide default, then any template for the event, then null.
  *
@@ -62,14 +86,5 @@ export async function resolveTemplateForEvent(
 
   if (!chosen) return null;
 
-  return normaliseTemplate({
-    id: chosen.id,
-    eventId: chosen.event_id,
-    name: chosen.name,
-    backgroundUrl: chosen.background_url,
-    pageWidth: chosen.page_width,
-    pageHeight: chosen.page_height,
-    fields: chosen.fields,
-    isDefault: chosen.is_default,
-  });
+  return normaliseTemplate(templateFromRow(chosen));
 }

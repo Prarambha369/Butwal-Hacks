@@ -113,7 +113,12 @@ export default function CertificateTemplateEditor({
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState<"idle" | "saved" | "error">("idle");
   const canvasRef = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ token: string; startX: number; startY: number; origX: number; origY: number } | null>(null);
+  // Identity is the field's `id`, never its `token`. Tokens are a binding to a
+  // value and are NOT unique -- two fields can legitimately both read `name`,
+  // and addField used to derive the token from fields.length + 1, so add,
+  // delete, add again produced a duplicate. onPointerMove moves every field
+  // matching the drag token, so duplicates moved together.
+  const drag = useRef<{ id: string; startX: number; startY: number; origX: number; origY: number } | null>(null);
 
   const fields = useMemo(() => tpl.fields, [tpl.fields]);
   const field = fields[selected];
@@ -133,7 +138,7 @@ export default function CertificateTemplateEditor({
     e.preventDefault();
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     const f = tpl.fields[index];
-    drag.current = { token: f.token, startX: e.clientX, startY: e.clientY, origX: f.x, origY: f.y };
+    drag.current = { id: f.id, startX: e.clientX, startY: e.clientY, origX: f.x, origY: f.y };
     setSelected(index);
   };
 
@@ -148,9 +153,7 @@ export default function CertificateTemplateEditor({
     setTpl((t) => ({
       ...t,
       fields: t.fields.map((f) =>
-        f.token === d.token
-          ? { ...f, x: clamp01(d.origX + dx), y: clamp01(d.origY + dy) }
-          : f,
+        f.id === d.id ? { ...f, x: clamp01(d.origX + dx), y: clamp01(d.origY + dy) } : f,
       ),
     }));
   };
@@ -184,12 +187,14 @@ export default function CertificateTemplateEditor({
   };
 
   const addField = () => {
-    const token = `field_${fields.length + 1}`;
+    // Random, not fields.length + 1: a count-derived id collides as soon as a
+    // field is added and removed.
+    const id = `f_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
     setTpl((t) => ({
       ...t,
       fields: [
         ...t.fields,
-        { ...t.fields[0], id: token, token, label: "Custom field", x: 0.1, y: 0.5 },
+        { ...t.fields[0], id, token: id, label: "Custom field", x: 0.1, y: 0.5 },
       ],
     }));
     setSelected(fields.length);
@@ -297,7 +302,7 @@ export default function CertificateTemplateEditor({
             const isSel = i === selected;
             return (
               <button
-                key={f.token}
+                key={f.id}
                 type="button"
                 onPointerDown={(e) => onPointerDown(e, i)}
                 onKeyDown={(e) => onKeyDown(e, i)}
@@ -409,7 +414,7 @@ export default function CertificateTemplateEditor({
 
           <ul ref={listRef} className="space-y-1">
             {fields.map((f, i) => (
-              <li key={f.token}>
+              <li key={f.id}>
                 <div
                   className={`flex items-center gap-1 rounded px-1 ${i === selected ? "bg-bh-red-50" : ""}`}
                 >

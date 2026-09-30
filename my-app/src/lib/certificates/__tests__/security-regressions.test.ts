@@ -33,6 +33,50 @@ describe("template reads are not remotely callable", () => {
   });
 });
 
+// ── Data loss: snake_case row into a camelCase template model ───────────────
+describe("template row mapping", () => {
+  it("carries every persisted setting from the row into the model", async () => {
+    // The editor page used to pass the raw snake_case row to
+    // normaliseTemplate, which reads camelCase. Everything except id/name/fields
+    // was lost, and because the editor saves what it was given, opening a saved
+    // template and clicking Save nulled the background, reset the page size and
+    // cleared is_default. Verified against a real row before fixing.
+    const { templateFromRow } = await import("@/lib/certificates/templates");
+    const { normaliseTemplate } = await import("@/lib/certificates/template");
+
+    const row = {
+      id: "tpl-1",
+      event_id: "evt-1",
+      name: "Summit 2026",
+      background_url: "https://res.cloudinary.com/x/bg.png",
+      page_width: 794,
+      page_height: 1123,
+      fields: [],
+      is_default: true,
+    };
+
+    const t = normaliseTemplate(templateFromRow(row));
+    expect(t.backgroundUrl).toBe("https://res.cloudinary.com/x/bg.png");
+    expect(t.pageWidth).toBe(794);
+    expect(t.pageHeight).toBe(1123);
+    expect(t.eventId).toBe("evt-1");
+    expect(t.isDefault).toBe(true);
+    expect(t.hasBackground).toBe(true);
+  });
+
+  it("round-trips: a mapped row is not the same as an unmapped one", async () => {
+    const { templateFromRow } = await import("@/lib/certificates/templates");
+    const { normaliseTemplate } = await import("@/lib/certificates/template");
+    const row = { id: "t", name: "n", fields: [], background_url: "https://res.cloudinary.com/a.png", page_width: 794, page_height: 1123, is_default: true };
+
+    const mapped = normaliseTemplate(templateFromRow(row));
+    const unmapped = normaliseTemplate(row);
+    // Pinning the difference makes the bug's shape explicit.
+    expect(unmapped.backgroundUrl).toBeNull();
+    expect(mapped.backgroundUrl).toBe("https://res.cloudinary.com/a.png");
+  });
+});
+
 // ── F8: SSRF and memory exhaustion via backgroundUrl ─────────────────────────
 describe("background image fetch is constrained", () => {
   const realFetch = globalThis.fetch;

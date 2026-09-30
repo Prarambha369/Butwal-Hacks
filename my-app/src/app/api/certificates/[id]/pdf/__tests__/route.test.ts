@@ -27,7 +27,13 @@ vi.mock("@/lib/verify/resolve", () => ({
   resolveVerifiable: h.mockResolve,
   isCertificateActive: (s?: string | null) => s !== "revoked" && s !== "void",
 }));
-vi.mock("@/lib/actions/certificates", () => ({ resolveTemplateForEvent: h.mockTemplate }));
+// The route imports the resolver from @/lib/certificates/templates. This test
+// used to mock @/lib/actions/certificates, so the mock never applied and the
+// REAL resolver ran -- and since the fixture event id "evt-1" is not a UUID it
+// always returned null. The "still prints when no template exists" case
+// therefore passed for the wrong reason, and nothing exercised the
+// resolved-template path at all.
+vi.mock("@/lib/certificates/templates", () => ({ resolveTemplateForEvent: h.mockTemplate }));
 vi.mock("@/lib/certificates/render", () => ({ renderCertificate: h.mockRender }));
 vi.mock("@/lib/certificates/template", () => ({
   normaliseTemplate: (r: Record<string, unknown>) => ({ ...r, fields: [], name: "Built-in" }),
@@ -122,11 +128,21 @@ describe("certificate PDF route", () => {
   });
 
   it("still prints when no template has been designed yet", async () => {
-    // A missing template is a supported state, not an outage.
+    // A missing template is a supported state, not an outage. Now genuinely
+    // exercised, since the mock above actually applies.
     h.mockTemplate.mockResolvedValue(null);
     h.mockResolve.mockResolvedValue(cert());
     const res = await GET(req, ctx(ID));
     expect(res.status).toBe(200);
+    expect(h.mockTemplate).toHaveBeenCalledWith("evt-1");
+  });
+
+  it("passes the resolved template through to the renderer", async () => {
+    const tpl = { id: "tpl-1", name: "Summit", fields: [], pageWidth: 794, pageHeight: 1123 };
+    h.mockTemplate.mockResolvedValue(tpl);
+    h.mockResolve.mockResolvedValue(cert());
+    await GET(req, ctx(ID));
+    expect(h.mockRender).toHaveBeenCalledWith(expect.objectContaining({ template: tpl }));
   });
 
   it("logs render warnings instead of swallowing them", async () => {
