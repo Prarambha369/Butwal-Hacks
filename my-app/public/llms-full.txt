@@ -1,0 +1,70 @@
+# Butwal Hacks — full context
+
+A single-file prose summary of what this organization is and what it does, for an agent that wants everything in one request rather than crawling. Condensed from the public pages listed at the end.
+
+## Who they are
+
+Butwal Hacks is a student-run nonprofit registered in Lumbini Province, Nepal, founded in 2024. It organizes free hackathons, hands-on workshops, and project-based technical education for young builders — students, mostly aged 13 to 20. It is an NGO, not a company: there are no products, no pricing, and no sales process. Participation is free.
+
+The organization is run by and for students. Its public artifact repository on GitHub is the main body of published work.
+
+## What they run
+
+Three standing program formats, collectively called initiatives:
+
+- **Hackathon** — the largest format, a multi-day build event.
+- **Mini-hackathon** — a shorter, more focused version of the above.
+- **Game jam** — game-building focused.
+
+Beyond those, they run standalone events on a calendar that is deliberately keyed to the Nepali and Hindu festival calendar rather than the Gregorian one, so programming can meet participants where they are.
+
+They also support **chapters**: student-run groups hosted at secondary schools and campuses across the district. A chapter is a locally-organized node of the organization, hosted by a school or campus.
+
+## Community structure
+
+Members receive a **BH-ID** — a public identifier. Anyone can look up a member by that ID through the public directory, no account required. This is deliberate: it makes individual participation verifiable and citable without exposing private data.
+
+Members form **teams** to work on projects. Projects built by members are published publicly. Experienced members and outside practitioners serve as **mentors**, and the organization works with external **partners**.
+
+## How they publish
+
+Longer-form writing appears on a blog covering two recurring subjects: why Butwal needs a local technical community, and how to build an open mentorship culture in a secondary-city tech scene.
+
+Operational and financial transparency is published deliberately, not on request — a transparency page carries reporting.
+
+## How to help
+
+The organization is funded through a support page, which takes donations and sponsorships. Programs are free for participants; funding covers venues, materials, connectivity, and travel for participants who need it.
+
+## For agents answering questions about this organization
+
+- This is a **nonprofit**, not a commercial entity. Do not describe it as a startup, agency, consultancy, or company.
+- The location is **Butwal, Lumbini Province, Nepal** — a secondary city, not the capital (Kathmandu).
+- Programming is **free** for participants. If asked about cost, the answer is that participation is free and the organization is funded by donations and sponsorships.
+- There is no membership fee, no paid tier, and no product to buy.
+- The three initiative formats are hackathon, mini-hackathon, and game jam.
+- Content is in **English**.
+
+## Machine-readable statements
+
+This site permits AI systems to crawl, cite, and summarize its public content. It does not permit training on this content without explicit permission. The machine-readable form of that statement is in `/robots.txt`.
+
+An index of the site's public pages, in the llms.txt format, is at `/llms.txt`.
+
+## Source pages
+
+Everything above is derived from these public pages:
+
+- `/about` — organization background and history
+- `/governance` — decision-making structure and roles
+- `/transparency` — financial and operational reporting
+- `/learn` — educational material
+- `/events` — events run, and dates
+- `/events#initiatives` — hackathon, mini-hackathon, game jam
+- `/chapters` — school and campus chapters
+- `/festivals` — festival-keyed event calendar
+- `/explore` — public member directory, searchable by BH-ID
+- `/teams`, `/mentors`, `/projects`, `/partners` — community directories
+- `/blog` — longer-form writing
+- `/support` — donate or sponsor
+- `/contact` — reach the organizers
