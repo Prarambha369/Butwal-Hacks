@@ -33,9 +33,18 @@ export async function requireRole(
       .eq("auth0_user_id", session.user.sub)
       .single();
 
-    if (!profile) {
-      return NextResponse.next();
-    }
+      if (!profile) {
+        // No profile row means the user has no role to check, so it cannot
+        // satisfy `allowedRoles`. Letting them through would grant access to a
+        // gated page they have no claim to. Fail closed.
+        //
+        // Redirecting rather than blocking keeps the bootstrap intact: the
+        // parent dashboard/layout.tsx still runs on /dashboard/hacker and
+        // creates the row with initialRole "hacker", which is exactly the
+        // path a new user needs. /dashboard/hacker is routed through
+        // requireAnyAuth (no role check), so this cannot loop.
+        return NextResponse.redirect(new URL("/dashboard/hacker", request.url));
+      }
 
     const userRole = profile.role as string;
 
