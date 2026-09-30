@@ -211,13 +211,33 @@ export default function Navbar() {
             </button>
             <ThemeToggle />
             <LanguageToggle />
-            {isLoading ? (
-              /* Skeleton placeholder while Auth0 checks cached session */
-              <div className="flex items-center gap-2" aria-hidden="true">
-                <Skeleton className="h-9 w-20 rounded-full" />
-                <Skeleton className="h-9 w-24 rounded-full" />
-              </div>
-            ) : isSignedIn ? (
+              {isLoading ? (
+                /* Reserve the exact box of the signed-out pair. Fixed-width
+                   skeletons measured 192px against the resolved 206px, so the
+                   nav grew 14px and shifted itself and its neighbours — the
+                   largest remaining layout shift after the Hero CTA fix. Real
+                   markup with `invisible` text reserves height *and* width,
+                   and matches what the server renders (always signed-out). */
+                <>
+                  <a
+                    href={`${APP_URL}/auth/login?returnTo=/dashboard`}
+                    className="bh-btn-ghost text-sm"
+                    aria-hidden="true"
+                    tabIndex={-1}
+                  >
+                    <LogIn className="h-4 w-4 opacity-0" />
+                    <span className="invisible">{t('nav.sign_in', locale)}</span>
+                  </a>
+                  <a
+                    href={`${APP_URL}/auth/login?screen_hint=signup&returnTo=/dashboard/onboarding`}
+                    className="bh-btn-primary text-sm !px-5"
+                    aria-hidden="true"
+                    tabIndex={-1}
+                  >
+                    <span className="invisible">{t('nav.sign_up', locale)}</span>
+                  </a>
+                </>
+              ) : isSignedIn ? (
               <UserMenu
                 name={user?.name}
                 email={user?.email}
