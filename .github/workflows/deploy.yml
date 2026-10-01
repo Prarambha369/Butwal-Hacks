@@ -66,6 +66,24 @@ jobs:
         with:
           version: latest
 
+      # The migrations live at the repo root, not under my-app, so this job
+      # must NOT inherit the `my-app` working-directory the verify job sets.
+      # `supabase db push` reads <cwd>/supabase/migrations, and running it from
+      # my-app/ would find no migrations at all -- a green run that applied
+      # nothing. Assert the directory is present and non-empty before trusting
+      # the push.
+      - name: Locate migrations
+        run: |
+          set -euo pipefail
+          count=$(find supabase/migrations -maxdepth 1 -name '*.sql' 2>/dev/null | wc -l)
+          echo "Found $count migration(s) in supabase/migrations"
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No migrations found at supabase/migrations. Refusing to report success."
+            echo "This step runs from the repo root on purpose -- if you moved the"
+            echo "migrations under my-app/, fix the working-directory instead."
+            exit 1
+          fi
+
       - name: Apply pending migrations
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
@@ -75,6 +93,16 @@ jobs:
             echo "Add it under Settings -> Secrets and variables -> Actions."
             exit 1
           fi
+          # Supabase prints a generic "setting the env var correctly" hint on
+          # every failure mode, which buries the real one. Echo the host (never
+          # the password) so an auth failure is distinguishable from a
+          # reachability failure at a glance.
+          echo "::group::connection"
+          echo "host: $(printf '%s' "$SUPABASE_DB_URL" | sed -E 's#^[^@]*@([^:/?]+).*#\1#')"
+          echo "port: $(printf '%s' "$SUPABASE_DB_URL" | sed -E 's#^[^@]*@[^:/?]+:([0-9]+).*#\1#')"
+          echo "::endgroup::"
+          echo "::notice::Migrations need a direct or session-pooler connection."
+          echo "::notice::The transaction pooler (port 6543) cannot run DDL."
           supabase db push --db-url "$SUPABASE_DB_URL"
 
   # ─── Deploy ────────────────────────────────────────────────────────────
