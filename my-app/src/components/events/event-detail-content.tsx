@@ -30,7 +30,12 @@ const timeline = [
   { time: "04:00 PM", title: "Demo Showcase", note: "Teams present outputs and reflect on learnings." },
 ]
 
-const faqs = [
+/**
+ * Exported so the FAQPage JSON-LD on the event page and this visible FAQ
+ * section read the same array. Google requires FAQ markup to match content
+ * visible on the page; a second copy of these three questions would drift.
+ */
+export const faqs = [
   { q: "Who can join this event?", a: "Students and youth participants are welcome unless otherwise stated on registration notes." },
   { q: "Is prior experience required?", a: "No. Events are designed for mixed skill levels with mentoring support." },
   { q: "What should I bring?", a: "Bring your laptop, charger, and basic essentials for a full-day build session." },

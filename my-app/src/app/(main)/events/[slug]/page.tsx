@@ -7,7 +7,10 @@ import { createServiceClient } from "@/utils/supabase"
 import { buildPageMetadata } from "@/lib/seo"
 import { initiatives, events as contentEvents, blogPosts, getRelatedByTags } from "@/lib/content"
 import RelatedLinks from "@/components/home/related-links"
-import EventDetailContent from "@/components/events/event-detail-content"
+import EventDetailContent, { faqs } from "@/components/events/event-detail-content";
+import SafeJsonLd from "@/lib/json-ld";
+import { eventJsonLd, faqPageJsonLd } from "@/lib/schema";
+import { SITE_URL } from "@/lib/constants";
 import { t } from "@/lib/i18n"
 import type { Locale } from "@/lib/i18n"
 
@@ -71,8 +74,25 @@ export default async function EventDetailPage({ params }: Props) {
 
   const locale = 'en' as Locale;
 
+  const eventUrl = `${SITE_URL}/events/${eventData.slug}`;
+
   return (
     <>
+      <SafeJsonLd
+        data={eventJsonLd({
+          title: eventData.title,
+          description: eventData.description,
+          startDate: eventData.start_date,
+          endDate: eventData.end_date,
+          url: eventUrl,
+          image: eventData.banner_url,
+          locationName: eventData.location,
+        })}
+      />
+      {/* The visible FAQ section on this page renders `faqs`, so the markup
+          below is the same three questions rather than a parallel copy. */}
+      <SafeJsonLd data={faqPageJsonLd(faqs, eventUrl)} />
+
       {/* Back link */}
       <div className="mx-auto max-w-6xl px-4 pt-6">
         <Link

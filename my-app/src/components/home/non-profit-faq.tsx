@@ -4,16 +4,10 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
+import { homeFaqEntries } from "@/lib/home-faq";
 import SectionEyebrow from "@/components/section-eyebrow";
 
-const faqs = [
-  { id: "free", qKey: "home.faq.items.free.q", aKey: "home.faq.items.free.a" },
-  { id: "who-can-join", qKey: "home.faq.items.who-can-join.q", aKey: "home.faq.items.who-can-join.a" },
-  { id: "donations", qKey: "home.faq.items.donations.q", aKey: "home.faq.items.donations.a" },
-  { id: "volunteer", qKey: "home.faq.items.volunteer.q", aKey: "home.faq.items.volunteer.a" },
-  { id: "events", qKey: "home.faq.items.events.q", aKey: "home.faq.items.events.a" },
-  { id: "nonprofit-status", qKey: "home.faq.items.nonprofit-status.q", aKey: "home.faq.items.nonprofit-status.a" },
-];
+const faqs = homeFaqEntries;
 
 export default function NonProfitFAQ() {
   const [openId, setOpenId] = useState<string | null>(null);
