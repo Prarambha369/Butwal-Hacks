@@ -36,10 +36,13 @@ export default function MaintainerSidebar({
   return (
     <aside
       className={cn(
-        "w-56 flex-shrink-0 flex flex-col bg-surface border-r border-border min-h-dvh",
-        // Inside the shell's drawer the rail is the drawer's own body, so it
-        // must not also be a fixed, h-full column.
-        mobileOpen && "min-h-0 h-full",
+        "flex flex-col bg-surface border-r border-border",
+        // One element for both states, because DashboardShell mounts exactly
+        // one sidebar. When open it is the drawer and must position itself
+        // against the viewport -- there is no wrapper to be relative to.
+        mobileOpen
+          ? "fixed inset-y-0 left-0 z-40 w-64 shadow-xl bh-overscroll-contain"
+          : "hidden md:flex min-h-dvh w-56 flex-shrink-0",
       )}
       aria-label="Maintainer navigation"
     >
@@ -52,10 +55,15 @@ export default function MaintainerSidebar({
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
         {links.map((link) => {
           // Prefix match, so /dashboard/maintainer/users keeps Users lit while
-          // nested routes are open. Exact match left every parent unhighlighted
-          // on any sub-page.
+          // nested routes are open. Except for the section root, which is a
+          // prefix of every one of its own children -- without this,
+          // "Command Center" is highlighted on all eleven admin pages at once,
+          // alongside whichever page you are actually on. sidebar-nav.tsx
+          // excludes the same four index routes for the same reason.
+          const isSectionRoot = link.href === "/dashboard/maintainer";
           const isActive =
-            pathname === link.href || pathname.startsWith(`${link.href}/`);
+            pathname === link.href ||
+            (!isSectionRoot && pathname.startsWith(`${link.href}/`));
           return (
             <Link
               key={link.href}

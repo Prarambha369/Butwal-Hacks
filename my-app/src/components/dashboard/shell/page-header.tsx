@@ -42,7 +42,12 @@ export function PageHeader({
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="truncate text-2xl font-bold tracking-tight text-primary sm:text-3xl">
+        {/* `break-words`, not `truncate`. The maintainer header passes a title
+            containing a flex span with its health badge, and `truncate` is
+            overflow:hidden + white-space:nowrap -- so on a narrow screen the
+            badge was clipped and the status it reports simply vanished. Long
+            single-word titles still wrap rather than overflowing. */}
+        <h1 className="break-words text-2xl font-bold tracking-tight text-primary sm:text-3xl">
           {title}
         </h1>
         {description ? (

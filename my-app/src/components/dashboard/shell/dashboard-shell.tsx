@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 import DashboardSidebar from "@/components/dashboard-sidebar";
 import { DashboardTopbar } from "@/components/dashboard/shell/dashboard-topbar";
 import { roleConfig, type NavLink, type Role } from "@/components/sidebar-config";
@@ -54,6 +55,23 @@ export function DashboardShell({
   const [navOpen, setNavOpen] = useState(false);
   const config = roleConfig[role];
 
+  // The drawer is the sidebar itself now, so the trap is attached to the node
+  // that renderSidebar returns via a wrapper ref on the shell row.
+  const shellRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(shellRef, navOpen);
+
+  // Escape closes the drawer. Without it the overlay is a keyboard trap in the
+  // other direction: focus is contained by the trap, and the only way out is
+  // the close button, which you have to Tab to.
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNavOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navOpen]);
+
   const renderSidebar = (open: boolean) =>
     sidebar ? (
       sidebar({ open, onNavigate: () => setNavOpen(false) })
@@ -70,11 +88,15 @@ export function DashboardShell({
       />
     );
 
-  const sidebarNode = renderSidebar(navOpen);
-
   return (
-    <div className="flex min-h-dvh bg-background">
-      <div className="hidden md:flex md:flex-shrink-0">{renderSidebar(false)}</div>
+    <div ref={shellRef} className="flex min-h-dvh bg-background">
+      {/* One sidebar instance, always mounted. It is the desktop rail when
+          closed and becomes the drawer when open, rather than being two
+          subtrees that swap places: a swap remounts, and this sidebar mounts
+          SkillTreeWidget and OrgSwitcher, so every drawer open would re-run
+          getSkillTreeSummary() and the profiles query. Two live subtrees --
+          the version before this -- ran both on every single open. */}
+      {renderSidebar(navOpen)}
 
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardTopbar
@@ -93,29 +115,26 @@ export function DashboardShell({
         </main>
       </div>
 
-      {/* Mobile drawer. Rendered by the shell so the topbar's hamburger is the
-          only trigger, and it sits above the content rather than inside the
-          desktop rail. */}
       {navOpen ? (
-        <div className="md:hidden fixed inset-0 z-50 flex">
+        <>
+          {/* Presentational, not a control. As a <button> this was a second
+              element named "Close navigation", so a screen reader announced two
+              identical buttons for one action -- and a scrim is not where a
+              keyboard or AT user aims. The X button and Escape cover that. */}
+          <div
+            aria-hidden="true"
+            onClick={() => setNavOpen(false)}
+            className="fixed inset-0 z-30 bg-black/40 bh-touch-manipulation"
+          />
           <button
             type="button"
-            aria-label="Close navigation"
             onClick={() => setNavOpen(false)}
-            className="absolute inset-0 bg-black/40 bh-touch-manipulation"
-          />
-          <div className="relative flex h-full w-64 flex-col border-r border-border bg-surface shadow-xl bh-overscroll-contain">
-            <button
-              type="button"
-              onClick={() => setNavOpen(false)}
-              aria-label="Close navigation"
-              className="absolute right-2 top-3 z-10 rounded-lg p-2 text-secondary hover:bg-surface-hover bh-touch-manipulation"
-            >
-              <X className="h-5 w-5" aria-hidden="true" />
-            </button>
-            {sidebarNode}
-          </div>
-        </div>
+            aria-label="Close navigation"
+            className="fixed right-3 top-3 z-50 rounded-lg bg-surface p-2 text-secondary shadow-sm hover:bg-surface-hover bh-touch-manipulation"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </>
       ) : null}
 
       {/* Keep the role in the DOM for the active-nav tint used by children. */}

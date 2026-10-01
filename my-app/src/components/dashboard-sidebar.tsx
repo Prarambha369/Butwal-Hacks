@@ -94,10 +94,20 @@ onboardingChapterCount,
 
       <aside
         className={cn(
-          "w-56 flex-shrink-0 flex flex-col",
-          "bh-card rounded-none border-r border-border border-t-0 border-l-0 border-b-0",
-          "hidden md:flex",
-          mobileOpen && "!flex fixed inset-y-0 left-0 z-40 shadow-xl bh-overscroll-contain"
+          "flex flex-col bh-card rounded-none border-l-0 border-t-0 border-b-0 border-r",
+          externallyControlled
+            ? // Controlled by DashboardShell, which mounts exactly one sidebar
+              // and expects it to turn into the drawer. It must therefore be
+              // positioned here: `fixed inset-y-0` is viewport-relative, and
+              // there is no wrapper element to be relative to.
+              mobileOpen
+                ? "fixed inset-y-0 left-0 z-40 w-64 shadow-xl bh-overscroll-contain border-border"
+                : "hidden md:flex w-56 flex-shrink-0 border-border"
+            : cn(
+                "w-56 flex-shrink-0 border-border",
+                "hidden md:flex",
+                mobileOpen && "!flex fixed inset-y-0 left-0 z-40 shadow-xl bh-overscroll-contain",
+              ),
         )}
       >
         {renderSidebarContent()}
