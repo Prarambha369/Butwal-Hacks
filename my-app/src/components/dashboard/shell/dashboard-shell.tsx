@@ -26,6 +26,7 @@ export function DashboardShell({
   slugId,
   links,
   title,
+  sidebar,
   onboardingProfile,
   onboardingChapterCount,
   onboardingProjectCount,
@@ -35,6 +36,16 @@ export function DashboardShell({
   slugId: string;
   links: NavLink[];
   title?: string;
+  /**
+   * Swap in a different rail. The maintainer dashboard has its own sidebar --
+   * it is a moderation console, not a builder workspace, and it carries a docs
+   * link instead of the org switcher. Forcing it onto the shared rail would
+   * have meant deleting real functionality.
+   *
+   * Receives the drawer state so the override cannot reintroduce a second,
+   * conflicting hamburger.
+   */
+  sidebar?: (opts: { open: boolean; onNavigate: () => void }) => React.ReactNode;
   onboardingProfile?: SlimProfile | null;
   onboardingChapterCount?: number;
   onboardingProjectCount?: number;
@@ -43,22 +54,27 @@ export function DashboardShell({
   const [navOpen, setNavOpen] = useState(false);
   const config = roleConfig[role];
 
-  const sidebar = (
-    <DashboardSidebar
-      role={role}
-      slugId={slugId}
-      links={links}
-      onboardingProfile={onboardingProfile}
-      onboardingChapterCount={onboardingChapterCount}
-      onboardingProjectCount={onboardingProjectCount}
-      mobileOpen={navOpen}
-      onNavigate={() => setNavOpen(false)}
-    />
-  );
+  const renderSidebar = (open: boolean) =>
+    sidebar ? (
+      sidebar({ open, onNavigate: () => setNavOpen(false) })
+    ) : (
+      <DashboardSidebar
+        role={role}
+        slugId={slugId}
+        links={links}
+        onboardingProfile={onboardingProfile}
+        onboardingChapterCount={onboardingChapterCount}
+        onboardingProjectCount={onboardingProjectCount}
+        mobileOpen={open}
+        onNavigate={() => setNavOpen(false)}
+      />
+    );
+
+  const sidebarNode = renderSidebar(navOpen);
 
   return (
     <div className="flex min-h-dvh bg-background">
-      <div className="hidden md:flex md:flex-shrink-0">{sidebar}</div>
+      <div className="hidden md:flex md:flex-shrink-0">{renderSidebar(false)}</div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardTopbar
@@ -97,7 +113,7 @@ export function DashboardShell({
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
-            {sidebar}
+            {sidebarNode}
           </div>
         </div>
       ) : null}

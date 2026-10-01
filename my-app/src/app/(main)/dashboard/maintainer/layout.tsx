@@ -10,7 +10,14 @@ const DashboardNavProvider = NextDynamic(() =>
   import("@/components/dashboard-nav-provider").then((m) => m.DashboardNavProvider),
 );
 
-const MaintainerSidebar = NextDynamic(() => import("@/components/maintainer-sidebar"));
+const MaintainerSidebar = NextDynamic(() =>
+  import("@/components/maintainer-sidebar"),
+);
+const DashboardShell = NextDynamic(() =>
+  import("@/components/dashboard/shell/dashboard-shell").then((m) => ({
+    default: m.DashboardShell,
+  })),
+);
 import {
   Terminal,
   Users,
@@ -116,13 +123,22 @@ export default async function MaintainerDashboardLayout({
   const slugId = profile?.slug_id ?? userId.slice(0, 8).toUpperCase();
 
   return (
-    <div className="flex min-h-dvh bg-background">
-      <MaintainerSidebar slugId={slugId} links={maintainerLinks} />
-      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto min-h-dvh flex flex-col pb-20 md:pb-0">
-        <DashboardNavProvider links={maintainerLinks}>
-          {children}
-        </DashboardNavProvider>
-      </main>
-    </div>
+    <DashboardNavProvider links={maintainerLinks}>
+      <DashboardShell
+        role="maintainer"
+        slugId={slugId}
+        links={maintainerLinks}
+        sidebar={({ open, onNavigate }) => (
+          <MaintainerSidebar
+            slugId={slugId}
+            links={maintainerLinks}
+            mobileOpen={open}
+            onNavigate={onNavigate}
+          />
+        )}
+      >
+        {children}
+      </DashboardShell>
+    </DashboardNavProvider>
   );
 } // ponytail: Auth0 session for authentication and role verification.

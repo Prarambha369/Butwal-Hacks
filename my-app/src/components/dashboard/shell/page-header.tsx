@@ -9,8 +9,13 @@ import { cn } from "@/lib/utils";
  */
 
 export interface PageHeaderProps {
-  /** Small uppercase label above the title, e.g. "ORGANIZER". */
-  eyebrow?: string;
+  /**
+   * Small uppercase label above the title, e.g. "ORGANIZER". Typed as a node
+   * because the dashboards pass a role pill here rather than plain text, and
+   * the organizer/maintainer pages all want a status or role chip in that
+   * slot.
+   */
+  eyebrow?: React.ReactNode;
   title: React.ReactNode;
   description?: React.ReactNode;
   actions?: React.ReactNode;

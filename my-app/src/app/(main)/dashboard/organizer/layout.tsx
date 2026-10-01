@@ -14,6 +14,7 @@ const DashboardShell = NextDynamic(() =>
   import("@/components/dashboard/shell/dashboard-shell").then((m) => ({ default: m.DashboardShell })),
 );
 import {
+  LayoutTemplate,
   LayoutDashboard,
   CalendarDays,
   MapPin,
@@ -46,6 +47,15 @@ const organizerLinks = [
     label: "Issue Marker",
     shortcut: "i",
     icon: <MapPin className="w-4 h-4" />,
+  },
+  {
+    // Was reachable only by typing the URL. It is a shipped feature -- the
+    // editor, roster import, bulk issue and domain send all live here -- so
+    // hiding it in the nav made it look unfinished to organizers.
+    href: "/dashboard/organizer/certificates/templates",
+    label: "Certificate Templates",
+    shortcut: "t",
+    icon: <LayoutTemplate className="w-4 h-4" />,
   },
   {
     href: "/dashboard/organizer/api-keys",

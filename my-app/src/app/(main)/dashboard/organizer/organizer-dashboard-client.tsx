@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import OnboardingTour from "@/components/dashboard/onboarding-tour";
+import { PageHeader } from "@/components/dashboard/shell/page-header";
+import { StatCard, StatGrid } from "@/components/dashboard/shell/stat-card";
 import AssistantPanel from "@/components/assistant-panel";
 import { CalendarDays, Users, Rocket, Bell, CheckCircle2,
   Plus, ChevronLeft, ChevronRight, Calendar, ListTodo, ArrowRight,
@@ -155,56 +157,51 @@ export default function OrganizerDashboardClient({ events, notices, totalEvents,
     <>
       <OnboardingTour role="organizer" />
       <div className="flex-1 space-y-8">
-        {/* Top Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight text-primary">Organizer Dashboard</h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-primary-red/10 text-primary-red text-[10px] font-mono font-bold border border-primary-red/20">
-                Organizer
-              </span>
+        <PageHeader
+          eyebrow={
+            <span className="px-2.5 py-0.5 rounded-full bg-primary-red/10 text-primary-red text-[10px] font-mono font-bold border border-primary-red/20">
+              Organizer
+            </span>
+          }
+          title="Organizer Dashboard"
+          description="Manage your events, track registrations, and oversee operations."
+          actions={
+            <div className="flex items-center gap-1 rounded-xl border border-border bg-surface p-1">
+              {(["overview", "calendar", "tasks"] as const).map((v) => (
+                <button key={v} onClick={() => setView(v)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${view === v ? "bg-primary-red text-white shadow-sm" : "text-muted-foreground hover:text-primary"}`}>
+                  {v === "overview" ? "Overview" : v === "calendar" ? "Calendar" : "Tasks"}
+                </button>
+              ))}
             </div>
-            <p className="text-sm text-muted-foreground">Manage your events, track registrations, and oversee operations.</p>
-          </div>
-          <div className="flex items-center gap-1 rounded-xl border border-border bg-surface p-1">
-            {(["overview", "calendar", "tasks"] as const).map((v) => (
-              <button key={v} onClick={() => setView(v)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${view === v ? "bg-primary-red text-white shadow-sm" : "text-muted-foreground hover:text-primary"}`}>
-                {v === "overview" ? "Overview" : v === "calendar" ? "Calendar" : "Tasks"}
-              </button>
-            ))}
-          </div>
-        </div>
+          }
+        />
 
         {view === "overview" && (
           <>
-            {/* Metric Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bh-card p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="p-2 rounded-lg bg-status-blue/10"><CalendarDays className="w-4 h-4 text-status-blue" /></div>
-                  <span className="text-[10px] font-mono text-muted-foreground">Total</span>
-                </div>
-                <p className="text-3xl font-bold text-primary">{totalEvents}</p>
-                <p className="text-xs text-muted-foreground">Events organized</p>
-              </div>
-              <div className="bh-card p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="p-2 rounded-lg bg-status-green/10"><Users className="w-4 h-4 text-status-green" /></div>
-                  <span className="text-[10px] font-mono text-muted-foreground">Active</span>
-                </div>
-                <p className="text-3xl font-bold text-primary">{activeEvents}</p>
-                <p className="text-xs text-muted-foreground">Active events</p>
-              </div>
-              <div className="bh-card p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="p-2 rounded-lg bg-status-orange/10"><Rocket className="w-4 h-4 text-status-orange" /></div>
-                  <span className="text-[10px] font-mono text-muted-foreground">Activity</span>
-                </div>
-                <p className="text-3xl font-bold text-primary">{notices.length > 0 ? notices.length : "—"}</p>
-                <p className="text-xs text-muted-foreground">Recent registrations &amp; projects</p>
-              </div>
-            </div>
+            <StatGrid cols={3}>
+              <StatCard
+                label="Events Organized"
+                value={totalEvents}
+                icon={CalendarDays}
+                tone="blue"
+                hint="All time"
+              />
+              <StatCard
+                label="Active Events"
+                value={activeEvents}
+                icon={Users}
+                tone="green"
+                hint="Currently live"
+              />
+              <StatCard
+                label="Recent Activity"
+                value={notices.length > 0 ? notices.length : "\u2014"}
+                icon={Rocket}
+                tone="yellow"
+                hint="Registrations &amp; projects"
+              />
+            </StatGrid>
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
               {/* Left: Calendar + Events */}
