@@ -115,9 +115,9 @@ COMMENT ON TABLE public.certificate_templates IS
 -- (NULL, 2024-01-01) and (revoked, 2024-06-01), the uncoalesced form keeps the
 -- NULL row; the coalesced form keeps the revoked one.
 --
--- Reachability, stated honestly: replaying 001->126 from scratch declares
--- certificates.status NOT NULL, so this migration cannot itself produce such a
--- row. But 055 is `CREATE TABLE IF NOT EXISTS` -- on a database where
+-- Reachability, stated honestly: certificates is created in 055, which declares
+-- status NOT NULL, so a 055->126 replay cannot produce such a row. But 055 is
+-- `CREATE TABLE IF NOT EXISTS` -- on a database where
 -- certificates already existed, the live column keeps whatever nullability
 -- that earlier definition declared, which this file does not control and never
 -- inspected. The coalesce costs nothing and makes revoked-wins hold regardless,

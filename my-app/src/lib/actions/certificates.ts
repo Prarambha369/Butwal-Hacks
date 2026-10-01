@@ -96,12 +96,15 @@ async function readAllPages<T>(
     const { data, error, count } = await page(from, from + PAGE_SIZE - 1);
     if (error) throw new Error(`Could not read ${what}: ${error.message}`);
 
-    // count: null means the count was not honoured. That is not the same as
-    // zero, and treating it as zero reports "no recipients use this domain" for
-    // what is really a broken response.
-    if (count === null || count === undefined) {
+    // count: null means the count was not honoured, which is not the same as
+    // zero -- reading it as zero reports "no recipient uses this domain" for
+    // what is really a broken response. NaN is guarded too: postgrest-js parses
+    // the total out of Content-Range with parseInt, and every comparison
+    // against NaN is false, which would silently disable the coverage check
+    // and return whatever was read.
+    if (typeof count !== "number" || !Number.isFinite(count)) {
       throw new Error(
-        `Could not verify how many ${what} exist: the server returned no count.`,
+        `Could not verify how many ${what} exist: the server returned no usable count.`,
       );
     }
     // PostgREST reports the whole-query total on every page, so any page can

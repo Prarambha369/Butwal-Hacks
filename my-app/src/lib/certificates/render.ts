@@ -86,12 +86,17 @@ export type RenderOptions = {
  * log records. Not recipient data, but log records should not be forgeable.
  */
 function safeLabel(label: string): string {
-  // Flatten control characters, then drop quotes. A double quote is escaped
-  // for PDF syntax, but WinAnsi cannot encode it and pdf-lib then refuses the
-  // whole font -- so a single quote in an organiser-controlled field label
-  // would fail the render. Labels are boilerplate, so dropping the character
-  // is a smaller loss than failing the certificate.
-  const flat = label.replace(/[\r\n\t]+/g, " ").replace(/["“”]/g, "").trim();
+  // These are organiser-controlled and end up in a warning that reaches
+  // logger.warn on the UNAUTHENTICATED PDF route, so the only job here is log
+  // hygiene: strip C0/C1 controls, DEL, and the Unicode line/paragraph
+  // separators so a label cannot forge line breaks or ANSI sequences in
+  // Vercel logs. Printable characters are deliberately preserved --
+  // `isWinAnsi` accepts `"` and the smart quotes, and the label is never drawn
+  // with pdf-lib (only the sanitised value is), so mangling them would lose
+  // data for nothing.
+  const flat = label
+    .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]+/g, " ")
+    .trim();
   return flat.length > 60 ? `${flat.slice(0, 60)}...` : flat;
 }
 
@@ -250,7 +255,7 @@ export async function renderCertificate(options: RenderOptions): Promise<RenderR
   for (const field of tpl.fields) {
     const raw = resolveFieldValue(field, values);
     if (!raw) {
-      warnings.push(`field "${safeLabel(field.label)}" has no value and was skipped`);
+      warnings.push(`field ${safeLabel(field.label)}: no value, skipped`);
       continue;
     }
 const { text, replaced, replacedCount } = sanitiseForStandardFonts(raw);
@@ -264,7 +269,7 @@ const { text, replaced, replacedCount } = sanitiseForStandardFonts(raw);
         // re-identifying. A count is enough to diagnose a font problem; the
         // text is not needed and does not belong in a log.
         warnings.push(
-          `field "${safeLabel(field.label)}" contains ${replacedCount} character(s) the PDF fonts cannot render, printed with "?" in their place`,
+          `field ${safeLabel(field.label)}: ${replacedCount} character(s) the PDF fonts cannot render, printed with ? in their place`,
         );
       }
 

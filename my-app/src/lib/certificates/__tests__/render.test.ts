@@ -47,27 +47,40 @@ describe("renderCertificate", () => {
     expect(warnings).toEqual([]);
   });
 
-  it("warns about an empty field without quoting its label", async () => {
-    // The warning interpolates an organiser-controlled field label, and that
-    // string reaches logger.warn on the UNAUTHENTICATED PDF route. A quote in
-    // the label is escaped for PDF syntax but WinAnsi cannot encode it, so
-    // pdf-lib rejects the font and the whole certificate fails to render.
-    // Labels are boilerplate, so dropping the character is the smaller loss.
+  it("keeps log lines forgeable-proof when a field label carries control characters", async () => {
+    // Field labels are organiser-controlled and the warning reaches
+    // logger.warn on the UNAUTHENTICATED PDF route, so a label must not be able
+    // to inject a line break or an ANSI sequence into Vercel logs.
+    //
+    // Printable characters, quotes included, are deliberately preserved: the
+    // repo's own isWinAnsi accepts them and the label is never drawn with
+    // pdf-lib, so dropping them would lose data for nothing. The warning
+    // interpolates the label bare rather than inside quotes so a quote in the
+    // label cannot close a span and forge the rest of the line.
     const { bytes, warnings } = await renderCertificate({
       template: template({
-        fields: [{ key: "name", label: 'Nick"name', type: "text" }],
+        fields: [
+          {
+            key: "name",
+            label: 'Nick"name\u001b[31mRED\u001b[0m\nsecond line\u0000\u2028para',
+            type: "text",
+          },
+        ],
       }),
       values: { ...VALUES, name: "" },
       verifyUrl: URL,
     });
 
+    const text = warnings.join(" ");
     expect(bytes.length).toBeGreaterThan(0);
-    expect(warnings.join(" ")).toMatch(/field/);
-    expect(warnings.join(" ")).toMatch(/skipped/);
-    // The label's own quote is dropped, not escaped. (The quotes around
-    // "Nickname" in the warning come from the warning template itself.)
-    expect(warnings.join(" ")).toContain('field "Nickname" has no value');
-    expect(warnings.join(" ")).not.toContain('Nick"name');
+    // Control characters collapse to single spaces; the printable text,
+    // including the quote, is preserved verbatim.
+    expect(text).toMatch(/^field Nick"name \[31mRED \[0m second li.*: no value, skipped$/);
+    // No escapes, no newline, no NUL, no paragraph separator survived.
+    expect(text).not.toMatch(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/);
+    expect(text).not.toContain("\u001b");
+    // The label is on one line, so the log line cannot be forged.
+    expect(warnings).toHaveLength(1);
   });
 
   it("still renders when the background cannot be fetched", async () => {
@@ -110,9 +123,9 @@ describe("renderCertificate", () => {
     // developer needs to diagnose a font problem.
     expect(warnings.join(" ")).not.toContain("आशा");
     expect(warnings.join(" ")).not.toContain("शर्मा");
-    expect(warnings.join(" ")).toMatch(/contains \d+ character\(s\)/);
+    expect(warnings.join(" ")).toMatch(/: \d+ character\(s\)/);
     // Devanagari is 7 code points once you count the space: आ श ा   श र ् म ा
-    expect(warnings.join(" ")).toMatch(/contains 8 character\(s\)/);
+    expect(warnings.join(" ")).toMatch(/: 8 character\(s\)/);
   });
 
   it("renders Latin-1 accents unchanged", async () => {

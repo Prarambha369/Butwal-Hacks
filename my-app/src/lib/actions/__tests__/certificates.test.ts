@@ -35,6 +35,8 @@ let templatesUpserted: unknown[] = [];
 let forcedError: { message: string } | null = null;
 /** Override the exact count, to model a result set that does not reconcile. */
 let shortByCount: number | null = null;
+/** Simulate a PostgREST or proxy that drops `Prefer: count=exact`. */
+let suppressCount = false;
 
 /** PostgREST's default max_rows. Exceeding it truncates silently, no error. */
 const POSTGREST_MAX_ROWS = 1000;
@@ -65,12 +67,19 @@ const q: Record<string, unknown> = {};
     // from the same query as the data precisely because the embed changes the
     // population, and a mock that ignored !inner could not express the bug
     // where a head count of 6 met an !inner data query returning 4.
-    const innerAlias = /([a-z_]+):[a-z_]+!inner\(/.exec(selectCols)?.[1] ?? null;
+    //
+    // Read lazily. Computing this while the mock is still being built saw an
+    // empty select string and therefore never matched anything, so the join
+    // filter below was dead code and the regression test for it guarded
+    // nothing.
+    const innerAlias = (): string | null =>
+      /([a-z_]+):[a-z_]+!inner\(/.exec(selectCols)?.[1] ?? null;
 
     const applyFilters = (input: Row[]): Row[] => {
       let out = input;
-      if (innerAlias) {
-        out = out.filter((r) => r[innerAlias] !== null && r[innerAlias] !== undefined);
+      const alias = innerAlias();
+      if (alias) {
+        out = out.filter((r) => r[alias] !== null && r[alias] !== undefined);
       }
       if (inFilter) {
         const wanted = new Set(inFilter.values.map(String));
@@ -142,7 +151,7 @@ let from = 0;
       const error = forcedError;
       // PostgREST's count is the whole-query total, reported on every page, and
       // it describes the same joined population the rows come from.
-      const count = askedCount ? (shortByCount ?? all.length) : null;
+      const count = askedCount && !suppressCount ? (shortByCount ?? all.length) : null;
       return Promise.resolve(fn({ data: page, error, count }));
     };
     return q;
@@ -210,6 +219,7 @@ beforeEach(() => {
   templatesUpserted = [];
     forcedError = null;
     shortByCount = null;
+    suppressCount = false;
   mockAuth0.getSession.mockResolvedValue(null);
 });
 
@@ -437,6 +447,23 @@ describe("query scoping", () => {
     await expect(
       sendCertificateEmails("evt-1", { domain: "butwalhacks.com" }),
     ).rejects.toThrow(/Could not read certificates: connection reset/);
+  });
+
+  it("reports a missing count instead of claiming no recipient matches", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    certificates = [certRow("c1", "evt-1", "a@butwalhacks.com")];
+    suppressCount = true;
+    const { sendCertificateEmails } = await loadActions();
+
+    // count: null means the count was not honoured -- not that there are zero
+    // recipients. Reading it as zero produced the actionable-looking
+    // "No certificate recipient uses butwalhacks.com", sending the organizer
+    // to check their own domain spelling for a server misconfiguration.
+    await expect(
+      sendCertificateEmails("evt-1", { domain: "butwalhacks.com" }),
+    ).rejects.toThrow(/server returned no usable count/);
   });
 
   it("counts the joined population, not the base table", async () => {
