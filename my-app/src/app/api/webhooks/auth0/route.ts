@@ -98,8 +98,16 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       .eq("auth0_user_id", sub)
       .single()
 
-    if (existingProfile) {
-      const update: Record<string, unknown> = { email, full_name: name?.trim() || null };
+      if (existingProfile) {
+        // Lower-cased on write, not just on read. Bulk roster matching filters
+        // on this column and PostgREST's `= ANY` on text is case-sensitive, so a
+        // stored "Asha@Example.com" would never match a lowercased roster row
+        // and the organizer would be told "no profile" for someone who is
+        // registered. Email local parts are case-insensitive per RFC 5321.
+        const update: Record<string, unknown> = {
+          email: email.toLowerCase(),
+          full_name: name?.trim() || null,
+        };
 
       if (resolvedRole !== existingProfile.role) {
         // Unknown/invalid existing roles are treated as lowest precedence so a
@@ -121,13 +129,18 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         has_name: !!name,
       });
     } else {
-      // Atomic BH-ID generation via Postgres RPC
-      const { data: result, error: rpcError } = await db.rpc('create_profile_with_bh_id', {
-        p_auth0_user_id: sub,
-        p_email: email,
-        p_full_name: name?.trim() || 'New Hacker',
-        p_role: resolvedRole,
-      })
+        // Atomic BH-ID generation via Postgres RPC.
+        // p_email is lower-cased for the same reason as the update branch: bulk
+        // roster matching filters on this column and PostgREST's `= ANY` on text
+        // is case-sensitive, so a mixed-case new profile would never match.
+        // The fix on the update branch alone left every *new* profile still
+        // writing mixed case.
+        const { data: result, error: rpcError } = await db.rpc('create_profile_with_bh_id', {
+          p_auth0_user_id: sub,
+          p_email: email.toLowerCase(),
+          p_full_name: name?.trim() || 'New Hacker',
+          p_role: resolvedRole,
+        })
 
       if (rpcError || !result) {
         logger.error("[auth0-webhook] RPC insert failed:", rpcError)
