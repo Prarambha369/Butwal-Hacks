@@ -66,9 +66,15 @@ export function defaultFields(): TemplateField[] {
       label: "Recipient name",
       x: 0.5,
       y: 0.42,
-      width: 0.7,
-      fontSize: 0.042,
-      fontFamily: BOLD_FONT,
+width: 0.7,
+        fontSize: 0.042,
+        fontFamily: DEFAULT_FONT,
+        // bold: true, NOT fontFamily: BOLD_FONT. "Helvetica-Bold" is not in
+        // KNOWN_FONTS (pdf-lib's keys have no hyphen), so normaliseField coerced
+        // it back to Helvetica and the recipient name printed regular on every
+        // default template -- the same lost-bold bug the font work fixed
+        // everywhere else.
+        bold: true,
       color: "#111111",
       align: "center",
       rotation: 0,

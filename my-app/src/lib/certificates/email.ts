@@ -132,7 +132,14 @@ export async function sendCertificateEmail(
   );
 
   if (!res.ok) {
-    logger.warn("[certificate] resend rejected", { to: input.to, status: res.status });
+    // The certificate id, never the address. Recipient addresses are personal
+    // data: writing them to application logs copies them out of the delivery
+    // system into a different access and retention domain, and a bulk run with
+    // many failures wrote all of them. CWE-532.
+    logger.warn("[certificate] resend rejected", {
+      certificateId: input.certificateId ?? null,
+      status: res.status,
+    });
     return {
       ok: false,
       status: res.status,

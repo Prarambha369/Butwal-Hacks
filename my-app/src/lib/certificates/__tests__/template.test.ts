@@ -149,6 +149,24 @@ describe("defaultFields", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it("bolds the recipient name via bold, not a bogus font family", () => {
+    const name = defaultFields().find((f) => f.token === "name");
+    expect(name).toBeDefined();
+    // BOLD_FONT is "Helvetica-Bold", which is not a pdf-lib font key, so
+    // normaliseField coerced it back to Helvetica and dropped the emphasis: the
+    // recipient name printed in the regular face on every default template.
+    // The editor's Font <select> also matched none of its own options.
+    expect(name?.bold).toBe(true);
+    expect(name?.fontFamily).toBe("Helvetica");
+    expect(name?.fontFamily).not.toContain("-");
+  });
+
+  it("only names font families the renderer can embed", () => {
+    for (const field of defaultFields()) {
+      expect(["Helvetica", "Times-Roman", "Courier"]).toContain(field.fontFamily);
+    }
+  });
+
   it("only uses known tokens", () => {
     for (const f of defaultFields()) {
       expect(BUILTIN_TOKENS).toContain(f.token as never);

@@ -150,15 +150,22 @@ describe("renderCertificate", () => {
     // resolves to a key pdf-lib actually has lives in template.test.ts, because
     // font programs are named inside compressed object streams that a
     // byte-level assertion here cannot see.
-    const oneField = (bold?: boolean) =>
+    // Explicit, because defaultFields()[0] is itself bold now -- spreading it
+    // and only setting `bold: true` for one arm would compare bold to bold.
+    const oneField = (bold: boolean) =>
       normaliseTemplate({
         fields: [
-          { ...defaultFields()[0], token: "name", label: "Name", ...(bold ? { bold: true } : {}) },
+          {
+            ...defaultFields()[0],
+            token: "name",
+            label: "Name",
+            bold: bold ? true : undefined,
+          },
         ],
       });
 
     const regular = await renderCertificate({
-      template: oneField(),
+      template: oneField(false),
       values: { name: "Asha Sharma" },
       verifyUrl: URL,
     });

@@ -32,18 +32,54 @@ let deliveries: Row[] = [];
 let templates: Row[] = [];
 let templatesUpserted: unknown[] = [];
 
+/** PostgREST's default max_rows. Exceeding it truncates silently, no error. */
+const POSTGREST_MAX_ROWS = 1000;
+
 function chain(rows: Row[] | null) {
-  const q: Record<string, unknown> = {};
-  for (const m of ["select", "insert", "update", "delete", "upsert", "in", "eq", "order", "limit"]) {
-    q[m] = vi.fn(() => q);
-  }
-  q.single = vi.fn(async () => ({ data: rows?.[0] ?? null, error: null }));
-  q.maybeSingle = vi.fn(async () => ({ data: rows?.[0] ?? null, error: null }));
-  // PostgREST returns `count` alongside `data` when count:"exact" is asked
-  // for, which deleteTemplate relies on to distinguish a delete from a no-op.
-  q.then = (fn: (v: unknown) => unknown) =>
-    Promise.resolve(fn({ data: rows ?? [], error: null, count: rows?.length ?? 0 }));
-  return q;
+const q: Record<string, unknown> = {};
+    for (const m of ["select", "insert", "update", "delete", "upsert", "eq", "order", "limit", "is"]) {
+      q[m] = vi.fn(() => q);
+    }
+    q.single = vi.fn(async () => ({ data: rows?.[0] ?? null, error: null }));
+    q.maybeSingle = vi.fn(async () => ({ data: rows?.[0] ?? null, error: null }));
+    // `range` has to actually slice, because the send path pages on it. A stub
+    // that ignored it returned the entire result set on every iteration, so a
+    // fixture larger than PAGE_SIZE made the pagination loop spin forever and
+    // the worker was OOM-killed. Vitest reported 18/21 passed and buried the
+    // crash, which is worse than a visible failure.
+let from = 0;
+      let to: number | null = null;
+      q.range = vi.fn((f: number, t: number) => {
+        from = f;
+        to = t;
+        return q;
+      });
+      // `.in()` has to filter too. Modelling it as a no-op made a delivery
+      // lookup scoped to 200 candidate ids return all 1100 sent rows, which is
+      // the opposite of what the scoping is for.
+      let inFilter: { column: string; values: unknown[] } | null = null;
+      q.in = vi.fn((column: string, values: unknown[]) => {
+        inFilter = { column, values };
+        return q;
+      });
+    // PostgREST returns `count` alongside `data` when count:"exact" is asked
+    // for, which deleteTemplate relies on to distinguish a delete from a no-op.
+    //
+    // The 1000-row ceiling is modelled because it is the whole bug. PostgREST
+    // truncates at max_rows (default 1000) and returns NO error when it does,
+    // so an unpaginated read looks like a successful short result. Mocking the
+    // full result set for an unpaged query made the pagination test pass
+    // against unpaginated code -- a green test guarding nothing.
+    q.then = (fn: (v: unknown) => unknown) => {
+      let all = rows ?? [];
+      if (inFilter) {
+        const wanted = new Set(inFilter.values.map(String));
+        all = all.filter((r) => wanted.has(String(r[inFilter!.column])));
+      }
+      const page = to === null ? all.slice(0, POSTGREST_MAX_ROWS) : all.slice(from, to + 1);
+      return Promise.resolve(fn({ data: page, error: null, count: all.length }));
+    };
+    return q;
 }
 
 vi.mock("@/utils/supabase", () => ({
@@ -282,6 +318,131 @@ describe("template management authorization", () => {
     templates = [{ id: "tpl-1", event_id: null, created_by: "someone-else", is_default: true }];
     const { deleteTemplate } = await loadActions();
     await expect(deleteTemplate("tpl-1")).resolves.toEqual({ ok: true });
+  });
+});
+
+// ── Bulk send correctness: the bugs review actually found ──────────────────────
+describe("bulk send roster correctness", () => {
+  const certFor = (id: string, email: string, status?: string) => ({
+    id,
+    status: status ?? null,
+    profile: { id: `p-${id}`, full_name: `N ${id}`, email, bh_id: null },
+  });
+
+  it("never emails a revoked or voided certificate", async () => {
+    const { sendCertificateEmail } = await import("@/lib/certificates/email");
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    certificates = [
+      certFor("ok", "ok@butwalhacks.com", "issued"),
+      // "issued" | "revoked" | "void" is the vocabulary the certificates_status_check
+      // constraint allows; isCertificateActive is deliberately more permissive so an
+      // unexpected value never reads as revoked and hides a live certificate.
+      certFor("rev", "revoked@butwalhacks.com", "revoked"),
+      certFor("void", "voided@butwalhacks.com", "void"),
+    ];
+    const { sendCertificateEmails } = await loadActions();
+
+    const summary = await sendCertificateEmails("evt-1", {
+      domain: "butwalhacks.com",
+      dryRun: true,
+    });
+
+    // The PDF route and the verification page both gate on revocation. The
+    // sender did not, so a withdrawn credential got "Your certificate is
+    // ready" pointing at a page announcing it had been revoked.
+    // A dry run reports `candidates`, not `sent`.
+    expect(summary.candidates).toBe(1);
+    const addressed = JSON.stringify(
+      (sendCertificateEmail as unknown as { mock: { calls: unknown[][] } }).mock.calls,
+    );
+    expect(addressed).not.toContain("revoked@butwalhacks.com");
+    expect(addressed).not.toContain("voided@butwalhacks.com");
+  });
+
+  it("reads certificates past PostgREST's 1000-row ceiling", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    // 1000 non-matching rows then 200 matching ones. PostgREST caps a response
+    // at max_rows (1000) and returns NO error when it truncates, so an
+    // unpaginated read saw zero matches here and reported "no recipient uses
+    // this domain" while the summary claimed success.
+    certificates = [
+      ...Array.from({ length: 1000 }, (_, i) => certFor(`x${i}`, `x${i}@other.com`)),
+      ...Array.from({ length: 200 }, (_, i) => certFor(`m${i}`, `m${i}@butwalhacks.com`)),
+    ];
+    const { sendCertificateEmails } = await loadActions();
+
+    const summary = await sendCertificateEmails("evt-1", {
+      domain: "butwalhacks.com",
+      dryRun: true,
+    });
+
+    expect(summary.candidates).toBe(200);
+  });
+
+  it("resumes without mailing anyone twice, across in() chunks", async () => {
+    const { sendCertificateEmail } = await import("@/lib/certificates/email");
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    // 1200 recipients, 1100 of them already mailed. The delivery lookup used to
+    // read every sent row for the event in one request, which PostgREST
+    // truncated at 1000 rows with no error: 100 already-mailed people read as
+    // unsent and were mailed a second time, and the report showed it as
+    // ordinary progress.
+    certificates = Array.from({ length: 1200 }, (_, i) =>
+      certFor(`c${i}`, `c${i}@butwalhacks.com`),
+    );
+    deliveries = Array.from({ length: 1100 }, (_, i) => ({
+      certificate_id: `c${i}`,
+      event_id: "evt-1",
+      channel: "email",
+      status: "sent",
+    }));
+    const { sendCertificateEmails } = await loadActions();
+
+    const summary = await sendCertificateEmails("evt-1", { domain: "butwalhacks.com" });
+
+    expect(summary.sent).toBe(100);
+    expect(summary.skippedAlreadySent).toBe(1100);
+    // The 100 mailed now must be the 100 that were never mailed before.
+    const sentTo = (
+      sendCertificateEmail as unknown as { mock: { calls: Array<[{ to: string }]> } }
+    ).mock.calls.map((c) => c[0].to);
+    expect(sentTo).toHaveLength(100);
+    for (const to of sentTo) {
+      expect(Number(to.slice(1).split("@")[0])).toBeGreaterThanOrEqual(1100);
+    }
+  });
+
+});
+
+// ── Ownership transitions ─────────────────────────────────────────────────────
+describe("template ownership", () => {
+  it("does not let the original organizer delete a template promoted to global", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    // event_id null means a maintainer promoted it to organisation scope while
+    // created_by still points at the organizer who drafted it.
+    templates = [{ id: "tpl-1", event_id: null, created_by: "org-1", is_default: true }];
+    const { deleteTemplate } = await loadActions();
+
+    // Authorship is not authority. Skipping the scope check for the creator
+    // let one organizer delete artwork every unrelated event's PDF inherits.
+    await expect(deleteTemplate("tpl-1")).rejects.toThrow(/maintainer/i);
+  });
+
+  it("still lets the creator delete their own event-scoped template", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    templates = [{ id: "tpl-2", event_id: "evt-1", created_by: "org-1", is_default: false }];
+    const { deleteTemplate } = await loadActions();
+
+    await expect(deleteTemplate("tpl-2")).resolves.toEqual({ ok: true });
   });
 });
 

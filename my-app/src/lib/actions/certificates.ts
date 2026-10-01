@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
+import { isCertificateActive } from "@/lib/verify/resolve";
 import { createServiceClient } from "@/utils/supabase";
 import { SITE_URL } from "@/lib/constants";
 import { normaliseTemplate } from "@/lib/certificates/template";
@@ -32,6 +33,47 @@ const ISSUER_ROLES = new Set(["organizer", "maintainer"]);
  * marked sent.
  */
 const SEND_BATCH_LIMIT = 500;
+
+/** Rows per paginated read. PostgREST's default max_rows is 1000. */
+const PAGE_SIZE = 500;
+
+/**
+ * Hard stop on pagination. Every page coming back full means there may be more,
+ * and 10k rows for one event is not a real event -- it means the page size and
+ * the server's max_rows disagree. Failing loudly beats sending to a subset and
+ * reporting it as complete.
+ */
+const MAX_PAGES = 20;
+
+/** Ids per `in()` filter; keeps the request URL well inside PostgREST's limits. */
+const CHUNK_SIZE = 200;
+
+/**
+ * Read every row a query matches, one bounded page at a time.
+ *
+ * PostgREST caps a response at max_rows (1000 by default) and returns NO error
+ * when it truncates, so an unpaginated read is indistinguishable from a
+ * complete one that happens to be short. Anything that must see all of its rows
+ * -- a roster, a resume check -- has to page deliberately.
+ */
+async function readAllPages<T>(
+  what: string,
+  page: (from: number, to: number) => PromiseLike<{
+    data: T[] | null;
+    error: { message: string } | null;
+  }>,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let n = 0; n < MAX_PAGES; n++) {
+    const from = n * PAGE_SIZE;
+    const { data, error } = await page(from, from + PAGE_SIZE - 1);
+    if (error) throw new Error(`Could not read ${what}: ${error.message}`);
+    rows.push(...((data ?? []) as T[]));
+    // A short page is the last page.
+    if (!data || data.length < PAGE_SIZE) return rows;
+  }
+  throw new Error(`Could not read every ${what}.`);
+}
 
 /**
  * Resolve the caller and assert they may issue for this event.
@@ -126,12 +168,12 @@ async function requireOwnedTemplate(
 
   if (!template) throw new Error("Template not found");
 
-  const eventId = (template.event_id as string | null) ?? null;
-  // The creator may always edit their own template; otherwise fall back to
-  // event ownership, then to maintainer.
-  if ((template.created_by as string | null) !== profileId) {
-    await assertTemplateScope(profileId, role, eventId);
-  }
+  // Deliberately NOT short-circuited on creator. It used to be, which meant a
+  // maintainer could promote an organizer's template to organisation scope and
+  // the original organizer could then delete it -- extending one organizer's
+  // authority over artwork that every unrelated event's PDFs inherit. Scope is
+  // what governs, not authorship.
+  await assertTemplateScope(profileId, role, (template.event_id as string | null) ?? null);
 
   return { template: template as Record<string, unknown>, profileId, role };
 }
@@ -171,8 +213,8 @@ export type SaveTemplateInput = {
 export async function saveTemplate(input: SaveTemplateInput) {
   const supabase = createServiceClient();
 
-  // Editing an existing template is authorized against the template's own
-  // event, not against whatever eventId the payload claims.
+  // Editing in place: authorized against the template's OWN event, so the
+  // payload cannot re-scope someone else's template to ours or to global.
   if (input.id) {
     await requireOwnedTemplate(input.id);
   }
@@ -457,16 +499,29 @@ export async function sendCertificateEmails(
     throw new Error("A domain is required, for example butwalhacks.com");
   }
 
-  const { data: certs } = await supabase
-    .from("certificates")
-    .select("id, profile:profiles!inner(id, full_name, email, bh_id)")
-    .eq("event_id", eventId);
+  const certs = await readAllPages<Record<string, unknown>>("certificates", (from, to) =>
+    supabase
+      .from("certificates")
+      .select("id, status, profile:profiles!inner(id, full_name, email, bh_id)")
+      .eq("event_id", eventId)
+      .range(from, to),
+  );
 
-  const roster = ((certs ?? []) as Array<Record<string, unknown>>)
+  const roster = certs
     .map((c) => {
       const profile = c.profile as { full_name?: string; email?: string; bh_id?: string } | null;
-      return { certificateId: c.id as string, name: profile?.full_name ?? "", email: profile?.email ?? "" };
+      return {
+        certificateId: c.id as string,
+        name: profile?.full_name ?? "",
+        email: profile?.email ?? "",
+        status: (c.status as string | null) ?? null,
+      };
     })
+    // ── C1: never email a withdrawn credential. The PDF route and
+    // certificate-view both gate on this; the sender did not, so a revoked
+    // certificate got "Your certificate is ready" linking to a page that says
+    // it is revoked.
+    .filter((r) => isCertificateActive(r.status))
     .filter((r) => Boolean(r.email));
 
   const { matched } = filterByDomain(roster, domain, { subdomains: options.subdomains !== false });
@@ -480,14 +535,19 @@ export async function sendCertificateEmails(
     throw new Error(`No certificate recipient uses ${domain}. Check the spelling.`);
   }
 
+  // Scoped to the candidate ids and chunked. Reading every sent row for the
+  // event was doubly wrong: it truncated at 1000 rows, so a resumed send after
+  // 1000 emails saw an incomplete alreadySent set and mailed people twice.
   const alreadySent = new Set<string>();
-  if (unique.length > 0) {
-    const { data: sent } = await supabase
+  for (let i = 0; i < unique.length; i += CHUNK_SIZE) {
+    const ids = unique.slice(i, i + CHUNK_SIZE).map((r) => r.certificateId);
+    const { data: sent, error } = await supabase
       .from("certificate_deliveries")
       .select("certificate_id")
-      .eq("event_id", eventId)
+      .in("certificate_id", ids)
       .eq("channel", "email")
       .eq("status", "sent");
+    if (error) throw new Error(`Could not read delivery history: ${error.message}`);
     for (const row of sent ?? []) alreadySent.add(row.certificate_id as string);
   }
 

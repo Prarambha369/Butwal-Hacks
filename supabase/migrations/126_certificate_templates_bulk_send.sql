@@ -93,15 +93,49 @@ COMMENT ON TABLE public.certificate_templates IS
 -- exists to fix. Verified against Postgres 16: a duplicate key aborts the
 -- CREATE UNIQUE INDEX, it does not warn.
 --
--- Keep the earliest row: it is the one the original issuance created, so its
--- issue_date is the real one.
-DELETE FROM public.certificates a
-USING public.certificates b
-WHERE a.id > b.id
-  AND a.event_id IS NOT NULL
-  AND a.profile_id IS NOT NULL
-  AND a.event_id = b.event_id
-  AND a.profile_id = b.profile_id;
+-- Survivor selection, in order:
+--
+--   1. Revocation wins. If any sibling in the group was withdrawn, the kept
+--      row is one of the withdrawn ones. Collapsing on issue_date alone could
+--      keep an 'issued' sibling and delete the 'revoked' one, which does not
+--      merge two records of the same credential -- it reinstates a credential
+--      somebody deliberately withdrew, and the next scan of the event would
+--      mail it again. A dedupe must never widen what is issuable.
+--   2. Then earliest issue_date, which is the original issuance and so the
+--      authoritative one.
+--   3. created_at and id last, purely so the choice is total and the migration
+--      is reproducible.
+--
+-- The earlier draft of this file ordered on `id`, and its comment claimed it
+-- kept the earliest row. `id` is a random UUID, so that comment described
+-- intent the code did not implement: it kept an arbitrary row. Ordering by id
+-- was only safe while the table was empty, which is not a property a migration
+-- can rely on.
+--
+-- The revocation set mirrors REVOKED_STATUSES in lib/verify/resolve.ts rather
+-- than the certificates_status_check constraint. The constraint is NOT VALID
+-- (added later in this file, to avoid failing the deploy on pre-existing rows)
+-- and so does not bound what is already stored; the application's notion of
+-- "withdrawn" is the one that decides whether a certificate may be mailed.
+WITH ranked AS (
+  SELECT
+    id,
+    row_number() OVER (
+      PARTITION BY event_id, profile_id
+      ORDER BY
+        (lower(btrim(status)) IN ('revoked', 'void', 'cancelled', 'canceled')) DESC,
+        issue_date ASC,
+        created_at ASC,
+        id ASC
+    ) AS rn
+  FROM public.certificates
+  WHERE event_id IS NOT NULL
+    AND profile_id IS NOT NULL
+)
+DELETE FROM public.certificates c
+USING ranked r
+WHERE c.id = r.id
+  AND r.rn > 1;
 
 -- Stop closeEvent() double-issuing. See the note at the top of this file.
 -- Plain unique index, not partial -- see the ON CONFLICT note above.
