@@ -59,7 +59,12 @@ export function DashboardTopbar({
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface/95 px-4 backdrop-blur",
+        // Opaque, not translucent. PRODUCT.md rules out backdrop-blur and
+        // glass effects outright, and a 95%-opaque bar over scrolling content
+        // is the same effect wearing a disguise: content reads through it as a
+        // smear. A solid surface with a 1px bottom border is the Kloner.app
+        // answer and it also survives forced-colors mode.
+        "sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4",
         className,
       )}
     >
