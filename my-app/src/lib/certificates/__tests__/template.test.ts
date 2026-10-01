@@ -4,6 +4,7 @@ import {
   standardFontKey,
   BUILTIN_TOKENS,
   defaultFields,
+  FONT_FAMILIES,
   isLatinEncodable,
   normaliseField,
   normaliseTemplate,
@@ -162,8 +163,10 @@ describe("defaultFields", () => {
   });
 
   it("only names font families the renderer can embed", () => {
+    // FONT_FAMILIES, not a literal copy: the editor's <select> is built from it,
+    // so a test with its own list would pass while the two drifted apart.
     for (const field of defaultFields()) {
-      expect(["Helvetica", "Times-Roman", "Courier"]).toContain(field.fontFamily);
+      expect(FONT_FAMILIES as readonly string[]).toContain(field.fontFamily);
     }
   });
 

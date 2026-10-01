@@ -55,7 +55,11 @@ export interface CertificateTemplate {
 }
 
 export const DEFAULT_FONT = "Helvetica";
-export const BOLD_FONT = "Helvetica-Bold";
+// There is deliberately no BOLD_FONT constant. It used to be "Helvetica-Bold",
+// which is not a pdf-lib font key (those have no hyphen), so normaliseField
+// silently coerced it back to Helvetica and dropped the emphasis. Boldness is
+// the `bold` flag; re-adding a font-name shortcut would reintroduce the same
+// quiet failure.
 
 /** A blank template carries exactly the fields a certificate cannot omit. */
 export function defaultFields(): TemplateField[] {
@@ -66,7 +70,7 @@ export function defaultFields(): TemplateField[] {
       label: "Recipient name",
       x: 0.5,
       y: 0.42,
-width: 0.7,
+        width: 0.7,
         fontSize: 0.042,
         fontFamily: DEFAULT_FONT,
         // bold: true, NOT fontFamily: BOLD_FONT. "Helvetica-Bold" is not in

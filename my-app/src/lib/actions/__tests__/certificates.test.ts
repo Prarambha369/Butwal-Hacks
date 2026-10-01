@@ -31,17 +31,57 @@ let certificates: Row[] = [];
 let deliveries: Row[] = [];
 let templates: Row[] = [];
 let templatesUpserted: unknown[] = [];
+/** Set by a test to make the next query fail, so error paths are reachable. */
+let forcedError: { message: string } | null = null;
+/** Fail only the paged read, leaving the count query healthy. */
+let failOnlyPages = false;
+/** Override the exact count, to model a result set that does not reconcile. */
+let shortByCount: number | null = null;
 
 /** PostgREST's default max_rows. Exceeding it truncates silently, no error. */
 const POSTGREST_MAX_ROWS = 1000;
 
 function chain(rows: Row[] | null) {
 const q: Record<string, unknown> = {};
-    for (const m of ["select", "insert", "update", "delete", "upsert", "eq", "order", "limit", "is"]) {
+    for (const m of ["insert", "update", "upsert", "order", "limit", "is"]) {
       q[m] = vi.fn(() => q);
     }
-    q.single = vi.fn(async () => ({ data: rows?.[0] ?? null, error: null }));
-    q.maybeSingle = vi.fn(async () => ({ data: rows?.[0] ?? null, error: null }));
+    // `count` is only returned when the query asked for it. PostgREST gives
+    // `count: null` otherwise, and always returning a number meant the
+    // deleteTemplate not-found guard could be deleted with no test failing.
+    let inFilter: { column: string; values: unknown[] } | null = null;
+    const eqFilters: Array<{ column: string; value: unknown }> = [];
+    let askedCount = false;
+    let headOnly = false;
+    q.select = vi.fn((_cols?: string, opts?: { count?: string; head?: boolean }) => {
+      if (opts?.count === "exact") askedCount = true;
+      if (opts?.head) headOnly = true;
+      return q;
+    });
+    q.delete = vi.fn((opts?: { count?: string }) => {
+      if (opts?.count === "exact") askedCount = true;
+      return q;
+    });
+    const applyFilters = (input: Row[]): Row[] => {
+      let out = input;
+      if (inFilter) {
+        const wanted = new Set(inFilter.values.map(String));
+        out = out.filter((r) => wanted.has(String(r[inFilter!.column])));
+      }
+      for (const { column, value } of eqFilters) {
+        if (value === undefined) continue;
+        out = out.filter((r) => String(r[column] ?? "") === String(value));
+      }
+      return out;
+    };
+    // single/maybeSingle honour the filters too. Returning rows[0] regardless
+    // meant "resolve the caller by the wrong auth0 id" passed every test, because
+    // the mock answered a different question than the one the code asked.
+    q.single = vi.fn(async () => ({ data: applyFilters(rows ?? [])[0] ?? null, error: null }));
+    q.maybeSingle = vi.fn(async () => ({
+      data: applyFilters(rows ?? [])[0] ?? null,
+      error: null,
+    }));
     // `range` has to actually slice, because the send path pages on it. A stub
     // that ignored it returned the entire result set on every iteration, so a
     // fixture larger than PAGE_SIZE made the pagination loop spin forever and
@@ -57,9 +97,18 @@ let from = 0;
       // `.in()` has to filter too. Modelling it as a no-op made a delivery
       // lookup scoped to 200 candidate ids return all 1100 sent rows, which is
       // the opposite of what the scoping is for.
-      let inFilter: { column: string; values: unknown[] } | null = null;
       q.in = vi.fn((column: string, values: unknown[]) => {
         inFilter = { column, values };
+        return q;
+      });
+      // `.eq()` filters too. As a no-op it left all 13 call sites in
+      // certificates.ts inert, and five wrong-authorization mutations passed
+      // the whole suite: dropping `.eq("event_id")` from the roster read, dropping
+      // the channel/status filters from the delivery lookup, reading the caller
+      // by the wrong auth0 id, and skipping `count:"exact"` on the delete. A
+      // mock that cannot express the query cannot catch a query that is wrong.
+      q.eq = vi.fn((column: string, value: unknown) => {
+        eqFilters.push({ column, value });
         return q;
       });
     // PostgREST returns `count` alongside `data` when count:"exact" is asked
@@ -71,13 +120,25 @@ let from = 0;
     // full result set for an unpaged query made the pagination test pass
     // against unpaginated code -- a green test guarding nothing.
     q.then = (fn: (v: unknown) => unknown) => {
-      let all = rows ?? [];
-      if (inFilter) {
-        const wanted = new Set(inFilter.values.map(String));
-        all = all.filter((r) => wanted.has(String(r[inFilter!.column])));
-      }
-      const page = to === null ? all.slice(0, POSTGREST_MAX_ROWS) : all.slice(from, to + 1);
-      return Promise.resolve(fn({ data: page, error: null, count: all.length }));
+      const all = applyFilters(rows ?? []);
+      // Ranged reads are clamped too. PostgREST caps EVERY response at
+      // max_rows, not only unpaged ones, so a mock that only clamps the unpaged
+      // branch is more forgiving exactly where the paging bug lives.
+      const page =
+        to === null
+          ? all.slice(0, POSTGREST_MAX_ROWS)
+          : all.slice(from, Math.min(to + 1, from + POSTGREST_MAX_ROWS));
+      // PostgREST returns count:null unless the query asked for count:"exact".
+      // Always returning a number meant the deleteTemplate guard could be
+      // removed and no test noticed.
+      const isCountQuery = askedCount && to === null && headOnly;
+      const error = forcedError && (failOnlyPages ? !isCountQuery : true) ? forcedError : null;
+      const count = isCountQuery
+        ? (shortByCount ?? all.length)
+        : askedCount
+          ? all.length
+          : null;
+      return Promise.resolve(fn({ data: page, error, count }));
     };
     return q;
 }
@@ -114,10 +175,13 @@ vi.mock("@/utils/supabase", () => ({
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-const ORGANIZER = { id: "org-1", role: "organizer" };
-const MAINTAINER = { id: "mnt-1", role: "maintainer" };
-const HACKER = { id: "hack-1", role: "hacker" };
-const LEAD = { id: "lead-1", role: "lead" };
+// auth0_user_id is on a real profiles row and is how every action resolves the
+// caller. It is here because the mock now honours `.eq()`, so a fixture without
+// it is not the row the code asked for.
+const ORGANIZER = { id: "org-1", auth0_user_id: "auth0|org-1", role: "organizer" };
+const MAINTAINER = { id: "mnt-1", auth0_user_id: "auth0|mnt-1", role: "maintainer" };
+const HACKER = { id: "hack-1", auth0_user_id: "auth0|hack-1", role: "hacker" };
+const LEAD = { id: "lead-1", auth0_user_id: "auth0|lead-1", role: "lead" };
 const EVENT = { id: "evt-1", organizer_id: "org-1" };
 
 function signedInAs(profile: Row | null) {
@@ -139,6 +203,9 @@ beforeEach(() => {
   deliveries = [];
   templates = [];
   templatesUpserted = [];
+    forcedError = null;
+    failOnlyPages = false;
+    shortByCount = null;
   mockAuth0.getSession.mockResolvedValue(null);
 });
 
@@ -321,10 +388,89 @@ describe("template management authorization", () => {
   });
 });
 
+// ── Query scoping: the mock now honours .eq(), so these can be proven ─────────
+describe("query scoping", () => {
+  const certRow = (id: string, eventId: string, email: string) => ({
+    id,
+    event_id: eventId,
+    status: "issued",
+    profile: { id: `p-${id}`, full_name: `N ${id}`, email, bh_id: null },
+  });
+
+  it("never mails a certificate belonging to another event", async () => {
+    const { sendCertificateEmail } = await import("@/lib/certificates/email");
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    certificates = [
+      certRow("mine", "evt-1", "mine@butwalhacks.com"),
+      // Another organizer's event. Event ids are public and the roster read is
+      // the only thing keeping this caller's send inside their own event.
+      certRow("theirs", "evt-2", "theirs@butwalhacks.com"),
+    ];
+    const { sendCertificateEmails } = await loadActions();
+
+    const summary = await sendCertificateEmails("evt-1", { domain: "butwalhacks.com" });
+
+    expect(summary.sent).toBe(1);
+    const addressed = (
+      sendCertificateEmail as unknown as { mock: { calls: Array<[{ to: string }]> } }
+    ).mock.calls.map((c) => c[0].to);
+    expect(addressed).toEqual(["mine@butwalhacks.com"]);
+  });
+
+  it("surfaces a roster count failure instead of reporting no recipients", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    certificates = [certRow("c1", "evt-1", "a@butwalhacks.com")];
+    forcedError = { message: "connection reset" };
+    const { sendCertificateEmails } = await loadActions();
+
+    // Unchecked, this surfaced as "No certificate recipient uses
+    // butwalhacks.com" -- an actionable-looking message for an infrastructure
+    // failure, sending the organizer off to check their own domain spelling.
+    await expect(
+      sendCertificateEmails("evt-1", { domain: "butwalhacks.com" }),
+    ).rejects.toThrow(/Could not count certificates: connection reset/);
+  });
+
+  it("surfaces a roster page failure rather than returning a partial roster", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    certificates = [certRow("c1", "evt-1", "a@butwalhacks.com")];
+    // Fail only the paged read, not the count, so the two paths stay distinct.
+    forcedError = { message: "page failure" };
+    failOnlyPages = true;
+    const { sendCertificateEmails } = await loadActions();
+
+    await expect(
+      sendCertificateEmails("evt-1", { domain: "butwalhacks.com" }),
+    ).rejects.toThrow(/Could not read certificates: page failure/);
+  });
+
+  it("refuses to send when the pages did not cover the whole roster", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    // Count claims four rows; the page returns one. Silently mailing the one
+    // is the failure mode this guards, so it has to throw instead.
+    certificates = [certRow("c1", "evt-1", "a@butwalhacks.com")];
+    shortByCount = 4;
+    const { sendCertificateEmails } = await loadActions();
+
+    await expect(
+      sendCertificateEmails("evt-1", { domain: "butwalhacks.com" }),
+    ).rejects.toThrow(/Could not read all 4 certificates/);
+  });
+});
+
 // ── Bulk send correctness: the bugs review actually found ──────────────────────
 describe("bulk send roster correctness", () => {
   const certFor = (id: string, email: string, status?: string) => ({
     id,
+    event_id: "evt-1",
     status: status ?? null,
     profile: { id: `p-${id}`, full_name: `N ${id}`, email, bh_id: null },
   });
@@ -346,19 +492,19 @@ describe("bulk send roster correctness", () => {
 
     const summary = await sendCertificateEmails("evt-1", {
       domain: "butwalhacks.com",
-      dryRun: true,
     });
 
     // The PDF route and the verification page both gate on revocation. The
     // sender did not, so a withdrawn credential got "Your certificate is
     // ready" pointing at a page announcing it had been revoked.
-    // A dry run reports `candidates`, not `sent`.
-    expect(summary.candidates).toBe(1);
-    const addressed = JSON.stringify(
-      (sendCertificateEmail as unknown as { mock: { calls: unknown[][] } }).mock.calls,
-    );
-    expect(addressed).not.toContain("revoked@butwalhacks.com");
-    expect(addressed).not.toContain("voided@butwalhacks.com");
+    //
+    // A real send, not a dry run: on a dry run sendCertificateEmail is never
+    // called, so asserting its arguments proved nothing.
+    expect(summary.sent).toBe(1);
+    const addressed = (
+      sendCertificateEmail as unknown as { mock: { calls: Array<[{ to: string }]> } }
+    ).mock.calls.map((c) => c[0].to);
+    expect(addressed).toEqual(["ok@butwalhacks.com"]);
   });
 
   it("reads certificates past PostgREST's 1000-row ceiling", async () => {
@@ -450,6 +596,8 @@ describe("template ownership", () => {
 describe("bulk send guards", () => {
   const certsFor = (emails: string[]) => ({
     id: "c1",
+    event_id: "evt-1",
+    status: "issued",
     profile: { id: "p1", full_name: "A", email: emails[0], bh_id: "bh-1" },
   });
 
@@ -472,6 +620,8 @@ describe("bulk send guards", () => {
     // 501 recipients, all distinct, all under the domain.
     certificates = Array.from({ length: 501 }, (_, i) => ({
       id: `c${i}`,
+      event_id: "evt-1",
+      status: "issued",
       profile: { id: `p${i}`, full_name: `P${i}`, email: `p${i}@butwalhacks.com`, bh_id: null },
     }));
     const { sendCertificateEmails } = await loadActions();

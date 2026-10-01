@@ -106,6 +106,15 @@ COMMENT ON TABLE public.certificate_templates IS
 --   3. created_at and id last, purely so the choice is total and the migration
 --      is reproducible.
 --
+-- The revocation test is coalesced, and that is load-bearing rather than
+-- defensive tidiness. `lower(btrim(NULL)) IN (...)` evaluates to NULL, not
+-- FALSE, and Postgres sorts NULLS FIRST under DESC by default -- so a
+-- NULL-status row would outrank a genuinely revoked sibling, take rn = 1, and
+-- the revoked row would be the one deleted. That is precisely the un-revoking
+-- this ordering exists to prevent. Verified on Postgres 16: with rows
+-- (NULL, 2024-01-01) and (revoked, 2024-06-01), the uncoalesced form keeps the
+-- NULL row; the coalesced form keeps the revoked one.
+--
 -- The earlier draft of this file ordered on `id`, and its comment claimed it
 -- kept the earliest row. `id` is a random UUID, so that comment described
 -- intent the code did not implement: it kept an arbitrary row. Ordering by id
@@ -123,7 +132,7 @@ WITH ranked AS (
     row_number() OVER (
       PARTITION BY event_id, profile_id
       ORDER BY
-        (lower(btrim(status)) IN ('revoked', 'void', 'cancelled', 'canceled')) DESC,
+        (coalesce(lower(btrim(status)), '') IN ('revoked', 'void', 'cancelled', 'canceled')) DESC,
         issue_date ASC,
         created_at ASC,
         id ASC

@@ -60,20 +60,35 @@ export type RenderOptions = {
    * through moved the failure from "prints ?" to "throws from inside pdf-lib",
    * because the text-measurement call is not inside a try/catch.
    */
-  function sanitiseForStandardFonts(text: string): { text: string; replaced: boolean } {
-    if (isLatinEncodable(text)) return { text, replaced: false };
-    let replaced = false;
+  function sanitiseForStandardFonts(text: string): {
+    text: string;
+    replaced: boolean;
+    replacedCount: number;
+  } {
+    if (isLatinEncodable(text)) return { text, replaced: false, replacedCount: 0 };
+    let replacedCount = 0;
     let out = "";
     for (const ch of text) {
       if (isWinAnsi(ch.codePointAt(0)!)) {
         out += ch;
       } else {
         out += "?";
-        replaced = true;
+        replacedCount++;
       }
     }
-    return { text: out, replaced };
+    return { text: out, replaced: replacedCount > 0, replacedCount };
   }
+
+/**
+ * Bound an organizer-supplied template field label before it is interpolated
+ * into a warning that reaches the log. The label is free text on the template,
+ * so without this an organizer could put newlines and arbitrary content into
+ * log records. Not recipient data, but log records should not be forgeable.
+ */
+function safeLabel(label: string): string {
+  const flat = label.replace(/[\r\n\t]+/g, " ").trim();
+  return flat.length > 60 ? `${flat.slice(0, 60)}...` : flat;
+}
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const clean = hex.replace("#", "");
@@ -230,15 +245,23 @@ export async function renderCertificate(options: RenderOptions): Promise<RenderR
   for (const field of tpl.fields) {
     const raw = resolveFieldValue(field, values);
     if (!raw) {
-      warnings.push(`field "${field.label}" has no value and was skipped`);
+      warnings.push(`field "${safeLabel(field.label)}" has no value and was skipped`);
       continue;
     }
-    const { text, replaced } = sanitiseForStandardFonts(raw);
-    if (replaced) {
-      warnings.push(
-        `field "${field.label}" contains characters the PDF fonts cannot render (for example "${raw}") and was printed with "?" in their place`,
-      );
-    }
+const { text, replaced, replacedCount } = sanitiseForStandardFonts(raw);
+      if (replaced) {
+        // The count, never the value. This warning reaches
+        // logger.warn("certificate.pdf.warnings") on the UNAUTHENTICATED PDF
+        // route, and the value is the recipient's own field content -- their
+        // full name, in the case that actually fires. Devanagari is not
+        // WinAnsi-encodable, so every Nepali-named participant trips this, and
+        // the certificate id sits in the same log record, so it is directly
+        // re-identifying. A count is enough to diagnose a font problem; the
+        // text is not needed and does not belong in a log.
+        warnings.push(
+          `field "${safeLabel(field.label)}" contains ${replacedCount} character(s) the PDF fonts cannot render, printed with "?" in their place`,
+        );
+      }
 
     const font = await fontFor(field);
     const fontSize = Math.max(4, field.fontSize * tpl.pageWidth * PX_TO_PT);

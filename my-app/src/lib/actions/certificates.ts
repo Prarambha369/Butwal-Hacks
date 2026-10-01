@@ -34,45 +34,75 @@ const ISSUER_ROLES = new Set(["organizer", "maintainer"]);
  */
 const SEND_BATCH_LIMIT = 500;
 
-/** Rows per paginated read. PostgREST's default max_rows is 1000. */
+/**
+ * Rows per paginated read.
+ *
+ * Deliberately half of PostgREST's default max_rows (1000). If the server is
+ * configured lower, `readAllPages` will notice via the exact count rather than
+ * quietly returning a short page and calling the roster complete.
+ */
 const PAGE_SIZE = 500;
 
-/**
- * Hard stop on pagination. Every page coming back full means there may be more,
- * and 10k rows for one event is not a real event -- it means the page size and
- * the server's max_rows disagree. Failing loudly beats sending to a subset and
- * reporting it as complete.
- */
-const MAX_PAGES = 20;
+/** Upper bound on pages, so a bug cannot spin here indefinitely. */
+const MAX_PAGES = 24;
 
-/** Ids per `in()` filter; keeps the request URL well inside PostgREST's limits. */
-const CHUNK_SIZE = 200;
+/** Ids per `in()` filter. 100 UUIDs keeps the request line near 4 KB, well
+ * inside the ~8 KB that nginx and PostgREST will accept before a 414. At 200
+ * the measured URL was 96.7% of the limit, one column rename from breaking. */
+const CHUNK_SIZE = 100;
 
 /**
- * Read every row a query matches, one bounded page at a time.
+ * Read every row a query matches, one bounded page at a time, and prove the
+ * pages covered the whole result set.
  *
- * PostgREST caps a response at max_rows (1000 by default) and returns NO error
- * when it truncates, so an unpaginated read is indistinguishable from a
- * complete one that happens to be short. Anything that must see all of its rows
- * -- a roster, a resume check -- has to page deliberately.
+ * Two PostgREST behaviours make an unpaginated read unsafe for anything that
+ * must see all of its rows:
+ *
+ *  1. It caps a response at max_rows (1000 by default) and returns NO error
+ *     when it truncates, so a short result is indistinguishable from a
+ *     complete one.
+ *  2. LIMIT/OFFSET paging without a total ORDER BY has no defined row order,
+ *     so page 2 can repeat a row from page 1 and omit another entirely -- and
+ *     a short page is the only end-of-data signal, so the omission is silent.
+ *
+ * So: order by a unique column, and compare what came back against an exact
+ * count. A mismatch throws instead of quietly sending to a subset.
  */
 async function readAllPages<T>(
   what: string,
+  count: () => PromiseLike<{ count: number | null; error: { message: string } | null }>,
   page: (from: number, to: number) => PromiseLike<{
     data: T[] | null;
     error: { message: string } | null;
   }>,
 ): Promise<T[]> {
+  const total = await count();
+  if (total.error) throw new Error(`Could not count ${what}: ${total.error.message}`);
+  const expected = total.count ?? 0;
+  if (expected === 0) return [];
+
   const rows: T[] = [];
   for (let n = 0; n < MAX_PAGES; n++) {
     const from = n * PAGE_SIZE;
     const { data, error } = await page(from, from + PAGE_SIZE - 1);
     if (error) throw new Error(`Could not read ${what}: ${error.message}`);
     rows.push(...((data ?? []) as T[]));
-    // A short page is the last page.
-    if (!data || data.length < PAGE_SIZE) return rows;
+    if (rows.length >= expected) break;
+    // A short page before the count is reached means the server capped us
+    // below PAGE_SIZE, or the row set moved under us. Either way we do not have
+    // the whole set, and pretending otherwise is the bug this function exists
+    // to prevent.
+    if (!data || data.length === 0) {
+      throw new Error(
+        `Could not read all ${expected} ${what}: the server returned only ${rows.length}.`,
+      );
+    }
   }
-  throw new Error(`Could not read every ${what}.`);
+
+  if (rows.length < expected) {
+    throw new Error(`Could not read all ${expected} ${what}: got ${rows.length}.`);
+  }
+  return rows;
 }
 
 /**
@@ -472,7 +502,11 @@ export type SendSummary = {
   domain: string;
   subdomains: boolean;
   dryRun: boolean;
-  /** Candidates under the filter, before dedupe. */
+  /**
+   * Recipients under the domain filter, after deduplication and after dropping
+   * certificates that are not currently issuable. "Mailable candidates": the
+   * count a send would act on, not the raw number of matching rows.
+   */
   candidates: number;
   sent: number;
   failed: number;
@@ -499,12 +533,24 @@ export async function sendCertificateEmails(
     throw new Error("A domain is required, for example butwalhacks.com");
   }
 
-  const certs = await readAllPages<Record<string, unknown>>("certificates", (from, to) =>
-    supabase
-      .from("certificates")
-      .select("id, status, profile:profiles!inner(id, full_name, email, bh_id)")
-      .eq("event_id", eventId)
-      .range(from, to),
+  const certs = await readAllPages<Record<string, unknown>>(
+    "certificates",
+    () =>
+      supabase
+        .from("certificates")
+        .select("id", { count: "exact", head: true })
+        .eq("event_id", eventId),
+(from, to) =>
+        supabase
+          .from("certificates")
+          .select("id, status, profile:profiles!inner(id, full_name, email, bh_id)")
+          .eq("event_id", eventId)
+          // Unique column, and before the range: LIMIT/OFFSET paging without a
+          // total order can repeat a row from one page and omit another from
+          // the next, and a short page is the only end-of-data signal, so the
+          // omission would be silent.
+          .order("id", { ascending: true })
+          .range(from, to),
   );
 
   const roster = certs

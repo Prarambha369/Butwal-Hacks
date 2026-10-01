@@ -80,7 +80,16 @@ describe("renderCertificate", () => {
     expect(drawn.name).toContain("?");
     expect(drawn.name).not.toContain("श");
     expect(warnings.join(" ")).toMatch(/cannot render/);
-    expect(warnings.join(" ")).toContain("आशा शर्मा");
+    // The warning must NOT carry the recipient's text. It reaches
+    // logger.warn on the unauthenticated PDF route alongside the certificate
+    // id, and every Nepali-named participant trips this path, so the name in
+    // the log is both routine and directly re-identifying. The count is what a
+    // developer needs to diagnose a font problem.
+    expect(warnings.join(" ")).not.toContain("आशा");
+    expect(warnings.join(" ")).not.toContain("शर्मा");
+    expect(warnings.join(" ")).toMatch(/contains \d+ character\(s\)/);
+    // Devanagari is 7 code points once you count the space: आ श ा   श र ् म ा
+    expect(warnings.join(" ")).toMatch(/contains 8 character\(s\)/);
   });
 
   it("renders Latin-1 accents unchanged", async () => {
