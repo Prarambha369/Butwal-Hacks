@@ -1,6 +1,6 @@
 import type { VerifiedCertificate } from "@/lib/verify/resolve";
 import { isCertificateActive } from "@/lib/verify/resolve";
-import { ShieldCheck, XCircle, UserCheck, Award, CalendarDays } from "lucide-react";
+import { ShieldCheck, XCircle, UserCheck, Award, CalendarDays, Download } from "lucide-react";
 import Link from "next/link";
 import { formatDualDate } from "@/lib/nepali-date";
 
@@ -39,6 +39,28 @@ export function CertificateView({ certificate }: { certificate: VerifiedCertific
             Certificate of Participation
           </h1>
           {eventTitle && <p className="text-text-body max-w-md mx-auto">{eventTitle}</p>}
+
+          {/* Only offered while the certificate is live. The PDF route 410s a
+              revoked certificate, but not offering the button is clearer than
+              offering one that fails. */}
+          {active && (
+            <p className="pt-2">
+              <a
+                href={`/api/certificates/${certificate.id}/pdf`}
+                // The route serves Content-Disposition: inline so the PDF can be
+                // read and printed in place, which means the browser navigates
+                // the current tab into its viewer. New tab keeps the
+                // verification page -- the thing being verified -- in reach.
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              >
+                <Download size={16} aria-hidden="true" />
+                View or print certificate
+                <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            </p>
+          )}
         </div>
 
         <div
