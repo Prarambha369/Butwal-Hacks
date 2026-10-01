@@ -10,7 +10,9 @@ const DashboardNavProvider = NextDynamic(() =>
   import("@/components/dashboard-nav-provider").then((m) => m.DashboardNavProvider),
 );
 
-const DashboardSidebar = NextDynamic(() => import("@/components/dashboard-sidebar"));
+const DashboardShell = NextDynamic(() =>
+  import("@/components/dashboard/shell/dashboard-shell").then((m) => ({ default: m.DashboardShell })),
+);
 import {
   LayoutDashboard,
   CalendarDays,
@@ -76,17 +78,10 @@ export default async function OrganizerDashboardLayout({
   const slugId = profile?.slug_id ?? userId.slice(0, 8).toUpperCase();
 
   return (
-    <div className="flex min-h-dvh bg-background">
-      <DashboardSidebar
-        role="organizer"
-        slugId={slugId}
-        links={organizerLinks}
-      />
-      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto min-h-dvh flex flex-col pb-20 md:pb-0">
-        <DashboardNavProvider links={organizerLinks}>
-          {children}
-        </DashboardNavProvider>
-      </main>
-    </div>
+    <DashboardNavProvider links={organizerLinks}>
+      <DashboardShell role="organizer" slugId={slugId} links={organizerLinks}>
+        {children}
+      </DashboardShell>
+    </DashboardNavProvider>
   );
 } // ponytail: Auth0 session drives layout protection (replaced Supabase Auth).
