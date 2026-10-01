@@ -86,7 +86,12 @@ export type RenderOptions = {
  * log records. Not recipient data, but log records should not be forgeable.
  */
 function safeLabel(label: string): string {
-  const flat = label.replace(/[\r\n\t]+/g, " ").trim();
+  // Flatten control characters, then drop quotes. A double quote is escaped
+  // for PDF syntax, but WinAnsi cannot encode it and pdf-lib then refuses the
+  // whole font -- so a single quote in an organiser-controlled field label
+  // would fail the render. Labels are boilerplate, so dropping the character
+  // is a smaller loss than failing the certificate.
+  const flat = label.replace(/[\r\n\t]+/g, " ").replace(/["“”]/g, "").trim();
   return flat.length > 60 ? `${flat.slice(0, 60)}...` : flat;
 }
 

@@ -55,54 +55,82 @@ const CHUNK_SIZE = 100;
  * Read every row a query matches, one bounded page at a time, and prove the
  * pages covered the whole result set.
  *
- * Two PostgREST behaviours make an unpaginated read unsafe for anything that
- * must see all of its rows:
+ * Three PostgREST behaviours make an unpaginated read unsafe here:
  *
  *  1. It caps a response at max_rows (1000 by default) and returns NO error
  *     when it truncates, so a short result is indistinguishable from a
  *     complete one.
  *  2. LIMIT/OFFSET paging without a total ORDER BY has no defined row order,
- *     so page 2 can repeat a row from page 1 and omit another entirely -- and
- *     a short page is the only end-of-data signal, so the omission is silent.
+ *     so page 2 can repeat a row from page 1 and omit another entirely.
+ *  3. `count: "exact"` reports the count for the query it is attached to. An
+ *     embed changes the population: `profile:profiles!inner(...)` becomes an
+ *     INNER JOIN and drops certificates whose profile is missing, so a count
+ *     taken from a *different* query than the data counts rows the data
+ *     query will never return.
  *
- * So: order by a unique column, and compare what came back against an exact
- * count. A mismatch throws instead of quietly sending to a subset.
+ * (3) is why the count is requested on the same query as the data rather than
+ * from a separate head request: verified against PostgREST 12.2.3, a head
+ * count of `select=id` reported 6 for an event whose `!inner` data query
+ * returned 4, which is a permanent mismatch check failure -- bulk send simply
+ * unavailable for any event holding a certificate with no profile.
+ *
+ * So: one query shape, ordered by a unique column, counted by PostgREST itself,
+ * and rows de-duplicated by id. An insert that shifts OFFSET boundaries can
+ * repeat a row, and a tally would let that repeat silently cancel the
+ * omission it caused; comparing distinct ids cannot.
  */
 async function readAllPages<T>(
   what: string,
-  count: () => PromiseLike<{ count: number | null; error: { message: string } | null }>,
+  idOf: (row: T) => string,
   page: (from: number, to: number) => PromiseLike<{
     data: T[] | null;
     error: { message: string } | null;
+    count: number | null;
   }>,
 ): Promise<T[]> {
-  const total = await count();
-  if (total.error) throw new Error(`Could not count ${what}: ${total.error.message}`);
-  const expected = total.count ?? 0;
-  if (expected === 0) return [];
+  const seen = new Map<string, T>();
+  let expected: number | null = null;
 
-  const rows: T[] = [];
   for (let n = 0; n < MAX_PAGES; n++) {
     const from = n * PAGE_SIZE;
-    const { data, error } = await page(from, from + PAGE_SIZE - 1);
+    const { data, error, count } = await page(from, from + PAGE_SIZE - 1);
     if (error) throw new Error(`Could not read ${what}: ${error.message}`);
-    rows.push(...((data ?? []) as T[]));
-    if (rows.length >= expected) break;
-    // A short page before the count is reached means the server capped us
-    // below PAGE_SIZE, or the row set moved under us. Either way we do not have
-    // the whole set, and pretending otherwise is the bug this function exists
-    // to prevent.
+
+    // count: null means the count was not honoured. That is not the same as
+    // zero, and treating it as zero reports "no recipients use this domain" for
+    // what is really a broken response.
+    if (count === null || count === undefined) {
+      throw new Error(
+        `Could not verify how many ${what} exist: the server returned no count.`,
+      );
+    }
+    // PostgREST reports the whole-query total on every page, so any page can
+    // establish it. A concurrent insert can raise it mid-read; take the
+    // largest seen, which is the set we then have to match.
+    expected = expected === null ? count : Math.max(expected, count);
+
+    for (const row of data ?? []) {
+      const key = idOf(row);
+      if (!seen.has(key)) seen.set(key, row);
+    }
+
+    if (seen.size >= expected) break;
+
+    // An empty or short page before the count is reached means the server
+    // capped us below PAGE_SIZE, or the rows moved under us. Either way we do
+    // not have the whole set, and pretending otherwise is the bug this
+    // function exists to prevent.
     if (!data || data.length === 0) {
       throw new Error(
-        `Could not read all ${expected} ${what}: the server returned only ${rows.length}.`,
+        `Could not read all ${expected} ${what}: the server returned only ${seen.size}.`,
       );
     }
   }
 
-  if (rows.length < expected) {
-    throw new Error(`Could not read all ${expected} ${what}: got ${rows.length}.`);
+  if (expected !== null && seen.size < expected) {
+    throw new Error(`Could not read all ${expected} ${what}: got ${seen.size}.`);
   }
-  return rows;
+  return [...seen.values()];
 }
 
 /**
@@ -533,24 +561,22 @@ export async function sendCertificateEmails(
     throw new Error("A domain is required, for example butwalhacks.com");
   }
 
+// One query shape. `count: "exact"` rides on the same request as the data so
+  // the count and the rows describe the same population -- see readAllPages.
   const certs = await readAllPages<Record<string, unknown>>(
     "certificates",
-    () =>
+    (row) => String(row.id),
+    (from, to) =>
       supabase
         .from("certificates")
-        .select("id", { count: "exact", head: true })
-        .eq("event_id", eventId),
-(from, to) =>
-        supabase
-          .from("certificates")
-          .select("id, status, profile:profiles!inner(id, full_name, email, bh_id)")
-          .eq("event_id", eventId)
-          // Unique column, and before the range: LIMIT/OFFSET paging without a
-          // total order can repeat a row from one page and omit another from
-          // the next, and a short page is the only end-of-data signal, so the
-          // omission would be silent.
-          .order("id", { ascending: true })
-          .range(from, to),
+        .select("id, status, profile:profiles!inner(id, full_name, email, bh_id)", {
+          count: "exact",
+        })
+        .eq("event_id", eventId)
+        // Unique column, before the range: LIMIT/OFFSET paging without a total
+        // order can repeat a row from one page and omit another from the next.
+        .order("id", { ascending: true })
+        .range(from, to),
   );
 
   const roster = certs

@@ -47,6 +47,29 @@ describe("renderCertificate", () => {
     expect(warnings).toEqual([]);
   });
 
+  it("warns about an empty field without quoting its label", async () => {
+    // The warning interpolates an organiser-controlled field label, and that
+    // string reaches logger.warn on the UNAUTHENTICATED PDF route. A quote in
+    // the label is escaped for PDF syntax but WinAnsi cannot encode it, so
+    // pdf-lib rejects the font and the whole certificate fails to render.
+    // Labels are boilerplate, so dropping the character is the smaller loss.
+    const { bytes, warnings } = await renderCertificate({
+      template: template({
+        fields: [{ key: "name", label: 'Nick"name', type: "text" }],
+      }),
+      values: { ...VALUES, name: "" },
+      verifyUrl: URL,
+    });
+
+    expect(bytes.length).toBeGreaterThan(0);
+    expect(warnings.join(" ")).toMatch(/field/);
+    expect(warnings.join(" ")).toMatch(/skipped/);
+    // The label's own quote is dropped, not escaped. (The quotes around
+    // "Nickname" in the warning come from the warning template itself.)
+    expect(warnings.join(" ")).toContain('field "Nickname" has no value');
+    expect(warnings.join(" ")).not.toContain('Nick"name');
+  });
+
   it("still renders when the background cannot be fetched", async () => {
     // Losing a certificate because Cloudinary had a bad minute is unacceptable.
     const { bytes, warnings } = await renderCertificate({

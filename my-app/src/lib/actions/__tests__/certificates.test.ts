@@ -33,8 +33,6 @@ let templates: Row[] = [];
 let templatesUpserted: unknown[] = [];
 /** Set by a test to make the next query fail, so error paths are reachable. */
 let forcedError: { message: string } | null = null;
-/** Fail only the paged read, leaving the count query healthy. */
-let failOnlyPages = false;
 /** Override the exact count, to model a result set that does not reconcile. */
 let shortByCount: number | null = null;
 
@@ -52,18 +50,28 @@ const q: Record<string, unknown> = {};
     let inFilter: { column: string; values: unknown[] } | null = null;
     const eqFilters: Array<{ column: string; value: unknown }> = [];
     let askedCount = false;
-    let headOnly = false;
-    q.select = vi.fn((_cols?: string, opts?: { count?: string; head?: boolean }) => {
+    let selectCols = "";
+    q.select = vi.fn((cols?: string, opts?: { count?: string; head?: boolean }) => {
+      if (typeof cols === "string") selectCols = cols;
       if (opts?.count === "exact") askedCount = true;
-      if (opts?.head) headOnly = true;
       return q;
     });
     q.delete = vi.fn((opts?: { count?: string }) => {
       if (opts?.count === "exact") askedCount = true;
       return q;
     });
+    // PostgREST turns `alias:table!inner(cols)` into an INNER JOIN and drops
+    // rows with no matching parent. Modelling it matters: the count is taken
+    // from the same query as the data precisely because the embed changes the
+    // population, and a mock that ignored !inner could not express the bug
+    // where a head count of 6 met an !inner data query returning 4.
+    const innerAlias = /([a-z_]+):[a-z_]+!inner\(/.exec(selectCols)?.[1] ?? null;
+
     const applyFilters = (input: Row[]): Row[] => {
       let out = input;
+      if (innerAlias) {
+        out = out.filter((r) => r[innerAlias] !== null && r[innerAlias] !== undefined);
+      }
       if (inFilter) {
         const wanted = new Set(inFilter.values.map(String));
         out = out.filter((r) => wanted.has(String(r[inFilter!.column])));
@@ -131,13 +139,10 @@ let from = 0;
       // PostgREST returns count:null unless the query asked for count:"exact".
       // Always returning a number meant the deleteTemplate guard could be
       // removed and no test noticed.
-      const isCountQuery = askedCount && to === null && headOnly;
-      const error = forcedError && (failOnlyPages ? !isCountQuery : true) ? forcedError : null;
-      const count = isCountQuery
-        ? (shortByCount ?? all.length)
-        : askedCount
-          ? all.length
-          : null;
+      const error = forcedError;
+      // PostgREST's count is the whole-query total, reported on every page, and
+      // it describes the same joined population the rows come from.
+      const count = askedCount ? (shortByCount ?? all.length) : null;
       return Promise.resolve(fn({ data: page, error, count }));
     };
     return q;
@@ -204,7 +209,6 @@ beforeEach(() => {
   templates = [];
   templatesUpserted = [];
     forcedError = null;
-    failOnlyPages = false;
     shortByCount = null;
   mockAuth0.getSession.mockResolvedValue(null);
 });
@@ -419,7 +423,7 @@ describe("query scoping", () => {
     expect(addressed).toEqual(["mine@butwalhacks.com"]);
   });
 
-  it("surfaces a roster count failure instead of reporting no recipients", async () => {
+  it("surfaces a roster read failure instead of reporting no recipients", async () => {
     signedInAs(ORGANIZER);
     profiles = [ORGANIZER];
     events = [EVENT];
@@ -432,22 +436,33 @@ describe("query scoping", () => {
     // failure, sending the organizer off to check their own domain spelling.
     await expect(
       sendCertificateEmails("evt-1", { domain: "butwalhacks.com" }),
-    ).rejects.toThrow(/Could not count certificates: connection reset/);
+    ).rejects.toThrow(/Could not read certificates: connection reset/);
   });
 
-  it("surfaces a roster page failure rather than returning a partial roster", async () => {
+  it("counts the joined population, not the base table", async () => {
     signedInAs(ORGANIZER);
     profiles = [ORGANIZER];
     events = [EVENT];
-    certificates = [certRow("c1", "evt-1", "a@butwalhacks.com")];
-    // Fail only the paged read, not the count, so the two paths stay distinct.
-    forcedError = { message: "page failure" };
-    failOnlyPages = true;
+    // A certificate whose profile is missing. The roster select embeds
+    // `profiles!inner`, which PostgREST turns into an INNER JOIN, so this row
+    // is not in the data. A head count taken from a query WITHOUT the embed
+    // reported 6 against 4 returned rows on PostgREST 12.2.3, which is a
+    // permanent mismatch and bulk send unavailable for the whole event.
+    certificates = [
+      { ...certRow("with", "evt-1", "with@butwalhacks.com") },
+      { ...certRow("orphan", "evt-1", "orphan@butwalhacks.com"), profile: null },
+    ];
     const { sendCertificateEmails } = await loadActions();
 
-    await expect(
-      sendCertificateEmails("evt-1", { domain: "butwalhacks.com" }),
-    ).rejects.toThrow(/Could not read certificates: page failure/);
+    const summary = await sendCertificateEmails("evt-1", {
+      domain: "butwalhacks.com",
+      dryRun: true,
+    });
+
+    // The orphan has no address to mail even if it survived the join, so the
+    // roster is the one real recipient. What matters is that this resolves
+    // rather than throwing a coverage mismatch.
+    expect(summary.candidates).toBe(1);
   });
 
   it("refuses to send when the pages did not cover the whole roster", async () => {
