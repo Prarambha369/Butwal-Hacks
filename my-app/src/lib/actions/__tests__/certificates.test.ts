@@ -66,19 +66,44 @@ const q: Record<string, unknown> = {};
     // rows with no matching parent. Modelling it matters: the count is taken
     // from the same query as the data precisely because the embed changes the
     // population, and a mock that ignored !inner could not express the bug
-    // where a head count of 6 met an !inner data query returning 4.
+    // where a head count of 6 met an !inner data query returned 4.
     //
-    // Read lazily. Computing this while the mock is still being built saw an
-    // empty select string and therefore never matched anything, so the join
-    // filter below was dead code and the regression test for it guarded
-    // nothing.
-    const innerAlias = (): string | null =>
-      /([a-z_]+):[a-z_]+!inner\(/.exec(selectCols)?.[1] ?? null;
+    // Read lazily. Computing this while the mock was still being built saw an
+    // empty select string and so never matched anything: the join filter was
+    // dead code and the regression test for it guarded nothing while looking
+    // exactly like one that did.
+    //
+    // Collects every !inner alias, and tolerates the shapes PostgREST accepts.
+    // The previous `/([a-z_]+):[a-z_]+!inner\(/` required trailing parens and
+    // alpha-only names, so `owner:profiles!inner`, `p2:profiles!inner(id)` and
+    // a second !inner embed in the same select all silently matched nothing --
+    // re-vacuating the guard one layer down.
+    // The alias must start at a token boundary. Without the anchor the regex
+    // matched mid-token and turned `Profile:profiles!inner` into the alias
+    // "rofile" -- a silent mis-filter that dropped every row instead of
+    // tripping the guard below.
+    const innerAliases = (): string[] =>
+      [
+        ...selectCols.matchAll(
+          /(?:^|[,\s])([a-z_][a-z0-9_]*):[a-z_][a-z0-9_]*!inner\b/g,
+        ),
+      ].map((m) => m[1]);
 
     const applyFilters = (input: Row[]): Row[] => {
       let out = input;
-      const alias = innerAlias();
-      if (alias) {
+      const aliases = innerAliases();
+      // Fail loudly rather than silently filtering nothing. A select that
+      // declares an !inner embed this mock cannot parse would otherwise pass
+      // the whole suite while modelling none of the join, which is exactly the
+      // failure this guard exists to prevent.
+      if (/!inner\b/.test(selectCols) && aliases.length === 0) {
+        throw new Error(
+          `mock cannot model the !inner embed in select(${JSON.stringify(selectCols)})`,
+        );
+      }
+      // PostgREST applies each !inner embed as its own join, so any one of them
+      // missing drops the row.
+      for (const alias of aliases) {
         out = out.filter((r) => r[alias] !== null && r[alias] !== undefined);
       }
       if (inFilter) {
@@ -461,6 +486,24 @@ describe("query scoping", () => {
     // recipients. Reading it as zero produced the actionable-looking
     // "No certificate recipient uses butwalhacks.com", sending the organizer
     // to check their own domain spelling for a server misconfiguration.
+    await expect(
+      sendCertificateEmails("evt-1", { domain: "butwalhacks.com" }),
+    ).rejects.toThrow(/server returned no usable count/);
+  });
+
+  it("rejects a non-numeric count instead of silently disabling the check", async () => {
+    signedInAs(ORGANIZER);
+    profiles = [ORGANIZER];
+    events = [EVENT];
+    certificates = [certRow("c1", "evt-1", "a@butwalhacks.com")];
+    // postgrest-js parses the total out of Content-Range with parseInt. Every
+    // comparison against NaN is false, so an uncoalesced NaN would make both
+    // `seen.size >= expected` and `seen.size < expected` false: the coverage
+    // check would be skipped entirely and the caller handed a partial roster
+    // that looked complete.
+    shortByCount = Number.NaN;
+    const { sendCertificateEmails } = await loadActions();
+
     await expect(
       sendCertificateEmails("evt-1", { domain: "butwalhacks.com" }),
     ).rejects.toThrow(/server returned no usable count/);
