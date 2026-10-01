@@ -131,7 +131,16 @@ async function readAllPages<T>(
   }
 
   if (expected !== null && seen.size < expected) {
-    throw new Error(`Could not read all ${expected} ${what}: got ${seen.size}.`);
+    // Distinguish "the pages did not cover the set" from "this event is larger
+    // than bulk send reads". The latter is a capacity limit, and reporting it
+    // as a coverage failure sends an organizer looking for a paging bug that
+    // does not exist.
+    const ceiling = MAX_PAGES * PAGE_SIZE;
+    throw new Error(
+      expected > ceiling
+        ? `This event has ${expected} ${what}, more than bulk send can read in one go (limit ${ceiling}). Narrow the roster by domain or export it from the attendees page instead.`
+        : `Could not read all ${expected} ${what}: got ${seen.size}.`,
+    );
   }
   return [...seen.values()];
 }

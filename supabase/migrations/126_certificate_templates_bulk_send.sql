@@ -1,7 +1,9 @@
 -- 126: certificate templates, bulk issuance, and delivery tracking
 --
 -- Context. `certificates` (055) is a bare FK pair: profile_id, event_id,
--- issue_date, status. There is no public route that resolves one, no way to
+-- issue_date, status -- plus auth0_user_id and created_at, the latter of which
+-- the dedupe below orders on as a tiebreak, so it is load-bearing rather than
+-- incidental. There is no public route that resolves one, no way to
 -- render anything but the hand-rolled text-only PDF, no way to know whether a
 -- certificate was ever delivered, and nothing stopping closeEvent() from
 -- issuing the same certificate twice.
