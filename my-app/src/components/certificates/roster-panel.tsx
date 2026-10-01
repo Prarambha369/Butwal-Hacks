@@ -38,6 +38,19 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
   const fileRef = useRef<HTMLInputElement>(null);
   const [, startTransition] = useTransition();
 
+  // Bumped on every roster edit. Clearing the preview on edit is not enough on
+  // its own: doPreview awaits the server, so an edit landing while that request
+  // is in flight would be followed by the stale response restoring a preview
+  // computed from the PREVIOUS roster -- re-enabling issuance for a roster
+  // nobody ever checked. Comparing the version at response time is what makes
+  // "checked" mean "checked this exact text".
+  const rosterVersion = useRef(0);
+  const setRoster = (value: string) => {
+    rosterVersion.current += 1;
+    setCsv(value);
+    setPreview(null);
+  };
+
   const busy = phase !== "idle";
 
   const onFile = async (file: File) => {
@@ -47,8 +60,7 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
       setError("That file is larger than 2 MB — that is not a roster.");
       return;
     }
-    setCsv(await file.text());
-    setPreview(null);
+    setRoster(await file.text());
   };
 
   const run = (p: Phase, fn: () => Promise<void>) => {
@@ -69,7 +81,12 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
     run("previewing", async () => {
       setIssue(null);
       setSummary(null);
-      setPreview(await previewRosterCsv(eventId, csv));
+      const version = rosterVersion.current;
+      const result = await previewRosterCsv(eventId, csv);
+      // Dropped if the roster changed underneath us; the newer text has already
+      // cleared the preview, and resurrecting it here would be the bug.
+      if (rosterVersion.current !== version) return;
+      setPreview(result);
     });
 
   const doIssue = () =>
@@ -113,8 +130,7 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
           <button
             type="button"
             onClick={() => {
-              setCsv(CSV_PLACEHOLDER);
-              setPreview(null);
+              setRoster(CSV_PLACEHOLDER);
               fileRef.current?.blur();
             }}
             className="rounded border border-stone-300 px-2 py-1 text-xs"
@@ -130,12 +146,11 @@ export default function CertificateRosterPanel({ eventId }: { eventId: string })
           id="csv"
           value={csv}
           onChange={(e) => {
-            setCsv(e.target.value);
             // Any edit invalidates the preview. Without this an organiser could
             // check roster A, paste roster B, and issue B while the panel still
             // displayed A's counts -- defeating the preview-before-issuing gate
             // on an action that cannot be undone.
-            setPreview(null);
+            setRoster(e.target.value);
           }}
           placeholder={CSV_PLACEHOLDER}
           rows={8}

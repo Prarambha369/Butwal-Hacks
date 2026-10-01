@@ -205,6 +205,30 @@ describe("roster panel — issue is gated behind a preview", () => {
     });
   });
 
+  it("discards a preview that resolves after the roster changed", async () => {
+    // doPreview awaits the server, so an edit landing mid-request used to be
+    // followed by the stale response restoring a preview computed from the
+    // PREVIOUS roster -- re-enabling issuance for text nobody had checked, on
+    // an action that cannot be undone.
+    let release: (v: unknown) => void = () => {};
+    h.previewRosterCsv.mockImplementationOnce(
+      () => new Promise((resolve) => { release = resolve; }),
+    );
+
+    render(<CertificateRosterPanel eventId="evt-1" />);
+    type("name,email\nA,a@butwalhacks.com");
+    fireEvent.click(screen.getByRole("button", { name: /check roster/i }));
+
+    // Edit the roster while the check is still in flight, then let it resolve.
+    type("name,email\nB,b@butwalhacks.com");
+    release({ preview: { matched: 1, unmatched: 0, duplicate: 0, invalid: 0, byEmail: {} }, rejected: [] });
+
+    await waitFor(() => expect(h.previewRosterCsv).toHaveBeenCalled());
+    // The stale response must not resurrect the gate.
+    await new Promise((r) => setTimeout(r, 20));
+    expect((screen.getByRole("button", { name: /issue certificates/i }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
   it("says why issuance is blocked rather than just greying the button", async () => {
     render(<CertificateRosterPanel eventId="evt-1" />);
     type("name,email\nA,a@butwalhacks.com");
