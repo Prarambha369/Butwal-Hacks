@@ -3,6 +3,9 @@ import { Metadata } from 'next';
 import { buildPageMetadata } from '@/lib/seo';
 import { blogPosts, events, getRelatedByTags } from '@/lib/content';
 import { getPublishedPost, getPublishedPosts } from '@/lib/actions/blog';
+import SafeJsonLd from '@/lib/json-ld';
+import { blogPostingJsonLd } from '@/lib/schema';
+import { SITE_URL } from '@/lib/constants';
 import { notFound } from 'next/navigation';
 import RelatedLinks from '@/components/home/related-links';
 
@@ -42,6 +45,16 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="min-h-dvh pt-32 pb-24 px-6 md:px-20 bg-background">
+      <SafeJsonLd
+        data={blogPostingJsonLd({
+          title: post.title,
+          excerpt: post.excerpt,
+          url: `${SITE_URL}/blog/${slug}`,
+          datePublished: post.publishedAt,
+          image: post.cover_image,
+          keywords: post.tags,
+        })}
+      />
       <div className="max-w-3xl mx-auto">
         {/* Blog Header */}
         <div className="space-y-6 mb-12">

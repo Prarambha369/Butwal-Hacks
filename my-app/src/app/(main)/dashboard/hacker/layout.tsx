@@ -10,7 +10,9 @@ const DashboardNavProvider = NextDynamic(() =>
   import("@/components/dashboard-nav-provider").then((m) => m.DashboardNavProvider),
 );
 
-const DashboardSidebar = NextDynamic(() => import("@/components/dashboard-sidebar"));
+const DashboardShell = NextDynamic(() =>
+  import("@/components/dashboard/shell/dashboard-shell").then((m) => ({ default: m.DashboardShell })),
+);
 
 const DashboardBottomNav = NextDynamic(() => import("@/components/dashboard-bottom-nav").then((m) => ({ default: m.DashboardBottomNav })));
 
@@ -155,21 +157,19 @@ export default async function HackerDashboardLayout({
   const topNavLinks = hackerLinks.slice(0, 5);
 
   return (
-    <div className="flex min-h-dvh bg-background">
-      <DashboardSidebar
+    <DashboardNavProvider links={hackerLinks}>
+      <DashboardShell
         role="hacker"
         slugId={slugId}
         links={hackerLinks}
         onboardingProfile={onboardingProfile}
         onboardingChapterCount={chapterCount}
         onboardingProjectCount={projectCount}
-      />
-      <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto min-h-dvh flex flex-col bh-overscroll-none pb-20 md:pb-0">
-        <DashboardNavProvider links={hackerLinks}>
-          {children}
-        </DashboardNavProvider>
-      </main>
+      >
+        {children}
+      </DashboardShell>
+
       <DashboardBottomNav links={topNavLinks} />
-    </div>
+    </DashboardNavProvider>
   );
 } // ponytail: Uses Auth0 session for user validation and profile role check.

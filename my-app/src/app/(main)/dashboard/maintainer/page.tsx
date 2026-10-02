@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/dashboard/shell/page-header";
+import { StatCard, StatGrid } from "@/components/dashboard/shell/stat-card";
 import { createServiceClient } from "@/utils/supabase";
 import Link from "next/link";
 import {
@@ -112,56 +114,49 @@ export default async function MaintainerCommandCenter() {
 
   return (
     <div className="space-y-8">
-      {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-primary">Command Center</h1>
-            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border flex items-center gap-1 ${
-              allHealthy
-                ? "bg-status-green/10 text-status-green border-status-green/20"
-                : "bg-status-yellow/10 text-status-yellow border-status-yellow/20"
-            }`}>
+      <PageHeader
+        eyebrow="Maintainer"
+        title={
+          <span className="flex items-center gap-3">
+            Command Center
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border flex items-center gap-1 ${
+                allHealthy
+                  ? "bg-status-green/10 text-status-green border-status-green/20"
+                  : "bg-status-yellow/10 text-status-yellow border-status-yellow/20"
+              }`}
+            >
               {allHealthy ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
               {allHealthy ? "All Systems Healthy" : "Degraded Service"}
             </span>
-          </div>
-          <p className="text-sm text-muted-foreground">System-wide oversight, moderation, and platform health monitoring.</p>
-        </div>
-      </div>
+          </span>
+        }
+        description="System-wide oversight, moderation, and platform health monitoring."
+      />
 
-      {/* System Health Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bh-card p-5 space-y-3 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-status-blue/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="flex items-center justify-between">
-            <div className="p-2 rounded-lg bg-status-blue/10"><UserCheck className="w-4 h-4 text-status-blue" /></div>
-            <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">24h</span>
-          </div>
-          <p className="text-3xl font-bold text-primary">{activeUsers24h ?? 0}</p>
-          <p className="text-xs text-muted-foreground">Active users (last 24h)</p>
-        </div>
-
-        <div className="bh-card p-5 space-y-3 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-status-green/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="flex items-center justify-between">
-            <div className="p-2 rounded-lg bg-status-green/10"><ShieldCheck className="w-4 h-4 text-status-green" /></div>
-            <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">Issued</span>
-          </div>
-          <p className="text-3xl font-bold text-primary">{trustMarkerCount ?? 0}</p>
-          <p className="text-xs text-muted-foreground">Trust markers issued</p>
-        </div>
-
-        <div className="bh-card p-5 space-y-3 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-primary-red/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="flex items-center justify-between">
-            <div className="p-2 rounded-lg bg-primary-red/10"><AlertTriangle className="w-4 h-4 text-primary-red" /></div>
-            <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">Today</span>
-          </div>
-          <p className="text-3xl font-bold text-primary">{newUsersToday ?? 0}</p>
-          <p className="text-xs text-muted-foreground">New users today</p>
-        </div>
-      </div>
+      <StatGrid cols={3}>
+        <StatCard
+          label="Active Users"
+          value={activeUsers24h ?? 0}
+          icon={UserCheck}
+          tone="blue"
+          hint="Last 24 hours"
+        />
+        <StatCard
+          label="Trust Markers"
+          value={trustMarkerCount ?? 0}
+          icon={ShieldCheck}
+          tone="green"
+          hint="Issued to date"
+        />
+        <StatCard
+          label="New Users"
+          value={newUsersToday ?? 0}
+          icon={AlertTriangle}
+          tone="red"
+          hint="Today"
+        />
+      </StatGrid>
 
       {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">

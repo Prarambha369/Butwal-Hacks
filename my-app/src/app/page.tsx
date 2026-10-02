@@ -3,6 +3,11 @@ import Hero from '@/components/sections/Hero';
 import ImpactMetrics from '@/components/home/impact-metrics';
 import LiveStatsCounter from '@/components/home/live-stats-counter';
 import NonProfitFAQ from '@/components/home/non-profit-faq';
+import SafeJsonLd from '@/lib/json-ld';
+import { faqPageJsonLd } from '@/lib/schema';
+import { homeFaqEntries } from '@/lib/home-faq';
+import { t } from '@/lib/i18n';
+import { SITE_URL } from '@/lib/constants';
 import StaggeredFeatures from '@/components/home/staggered-features';
 import FeaturedProjects from '@/components/home/featured-projects';
 import StepsStrip from '@/components/home/steps-strip';
@@ -56,6 +61,17 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-dvh bg-background text-primary">
+      {/* Resolved from the same i18n keys <NonProfitFAQ /> renders, so the
+          FAQPage markup and the visible answers are the same six pairs. */}
+      <SafeJsonLd
+        data={faqPageJsonLd(
+          homeFaqEntries.map((f) => ({
+            q: t(f.qKey, 'en'),
+            a: t(f.aKey, 'en'),
+          })),
+          SITE_URL,
+        )}
+      />
       <Navbar />
       <main>
         {/* 1. Belong */}

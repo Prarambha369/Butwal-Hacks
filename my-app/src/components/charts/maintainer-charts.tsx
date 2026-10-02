@@ -76,6 +76,15 @@ export function APIUsageChart() {
 
 // ─── New Signups ────────────────────────────────────────────────────
 
+/**
+ * Chart colours come from theme variables rather than literal hex.
+ *
+ * --bh-status-green is #16A34A in light and #4ADE80 in dark, so the previous
+ * hardcoded #16A34A was not merely untokenised: on a dark surface it was a
+ * low-contrast green. Routing the SVG through the variables means the charts
+ * follow the theme with no re-render and no theme provider, which this app
+ * does not have -- dark mode is a class on <html>.
+ */
 export function NewSignupsChart({ data }: SignupsChartProps) {
   const hasData = data.some((d) => d.signups > 0);
 
@@ -102,8 +111,8 @@ export function NewSignupsChart({ data }: SignupsChartProps) {
           >
             <defs>
               <linearGradient id="signupGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#16A34A" stopOpacity={0.25} />
-                <stop offset="100%" stopColor="#16A34A" stopOpacity={0.02} />
+                <stop offset="0%" stopColor="var(--bh-status-green)" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="var(--bh-status-green)" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <XAxis
@@ -117,11 +126,11 @@ export function NewSignupsChart({ data }: SignupsChartProps) {
             <Area
               type="monotone"
               dataKey="signups"
-              stroke="#16A34A"
+              stroke="var(--bh-status-green)"
               strokeWidth={2}
               fill="url(#signupGradient)"
-              dot={{ r: 2, fill: "#16A34A", strokeWidth: 0 }}
-              activeDot={{ r: 4, fill: "#16A34A", strokeWidth: 0 }}
+              dot={{ r: 2, fill: "var(--bh-status-green)", strokeWidth: 0 }}
+              activeDot={{ r: 4, fill: "var(--bh-status-green)", strokeWidth: 0 }}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -172,7 +181,7 @@ export function TrustMarkersChart({ data }: MarkersChartProps) {
             <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
             <Bar
               dataKey="count"
-              fill="#FE0000"
+              fill="var(--bh-primary-red)"
               radius={[3, 3, 0, 0]}
               maxBarSize={24}
             />

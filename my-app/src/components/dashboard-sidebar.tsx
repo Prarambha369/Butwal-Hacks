@@ -22,13 +22,30 @@ export default function DashboardSidebar({
   slugId,
   links,
   onboardingProfile,
-  onboardingChapterCount,
-  onboardingProjectCount,
-}: DashboardSidebarProps) {
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const config = roleConfig[role]
+onboardingChapterCount,
+    onboardingProjectCount,
+    mobileOpen: controlledOpen,
+    onNavigate,
+  }: DashboardSidebarProps & {
+    /**
+     * When supplied, the sidebar renders as a plain rail and defers its mobile
+     * drawer to the caller -- DashboardShell, whose topbar owns the hamburger.
+     * Two triggers driving one drawer is how you get a hamburger that opens a
+     * drawer someone else already closed. Omitted, the sidebar keeps managing
+     * its own, which is what the portal layout still relies on.
+     */
+    mobileOpen?: boolean
+    onNavigate?: () => void
+  }) {
+    const [ownOpen, setOwnOpen] = useState(false)
+    const externallyControlled = controlledOpen !== undefined
+    const mobileOpen = externallyControlled ? controlledOpen : ownOpen
+    const config = roleConfig[role]
 
-  const closeMobile = () => setMobileOpen(false)
+    const closeMobile = () => {
+      if (!externallyControlled) setOwnOpen(false)
+      onNavigate?.()
+    }
 
   const renderSidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -56,17 +73,19 @@ export default function DashboardSidebar({
 
   return (
     <>
+      {!externallyControlled ? (
       <button
         type="button"
         className="md:hidden fixed top-4 left-4 z-50 min-w-[44px] min-h-[44px] p-2.5 rounded-lg bh-card text-text-secondary hover:text-primary bh-touch-manipulation"
-        onClick={() => setMobileOpen((prev) => !prev)}
+        onClick={() => setOwnOpen((prev) => !prev)}
         aria-label={mobileOpen ? "Close sidebar" : "Open sidebar"}
         aria-expanded={mobileOpen}
       >
         {mobileOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
       </button>
+      ) : null}
 
-      {mobileOpen && (
+      {mobileOpen && !externallyControlled && (
         <div
           className="md:hidden fixed inset-0 bg-black/20 z-30 bh-touch-manipulation"
           onClick={closeMobile}
@@ -75,16 +94,28 @@ export default function DashboardSidebar({
 
       <aside
         className={cn(
-          "w-56 flex-shrink-0 flex flex-col",
-          "bh-card rounded-none border-r border-border border-t-0 border-l-0 border-b-0",
-          "hidden md:flex",
-          mobileOpen && "!flex fixed inset-y-0 left-0 z-40 shadow-xl bh-overscroll-contain"
+          "flex flex-col bh-card rounded-none border-l-0 border-t-0 border-b-0 border-r",
+          externallyControlled
+            ? // Controlled by DashboardShell, whose drawer container does the
+              // positioning and the focus trap. The sidebar must therefore
+              // carry none: `fixed inset-y-0` is viewport-relative, and in an
+              // earlier revision that lifted this panel out of the drawer --
+              // escaping its stacking context and rendering 224px wide inside a
+              // 256px drawer at z-40 under a z-50 parent.
+              mobileOpen
+                ? "h-full w-full border-border"
+                : "hidden md:flex w-56 flex-shrink-0 border-border"
+            : cn(
+                "w-56 flex-shrink-0 border-border",
+                "hidden md:flex",
+                mobileOpen && "!flex fixed inset-y-0 left-0 z-40 shadow-xl bh-overscroll-contain",
+              ),
         )}
       >
         {renderSidebarContent()}
       </aside>
 
-      {mobileOpen && (
+      {mobileOpen && !externallyControlled && (
         <aside className="md:hidden fixed inset-y-0 left-0 z-40 w-56 flex flex-col bh-card rounded-none border-r border-border shadow-xl bh-overscroll-contain">
           {renderSidebarContent()}
         </aside>

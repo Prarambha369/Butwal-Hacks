@@ -146,26 +146,29 @@ All routes must fit into one of nine zones:
 - `/teams/[id]` — Team detail
 
 ### Zone 9: API (`app.butwalhacks.com/api/*`)
-- `/api/heartbeat` — Presence heartbeat (POST)
+
+Not exhaustive — 58 route handlers exist. The high-traffic and
+security-relevant ones, each verified present in `src/app/api/`:
+
+- `/api/keep-alive` — Public ping, driven by `.github/workflows/keep-alive.yml` on a cron
+- `/api/health` — Health check
 - `/api/metrics` — Public platform metrics (GET, rate-limited)
 - `/api/contact` — Contact form (POST, rate-limited)
-- `/api/profile/[slugId]` — Profile data (V1 API)
+- `/api/v1/profile/[slugId]` — Profile data (V1 API)
 - `/api/events/register` — Event registration
-- `/api/teams` — Team CRUD
-- `/api/projects` — Project CRUD
-- `/api/bounties` — Bounty management
-- `/api/tasks` — Task CRUD (work distribution)
+- `/api/events/[eventId]/registrations` — Roster (organizer/maintainer only; carries PII, served `Cache-Control: private`)
+- `/api/teams`, `/api/projects`, `/api/bounties`, `/api/tasks` — CRUD
+- `/api/search` — Site search
+- `/api/verify/[bhId]`, `/api/badges/*` — Public credential verification and badge issuance
 - `/api/webhooks/auth0` — Auth0 user sync webhook
+- `/api/webhooks/opencollective` — Open Collective `expense.*` webhook (signature-verified; updates `sponsor_opportunities`)
 - `/api/webhooks/proxy` — Generic webhook proxy
-- `/api/github/sync` — GitHub project sync
-- `/api/admin/oc-sync` — Open Collective sync (admin)
+- `/api/github/sync`, `/api/github/deep-sync` — GitHub project sync
 - `/api/v1/api-keys` — API key management
 - `/api/v1/issue-marker` — Trust marker issuance
+- `/api/certificates/extract` — Certificate OCR
 - `/api/cloudinary-signature` — Cloudinary upload signature
-- `/api/ai/chat` — AI chat (BH Bot)
-- `/api/cron/daily-stats` — Daily stats aggregation
-- `/api/cron/cleanup-expired` — Expired claim cleanup
-- `/api/csp-violation` — CSP violation reporting
+- `/api/ai/chat` — BH Bot
 - `/api/report-error` — Client error reporting
 
 ---
@@ -215,15 +218,31 @@ Roles are stored in Supabase `profiles.role` column. Enforcement via proxy and s
 - ✅ 850+ Tailwind utility classes consolidated from CSS variables
 - ✅ SERVICE_ROLE pattern established for all Supabase queries
 
-### Pending (Next Priority)
-- [ ] Subdomain routing enforcement in Vercel production
-- [ ] Recruiter portal talent search refinement
-- [ ] Open Collective bounty payout integration
-- [ ] Multi-chapter localization (Nepali i18n expansion)
-- [ ] AI layer (team matching, certificate OCR, BH Bot)
-- [ ] PWA bottom tabs and swipe gestures
-- [ ] GitHub Deep Sync for project repos
-- [ ] Discord Bot V2 for trust marker notifications
+### Roadmap — audited against the code on 2026-10-01
+
+This list previously read as a backlog and was not one. Four of its eight items
+shipped some time ago without the list being updated, so it understated what
+exists and overstated what was outstanding. Every line below was checked
+against the tree, not against intent.
+
+**Shipped**
+
+- ✅ **AI layer** — team matching (`/dashboard/hacker/team-matching`), certificate OCR (`/api/certificates/extract`), and BH Bot (`/api/ai/chat`) are all built and routed.
+- ✅ **GitHub Deep Sync** — `POST /api/github/sync` with auth and error handling, driven by `github-sync-button.tsx`.
+- ✅ **PWA shell** — `sw.js`, dashboard bottom-tab navigation, and safe-area helpers. The installable manifest was missing and has been added; see the note below.
+- ✅ **Recruiter portal** — `/portal/recruiters` is live. Further tuning is product work, not a missing feature.
+
+**Genuinely open**
+
+- [ ] **Subdomain routing enforcement in Vercel production** — still the real gap. `proxy.ts` resolves the host, but `vercel.json` declares no domains, so the marketing/app split is not enforced at the edge.
+- [ ] **Open Collective bounty payout integration** — half-built in a way that hides itself. A signature-verified webhook at `/api/webhooks/opencollective` receives `expense.*` events, but it writes to `sponsor_opportunities`, not payouts. `/portal/payouts` reads `sponsor_payouts`, and nothing in `src/` ever inserts into that table, so the page always renders "No payouts yet." The reader and the writer are wired to different tables.
+- [ ] **Discord Bot V2** — `src/lib/discord.ts` exists and a webhook proxy references it, but there is no bot process, gateway connection, or marker-notification consumer. Treat as a library, not a shipped bot.
+- [ ] **Multi-chapter localization** — partial. `src/lib/i18n.ts` carries ~450 Nepali strings and 23 components consume them, but chapter-scoped content is not translated. Extending coverage, not starting it.
+
+**Known defects found during this audit**
+
+- `public/manifest.webmanifest` was referenced by the root layout and did not exist, so the PWA could not be installed. Added, with `manifest.test.ts` asserting it stays present, that its icons exist on disk, and that its theme colour matches the viewport.
+- Deploys fail at the `Database Migration` step: `SUPABASE_DB_URL` is a transaction-pooler URL (port 6543), which cannot run DDL. Migration `126` has never been applied to production. Requires a direct or session-pooler connection string.
 
 ---
 

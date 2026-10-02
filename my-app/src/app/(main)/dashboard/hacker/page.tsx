@@ -5,6 +5,8 @@ import { getJourney } from "@/lib/actions/journey";
 import { auth0 } from "@/lib/auth0";
 import { formatDualDate } from "@/lib/nepali-date";
 import OnboardingTour from "@/components/dashboard/onboarding-tour";
+import { PageHeader } from "@/components/dashboard/shell/page-header";
+import { StatCard, StatGrid } from "@/components/dashboard/shell/stat-card";
 
 import {
   Trophy, Clock, Users, ArrowRight,
@@ -54,50 +56,40 @@ export default async function HackerDashboardPage() {
     <>
       <OnboardingTour role="hacker" />
       <div className="space-y-8 pb-20">
-        {/* Welcome Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight text-primary">
-              Welcome back, {fullName}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Here is your record and upcoming opportunities.
-            </p>
-          </div>
-          <div className="shrink-0">
-            <p className="text-[11px] font-mono text-muted-foreground border border-border rounded-full px-2.5 py-1">
-              Not sure where to start? Complete your profile first.
-            </p>
-          </div>
-        </div>
+          <PageHeader
+            eyebrow="Hacker"
+            title={`Welcome back, ${fullName}`}
+            description="Here is your record and upcoming opportunities."
+            actions={
+              <p className="text-[11px] font-mono text-muted-foreground border border-border rounded-full px-2.5 py-1">
+                Not sure where to start? Complete your profile first.
+              </p>
+            }
+          />
 
-      {/* Performance Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          title="Trust Markers"
-          value={trustMarkerCount}
-          icon={<Medal className="w-4 h-4" />}
-          iconColor="text-primary-red"
-          iconBg="bg-primary-red/10"
-          desc="Verified achievements"
-        />
-        <MetricCard
-          title="Projects Shipped"
-          value={userProjects.length}
-          icon={<Code2 className="w-4 h-4" />}
-          iconColor="text-status-blue"
-          iconBg="bg-status-blue/10"
-          desc="Total projects submitted"
-        />
-        <MetricCard
-          title="Hackathons"
-          value={registrations?.length ?? 0}
-          icon={<Trophy className="w-4 h-4" />}
-          iconColor="text-status-green"
-          iconBg="bg-status-green/10"
-          desc="Events registered"
-        />
-      </div>
+        <StatGrid cols={3}>
+          <StatCard
+            label="Trust Markers"
+            value={trustMarkerCount}
+            icon={Medal}
+            tone="red"
+            hint="Verified achievements"
+          />
+          <StatCard
+            label="Projects Shipped"
+            value={userProjects.length}
+            icon={Code2}
+            tone="blue"
+            hint="Total projects submitted"
+          />
+          <StatCard
+            label="Hackathons"
+            value={registrations?.length ?? 0}
+            icon={Trophy}
+            tone="green"
+            hint="Events registered"
+          />
+        </StatGrid>
 
       {/* Two column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -256,19 +248,6 @@ export default async function HackerDashboardPage() {
 }
 
 // ─── Sub-components ────────────────────────────────────────────────
-
-function MetricCard({ title, value, icon, desc, iconColor = "text-primary-red", iconBg = "bg-primary-red/10" }: { title: string; value: string | number; icon: React.ReactNode; desc: string; iconColor?: string; iconBg?: string }) {
-  return (
-    <div className="bh-card p-4 space-y-2.5">
-      <div className="flex items-center justify-between">
-        <div className={`p-1.5 rounded-lg ${iconBg} ${iconColor}`}>{icon}</div>
-        <span className="text-[9px] font-mono text-muted-foreground/50 uppercase tracking-wider">{title}</span>
-      </div>
-      <p className="text-2xl font-bold text-primary">{value}</p>
-      <p className="text-[10px] text-muted-foreground">{desc}</p>
-    </div>
-  );
-}
 
 function CalendarDaysIcon() {
   return (

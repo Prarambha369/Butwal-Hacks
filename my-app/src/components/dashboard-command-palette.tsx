@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { Search, ArrowRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/** Fired to open the palette from outside it. */
+export const OPEN_PALETTE_EVENT = "butwal:open-dashboard-palette";
+
 export interface DashboardNavItem {
   href: string;
   label: string;
@@ -65,8 +68,17 @@ export function DashboardCommandPalette({
       }
     };
 
+    // The dashboard topbar's search affordance dispatches this. Kept as an
+    // event rather than a shared ref so the palette stays independently
+    // mountable, and rather than synthesising a "/" keystroke, which would be
+    // swallowed whenever focus happens to sit in a text field.
+    const handleOpen = () => setOpen(true);
+    window.addEventListener(OPEN_PALETTE_EVENT, handleOpen);
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener(OPEN_PALETTE_EVENT, handleOpen);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [open]);
 
   // Focus input when modal opens
