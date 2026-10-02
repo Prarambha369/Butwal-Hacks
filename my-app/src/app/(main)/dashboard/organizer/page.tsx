@@ -29,12 +29,34 @@ export default async function OrganizerDashboardPage() {
   const profileId = profile.id;
   const now = new Date().toISOString();
 
-  // Fetch real events for this organizer
-  const { data: events } = await db
-    .from("events")
-    .select("id, title, start_date, end_date, is_published")
-    .eq("organizer_id", profileId)
-    .order("start_date", { ascending: false });
+  // All three read only `profileId`, so they are independent and were three
+  // sequential round-trips. The profile query has to resolve `profileId`
+  // first; these three now cost one round-trip between them instead of three.
+  const [
+    // Real events for this organizer
+    { data: events },
+    // Recent registrations, as notices
+    { data: recentRegistrations },
+    { data: recentProjects },
+  ] = await Promise.all([
+    db
+      .from("events")
+      .select("id, title, start_date, end_date, is_published")
+      .eq("organizer_id", profileId)
+      .order("start_date", { ascending: false }),
+    db
+      .from("event_registrations")
+      .select("id, created_at, events!inner(title)")
+      .eq("events.organizer_id", profileId)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    db
+      .from("projects")
+      .select("id, created_at, title")
+      .eq("organizer_id", profileId)
+      .order("created_at", { ascending: false })
+      .limit(5),
+  ]);
 
   const mappedEvents = (events ?? []).map((ev) => {
     let status: "upcoming" | "live" | "completed";
@@ -49,21 +71,6 @@ export default async function OrganizerDashboardPage() {
       status,
     };
   });
-
-  // Fetch recent registrations as notices
-  const { data: recentRegistrations } = await db
-    .from("event_registrations")
-    .select("id, created_at, events!inner(title)")
-    .eq("events.organizer_id", profileId)
-    .order("created_at", { ascending: false })
-    .limit(5);
-
-  const { data: recentProjects } = await db
-    .from("projects")
-    .select("id, created_at, title")
-    .eq("organizer_id", profileId)
-    .order("created_at", { ascending: false })
-    .limit(5);
 
   const notices: { id: string; text: string; time: string; type: "info" | "warning" | "success" }[] = [];
 

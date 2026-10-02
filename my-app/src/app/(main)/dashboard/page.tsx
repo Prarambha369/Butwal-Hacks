@@ -43,35 +43,44 @@ export default async function DashboardHubPage() {
 
   const profileId = profile?.id;
 
-  // Get project count for onboarding progress
-  const { count: projectCount } = await supabase
-    .from("projects")
-    .select("id", { count: "exact", head: true })
-    .eq("profile_id", profileId ?? "none");
-
-  // Get trust marker count
-  const { count: trustMarkerCount } = await supabase
-    .from("trust_markers")
-    .select("id", { count: "exact", head: true })
-    .eq("profile_id", profileId ?? "none");
-
-  // Get event registration count
-  const { count: hackathonCount } = await supabase
-    .from("event_registrations")
-    .select("id", { count: "exact", head: true })
-    .eq("profile_id", profileId ?? "none");
-
-  // Get chapter count
-  const { count: chapterCount } = await supabase
-    .from("chapter_members")
-    .select("id", { count: "exact", head: true })
-    .eq("profile_id", profileId ?? "none");
-
-  // Fetch project details for onboarding substep tracking
-  const { data: projectDetails } = await supabase
-    .from("projects")
-    .select("tech_stack, github_url, demo_url")
-    .eq("profile_id", profileId ?? "none");
+  // These five only need `profileId`, so they are independent of each other
+  // and were five sequential round-trips. Serialising them put every PostgREST
+  // latency in the critical path before first paint, which is the LCP. One
+  // profile query has to come first because it resolves `profileId`; the rest
+  // now cost one round-trip in total instead of five.
+  const [
+    { count: projectCount },
+    { count: trustMarkerCount },
+    { count: hackathonCount },
+    { count: chapterCount },
+    { data: projectDetails },
+  ] = await Promise.all([
+    // Get project count for onboarding progress
+    supabase
+      .from("projects")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", profileId ?? "none"),
+    // Get trust marker count
+    supabase
+      .from("trust_markers")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", profileId ?? "none"),
+    // Get event registration count
+    supabase
+      .from("event_registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", profileId ?? "none"),
+    // Get chapter count
+    supabase
+      .from("chapter_members")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", profileId ?? "none"),
+    // Project details for onboarding substep tracking
+    supabase
+      .from("projects")
+      .select("tech_stack, github_url, demo_url")
+      .eq("profile_id", profileId ?? "none"),
+  ]);
 
   const projectHasStack = projectDetails?.some(p => (p.tech_stack?.length ?? 0) > 0) ?? false;
   const projectHasLink = projectDetails?.some(p => p.github_url || p.demo_url) ?? false;

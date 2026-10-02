@@ -17,6 +17,20 @@ import {
 } from "lucide-react";
 
 interface RoleEntry {
+  /**
+   * Where "switch dashboard" goes for this role.
+   *
+   * This was derived as `/dashboard/${id}`, which assumed one route per role.
+   * Two roles do not have one: `/dashboard/sponsor` and `/dashboard/lead` were
+   * never created, so both entries 404'd. Lead is documented in
+   * dashboard/hacker/layout.tsx as falling through to the hacker dashboard
+   * "until a dedicated /dashboard/lead layout is created", and sponsor's only
+   * dashboard route is its onboarding flow. So the mapping is explicit here
+   * rather than interpolated, and role-switcher.test.tsx asserts every href
+   * resolves to a real route -- so adding a role without a destination is a
+   * test failure, not a 404.
+   */
+  href: string;
   id: string;
   label: string;
   icon: React.ReactNode;
@@ -29,6 +43,7 @@ interface RoleEntry {
 const ALL_DASHBOARDS: RoleEntry[] = [
   {
     id: "hacker",
+      href: "/dashboard/hacker",
     label: "Hacker",
     icon: <User className="w-4 h-4" />,
     dot: "bg-status-green",
@@ -38,6 +53,7 @@ const ALL_DASHBOARDS: RoleEntry[] = [
   },
   {
     id: "organizer",
+      href: "/dashboard/organizer",
     label: "Organizer",
     icon: <CalendarDays className="w-4 h-4" />,
     dot: "bg-status-yellow",
@@ -47,6 +63,7 @@ const ALL_DASHBOARDS: RoleEntry[] = [
   },
   {
     id: "maintainer",
+      href: "/dashboard/maintainer",
     label: "Maintainer",
     icon: <ShieldCheck className="w-4 h-4" />,
     dot: "bg-primary-red",
@@ -56,6 +73,7 @@ const ALL_DASHBOARDS: RoleEntry[] = [
   },
   {
     id: "sponsor",
+      href: "/dashboard/sponsor-onboarding",
     label: "Sponsor",
     icon: <Building2 className="w-4 h-4" />,
     dot: "bg-status-blue",
@@ -65,6 +83,7 @@ const ALL_DASHBOARDS: RoleEntry[] = [
   },
   {
     id: "lead",
+      href: "/dashboard/hacker",
     label: "Lead",
     icon: <Users className="w-4 h-4" />,
     dot: "bg-status-orange",
@@ -132,7 +151,7 @@ export function DashboardRoleSwitcher({ currentRole, slugId }: DashboardRoleSwit
           </div>
           {ALL_DASHBOARDS.map((role) => {
             const isCurrent = role.id === currentRole;
-            const dashboardPath = `/dashboard/${role.id}`;
+            const dashboardPath = role.href;
 
             return (
               <Link

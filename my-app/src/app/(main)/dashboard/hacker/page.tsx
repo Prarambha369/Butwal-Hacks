@@ -39,18 +39,24 @@ export default async function HackerDashboardPage() {
     .single();
 
   const profileId = profile?.id;
-  const userProjects = profileId ? await getUserProjects(profileId) : [];
-  const journey = profileId ? await getJourney(profileId) : [];
+
+  // These three only need `profileId`, so they are independent and were three
+  // sequential round-trips (two of them bespoke helpers, each their own query)
+  // stacked in front of first paint. The profile lookup has to resolve
+  // `profileId` first; the rest now cost one round-trip between them.
+  const [userProjects, journey, { data: registrations }] = await Promise.all([
+    profileId ? getUserProjects(profileId) : [],
+    profileId ? getJourney(profileId) : [],
+    // Get active event registrations
+    supabase
+      .from("event_registrations")
+      .select("events!inner(id, title, start_date, end_date)")
+      .eq("profile_id", profileId ?? "none")
+      .gte("events.start_date", new Date().toISOString()),
+  ]);
 
   const trustMarkerCount = (profile?.trust_markers as unknown[])?.length ?? 0;
   const fullName = profile?.full_name ?? "Hacker";
-
-  // Get active event registrations
-  const { data: registrations } = await supabase
-    .from("event_registrations")
-    .select("events!inner(id, title, start_date, end_date)")
-    .eq("profile_id", profileId ?? "none")
-    .gte("events.start_date", new Date().toISOString());
 
   return (
     <>

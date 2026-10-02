@@ -70,7 +70,7 @@ export async function requireRoleByPath(
     return requireRole(request, pathname, ["organizer", "maintainer"]);
   }
   if (pathname.startsWith("/portal/")) {
-    return requireRole(request, pathname, ["sponsor", "recruiter", "organizer", "maintainer"]);
+    return requireRole(request, pathname, ["sponsor", "organizer", "maintainer"]);
   }
   if (pathname.startsWith("/dashboard/sponsor-onboarding")) {
     return requireRole(request, pathname, ["sponsor", "maintainer"]);
@@ -120,7 +120,7 @@ export async function handleLocalDev(request: NextRequest): Promise<NextResponse
   }
 
   if (pathname.startsWith("/portal/")) {
-    return requireRole(request, pathname, ["sponsor", "recruiter", "organizer", "maintainer"]);
+    return requireRole(request, pathname, ["sponsor", "organizer", "maintainer"]);
   }
 
   if (pathname.startsWith("/orgs/")) {

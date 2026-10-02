@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import NextDynamic from "next/dynamic";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
+import { roleRedirect } from "@/lib/role-gate";
 
 // ponytail: Command palette uses native dialog with no extra deps (no cmdk/kbar).
 // g+key shortcuts work via a simple useEffect keydown listener.
@@ -120,8 +121,17 @@ export default async function HackerDashboardLayout({
 
   // Lead users fall through to the hacker dashboard as a fallback
   // until a dedicated /dashboard/lead layout is created.
-  if (profile?.role && profile.role !== "hacker" && profile.role !== "lead" && profile.role !== "maintainer") {
-    redirect(`/dashboard/${profile.role}`);
+  //
+  // `roleRedirect` rather than an inline `profile?.role && ...` test. The
+  // truthiness form skipped the whole guard whenever `profile` was null, so an
+  // unknown role rendered the dashboard instead of being redirected -- the
+  // exact fail-open bug role-gate.ts exists to prevent, and the reason
+  // maintainer and organizer layouts were already converted. Reachable
+  // whenever the bootstrap in dashboard/layout.tsx fails on both the
+  // create_profile_with_bh_id RPC and the insert fallback.
+  const blocked = roleRedirect(profile?.role, ["hacker", "lead", "maintainer"]);
+  if (blocked) {
+    redirect(blocked);
   }
 
   const slugId = profile?.slug_id ?? userId.slice(0, 8).toUpperCase();

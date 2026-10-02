@@ -13,7 +13,7 @@ import {
   TrustMarkersChart,
 } from "@/components/charts/maintainer-charts";
 import AuditLogFeed from "@/components/audit/audit-log-feed";
-import { runAllChecks, toSystemCheckResult } from "@/lib/health-checks";
+import { runAllChecksCached, toSystemCheckResult } from "@/lib/health-checks";
 import type { AuditLog } from "@/lib/supabase-types";
 import type { SystemCheckResult } from "@/lib/health-checks";
 import { buildPageMetadata } from "@/lib/seo"
@@ -26,53 +26,69 @@ export const dynamic = "force-dynamic";
 export default async function MaintainerCommandCenter() {
   const supabase = createServiceClient();
 
-  // ── Clean separate queries (no nested expansions that silently fail) ──
-  const { count: profileCount } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true });
-
-  const { data: events } = await supabase
-    .from("events")
-    .select("id, is_published, title, start_date");
-
-  const { data: auditLogs } = await supabase
-    .from("audit_logs")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(10);
-
-  const { count: trustMarkerCount } = await supabase
-    .from("trust_markers")
-    .select("*", { count: "exact", head: true });
-
-  const { count: projectCount } = await supabase
-    .from("projects")
-    .select("*", { count: "exact", head: true });
-
-  // ── Active users in last 24h ──
+  // ── Date bounds first: cheap and synchronous, and every query below needs
+  // one. Nothing here reads another query's result, so the whole batch is
+  // independent and was nine sequential round-trips -- eight PostgREST calls
+  // plus a health probe -- with every latency stacked in front of first paint.
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const yesterday = new Date(now - 24 * 60 * 60 * 1000).toISOString();
-  const { count: activeUsers24h } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-    .gte("last_seen", yesterday);
-
-  // ── New users today ──
+  const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
-  const { count: newUsersToday } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-    .gte("created_at", todayStart.toISOString());
+  const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
 
-  // ── Signups by day (last 7 days) for chart ──
-  const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const { data: recentProfiles } = await supabase
-    .from("profiles")
-    .select("created_at")
-    .gte("created_at", sevenDaysAgo)
-    .order("created_at", { ascending: true });
+  // Started before the query batch so the probe overlaps it. Awaited after,
+  // the two were serial, so a cold cache cost (query latency + up to 5s of
+  // external probing). Started here, the worst case is the slower of the
+  // two rather than their sum -- and the cache means this is almost always
+  // a read, not a probe.
+  const healthPromise = runAllChecksCached();
+
+  // ── Clean separate queries (no nested expansions that silently fail) ──
+  const [
+    { count: profileCount },
+    { data: events },
+    { data: auditLogs },
+    { count: trustMarkerCount },
+    { count: projectCount },
+    // ── Active users in last 24h ──
+    { count: activeUsers24h },
+    // ── New users today ──
+    { count: newUsersToday },
+    // ── Signups by day (last 7 days) for chart ──
+    { data: recentProfiles },
+    // ── Trust markers by month (current year) for chart ──
+    { data: markersByMonth },
+  ] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("events").select("id, is_published, title, start_date"),
+    supabase
+      .from("audit_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(10),
+    supabase.from("trust_markers").select("*", { count: "exact", head: true }),
+    supabase.from("projects").select("*", { count: "exact", head: true }),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .gte("last_seen", yesterday),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", todayStart.toISOString()),
+    supabase
+      .from("profiles")
+      .select("created_at")
+      .gte("created_at", sevenDaysAgo)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("trust_markers")
+      .select("created_at")
+      .gte("created_at", yearStart)
+      .order("created_at", { ascending: true }),
+  ]);
 
   // Group signups by day
   const signupsByDay: Record<string, number> = {};
@@ -87,14 +103,6 @@ export default async function MaintainerCommandCenter() {
     signups: signupsByDay[day] || 0,
   }));
 
-  // ── Trust markers by month (current year) for chart ──
-  const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
-  const { data: markersByMonth } = await supabase
-    .from("trust_markers")
-    .select("created_at")
-    .gte("created_at", yearStart)
-    .order("created_at", { ascending: true });
-
   const markersByMonthMap: Record<string, number> = {};
   const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   markersByMonth?.forEach((m) => {
@@ -108,7 +116,7 @@ export default async function MaintainerCommandCenter() {
   }));
 
   // ── Live health checks from shared utilities (runs in parallel) ──
-  const healthResults = await runAllChecks();
+  const healthResults = await healthPromise;
   const systemChecks: SystemCheckResult[] = healthResults.map(toSystemCheckResult);
   const allHealthy = systemChecks.every((c) => c.healthy);
 
