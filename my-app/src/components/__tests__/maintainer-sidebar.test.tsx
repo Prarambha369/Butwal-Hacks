@@ -96,18 +96,16 @@ describe("MaintainerSidebar active state", () => {
     expect(activeLabels()).toEqual([]);
   });
 
-  it("renders the rail as a drawer when mobileOpen is set", () => {
+  it("is a drawer body when mobileOpen, not a positioned rail", () => {
     mockPathname.mockReturnValue(ROOT);
-    render(
-      <MaintainerSidebar slugId="BH-1" links={links} mobileOpen />,
-    );
+    render(<MaintainerSidebar slugId="BH-1" links={links} mobileOpen />);
     const rail = screen.getByRole("complementary", { name: /maintainer/i });
-    // Positioned against the viewport, because the shell mounts one sidebar
-    // and there is no wrapper for it to be relative to.
-    expect(rail.className).toContain("fixed");
-    expect(rail.className).toContain("inset-y-0");
-    // The rail styles that only make sense as a static desktop column must be
-    // gone, or it renders 224px wide inside a 256px drawer.
+    // The shell's container owns positioning and the focus trap, so the sidebar
+    // must carry none. `fixed inset-y-0` here escaped the drawer entirely and
+    // rendered 224px wide inside a 256px drawer.
+    expect(rail.className).toContain("h-full");
+    expect(rail.className).toContain("w-full");
+    expect(rail.className).not.toContain("fixed");
     expect(rail.className).not.toContain("w-56");
   });
 });

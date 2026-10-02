@@ -59,6 +59,24 @@ export interface EventSchemaInput {
   image?: string | null;
   /** Human-readable venue, if the event names one. */
   locationName?: string | null;
+  /**
+   * Verified postal address for the venue. Omitted rather than guessed.
+   *
+   * `events.location` is a single free-text column -- it can hold "Butwal",
+   * "Pokhara" or "Online" -- so there is nothing in the row that establishes a
+   * locality. This builder used to hardcode Butwal/Lumbini/NP for every venue,
+   * which put a confident, wrong address into structured data for any event held
+   * outside the city. Google requires event markup to describe the actual
+   * location, and a Place with only a `name` is valid, so a missing address is
+   * cheap and a fabricated one is not.
+   */
+  locationAddress?: {
+    streetAddress?: string | null;
+    addressLocality?: string | null;
+    addressRegion?: string | null;
+    postalCode?: string | null;
+    addressCountry?: string | null;
+  } | null;
   attendanceMode?: "OfflineEventAttendanceMode" | "OnlineEventAttendanceMode" | "MixedEventAttendanceMode";
 }
 
@@ -70,6 +88,21 @@ export interface EventSchemaInput {
  * fixed venues, while these are database rows. Merging them would mean one
  * builder half-satisfying the other.
  */
+/** Drops empty address fields, and returns null if nothing is left. */
+function addressFields(a: EventSchemaInput["locationAddress"]) {
+  if (!a) return null;
+  const out = Object.fromEntries(
+    Object.entries({
+      streetAddress: a.streetAddress,
+      addressLocality: a.addressLocality,
+      addressRegion: a.addressRegion,
+      postalCode: a.postalCode,
+      addressCountry: a.addressCountry,
+    }).filter(([, v]) => typeof v === "string" && v.length > 0),
+  );
+  return Object.keys(out).length ? out : null;
+}
+
 export function eventJsonLd(e: EventSchemaInput) {
   return {
     "@context": "https://schema.org",
@@ -92,12 +125,10 @@ export function eventJsonLd(e: EventSchemaInput) {
           location: {
             "@type": "Place",
             name: e.locationName,
-            address: {
-              "@type": "PostalAddress",
-              addressLocality: "Butwal",
-              addressRegion: "Lumbini",
-              addressCountry: "NP",
-            },
+            // Present only if the caller supplied real fields. Never defaulted.
+            ...(addressFields(e.locationAddress)
+              ? { address: { "@type": "PostalAddress", ...addressFields(e.locationAddress)! } }
+              : {}),
           },
         }
       : {}),

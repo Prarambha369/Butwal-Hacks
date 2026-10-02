@@ -96,12 +96,14 @@ onboardingChapterCount,
         className={cn(
           "flex flex-col bh-card rounded-none border-l-0 border-t-0 border-b-0 border-r",
           externallyControlled
-            ? // Controlled by DashboardShell, which mounts exactly one sidebar
-              // and expects it to turn into the drawer. It must therefore be
-              // positioned here: `fixed inset-y-0` is viewport-relative, and
-              // there is no wrapper element to be relative to.
+            ? // Controlled by DashboardShell, whose drawer container does the
+              // positioning and the focus trap. The sidebar must therefore
+              // carry none: `fixed inset-y-0` is viewport-relative, and in an
+              // earlier revision that lifted this panel out of the drawer --
+              // escaping its stacking context and rendering 224px wide inside a
+              // 256px drawer at z-40 under a z-50 parent.
               mobileOpen
-                ? "fixed inset-y-0 left-0 z-40 w-64 shadow-xl bh-overscroll-contain border-border"
+                ? "h-full w-full border-border"
                 : "hidden md:flex w-56 flex-shrink-0 border-border"
             : cn(
                 "w-56 flex-shrink-0 border-border",

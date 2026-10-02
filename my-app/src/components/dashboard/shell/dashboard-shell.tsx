@@ -55,10 +55,13 @@ export function DashboardShell({
   const [navOpen, setNavOpen] = useState(false);
   const config = roleConfig[role];
 
-  // The drawer is the sidebar itself now, so the trap is attached to the node
-  // that renderSidebar returns via a wrapper ref on the shell row.
-  const shellRef = useRef<HTMLDivElement>(null);
-  useFocusTrap(shellRef, navOpen);
+  // The trap must be the drawer, not the shell row. Trapping the row meant Tab
+  // walked out of the open drawer and into the topbar and <main> behind the
+  // scrim -- the one thing the trap exists to prevent. So the ref goes on the
+  // drawer container, which holds the sidebar and the close button and nothing
+  // else.
+  const drawerRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(drawerRef, navOpen);
 
   // Escape closes the drawer. Without it the overlay is a keyboard trap in the
   // other direction: focus is contained by the trap, and the only way out is
@@ -89,14 +92,41 @@ export function DashboardShell({
     );
 
   return (
-    <div ref={shellRef} className="flex min-h-dvh bg-background">
-      {/* One sidebar instance, always mounted. It is the desktop rail when
-          closed and becomes the drawer when open, rather than being two
-          subtrees that swap places: a swap remounts, and this sidebar mounts
-          SkillTreeWidget and OrgSwitcher, so every drawer open would re-run
-          getSkillTreeSummary() and the profiles query. Two live subtrees --
-          the version before this -- ran both on every single open. */}
-      {renderSidebar(navOpen)}
+    <div className="flex min-h-dvh bg-background">
+      {/* Exactly one sidebar, in one container, both always mounted. The
+          container is the drawer when open and the rail column when closed.
+          Nothing is swapped: a swap unmounts, and this sidebar mounts
+          SkillTreeWidget and OrgSwitcher, so every open would re-run
+          getSkillTreeSummary() and the profiles query. Two live sidebars -- the
+          original version -- ran both on every open.
+
+          This container is also the focus trap and the dialog. The sidebar
+          inside it carries no positioning of its own, so it fills the drawer
+          instead of escaping it to the viewport. */}
+      <div
+        ref={drawerRef}
+        className={cn(
+          "flex",
+          navOpen
+            ? "fixed inset-y-0 left-0 z-50 w-64 shadow-xl"
+            : "hidden md:flex md:flex-shrink-0",
+        )}
+        role={navOpen ? "dialog" : undefined}
+        aria-modal={navOpen ? true : undefined}
+        aria-label={navOpen ? "Site navigation" : undefined}
+      >
+        {renderSidebar(navOpen)}
+        {navOpen ? (
+          <button
+            type="button"
+            onClick={() => setNavOpen(false)}
+            aria-label="Close navigation"
+            className="absolute right-2 top-2 rounded-lg bg-surface p-2 text-secondary shadow-sm hover:bg-surface-hover bh-touch-manipulation"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        ) : null}
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardTopbar
@@ -115,26 +145,17 @@ export function DashboardShell({
         </main>
       </div>
 
+      {/* Presentational, not a control. As a <button> this was a second element
+          named "Close navigation", so a screen reader announced two identical
+          buttons for one action -- and a scrim is not where a keyboard or AT
+          user aims. The X button and Escape cover that. It sits outside the trap
+          on purpose: it is a pointer affordance, and it is not focusable. */}
       {navOpen ? (
-        <>
-          {/* Presentational, not a control. As a <button> this was a second
-              element named "Close navigation", so a screen reader announced two
-              identical buttons for one action -- and a scrim is not where a
-              keyboard or AT user aims. The X button and Escape cover that. */}
-          <div
-            aria-hidden="true"
-            onClick={() => setNavOpen(false)}
-            className="fixed inset-0 z-30 bg-black/40 bh-touch-manipulation"
-          />
-          <button
-            type="button"
-            onClick={() => setNavOpen(false)}
-            aria-label="Close navigation"
-            className="fixed right-3 top-3 z-50 rounded-lg bg-surface p-2 text-secondary shadow-sm hover:bg-surface-hover bh-touch-manipulation"
-          >
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
-        </>
+        <div
+          aria-hidden="true"
+          onClick={() => setNavOpen(false)}
+          className="fixed inset-0 z-40 bg-black/40 bh-touch-manipulation"
+        />
       ) : null}
 
       {/* Keep the role in the DOM for the active-nav tint used by children. */}

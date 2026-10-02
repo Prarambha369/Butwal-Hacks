@@ -37,12 +37,11 @@ export default function MaintainerSidebar({
     <aside
       className={cn(
         "flex flex-col bg-surface border-r border-border",
-        // One element for both states, because DashboardShell mounts exactly
-        // one sidebar. When open it is the drawer and must position itself
-        // against the viewport -- there is no wrapper to be relative to.
-        mobileOpen
-          ? "fixed inset-y-0 left-0 z-40 w-64 shadow-xl bh-overscroll-contain"
-          : "hidden md:flex min-h-dvh w-56 flex-shrink-0",
+        // Inside the shell's drawer this is the drawer's body, so it fills the
+        // drawer rather than being a viewport-height rail: `min-h-dvh` there
+        // would outgrow the drawer and push its own footer out of reach. The
+        // shell's container owns positioning and the focus trap.
+        mobileOpen ? "h-full w-full" : "hidden md:flex min-h-dvh w-56 flex-shrink-0",
       )}
       aria-label="Maintainer navigation"
     >
