@@ -23,6 +23,7 @@ import {
   Users,
   ScrollText,
   ShieldCheck,
+  Stethoscope,
   Settings2,
   BookOpen,
   GraduationCap,
@@ -43,6 +44,12 @@ const maintainerLinks = [
     label: "Users",
     shortcut: "u",
     icon: <Users className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/maintainer/system-check",
+    label: "System Check",
+    shortcut: "k",
+    icon: <Stethoscope className="w-4 h-4" />,
   },
   {
     href: "/dashboard/maintainer/audit-log",
