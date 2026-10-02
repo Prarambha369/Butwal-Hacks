@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { EVENT_FAQS } from "@/lib/event-faq"
 import CountdownTimer from "./countdown-timer"
 import EventRegisterButton from "./event-register-button"
 import Link from "next/link"
@@ -30,11 +31,11 @@ const timeline = [
   { time: "04:00 PM", title: "Demo Showcase", note: "Teams present outputs and reflect on learnings." },
 ]
 
-const faqs = [
-  { q: "Who can join this event?", a: "Students and youth participants are welcome unless otherwise stated on registration notes." },
-  { q: "Is prior experience required?", a: "No. Events are designed for mixed skill levels with mentoring support." },
-  { q: "What should I bring?", a: "Bring your laptop, charger, and basic essentials for a full-day build session." },
-]
+/**
+ * Exported so the FAQPage JSON-LD on the event page and this visible FAQ
+ * section read the same array. Google requires FAQ markup to match content
+ * visible on the page; a second copy of these three questions would drift.
+ */
 
 export default function EventDetailContent({ event }: Props) {
   const startDate = new Date(event.start_date)
@@ -204,7 +205,7 @@ export default function EventDetailContent({ event }: Props) {
         <div className="mx-auto max-w-4xl">
           <h2 className="text-3xl font-bold mb-8">FAQ</h2>
           <div className="space-y-4">
-            {faqs.map((faq, i) => (
+            {EVENT_FAQS.map((faq, i) => (
               <div key={i} className="bh-card p-6">
                 <h3 className="font-bold mb-2">{faq.q}</h3>
                 <p className="text-sm text-muted-foreground">{faq.a}</p>

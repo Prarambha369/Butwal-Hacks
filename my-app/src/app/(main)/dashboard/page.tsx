@@ -7,7 +7,8 @@ import { ToolGuideSection } from "@/components/dashboard/tool-guide-section";
 import { OnboardingSteps } from "@/components/dashboard/onboarding-steps";
 import { DashboardInitialScreen } from "@/components/dashboard/dashboard-initial-screen";
 import DashboardHubStats from "@/components/dashboard/dashboard-hub-stats";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/shell/page-header";
+import { ArrowRight } from "lucide-react";
 import { t } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { buildPageMetadata } from "@/lib/seo"
@@ -84,22 +85,12 @@ export default async function DashboardHubPage() {
   return (
     <DashboardInitialScreen email={email} emailVerified={emailVerified} currentRole={role}>
     <div className="min-h-dvh bg-bg-base text-text-body pt-16 pb-20 px-4">
-      <div className="max-w-4xl mx-auto space-y-10">
-        {/* ── Page Header ── */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="w-4 h-4 text-primary-red" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary-red">
-              {t('dashboard.hub', locale)}
-            </span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">
-            {t('dashboard.welcome_heading', locale)}
-          </h1>
-          <p className="text-sm text-muted-foreground max-w-xl">
-            {t('dashboard.hub_description', locale)}
-          </p>
-        </div>
+      <div className="mx-auto max-w-5xl space-y-8">
+        <PageHeader
+          eyebrow={t('dashboard.hub', locale)}
+          title={t('dashboard.welcome_heading', locale)}
+          description={t('dashboard.hub_description', locale)}
+        />
 
         {/* ── Section 1: BH-ID Identity Card ── */}
         <BHIDClaimCard bhId={bhId} role={role} fullName={fullName} />
@@ -109,6 +100,7 @@ export default async function DashboardHubPage() {
           trustMarkerCount={trustMarkerCount ?? 0}
           projectCount={projectCount ?? 0}
           hackathonCount={hackathonCount ?? 0}
+          chapterCount={chapterCount ?? 0}
         />
 
         {/* ── Section 3: Onboarding Steps ── */}
