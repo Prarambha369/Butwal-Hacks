@@ -108,7 +108,7 @@ export default async function proxy(request: NextRequest) {
     if (!isAppHost(hostname)) {
       return redirectToDomain(request, "app");
     }
-    return requireRole(request, pathname, ["sponsor", "organizer", "maintainer"]);
+    return requireRole(request, pathname, ["sponsor", "maintainer"]);
   }
 
   if (isCalendarHost(hostname)) {

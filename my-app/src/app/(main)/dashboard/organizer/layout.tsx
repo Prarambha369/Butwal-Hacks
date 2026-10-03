@@ -21,7 +21,7 @@ import {
   KeyRound,
   KanbanSquare,
 } from "lucide-react";
-import { roleRedirect } from "@/lib/role-gate";
+import { organizerRedirect } from "@/lib/dashboard-access";
 
 const organizerLinks = [
   {
@@ -76,11 +76,30 @@ export default async function OrganizerDashboardLayout({
   const db = createServiceClient();
   const { data: profile } = await db
     .from("profiles")
-    .select("role, slug_id")
+    .select("id, role, slug_id")
     .eq("auth0_user_id", userId)
     .single();
 
-  const blocked = roleRedirect(profile?.role, ["organizer", "maintainer"]);
+  const subject = {
+    role: profile?.role,
+    email: session?.user?.email,
+    emailVerified: session?.user?.email_verified === true,
+  };
+
+  // Identity comes from the Auth0 session, not from profiles: we do not store
+  // the address or its verification state. Fetches the timeline only when the
+  // role could actually be an organizer.
+  const isOrganizerRole = subject.role === "organizer";
+  const timelineEvents = isOrganizerRole
+    ? (
+        await db
+          .from("events")
+          .select("created_at, end_date")
+          .eq("organizer_id", profile?.id ?? "none")
+      ).data ?? []
+    : [];
+
+  const blocked = organizerRedirect(subject, timelineEvents);
   if (blocked) {
     redirect(blocked);
   }
