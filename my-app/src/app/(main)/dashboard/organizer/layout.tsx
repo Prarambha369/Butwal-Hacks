@@ -90,14 +90,11 @@ export default async function OrganizerDashboardLayout({
   // the address or its verification state. Fetches the timeline only when the
   // role could actually be an organizer.
   const isOrganizerRole = subject.role === "organizer";
-  const timelineEvents = isOrganizerRole
-    ? (
-        await db
-          .from("events")
-          .select("created_at, end_date")
-          .eq("organizer_id", profile?.id ?? "none")
-      ).data ?? []
-    : [];
+  const eventsQuery = isOrganizerRole
+    ? await db.from("events").select("created_at, end_date").eq("organizer_id", profile?.id ?? "none")
+    : null;
+  if (eventsQuery?.error) redirect("/dashboard/hacker");
+  const timelineEvents = eventsQuery?.data ?? [];
 
   const blocked = organizerRedirect(subject, timelineEvents);
   if (blocked) {
