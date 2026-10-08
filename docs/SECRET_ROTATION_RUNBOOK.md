@@ -19,6 +19,8 @@ The exposure was confined to the conversation, so no history rewrite is needed. 
 
 **Rotate before merging or deploying the remediation branch.** The branch changes migrations and hardens CI, and `deploy.yml` now fails when `SUPABASE_DB_URL` is missing. The first run after merge will fail unless that GitHub secret already exists. Do step 0 first.
 
+> **Open security item.** The credentials listed above (production Supabase service-role key, database password, `AUTH0_SECRET`, Groq key, Postgres connection strings) remain **unrotated** at the time of writing. This runbook is the plan; none of its steps have been executed. Until each rotation lands, treat these secrets as compromised and audit their usage history. This item is tracked as an open follow-up on PR #51.
+
 ## Reference
 
 ### What is not affected
@@ -175,3 +177,7 @@ A repeat of this failure is now identifiable from the toast text alone.
 - [SECURITY.md](../SECURITY.md) — the defense layers this rotation protects
 - [docs/ARCHITECTURE.md](ARCHITECTURE.md) — the trust boundaries involved
 - [AGENTS.md](../AGENTS.md) — the authorization rule a service-role query must follow
+
+## Supabase config deletion
+
+`supabase/config.toml` was deleted (decision 2). It listed 7 Edge Functions that do not exist in the tree, and the deploy workflow (`deploy.yml`) pushes migrations with `supabase db push --db-url`, which never reads the config. If a real `config.toml` is ever needed (e.g. for `supabase start` with custom ports or function declarations), regenerate it with `supabase init` rather than restoring the old copy.

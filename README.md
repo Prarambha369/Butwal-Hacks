@@ -12,7 +12,7 @@ Butwal Hacks gives young builders in Nepal an ORCID-style public identity, a pla
 git clone https://github.com/Prarambha369/Butwal-Hacks.git
 cd Butwal-Hacks
 npm install
-cp .env.example my-app/.env.local   # then fill in your keys
+cp my-app/.env.example my-app/.env.local   # then fill in your keys
 git config core.hooksPath .husky/    # enables pre-commit lint + secrets audit
 npm run dev                          # → http://localhost:3000
 ```

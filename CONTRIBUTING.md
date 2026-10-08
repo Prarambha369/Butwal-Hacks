@@ -30,7 +30,7 @@ Butwal Hacks is an open-source credential verification system and hackathon mana
 git clone https://github.com/Prarambha369/Butwal-Hacks.git
 cd Butwal-Hacks
 npm install
-cp .env.example my-app/.env.local
+cp my-app/.env.example my-app/.env.local
 # Edit my-app/.env.local with your Auth0, Supabase, and third-party keys
 npm run dev
 # → http://localhost:3000

@@ -40,7 +40,7 @@ The single source of truth for changing this codebase without breaking it. It ex
 git clone https://github.com/Prarambha369/Butwal-Hacks.git
 cd Butwal-Hacks
 npm install
-cp .env.example my-app/.env.local   # then fill in your keys
+cp my-app/.env.example my-app/.env.local   # then fill in your keys
 git config core.hooksPath .husky/    # enables pre-commit lint + secrets audit
 npm run dev                          # → http://localhost:3000
 ```
@@ -178,7 +178,7 @@ refactor: extract rate limiter into lib/
 - [ ] New mutation routes use `withRateLimit()`
 - [ ] New inputs validated with Zod before any database access
 - [ ] Every `createServiceClient()` call has an authorization check above it
-- [ ] New env vars added to `.env.example` and to the secrets table in [MAINTAINERS.md](MAINTAINERS.md)
+- [ ] New env vars added to `my-app/.env.example` and to the secrets table in [MAINTAINERS.md](MAINTAINERS.md)
 - [ ] New migrations are numbered sequentially and additive
 - [ ] New UI uses design tokens, not literals — see [DESIGN.md](DESIGN.md)
 - [ ] No secrets in the diff

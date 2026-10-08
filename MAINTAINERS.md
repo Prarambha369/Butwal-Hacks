@@ -49,7 +49,7 @@ curl -s -o /dev/null -w '%{http_code}\n' https://butwalhacks.com/
 
 **Rotate an exposed credential:** follow [docs/SECRET_ROTATION_RUNBOOK.md](docs/SECRET_ROTATION_RUNBOOK.md) end to end. Do not skip step 0.
 
-**Add a new environment variable:** add it to `.env.example`, to the table below, and to the MAINTAINERS secrets table in the same PR.
+**Add a new environment variable:** add it to `my-app/.env.example`, to the table below, and to the MAINTAINERS secrets table in the same PR.
 
 ## Reference
 
@@ -75,7 +75,7 @@ Where each variable is set:
 
 - **Vercel** — all `NEXT_PUBLIC_*` and runtime variables, in the project dashboard under Environment Variables.
 - **GitHub** — all build-time and CI variables, under Settings, Secrets and variables, Actions.
-- **Local** — copied from `.env.example` into `my-app/.env.local`.
+- **Local** — copied from `my-app/.env.example` into `my-app/.env.local`.
 
 #### Auth0
 
@@ -191,7 +191,7 @@ A migration failure can leave the Vercel deploy green while the app hits schema 
 - [ ] `npm run build` succeeding
 - [ ] New mutation routes wrapped in `withRateLimit()`
 - [ ] New `POST` routes returning `{ status: 201 }` for resource creation
-- [ ] New env vars added to `.env.example` and to the secrets inventory above
+- [ ] New env vars added to `my-app/.env.example` and to the secrets inventory above
 - [ ] New migration numbered sequentially and additive
 - [ ] Table-wide checks use `NOT VALID` plus a separate `VALIDATE CONSTRAINT`
 - [ ] No secrets in the diff
@@ -308,7 +308,7 @@ Add new patterns to `.gitignore` at the repo root.
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | Deploy fails at the migration step | `SUPABASE_DB_URL` is a transaction-pooler URL | Switch to a direct or session-pooler connection string |
-| New env var missing in production | Added to code but not to Vercel or GitHub secrets | Add it to both, and to `.env.example` |
+| New env var missing in production | Added to code but not to Vercel or GitHub secrets | Add it to both, and to `my-app/.env.example` |
 | Secrets audit flags a diff | A credential-shaped string was committed | Remove it and rotate the credential immediately |
 | Vercel 401 on Supabase calls in production only | A manual env drifted from the Supabase-managed value | Delete the manual entries; the integration re-injects them |
 | Rollback does not fix a schema error | The migration was destructive | Apply the inverse DDL in the Supabase SQL editor |
