@@ -41,7 +41,7 @@ describe("searchTalent", () => {
     // Profiles query with query filter: chain ends with .or()
     db.or.mockResolvedValueOnce({
       data: [
-        { id: "prof-1", slug_id: "alice-dev", bio: "React dev", avatar_url: null, xp: 100 },
+        { id: "prof-1", slug_id: "alice-dev", bio: "React dev", avatar_url: null },
       ],
       error: null,
     });
@@ -73,8 +73,8 @@ describe("searchTalent", () => {
     // Profiles query without query filter: chain ends with .limit()
     db.limit.mockResolvedValueOnce({
       data: [
-        { id: "prof-1", slug_id: "alice-dev", bio: null, avatar_url: null, xp: 100 },
-        { id: "prof-2", slug_id: "bob-dev", bio: null, avatar_url: null, xp: 50 },
+        { id: "prof-1", slug_id: "alice-dev", bio: null, avatar_url: null },
+        { id: "prof-2", slug_id: "bob-dev", bio: null, avatar_url: null },
       ],
       error: null,
     });

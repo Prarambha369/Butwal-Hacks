@@ -1,0 +1,44 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "resend": {
+      "type": "remote",
+      "url": "https://mcp.resend.com/mcp",
+      "enabled": true
+    },
+    "auth0": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@auth0/auth0-mcp-server", "run"],
+      "env": {
+        "DEBUG": "auth0-mcp"
+      },
+      "enabled": true
+    },
+    "porkbun": {
+      "type": "remote",
+      "url": "https://mcp.porkbun.com/mcp",
+      "enabled": true
+    },
+    "cloudinary-asset-mgmt": {
+      "type": "remote",
+      "url": "https://asset-management.mcp.cloudinary.com/mcp",
+      "enabled": true
+    },
+    "cloudinary-env-config": {
+      "type": "remote",
+      "url": "https://environment-config.mcp.cloudinary.com/mcp",
+      "enabled": true
+    },
+    "cloudinary-smd": {
+      "type": "remote",
+      "url": "https://structured-metadata.mcp.cloudinary.com/mcp",
+      "enabled": true
+    },
+    "cloudinary-analysis": {
+      "type": "remote",
+      "url": "https://analysis.mcp.cloudinary.com/sse",
+      "enabled": true
+    }
+  }
+}

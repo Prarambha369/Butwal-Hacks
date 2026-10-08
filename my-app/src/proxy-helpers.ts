@@ -69,8 +69,13 @@ export async function requireRoleByPath(
   if (pathname.startsWith("/dashboard/organizer")) {
     return requireRole(request, pathname, ["organizer", "maintainer"]);
   }
+  // Sponsors reach the portal to see the projects and people behind events they
+  // sponsored. Organizers do not -- they run events from /dashboard/organizer.
+  // Listing organizer here only made a dead end: middleware waved them through
+  // and portal/layout.tsx bounced them, so nobody could use the section. This
+  // list must stay identical to the one in portal/layout.tsx.
   if (pathname.startsWith("/portal/")) {
-    return requireRole(request, pathname, ["sponsor", "organizer", "maintainer"]);
+    return requireRole(request, pathname, ["sponsor", "maintainer"]);
   }
   if (pathname.startsWith("/dashboard/sponsor-onboarding")) {
     return requireRole(request, pathname, ["sponsor", "maintainer"]);
@@ -120,7 +125,7 @@ export async function handleLocalDev(request: NextRequest): Promise<NextResponse
   }
 
   if (pathname.startsWith("/portal/")) {
-    return requireRole(request, pathname, ["sponsor", "organizer", "maintainer"]);
+    return requireRole(request, pathname, ["sponsor", "maintainer"]);
   }
 
   if (pathname.startsWith("/orgs/")) {

@@ -26,17 +26,18 @@ export const dynamic = "force-dynamic";
 export default async function MaintainerCommandCenter() {
   const supabase = createServiceClient();
 
-  // ── Date bounds first: cheap and synchronous, and every query below needs
-  // one. Nothing here reads another query's result, so the whole batch is
-  // independent and was nine sequential round-trips -- eight PostgREST calls
-  // plus a health probe -- with every latency stacked in front of first paint.
-  // eslint-disable-next-line react-hooks/purity
+  // ── Date bounds ──────────────────────────────────────────────────────
+  // Use a fixed reference time to avoid hydration mismatches between server
+  // and client. The server renders once, the client hydrates once — both must
+  // compute identical ISO strings. We anchor to the current UTC day at 00:00.
+  // eslint-disable-next-line react-hooks/purity -- server component; time anchor is stable per request
   const now = Date.now();
-  const yesterday = new Date(now - 24 * 60 * 60 * 1000).toISOString();
-  const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
+  const yearStart = new Date(Date.UTC(new Date(now).getUTCFullYear(), 0, 1)).toISOString();
+  const todayStart = new Date(now);
+  todayStart.setUTCHours(0, 0, 0, 0);
+  const todayStartISO = todayStart.toISOString();
+  const yesterdayISO = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+  const sevenDaysAgoISO = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   // Started before the query batch so the probe overlaps it. Awaited after,
   // the two were serial, so a cold cache cost (query latency + up to 5s of
@@ -73,15 +74,15 @@ export default async function MaintainerCommandCenter() {
     supabase
       .from("profiles")
       .select("*", { count: "exact", head: true })
-      .gte("last_seen", yesterday),
+      .gte("last_seen", yesterdayISO),
     supabase
       .from("profiles")
       .select("*", { count: "exact", head: true })
-      .gte("created_at", todayStart.toISOString()),
+      .gte("created_at", todayStartISO),
     supabase
       .from("profiles")
       .select("created_at")
-      .gte("created_at", sevenDaysAgo)
+      .gte("created_at", sevenDaysAgoISO)
       .order("created_at", { ascending: true }),
     supabase
       .from("trust_markers")

@@ -46,7 +46,7 @@ async function announceEvent(opts: {
     logger.warn("Error announcing event:", error)
   }
 }
-// ponytail: Looks up profile UUID from WorkOS user ID to satisfy organizer_id FK
+// ponytail: Looks up profile UUID from Auth0 user ID to satisfy organizer_id FK
 export async function createEvent(input: CreateEventInput) {
   try {
     const supabase = createServiceClient()
