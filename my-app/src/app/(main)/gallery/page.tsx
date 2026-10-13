@@ -27,6 +27,8 @@ export type GalleryPhoto = {
   optimize: string | null;
   /** Duration in seconds — only set for video entries */
   duration?: number;
+  /** "image" | "video". The URL is authoritative; this is the stored hint. */
+  media_type?: string;
 };
 
 async function getPhotos(): Promise<GalleryPhoto[]> {
@@ -37,13 +39,18 @@ async function getPhotos(): Promise<GalleryPhoto[]> {
   const { data: photos, error } = await supabase
     .from("photos")
     .select(`
-      id, url, span, optimized_transform, created_at,
+      id, url, span, optimized_transform, created_at, media_type, duration_seconds,
       events ( id, title, slug ),
       profiles!photos_uploader_id_fkey ( full_name )
     `)
     .eq("status", "approved")
     .order("created_at", { ascending: false })
-    .limit(100);
+    // Was 100, which predated any event having a real photo corpus: the
+    // Daydream Butwal upload alone is 566 media items, so 100 silently hid
+    // four fifths of it. Raised to cover the corpus; tiles lazy-load and the
+    // grid already defers off-screen images, so the cost is DOM nodes, not
+    // eager network.
+    .limit(600);
 
   if (error) {
     logger.error("Error fetching gallery photos:", error);
@@ -66,6 +73,11 @@ async function getPhotos(): Promise<GalleryPhoto[]> {
       span: (p as { span?: number }).span ?? 1,
       uploader: (prof as { full_name?: string })?.full_name ?? null,
       optimize: (p as { optimized_transform?: string }).optimized_transform ?? null,
+      duration:
+        p.duration_seconds === null || p.duration_seconds === undefined
+          ? undefined
+          : Number(p.duration_seconds),
+      media_type: (p as { media_type?: string }).media_type ?? "image",
     };
   });
 }
