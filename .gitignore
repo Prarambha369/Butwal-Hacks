@@ -113,3 +113,10 @@ tmp/
 my-app/c.txt
 my-app/.npmrc
 .env*
+# Staging area for manual Cloudinary uploads (photos/videos).
+# Never commit — binaries and the upload scripts that read them.
+.upload-staging/
+upload-all-photos.sh
+upload-photos.js
+# Agent tooling config (contains MCP credentials; per-developer, not shared).
+opencode.json
