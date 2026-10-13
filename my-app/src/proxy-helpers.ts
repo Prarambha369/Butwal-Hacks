@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
+import { PORTAL_ROLES } from "@/lib/dashboard-access";
 
 function isCalendarHost(hostname: string): boolean {
   return (
@@ -72,13 +73,14 @@ export async function requireRoleByPath(
   // Sponsors reach the portal to see the projects and people behind events they
   // sponsored. Organizers do not -- they run events from /dashboard/organizer.
   // Listing organizer here only made a dead end: middleware waved them through
-  // and portal/layout.tsx bounced them, so nobody could use the section. This
-  // list must stay identical to the one in portal/layout.tsx.
+  // and portal/layout.tsx bounced them, so nobody could use the section. The
+  // list is PORTAL_ROLES from dashboard-access.ts, the same source the portal
+  // layout imports, so the two gates cannot drift apart again.
   if (pathname.startsWith("/portal/")) {
-    return requireRole(request, pathname, ["sponsor", "maintainer"]);
+    return requireRole(request, pathname, [...PORTAL_ROLES]);
   }
   if (pathname.startsWith("/dashboard/sponsor-onboarding")) {
-    return requireRole(request, pathname, ["sponsor", "maintainer"]);
+    return requireRole(request, pathname, [...PORTAL_ROLES]);
   }
   if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
     return requireAnyAuth(request, pathname);
@@ -125,7 +127,7 @@ export async function handleLocalDev(request: NextRequest): Promise<NextResponse
   }
 
   if (pathname.startsWith("/portal/")) {
-    return requireRole(request, pathname, ["sponsor", "maintainer"]);
+    return requireRole(request, pathname, [...PORTAL_ROLES]);
   }
 
   if (pathname.startsWith("/orgs/")) {

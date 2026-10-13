@@ -41,12 +41,30 @@ const STAFF = {
 };
 
 describe("the /portal middleware list matches what the predicate admits", () => {
-  const proxy = read("src/proxy-helpers.ts");
-  const at = proxy.indexOf('requireRole(request, pathname, ["sponsor"');
-  const proxyLine = proxy.slice(at, proxy.indexOf("\n", at));
-  const proxyRoles = [...proxyLine.match(/"([a-z]+)"/g) ?? []].map((r) =>
-    r.replace(/"/g, ""),
-  );
+  // Both proxy layers must source the list from PORTAL_ROLES -- a hard-coded
+  // copy is how the two gates drifted apart in the first place.
+  const proxyFiles = ["src/proxy-helpers.ts", "src/proxy.ts"];
+
+  for (const file of proxyFiles) {
+    it(`${file} imports PORTAL_ROLES from the shared module`, () => {
+      const src = read(file);
+      expect(src).toMatch(/import\s*\{\s*PORTAL_ROLES\s*\}\s*from\s*"@\/lib\/dashboard-access"/);
+    });
+
+    it(`${file} passes PORTAL_ROLES to every portal requireRole call`, () => {
+      const src = read(file);
+      // Only requireRole calls made on the portal (and sponsor-onboarding)
+      // paths. Other gated routes (/dashboard/maintainer, /dashboard/organizer)
+      // legitimately pass their own role lists.
+      const spreadCalls = src.match(/\.\.\.PORTAL_ROLES/g) ?? [];
+      expect(spreadCalls.length).toBeGreaterThan(0);
+
+      // Every portal requireRole call sources from PORTAL_ROLES, never a
+      // hand-written literal.
+      expect(src).not.toMatch(/startsWith\("\/portal\/"\)[\s\S]{0,120}"organizer"/);
+      expect(src).not.toMatch(/"sponsor",\s*"maintainer"/);
+    });
+  }
 
   it("lists exactly the roles portalRedirect can admit", () => {
     const admitted = new Set<string>();
@@ -57,13 +75,16 @@ describe("the /portal middleware list matches what the predicate admits", () => 
       }
     }
     expect([...admitted].sort()).toEqual([...PORTAL_ROLES].sort());
-    expect(proxyRoles.sort()).toEqual([...PORTAL_ROLES].sort());
   });
 
   it("keeps organizers out of both layers", () => {
-    // Organizers run events from /dashboard/organizer. Re-adding them to one
-    // layer reintroduces the dead end this test exists to prevent.
-    expect(proxyRoles).not.toContain("organizer");
+    // Organizers run events from /dashboard/organizer. Re-adding them to the
+    // portal gate reintroduces the dead end this test exists to prevent. (The
+    // /dashboard/organizer route itself legitimately admits "organizer".)
+    for (const file of proxyFiles) {
+      const src = read(file);
+      expect(src).not.toMatch(/startsWith\("\/portal\/"\)[\s\S]{0,120}"organizer"/);
+    }
     expect(
       portalRedirect({ role: "organizer", email: "o@x.com", emailVerified: true }),
     ).toBe("/dashboard/organizer");

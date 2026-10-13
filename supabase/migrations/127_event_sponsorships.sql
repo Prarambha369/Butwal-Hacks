@@ -81,6 +81,48 @@ CREATE TRIGGER event_sponsorships_touch
   BEFORE UPDATE ON event_sponsorships
   FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
 
+-- ── verified_by / verified_at binding ────────────────────────────────────
+-- The CHECK constraint above requires verified_by and verified_at whenever
+-- status is 'verified', but nothing populated them: a naive
+-- `UPDATE ... SET status='verified'` failed on the CHECK, and a caller that
+-- did supply the columns could attribute the approval to any profile. This
+-- trigger binds both to the acting identity on the transition into
+-- 'verified', so an organizer cannot approve on behalf of someone else.
+CREATE OR REPLACE FUNCTION bind_event_sponsorship_verifier() RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status = 'verified' AND OLD.status IS DISTINCT FROM 'verified' THEN
+    NEW.verified_by := current_profile_id();
+    NEW.verified_at := now();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS event_sponsorships_bind_verifier ON event_sponsorships;
+CREATE TRIGGER event_sponsorships_bind_verifier
+  BEFORE UPDATE ON event_sponsorships
+  FOR EACH ROW EXECUTE FUNCTION bind_event_sponsorship_verifier();
+
+-- ── (event_id, sponsor_profile_id) immutability ──────────────────────────
+-- The pair is the identity of the row: the UNIQUE constraint and every policy
+-- key off it. Letting an UPDATE rewrite either column would move a
+-- verification to a different event or sponsor. RLS WITH CHECK cannot
+-- reference OLD, so the rule is enforced here.
+CREATE OR REPLACE FUNCTION event_sponsorships_immutable_linkage() RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.event_id IS DISTINCT FROM OLD.event_id
+     OR NEW.sponsor_profile_id IS DISTINCT FROM OLD.sponsor_profile_id THEN
+    RAISE EXCEPTION 'event_sponsorships.event_id and sponsor_profile_id are immutable';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS event_sponsorships_immutable_linkage ON event_sponsorships;
+CREATE TRIGGER event_sponsorships_immutable_linkage
+  BEFORE UPDATE ON event_sponsorships
+  FOR EACH ROW EXECUTE FUNCTION event_sponsorships_immutable_linkage();
+
 -- ── Row level security ───────────────────────────────────────────────────
 ALTER TABLE event_sponsorships ENABLE ROW LEVEL SECURITY;
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
+import { PORTAL_ROLES } from "@/lib/dashboard-access";
 import {
   handleLocalDev,
   redirectToDomain,
@@ -108,7 +109,7 @@ export default async function proxy(request: NextRequest) {
     if (!isAppHost(hostname)) {
       return redirectToDomain(request, "app");
     }
-    return requireRole(request, pathname, ["sponsor", "maintainer"]);
+    return requireRole(request, pathname, [...PORTAL_ROLES]);
   }
 
   if (isCalendarHost(hostname)) {
