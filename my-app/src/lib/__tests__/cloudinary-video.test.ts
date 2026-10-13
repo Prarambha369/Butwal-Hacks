@@ -75,11 +75,29 @@ describe("videoPlaybackUrl", () => {
     const url = videoPlaybackUrl(VIDEO_MOV, 800);
     expect(url).toContain("vc_h264");
     expect(url).toContain("w_800");
-    expect(url).toContain("c_limit");
+  });
+
+  it("forces .mp4 so Firefox accepts the MIME type", () => {
+    // Cloudinary serves a stored .mov as Content-Type: video/quicktime;codecs=avc1.
+    // Firefox rejects H.264 in a QuickTime container with "No video with
+    // supported format and MIME type found" while Chrome and Safari play it.
+    // The same asset requested as .mp4 comes back video/mp4;codecs=avc1.
+    expect(videoPlaybackUrl(VIDEO_MOV, 800)).toMatch(/\.mp4$/);
+  });
+
+  it("does not append a second extension when the asset is already .mp4", () => {
+    expect(videoPlaybackUrl(VIDEO_MP4, 800)).toMatch(/\.mp4$/);
+    expect(videoPlaybackUrl(VIDEO_MP4, 800)).not.toContain(".mp4.mp4");
+  });
+
+  it("drops the no-op c_limit crop mode", () => {
+    // c_limit needs both dimensions; with width alone it is a byte-for-byte
+    // no-op, so sending it only misleads the next reader.
+    expect(videoPlaybackUrl(VIDEO_MP4, 800)).not.toContain("c_limit");
   });
 
   it("preserves the original path and version", () => {
-    expect(videoPlaybackUrl(VIDEO_MP4, 800)).toContain("v123/daydream-butwal/dsc_1076.mp4");
+    expect(videoPlaybackUrl(VIDEO_MP4, 800)).toContain("v123/daydream-butwal/dsc_1076");
   });
 
   it("passes through an image untouched", () => {

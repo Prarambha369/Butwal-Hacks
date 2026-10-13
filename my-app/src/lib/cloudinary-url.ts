@@ -66,8 +66,21 @@ export function videoPosterUrl(url: string, width: number, startOffset = 1): str
  *
  * Deliberately NOT `f_auto`: for video that would pick a container the browser
  * may not decode, and the poster/thumbnail path already handles delivery
- * format. vc_h264 + vc_auto_720p keeps the gallery playable everywhere while
- * bounding bandwidth on a phone.
+ * format. vc_h264 keeps the gallery playable everywhere while bounding
+ * bandwidth on a phone.
+ *
+ * The `.mp4` extension is forced, and that is load-bearing rather than
+ * cosmetic. The Daydream clips were uploaded as `.mov`, so Cloudinary stores
+ * them with that extension and serves `Content-Type: video/quicktime;codecs=avc1`.
+ * Firefox refuses H.264 in a QuickTime container outright — the <video> element
+ * fails with "No video with supported format and MIME type found" while Chrome
+ * and Safari happily play it, so the bug looks browser-specific and passes a
+ * casual test. Asking Cloudinary for the same asset as `.mp4` returns
+ * `video/mp4;codecs=avc1`, which every browser accepts. Do not "simplify" this
+ * back to passing the stored extension through.
+ *
+ * `c_limit` is deliberately absent: it needs both dimensions to constrain
+ * anything, and with width alone it is a byte-for-byte no-op on these assets.
  */
 export function videoPlaybackUrl(url: string, width: number): string {
   if (!isVideoUrl(url)) return url;
@@ -76,7 +89,8 @@ export function videoPlaybackUrl(url: string, width: number): string {
   const [, cloud, path] = match;
   if (TRANSFORM_SEGMENT.test(path.split("/")[0])) return url;
   const w = Number.isFinite(width) && width > 0 ? Math.round(width) : 800;
-  return `https://res.cloudinary.com/${cloud}/video/upload/w_${w},c_limit,vc_h264,q_auto/${path}`;
+  const asMp4 = path.replace(/\.[a-z0-9]+$/i, "") + ".mp4";
+  return `https://res.cloudinary.com/${cloud}/video/upload/w_${w},vc_h264,q_auto/${asMp4}`;
 }
 
 /**
