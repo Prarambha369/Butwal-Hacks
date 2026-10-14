@@ -65,8 +65,8 @@ export async function findTeammates(): Promise<TeamMatchResult> {
     return { candidates: [], yourSkills: mySkills };
   }
 
-  // Shared events (replaces the old XP-proximity bonus with a verifiable
-  // fact: people who showed up to the same events team up more easily).
+  // Shared events (a verifiable fact: people who showed up to the
+  // same events team up more easily).
   const otherIds = others.map((o) => o.id);
   const { data: myRegs } = await supabase
     .from("event_registrations")

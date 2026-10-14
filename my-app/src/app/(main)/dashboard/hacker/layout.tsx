@@ -129,7 +129,7 @@ export default async function HackerDashboardLayout({
   // maintainer and organizer layouts were already converted. Reachable
   // whenever the bootstrap in dashboard/layout.tsx fails on both the
   // create_profile_with_bh_id RPC and the insert fallback.
-  const blocked = roleRedirect(profile?.role, ["hacker", "lead", "maintainer"]);
+  const blocked = roleRedirect(profile?.role, ["hacker", "lead", "maintainer", "organizer"]);
   if (blocked) {
     redirect(blocked);
   }

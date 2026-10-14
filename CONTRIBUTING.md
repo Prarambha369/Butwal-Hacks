@@ -1,187 +1,170 @@
 # Contributing to Butwal Hacks
 
-Welcome! Butwal Hacks is an open-source ORCID-style verification system and hackathon management platform for youth tech talent in Nepal.
+> How to get a working environment and get a change merged. Read alongside [AGENTS.md](AGENTS.md), which holds the technical conventions.
 
-## Quick Start
+## What this is
+
+Butwal Hacks is an open-source credential verification system and hackathon management platform for youth tech talent in Nepal. Contributions of code, documentation, design, and operations are all welcome.
+
+## Who it's for
+
+| Audience | Use it for |
+|----------|-----------|
+| First-time contributors | Getting a working local environment |
+| Returning contributors | The checklist before opening a PR |
+| Documentation contributors | Which file to edit for which kind of change |
+
+## Quick actions
 
 ### Prerequisites
 
-- **Node.js 20+** (LTS recommended)
-- **npm** (not pnpm or yarn)
-- **Git**
+| Requirement | Version |
+|-------------|---------|
+| Node.js | 20 or newer |
+| Package manager | npm only; pnpm and yarn are not supported |
+| Git | any recent version |
 
-### Local Development
+### Local development
 
 ```bash
-# 1. Clone and install
 git clone https://github.com/Prarambha369/Butwal-Hacks.git
-cd Butwal-Hacks/my-app
+cd Butwal-Hacks
 npm install
-
-# 2. Copy environment file and fill in your keys
-cp .env.example .env.local
-# Edit .env.local with your Auth0, Supabase, etc. credentials
-
-# 3. Start dev server
+cp my-app/.env.example my-app/.env.local
+# Edit my-app/.env.local with your Auth0, Supabase, and third-party keys
 npm run dev
 # → http://localhost:3000
 ```
 
-### Docker (Optional — Local Supabase + Redis)
-
-If you don't want cloud accounts for Supabase and Redis during local development:
-
-```bash
-# From project root
-docker compose up -d
-
-# This starts:
-# - Supabase Studio on http://localhost:54321
-# - Redis on localhost:6379
-
-# Then update your .env.local:
-# NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
-# NEXT_PUBLIC_SUPABASE_ANON_KEY=<from docker logs>
-# UPSTASH_REDIS_REST_URL=http://localhost:6379
-```
-
-> ⚠️ The Docker setup is for **local development only**. Production uses hosted Supabase and Upstash Redis.
-
-## Architecture
-
-```
-butwalhacks.com          → Zone 1: Public Marketing (Homepage, Blog, Docs)
-app.butwalhacks.com      → Zones 2–9: Dashboards, Profiles, APIs
-```
-
-| Zone | Routes | Purpose |
-|------|--------|---------|
-| 1 | `/`, `/blog`, `/docs`, `/about` | Public marketing site |
-| 2 | `/login`, `/sign-up` | Authentication |
-| 3 | `/p/[slug_id]`, `/verify/[markerId]` | Public ORCID-style profiles |
-| 4 | `/dashboard/hacker/*` | Hacker dashboard |
-| 5 | `/dashboard/organizer/*` | Organizer dashboard |
-| 6 | `/dashboard/maintainer/*` | Maintainer dashboard |
-| 7 | `/orgs/[slug]/*` | Organization management |
-| 8 | `/portal/*` | Recruiter/Sponsor portal |
-| 9 | `/api/*` | REST API endpoints |
-
-**Key Files:**
-- `src/proxy.ts` — Middleware for subdomain routing and RBAC
-- `src/lib/auth0.ts` — Auth0 SDK v4 client
-- `src/lib/auth0-management.ts` — Management API (identity linking)
-- `src/utils/supabase.ts` — Supabase client (anon + service role)
-- `src/lib/rate-limiter.ts` — Upstash Redis rate limiting
-- `src/lib/i18n.ts` — English/Nepali translation system
-
-## Pre-commit Hooks
-
-The project uses a pre-commit hook that runs ESLint on staged `.ts` and `.tsx` files:
+### Enable the pre-commit hooks
 
 ```bash
 git config core.hooksPath .husky/
 ```
 
-Run this once after cloning. The hook also runs a **secrets audit** to prevent accidental credential commits.
+Run this once after cloning. The hook runs ESLint on staged TypeScript files and a secrets audit on the diff. Without it, neither check runs locally.
 
-## Code Style
+### Before you open a PR
 
-### TypeScript
+```bash
+npx tsc --noEmit
+npm run lint
+npm run test
+npm run build
+```
 
-- **Strict mode**. No `any` types unless absolutely necessary (add `// ponytail:` comment explaining why).
-- Use **conventional commits**: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`.
-- Default to **server components**. Add `"use client"` only when you need hooks, state, or browser APIs.
+All four must pass. If you cannot run one locally, say so in the PR rather than claiming it passed.
 
-### UI / Design System
+## Reference
 
-All UI must follow the Butwal Hacks design language:
+### Which document to edit
 
-| Element | Rules |
-|---------|-------|
-| **Colors** | Tailwind hex values: `bg-[#FE0000]`, `border-[#E5E5E5]`, `text-[#1F1F1F]` |
-| **Surfaces** | Solid white (`#FFFFFF`) or light gray (`#F7F7F8`). No backdrop blur for decoration. |
-| **Borders** | Crisp 1px (`#E5E5E5`). Cards and inputs use solid borders. |
-| **Buttons** | Pill-shaped (`rounded-full`) for primary. Red background + glow for CTAs. |
-| **Typography** | Primary: DM Sans / Inter. Secondary: JetBrains Mono (IDs, dates, code). |
-| **Trust Markers** | Verified = `border-[#FE0000]` with red badge. Self-reported = standard border. |
-| **Animations** | Smooth, subtle. Use `cubic-bezier(0.4, 0, 0.2, 1)` for transitions. |
+| Change | Edit |
+|--------|------|
+| Setup steps, contribution workflow | This file |
+| Conventions, gates, access control | [AGENTS.md](AGENTS.md) |
+| Mission, users, roadmap, route zones | [PRODUCT.md](PRODUCT.md) |
+| Tokens, typography, UI rules | [DESIGN.md](DESIGN.md) |
+| ADRs, security model, testing strategy | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Secrets, deploy, rollback, on-call | [MAINTAINERS.md](MAINTAINERS.md) |
 
-❌ **Never use**: Standard Tailwind color classes (`bg-gray-800`, `text-red-500`), inline `style` attributes for colors, or backdrop blur on cards.
+### Architecture in one diagram
 
-### RBAC
+```text
+butwalhacks.com     →  Zone 1: public marketing
+app.butwalhacks.com →  Zones 2-9: auth, profiles, dashboards, portal, API
+```
 
-Three roles: `hacker`, `organizer`, `maintainer`. Use `requireRole()` in `proxy.ts` for route protection. Never bypass RLS with `createServiceClient()` without authorization checks.
+| Zone | Routes | Purpose |
+|------|--------|---------|
+| 1 | `/`, `/blog`, `/about` | Public marketing site |
+| 2 | `/auth/*` | Authentication, handled by Auth0 |
+| 3 | `/p/[slug_id]`, `/verify/[markerId]` | Public credential profiles |
+| 4 | `/dashboard/hacker/*` | Hacker dashboard |
+| 5 | `/dashboard/organizer/*` | Organizer dashboard |
+| 6 | `/dashboard/maintainer/*` | Maintainer dashboard |
+| 7 | `/orgs/[slug]/*`, `/portal/*` | Organizations and sponsor portal |
+| 8 | `/teams/*` | Teams |
+| 9 | `/api/*` | REST API endpoints |
 
-### Rate Limiting
+### Local Supabase and Redis with Docker
 
-Wrap mutation API routes with `withRateLimit()`:
+Optional. Useful if you do not want cloud accounts during development.
+
+```bash
+# From the repo root
+docker compose up -d
+
+# Brings up:
+# - Supabase Studio at http://localhost:54321
+# - Redis at localhost:6379
+```
+
+Then point `my-app/.env.local` at them:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<from docker logs>
+UPSTASH_REDIS_REST_URL=http://localhost:6379
+```
+
+This setup is for local development only. Production uses hosted Supabase and Upstash Redis.
+
+### Code style
+
+| Rule | Detail |
+|------|--------|
+| Types | Strict mode. No `any` in new code; use `unknown` with a type guard. If an `any` is unavoidable, leave a `// ponytail:` comment explaining why |
+| Components | Server components by default. Add `"use client"` only for hooks, state, or browser APIs |
+| Colors | Design tokens only, never literals. See [DESIGN.md](DESIGN.md) |
+| Unused params | Prefix with `_` |
+| Commits | Conventional Commits |
+
+### Rate-limited mutation routes
 
 ```ts
 import { withRateLimit } from "@/lib/rate-limiter";
 
-export const POST = withRateLimit(handler);           // default: 5 req/60s
-export const POST = withRateLimit(handler, "sensitive"); // 3 req/60s
+export const POST = withRateLimit(handler);                  // 5 requests / 60s
+export const POST = withRateLimit(handler, "sensitive");     // 3 requests / 60s
 ```
 
-## Verification
+Wrap every `POST`, `PUT`, `PATCH`, and `DELETE` handler.
 
-Always run these before submitting a PR:
+### Commits
 
-```bash
-cd my-app
-npx tsc --noEmit       # TypeScript check
-npm run lint            # ESLint (zero warnings)
-npm test                # Vitest unit tests (800+ tests)
-npm run build           # Full Next.js production build
-```
-
-All checks must pass. The pre-commit hook runs lint automatically.
-
-## Project Structure
-
-```
-my-app/
-├── src/
-│   ├── app/                    # Next.js App Router pages
-│   │   ├── (main)/             # Public-facing routes
-│   │   ├── api/                # API route handlers
-│   │   ├── dashboard/          # Dashboard routes (hacker/organizer/maintainer)
-│   │   └── portal/             # Recruiter/Sponsor portal
-│   ├── components/             # React components
-│   │   ├── home/               # Homepage section components
-│   │   ├── hacker-id/          # Profile and certificate components
-│   │   ├── dashboard/          # Dashboard-specific components
-│   │   ├── recruiters/         # Recruiter portal components
-│   │   └── ui/                 # Shared UI primitives
-│   ├── lib/                    # Business logic, actions, utilities
-│   │   ├── actions/            # Server actions (Supabase queries)
-│   │   ├── ai/                 # Groq AI integrations
-│   │   └── pdf/                # Certificate PDF generation
-│   ├── hooks/                  # Custom React hooks
-│   └── utils/                  # Supabase clients, helpers
-├── supabase/
-│   └── migrations/             # Database migrations
-└── scripts/                    # Utility scripts
-```
-
-## Commits
-
-Use [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
+```text
 feat: add bento grid to homepage
 fix: auth0 callback loop on logout
 docs: update environment setup guide
-chore: upgrade next.js to 16.2
+chore: upgrade next.js to 16.3
 refactor: extract rate limiter into lib/
 ```
 
-## Reporting Issues
+## Troubleshooting
 
-- Use [GitHub Issues](https://github.com/Prarambha369/Butwal-Hacks/issues) for bug reports and feature requests.
-- Include reproduction steps, expected behavior, and actual behavior.
-- For security vulnerabilities, email security@butwalhacks.com instead of opening a public issue.
+| Symptom | Fix |
+|---------|-----|
+| `npm install` fails on peer dependencies | Do not add `--legacy-peer-deps`; CI will fail too. Resolve the actual conflict |
+| Port 3000 in use | `PORT=3001 npm run dev` |
+| Hooks do not run | `git config core.hooksPath .husky/` |
+| Tests fail only in CI | Auth-dependent E2E tests need `skipInCI()`; unit tests must not depend on env vars |
+| Lint warns about an unused var | Prefix with `_` rather than deleting |
+
+## Reporting issues
+
+Use GitHub Issues for bugs and features, and include reproduction steps, expected behavior, and actual behavior.
+
+For security vulnerabilities, do not open a public issue. See [SECURITY.md](SECURITY.md).
+
+## See also
+
+- [AGENTS.md](AGENTS.md) — technical conventions and verification gates
+- [MAINTAINERS.md](MAINTAINERS.md) — operational procedures
+- [SECURITY.md](SECURITY.md) — vulnerability reporting
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — community standards
+- [README.md](README.md) — project overview
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the same license as the project.
+By contributing you agree that your contributions are licensed under the same license as the project: MIT.

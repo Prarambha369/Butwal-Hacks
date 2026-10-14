@@ -7,6 +7,7 @@ import { sanitizeString } from "@/lib/validation";
 import { resolveProfileId } from "@/lib/profile-resolver";
 import { notifyEventCreated } from "@/lib/discord";
 import { SITE_URL } from "@/lib/constants";
+import { slugify, uniqueSlug } from "@/lib/slug";
 
 interface CreateEventInput {
   title: string
@@ -16,6 +17,8 @@ interface CreateEventInput {
   location?: string | null
   banner_url?: string | null
   is_published?: boolean
+  /** Organizer override. Falls back to a slug derived from the title. */
+  slug?: string | null
 }
 
 // ponytail: fire-and-forget Discord announcement, failures only logged.
@@ -46,16 +49,58 @@ async function announceEvent(opts: {
     logger.warn("Error announcing event:", error)
   }
 }
-// ponytail: Looks up profile UUID from WorkOS user ID to satisfy organizer_id FK
+/**
+ * The slug an event will be published under.
+ *
+ * An organizer-supplied slug wins, so they control their URL; otherwise the
+ * slug is derived from the title. Both go through the same uniquifier, because
+ * `events.slug` is UNIQUE and the collision suffix must be identical whether
+ * the slug was typed or generated.
+ *
+ * Returns `""` when neither the override nor the title yields anything
+ * slug-safe. Callers must check that before inserting.
+ *
+ * `excludeEventId` keeps the collision probe from matching the row being
+ * edited, so re-saving a slug that the event already holds is a no-op rather
+ * than `daydream-butwal` becoming `daydream-butwal-2`.
+ */
+async function resolveEventSlug(
+  supabase: ReturnType<typeof createServiceClient>,
+  override: string | null | undefined,
+  title: string,
+  excludeEventId?: string,
+): Promise<string> {
+  const desired = slugify(override ?? "") || title
+  return uniqueSlug(desired, async (candidate) => {
+    let query = supabase.from("events").select("id").eq("slug", candidate)
+    if (excludeEventId) query = query.neq("id", excludeEventId)
+    const { data } = await query.maybeSingle()
+    return data !== null
+  })
+}
+
+// ponytail: Looks up profile UUID from Auth0 user ID to satisfy organizer_id FK
 export async function createEvent(input: CreateEventInput) {
   try {
     const supabase = createServiceClient()
     const profileId = await resolveProfileId()
+    const slug = await resolveEventSlug(supabase, input.slug, input.title)
+
+    // A title with no slug-safe characters ("🎉") cannot produce a slug, and
+    // events.slug becomes NOT NULL. Refuse rather than insert a row whose only
+    // public URL is broken.
+    if (!slug) {
+      return {
+        success: false,
+        error: "This event title has no characters usable in a URL. Add a word or a year.",
+      }
+    }
 
     const { data, error } = await supabase
       .from("events")
       .insert({
         title: sanitizeString(input.title, 200),
+        slug,
         description: sanitizeString(input.description, 2000),
         start_date: input.start_date,
         end_date: input.end_date,
@@ -64,7 +109,7 @@ export async function createEvent(input: CreateEventInput) {
         is_published: input.is_published ?? false,
         organizer_id: profileId,
       })
-      .select("id")
+      .select("id, slug")
       .single()
 
     if (error) throw error
@@ -78,7 +123,7 @@ export async function createEvent(input: CreateEventInput) {
     })
 
     revalidatePath("/dashboard/organizer/events")
-    return { success: true, eventId: data.id }
+    return { success: true, eventId: data.id, slug: data.slug }
   } catch (error) {
     logger.error("Error creating event:", error)
     return {
@@ -97,17 +142,28 @@ interface CreateChapterEventInput {
   location?: string | null
   banner_url?: string | null
   is_published?: boolean
+  /** Organizer override. Falls back to a slug derived from the title. */
+  slug?: string | null
 }
 
 export async function createChapterEvent(input: CreateChapterEventInput, orgSlug: string) {
   try {
     const supabase = createServiceClient()
     const profileId = await resolveProfileId()
+    const slug = await resolveEventSlug(supabase, input.slug, input.title)
+
+    if (!slug) {
+      return {
+        success: false,
+        error: "This event title has no characters usable in a URL. Add a word or a year.",
+      }
+    }
 
     const { data, error } = await supabase
       .from("events")
       .insert({
         title: sanitizeString(input.title, 200),
+        slug,
         description: sanitizeString(input.description, 2000),
         start_date: input.start_date,
         end_date: input.end_date,
@@ -117,7 +173,7 @@ export async function createChapterEvent(input: CreateChapterEventInput, orgSlug
         organizer_id: profileId,
         chapter_id: input.chapterId,
       })
-      .select("id")
+      .select("id, slug")
       .single()
 
     if (error) throw error
@@ -132,12 +188,101 @@ export async function createChapterEvent(input: CreateChapterEventInput, orgSlug
 
     revalidatePath(`/orgs/${orgSlug}/events`)
 
-    return { success: true, eventId: data.id }
+    return { success: true, eventId: data.id, slug: data.slug }
   } catch (error) {
     logger.error("Error creating chapter event:", error)
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to create event",
+    }
+  }
+}
+
+
+/**
+ * Change an event's slug after creation.
+ *
+ * Authorization comes first and is explicit: `createServiceClient()` bypasses
+ * RLS, so without the ownership check below this would be a public endpoint
+ * that can rewrite any event's URL. The caller must own the event or be
+ * maintainer.
+ *
+ * Changing a slug breaks the old URL. That is a real cost and the reason the
+ * editor warns before saving -- a redirect table is the follow-up, not
+ * something to fake here.
+ */
+export async function updateEventSlug(eventId: string, desired: string) {
+  try {
+    const supabase = createServiceClient()
+    const profileId = await resolveProfileId()
+
+    const { data: event } = await supabase
+      .from("events")
+      .select("organizer_id, title, slug")
+      .eq("id", eventId)
+      .single()
+
+    if (!event) {
+      return { success: false, error: "Event not found." }
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, email")
+      .eq("id", profileId)
+      .single()
+
+    const email = profile?.email ?? ""
+    const isMaintainer =
+      profile?.role === "maintainer" && email.toLowerCase().endsWith("@butwalhacks.com")
+
+    if (!isMaintainer && event.organizer_id !== profileId) {
+      logger.warn("[events] slug change refused: not the organizer", {
+        event_id: eventId,
+        actor: profileId,
+      })
+      return { success: false, error: "Only the event organizer can change its URL." }
+    }
+
+    const slug = await resolveEventSlug(supabase, desired, event.title, eventId)
+    if (!slug) {
+      return { success: false, error: "That value has no characters usable in a URL." }
+    }
+
+    if (slug === event.slug) {
+      return { success: true, slug: event.slug, unchanged: true }
+    }
+
+    const { error } = await supabase
+      .from("events")
+      .update({ slug })
+      .eq("id", eventId)
+
+    if (error) {
+      // 23505 = unique_violation. A concurrent create took the slug between the
+      // probe and the write.
+      if (error.code === "23505") {
+        return { success: false, error: "That URL is already taken. Try another." }
+      }
+      throw error
+    }
+
+    logger.info("[events.slug] changed", {
+      event_id: eventId,
+      from: event.slug,
+      to: slug,
+    })
+
+    revalidatePath("/dashboard/organizer/events")
+    revalidatePath(`/events/${event.slug}`)
+    revalidatePath(`/events/${slug}`)
+
+    return { success: true, slug, previousSlug: event.slug }
+  } catch (error) {
+    logger.error("Error updating event slug:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update URL",
     }
   }
 }

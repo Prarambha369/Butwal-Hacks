@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, useTransition } from "react";
 import {
   X, ChevronLeft, ChevronRight, Users, Play, Pause,
   Volume2, VolumeX, Filter, Camera, Video, ImageIcon,
@@ -10,7 +10,10 @@ import {
 } from "lucide-react";
 import { getDiceBearPlaceholder } from "@/lib/utils";
 import { cloudinaryDownloadUrl, displayPhotoUrl } from "@/lib/cloudinary-url";
-import type { GalleryPhoto } from "./page";
+// Server actions live in `lib`; the page's types are re-exported there, so
+// import both from one place rather than through `./page`.
+import { fetchGalleryPage } from "@/lib/actions/gallery";
+import type { GalleryPhoto, GalleryTotals } from "@/lib/actions/gallery";
 
 // ─── Video detection ───────────────────────────────────────────────
 
@@ -434,9 +437,41 @@ function GalleryCard({
 
 // ─── Main GalleryGrid ──────────────────────────────────────────────
 
-export default function GalleryGrid({ photos, canDownload }: { photos: GalleryPhoto[]; canDownload: boolean }) {
+export default function GalleryGrid({
+  photos: initialPhotos,
+  canDownload,
+  totals,
+  hasMore: initialHasMore,
+}: {
+  photos: GalleryPhoto[];
+  canDownload: boolean;
+  totals: GalleryTotals;
+  hasMore: boolean;
+}) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [filter, setFilter] = useState<string | null>(null);
+
+  // Pagination state. The server hands over page 1 plus the true totals; the
+  // rest is appended as the visitor asks for it.
+  const [photos, setPhotos] = useState(initialPhotos);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [isPending, startTransition] = useTransition();
+
+  // On filter change the lightbox index points into a different slice; closing
+  // it avoids landing on an unrelated tile.
+  useEffect(() => setSelectedIdx(null), [filter]);
+
+  const handleLoadMore = useCallback(() => {
+    startTransition(async () => {
+      const next = await fetchGalleryPage(photos.length);
+      // Guard against a double click racing the transition: dedupe by id.
+      setPhotos((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        return [...prev, ...next.photos.filter((p) => !seen.has(p.id))];
+      });
+      setHasMore(next.hasMore);
+    });
+  }, [photos.length]);
 
   // Extract unique events for filter dropdown
   const events = useMemo(() => {
@@ -482,23 +517,31 @@ export default function GalleryGrid({ photos, canDownload }: { photos: GalleryPh
             <div className="flex items-center gap-2">
               <Camera className="w-4 h-4 text-primary-red" />
               <span className="text-sm font-mono text-secondary">
-                {photos.filter((p) => !isVideoUrl(p.url)).length} photos
+                {totals.photos} {totals.photos === 1 ? "photo" : "photos"}
               </span>
             </div>
             <span className="w-px h-4 bg-border" />
             <div className="flex items-center gap-2">
               <Video className="w-4 h-4 text-primary-red" />
               <span className="text-sm font-mono text-secondary">
-                {photos.filter((p) => isVideoUrl(p.url)).length} videos
+                {totals.videos} {totals.videos === 1 ? "video" : "videos"}
               </span>
             </div>
             <span className="w-px h-4 bg-border" />
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-primary-red" />
               <span className="text-sm font-mono text-secondary">
-                {events.length} events
+                {totals.events} {totals.events === 1 ? "event" : "events"}
               </span>
             </div>
+            {hasMore && (
+              <>
+                <span className="w-px h-4 bg-border" />
+                <span className="text-xs font-mono text-muted-foreground">
+                  showing {photos.length}
+                </span>
+              </>
+            )}
           </div>
 
           {/* Event filter dropdown */}
@@ -553,6 +596,19 @@ export default function GalleryGrid({ photos, canDownload }: { photos: GalleryPh
               canDownload={canDownload}
             />
           ))}
+        </div>
+      )}
+
+      {/* Pagination — server-paged, so the grid never renders the whole corpus */}
+      {hasMore && (
+        <div className="mt-10 flex justify-center">
+          <button
+            onClick={handleLoadMore}
+            disabled={isPending}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-6 py-3 text-sm font-bold text-primary hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isPending ? "Loading…" : "Load more"}
+          </button>
         </div>
       )}
 

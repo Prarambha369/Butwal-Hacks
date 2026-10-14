@@ -1,37 +1,59 @@
-# 🚀 Pull Request
+# Pull Request
 
-## 📝 Description
-Briefly describe the changes introduced by this PR.
+> What this change does, and the checks it has passed. Fill in every section; tick only what you actually ran.
 
-## 🎯 Goal
+## Description
+
+What changed, and why.
+
+## Goal
+
 - [ ] Fixes a bug
-- [ ] Adds a new feature
+- [ ] Adds a feature
 - [ ] Updates documentation
 - [ ] Refactors existing code
 
-## 🛠 Technical Changes
-- List the main changes made to the codebase.
-- Mention any new dependencies added.
+## Technical changes
 
-## ✅ Verification Checklist
-- [ ] `npm run lint` passes
-- [ ] `npm run build` passes
-- [ ] Verified on Mobile (375px)
-- [ ] Verified on Desktop
-- [ ] No accessibility regressions (contrast, keyboard nav)
-- [ ] Route has `generateMetadata` and JSON-LD (if applicable)
+- Main changes to the codebase.
+- New dependencies, if any, with the reason they are needed.
 
-### Design System Compliance
-- [ ] Cards use solid `bg-surface` with 1px `border-border` — no backdrop-blur
-- [ ] Butwal Red (`#FE0000`) is the only accent — CTAs, trust markers, verified badges only
-- [ ] Primary CTAs use pill shape (`rounded-full`)
-- [ ] No inline `style={{}}` for colors — use Tailwind classes or CSS variables
+## Verification
+
+All four gates, run locally:
+
+- [ ] `npx tsc --noEmit`
+- [ ] `npm run lint`
+- [ ] `npm run test`
+- [ ] `npm run build`
+
+Manual checks, where applicable:
+
+- [ ] Verified at 375px width
+- [ ] Verified at desktop width
+- [ ] No accessibility regressions: contrast, keyboard navigation, heading order
+- [ ] Route has `generateMetadata` and JSON-LD, if it is a public page
+
+If you could not run a gate locally, say which and why instead of ticking it.
+
+## Design system
+
+- [ ] Cards use a solid surface with a 1px border; no backdrop blur
+- [ ] Red is used only on CTAs, trust markers, and verified badges
+- [ ] Primary CTAs use the pill shape
+- [ ] No inline `style={{}}` for colors; tokens and utility classes only
 - [ ] JetBrains Mono for badges, labels, metadata, and IDs
 
-### Security
-- [ ] API routes use rate limiting
-- [ ] Mutation endpoints validate input via Zod schema
-- [ ] Authenticated routes check the Auth0 session
+See [DESIGN.md](../DESIGN.md).
 
-## 📸 Screenshots / Loom
-(Add visuals if this changes the UI)
+## Security
+
+- [ ] Every `POST`, `PUT`, `PATCH`, and `DELETE` route is wrapped in `withRateLimit()`
+- [ ] Every input is validated with a Zod schema before any database access
+- [ ] Every authenticated route checks the Auth0 session
+- [ ] Every `createServiceClient()` call has an authorization check above it
+- [ ] No secrets or credentials in the diff
+
+## Screenshots
+
+Add before-and-after visuals if this changes the UI.

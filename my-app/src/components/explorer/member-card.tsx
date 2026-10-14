@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { GraduationCap, Users } from "lucide-react"
 import type { ExplorerMember } from "@/lib/members"
 import { usePresence } from "@/hooks/use-presence"
 import { LiveDot } from "@/components/hacker-id/live-dot"
@@ -92,6 +93,24 @@ export function MemberCard({
               </>
             )}
           </div>
+
+          {/* Availability badges — same flags the AVAILABILITY filters read */}
+          {(member.openToMentor || member.lookingForTeam) && (
+            <div className="flex flex-wrap gap-1.5">
+              {member.openToMentor && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-status-green/10 text-status-green border border-status-green/20">
+                  <GraduationCap className="w-2.5 h-2.5" />
+                  Mentor
+                </span>
+              )}
+              {member.lookingForTeam && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-status-blue/10 text-status-blue border border-status-blue/20">
+                  <Users className="w-2.5 h-2.5" />
+                  Looking for team
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Skills */}
           {member.skills.length > 0 && (

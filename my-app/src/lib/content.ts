@@ -70,24 +70,34 @@ export const initiatives: Initiative[] = [
   },
 ]
 
+/**
+ * Tag/metadata registry for events whose detail pages live in `public.events`.
+ *
+ * The `slug` here MUST equal the canonical `events.slug` in the database:
+ * the detail route (`/events/[slug]`) resolves DB rows only, so a stale slug
+ * in this file produces a 404 for the event, silently drops the related
+ * links and blog posts below, and emits a broken sitemap URL.
+ */
 export const events: EventItem[] = [
   {
-    slug: "daydream-butwal-september-2024",
-    title: "Daydream Butwal - September 2024",
-    initiativeSlug: "gamejam",
-    tags: ["gamejam", "game-dev", "high-school", "hackclub"],
+    slug: "hackday-butwal",
+    title: "HackDay Butwal",
+    initiativeSlug: "mini-hackathon",
+    tags: ["hackathon", "beginner", "hackday", "learning", "mini-hackathon", "butwal"],
     status: "completed",
-    dateLabel: "September 27-28, 2024",
-    summary: "A 24-hour game jam for high school students organized by Butwal Hacks in partnership with Hack Club. Participants built games, attended workshops, and showcased their creations.",
+    dateLabel: "January 17, 2026",
+    summary:
+      "A beginner-friendly, single-day mini hackathon. Teams of 2–3 spent 10–11 hours turning ideas into working projects, with workshops, mentors, free food and swags, certificates, and an after-party at 36RiverSide. Sponsored by Google Gemini — Hack Days.",
   },
   {
-    slug: "hackday-butwal-2024",
-    title: "HackDay Butwal 2024",
-    initiativeSlug: "mini-hackathon",
-    tags: ["hackathon", "beginner", "hackday", "learning"],
+    slug: "daydream-butwal",
+    title: "Daydream Butwal",
+    initiativeSlug: "gamejam",
+    tags: ["gamejam", "game-dev", "high-school", "hackclub", "butwal"],
     status: "completed",
-    dateLabel: "Completed program",
-    summary: "A day-long build sprint where first-time hackers shipped their first projects — websites, games, and hardware demos.",
+    dateLabel: "October 10-12, 2025",
+    summary:
+      "A game jam for high schoolers in partnership with Hack Club. No experience required — workshops on Slack and IRL took first-time hackers from Sprig to demo day.",
   },
 ]
 

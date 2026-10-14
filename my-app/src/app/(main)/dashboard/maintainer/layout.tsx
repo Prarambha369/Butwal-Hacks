@@ -30,7 +30,7 @@ import {
   Image as ImageIcon,
   Handshake,
 } from "lucide-react";
-import { roleRedirect } from "@/lib/role-gate";
+import { maintainerRedirect } from "@/lib/dashboard-access";
 
 const maintainerLinks = [
   {
@@ -122,7 +122,18 @@ export default async function MaintainerDashboardLayout({
     .eq("auth0_user_id", userId)
     .single();
 
-  const blocked = roleRedirect(profile?.role, ["maintainer"]);
+  // Maintainer is not just the role. It also requires an authenticated
+  // @butwalhacks.com address, which Auth0 reports as verified. The role column
+  // alone was authority, and nothing in the schema stops a profile from
+  // carrying role='maintainer' with any address -- so a compromised or
+  // mis-assigned role reached every admin page in this section. The session
+  // supplies both the address and the verification flag; `profiles` does not
+  // store either.
+  const blocked = maintainerRedirect({
+    role: profile?.role,
+    email: session?.user?.email,
+    emailVerified: session?.user?.email_verified === true,
+  });
   if (blocked) {
     redirect(blocked);
   }

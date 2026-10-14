@@ -1,23 +1,29 @@
 {
   "version": 1,
   "skills": {
-    "9router": {
-      "source": "decolua/9router",
+    "cloudinary-docs": {
+      "source": "cloudinary-devs/skills",
       "sourceType": "github",
-      "skillPath": "skills/9router/SKILL.md",
-      "computedHash": "670a1e8d9b0027674a6509a8f460ab126d1c97268ab2acfc5d6045db8b7afa0c"
+      "skillPath": "skills/platform/cloudinary-docs/SKILL.md",
+      "computedHash": "2035bffb3ae42e704e01d4da43c28aa0f6c904dd70dd8f35a4b7a19af5c1f2bf"
     },
-    "supabase": {
-      "source": "supabase/agent-skills",
+    "cloudinary-next": {
+      "source": "cloudinary-devs/skills",
       "sourceType": "github",
-      "skillPath": "skills/supabase/SKILL.md",
-      "computedHash": "583344c20e90f3654dbb0632f088d89fd9f1dde8ac85e8a644dd12eee59b1380"
+      "skillPath": "skills/frameworks/cloudinary-next/SKILL.md",
+      "computedHash": "eb89609a441b78c3de89fed892c84f71c0f4b479e5d525434e7369162221771a"
     },
-    "supabase-postgres-best-practices": {
-      "source": "supabase/agent-skills",
+    "cloudinary-react": {
+      "source": "cloudinary-devs/skills",
       "sourceType": "github",
-      "skillPath": "skills/supabase-postgres-best-practices/SKILL.md",
-      "computedHash": "e14e276241805c97dbcfe40dcbea1a3035269cc7293cac4b1832dda41a835e60"
+      "skillPath": "skills/frameworks/cloudinary-react/SKILL.md",
+      "computedHash": "c8e318d6566f1daa2973562bc2b9c190dff22b6213e370840d18892ca305340a"
+    },
+    "cloudinary-transformations": {
+      "source": "cloudinary-devs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/platform/cloudinary-transformations/SKILL.md",
+      "computedHash": "2f42062f667b53e99339e5c30e8ff0c2af80913ed5e8ccde2e2c2f4adfff7b92"
     }
   }
 }

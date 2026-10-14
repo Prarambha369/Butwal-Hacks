@@ -7,7 +7,6 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Star,
   Code2,
   ShieldCheck,
   Users,
@@ -43,11 +42,6 @@ interface AuditLogPanelProps {
 
 /** Human-readable label + icon for each action type. */
 const ACTION_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  XP_AWARDED: {
-    label: "XP Awarded",
-    icon: <Star className="w-3.5 h-3.5" />,
-    color: "text-status-yellow",
-  },
   PROJECT_SUBMITTED: {
     label: "Project Submitted",
     icon: <Code2 className="w-3.5 h-3.5" />,

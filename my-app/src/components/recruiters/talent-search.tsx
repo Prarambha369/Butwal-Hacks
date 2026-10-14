@@ -121,7 +121,7 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
               key={hacker.id}
               className="bh-card p-5 space-y-4 hover:border-primary-red/20 transition-all group"
             >
-              {/* Header: avatar + name + XP */}
+              {/* Header: avatar + name */}
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-lg bg-surface-hover border border-border shrink-0 overflow-hidden flex items-center justify-center relative">
                   {hacker.avatar_url ? (

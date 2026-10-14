@@ -12,7 +12,7 @@ import {
   Briefcase,
   Building2,
 } from "lucide-react";
-import { roleRedirect } from "@/lib/role-gate";
+import { portalRedirect } from "@/lib/dashboard-access";
 
 const sponsorLinks = [
   {
@@ -52,7 +52,15 @@ export default async function SponsorDashboardLayout({
     .eq("auth0_user_id", userId)
     .single();
 
-  const blocked = roleRedirect(profile?.role, ["sponsor", "maintainer"]);
+// Same rule as the maintainer dashboard: the maintainer role is only
+  // authority on a verified staff address. Without this, role='maintainer' on
+  // an unverified address would be refused at /dashboard/maintainer and then
+  // admitted here.
+  const blocked = portalRedirect({
+    role: profile?.role,
+    email: session?.user?.email,
+    emailVerified: session?.user?.email_verified === true,
+  });
   if (blocked) {
     redirect(blocked);
   }

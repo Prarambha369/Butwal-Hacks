@@ -6,7 +6,8 @@ import Link from "next/link";
 import { Camera, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
-import { displayPhotoUrl } from "@/lib/cloudinary-url";
+import { displayPhotoUrl, isVideoUrl } from "@/lib/cloudinary-url";
+import { VideoPlayer, VideoPoster } from "@/components/gallery/video-tile";
 
 export interface CoverPhoto {
   url: string;
@@ -66,13 +67,21 @@ export default function EventGalleryClient({ photos }: { photos: CoverPhoto[] })
               }`}
             >
               <div className="absolute inset-1 overflow-hidden rounded-[10px]">
-                <Image
-                  src={displayPhotoUrl(photo.url, photo.optimize, 800)}
-                  alt={photo.event}
-                  fill
-                  sizes="(max-width: 768px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+                {isVideoUrl(photo.url) ? (
+                  /* Poster only, not VideoTile: the surrounding tile is
+                     already a <button> and nesting interactive elements is
+                     invalid HTML. The outer button opens the lightbox, which
+                     plays the video with controls. */
+                  <VideoPoster url={photo.url} width={800} alt={photo.event} />
+                ) : (
+                  <Image
+                    src={displayPhotoUrl(photo.url, photo.optimize, 800)}
+                    alt={photo.event}
+                    fill
+                    sizes="(max-width: 768px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                )}
               </div>
 
               {/* Hover overlay */}
@@ -120,13 +129,21 @@ export default function EventGalleryClient({ photos }: { photos: CoverPhoto[] })
                 </button>
 
                 <div className="relative flex-1 h-[60vh] rounded-xl overflow-hidden shadow-lg border border-border bg-surface">
-                  <Image
-                    src={displayPhotoUrl(selectedPhoto.url, selectedPhoto.optimize, 1600)}
-                    alt={selectedPhoto.event}
-                    fill
-                    className="object-contain"
-                    sizes="(max-width: 1024px) 90vw, 80vw"
-                  />
+                  {isVideoUrl(selectedPhoto.url) ? (
+                    <VideoPlayer
+                      url={selectedPhoto.url}
+                      width={1600}
+                      alt={selectedPhoto.event}
+                    />
+                  ) : (
+                    <Image
+                      src={displayPhotoUrl(selectedPhoto.url, selectedPhoto.optimize, 1600)}
+                      alt={selectedPhoto.event}
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 1024px) 90vw, 80vw"
+                    />
+                  )}
                   <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
                     <div className="flex justify-between items-end">
                       <div>

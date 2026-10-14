@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger'
 import { createServiceClient } from '@/utils/supabase';
 import { revalidatePath } from 'next/cache';
 import { bustCache } from '@/lib/cache';
+import { uniqueSlug } from '@/lib/slug';
 
 export async function requireMaintainer() {
   const session = await auth0.getSession();
@@ -279,35 +280,18 @@ export async function dedicateSchool(formData: {
   await requireMaintainer();
   const supabase = createServiceClient();
 
-  // Generate base slug from school name
-  let slug = formData.schoolName
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-
-  // Check for duplicate slug and append suffix if needed
-  const { data: existing } = await supabase
-    .from('chapters')
-    .select('slug')
-    .eq('slug', slug)
-    .maybeSingle();
-
-  if (existing) {
-    let counter = 2;
-    while (true) {
-      const candidate = `${slug}-${counter}`;
-      const { data: clash } = await supabase
-        .from('chapters')
-        .select('slug')
-        .eq('slug', candidate)
-        .maybeSingle();
-      if (!clash) {
-        slug = candidate;
-        break;
-      }
-      counter++;
-    }
-  }
+  // Shared slug rules (lib/slug.ts) with the chapters-specific uniquifier.
+  // This inline version did not fold diacritics or cap length, so "Sainé
+  // Secondary School" and a 200-character name produced slugs that no other
+  // surface would have produced.
+  const slug = await uniqueSlug(formData.schoolName, async (candidate) => {
+    const { data: clash } = await supabase
+      .from('chapters')
+      .select('id')
+      .eq('slug', candidate)
+      .maybeSingle();
+    return clash !== null;
+  });
 
   // Resolve lead profile UUID if BH-ID provided
   let leadProfileId: string | null = null;
