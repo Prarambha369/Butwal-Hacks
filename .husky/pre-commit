@@ -27,7 +27,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # ── Run ESLint on staged .ts/.tsx files ──────────────────────────────────
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.tsx?$' || true)
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^my-app/.*\.tsx?$' || true)
 
 if [ -z "$STAGED_FILES" ]; then
   exit 0

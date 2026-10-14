@@ -77,13 +77,21 @@ describe("displayPhotoUrl", () => {
 });
 
 describe("sized display passthrough", () => {
-  it("passes through videos, external URLs, and garbage", () => {
-    expect(sized("https://res.cloudinary.com/demo/video/upload/clip.mp4", 600))
-      .toBe("https://res.cloudinary.com/demo/video/upload/clip.mp4");
+  it("passes through external URLs and garbage", () => {
     expect(sized("https://images.unsplash.com/photo-123", 600))
       .toBe("https://images.unsplash.com/photo-123");
     expect(sized("", 600)).toBe("");
     expect(sized(PLAIN, 0)).toBe(PLAIN);
     expect(sized(PLAIN, NaN)).toBe(PLAIN);
+  });
+
+  // This used to assert that a video URL passed through untouched. That was
+  // the behavior when the gallery had no video support and every caller was
+  // an <img> — passing a .mp4 there rendered a broken tile with no error.
+  // Now video resolves to a poster frame instead. See cloudinary-video.test.ts.
+  it("resolves video to a poster frame rather than passing the mp4 through", () => {
+    const out = sized("https://res.cloudinary.com/demo/video/upload/clip.mp4", 600);
+    expect(out).not.toContain(".mp4");
+    expect(out).toContain("f_jpg");
   });
 });

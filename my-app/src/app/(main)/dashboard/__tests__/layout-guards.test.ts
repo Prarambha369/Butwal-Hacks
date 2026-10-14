@@ -27,17 +27,35 @@ import { roleRedirect } from "@/lib/role-gate";
 const APP = process.cwd();
 
 const LAYOUTS = [
-  { role: "hacker", file: "src/app/(main)/dashboard/hacker/layout.tsx" },
-  { role: "organizer", file: "src/app/(main)/dashboard/organizer/layout.tsx" },
-  { role: "maintainer", file: "src/app/(main)/dashboard/maintainer/layout.tsx" },
+  {
+    role: "hacker",
+    guard: "roleRedirect",
+    file: "src/app/(main)/dashboard/hacker/layout.tsx",
+  },
+  {
+    role: "organizer",
+    guard: "organizerRedirect",
+    file: "src/app/(main)/dashboard/organizer/layout.tsx",
+  },
+  {
+    role: "maintainer",
+    guard: "maintainerRedirect",
+    file: "src/app/(main)/dashboard/maintainer/layout.tsx",
+  },
+  {
+    // Never covered by this guard before it gained its own predicate.
+    role: "portal",
+    guard: "portalRedirect",
+    file: "src/app/(main)/portal/layout.tsx",
+  },
 ];
 
 const read = (file: string) => readFileSync(resolve(APP, file), "utf8");
 
 describe("dashboard layout role guards", () => {
-  it.each(LAYOUTS)("$role layout gates with roleRedirect", ({ file }) => {
+  it.each(LAYOUTS)("$role layout gates with $guard", ({ file, guard }) => {
     const src = read(file);
-    expect(src).toContain("roleRedirect(");
+    expect(src).toContain(`${guard}(`);
   });
 
   it.each(LAYOUTS)("$role layout does not gate on role truthiness", ({ file }) => {
@@ -50,15 +68,28 @@ describe("dashboard layout role guards", () => {
   it.each(LAYOUTS)("$role layout redirects on the blocked path", ({ file }) => {
     const src = read(file);
     // A gate that computes `blocked` must actually act on it, or the guard is
-    // dead code that reads as protection.
-    expect(src).toMatch(/const blocked = roleRedirect\([\s\S]{0,120}redirect\(blocked\)/);
+    // dead code that reads as protection. The predicate name varies per layout
+    // (roleRedirect / organizerRedirect / maintainerRedirect / portalRedirect)
+    // but the shape must not.
+    expect(src).toMatch(/const blocked = \w+Redirect\([\s\S]{0,200}redirect\(blocked\)/);
+  });
+
+  it.each(LAYOUTS)("$role layout imports its guard from the shared module", ({ file, guard }) => {
+    // Guards drift when they are inlined per layout. Each one must come from the
+    // single shared source of truth, not a local copy.
+    const src = read(file);
+    expect(src).toMatch(new RegExp(`import[^;]*\\{[^}]*${guard}[^}]*\\}[^;]*from "@/lib/\\S+"`));
   });
 });
 
 describe("the hacker allowlist, now that it is fail-closed", () => {
-  // Preserved deliberately from the previous inline check, so converting to
-  // roleRedirect changed the null case only -- not who can reach the page.
-  const HACKER_ALLOWED = ["hacker", "lead", "maintainer"];
+  // The three roles the previous inline check admitted, plus `organizer`:
+  // organizerRedirect sends organizers whose event window has closed to
+  // /dashboard/hacker (dashboard-access.ts), so rejecting the role here
+  // bounced them straight back to /dashboard/organizer in a loop. The edge is
+  // one-way -- organizers may enter the hacker tree, but the organizer layout
+  // still refuses anyone who is not an active organizer.
+  const HACKER_ALLOWED = ["hacker", "lead", "maintainer", "organizer"];
 
   it("still admits every role that previously worked", () => {
     for (const role of HACKER_ALLOWED) {
@@ -74,7 +105,6 @@ describe("the hacker allowlist, now that it is fail-closed", () => {
   });
 
   it("still sends a wrong role to its own dashboard", () => {
-    expect(roleRedirect("organizer", HACKER_ALLOWED)).toBe("/dashboard/organizer");
     expect(roleRedirect("sponsor", HACKER_ALLOWED)).toBe("/dashboard/sponsor");
   });
 });

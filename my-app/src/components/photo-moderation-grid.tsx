@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, X, Trash2, Star, Zap } from "lucide-react";
-import { displayPhotoUrl } from "@/lib/cloudinary-url";
+import { displayPhotoUrl, isVideoUrl } from "@/lib/cloudinary-url";
 import {
   setPhotoStatus,
   setPhotoCover,
@@ -76,6 +76,11 @@ export function PhotoModerationGrid({
           <div key={p.id} className="bh-card overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={displayPhotoUrl(p.url, p.optimized_transform, 600)} alt={p.event_title ?? "Event photo"} className="aspect-video w-full object-cover" loading="lazy" />
+            {isVideoUrl(p.url) && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-surface-hover text-secondary">
+                video
+              </span>
+            )}
             <div className="space-y-2 p-4">
               <div className="flex items-center gap-2">
                 <StatusPill status={p.status} />

@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 
 import { CloseEventClientButton } from "./close-event-button";
+import { EventSlugEditor } from "./slug-editor";
 import { CertificateExportButton } from "./certificate-export-button";
 import { buildPageMetadata } from "@/lib/seo"
 
@@ -158,6 +159,13 @@ export default async function EventDetailsPage({
               This action is irreversible.
             </p>
           </div>
+
+          {/* Public URL */}
+          <EventSlugEditor
+            eventId={event_id}
+            currentSlug={event.slug}
+            title={event.title}
+          />
 
           {/* Certificate Export */}
           <div className="bh-card p-6 space-y-4">

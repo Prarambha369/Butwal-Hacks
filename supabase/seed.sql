@@ -1,176 +1,313 @@
--- ═══════════════════════════════════════════════════════════════════
--- 🌱 BUTWAL HACKS SEED DATA
--- ═══════════════════════════════════════════════════════════════════
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Butwal Hacks — Seed Data
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Provides realistic demo records for local development:
+--   • 3 hackers (BH-24-001, BH-24-002, BH-24-003)
+--   • 1 organizer
+--   • 1 maintainer
+--   • 2 events (1 upcoming, 1 past)
+--   • 3 trust markers (1 verified, 1 self-reported, 1 revoked)
+--   • 2 projects with tech stacks
+--   • 1 team with members
+--   • Event registrations for the hackers
+--
+-- Idempotent: safe to run multiple times (clears seed data first).
 --
 -- Usage:
---   psql "postgresql://..." -f supabase/seed.sql
---
--- Or from Supabase dashboard:
---   1. Open SQL Editor
---   2. Paste this file
---   3. Run
---
--- Note: The profiles table has a FK constraint referencing auth.users.
---       Since Butwal Hacks uses Auth0 (not Supabase Auth), this FK
---       may have been dropped. If INSERT fails on FK violation, run:
---         ALTER TABLE profiles DROP CONSTRAINT profiles_id_fkey;
---
--- ═══════════════════════════════════════════════════════════════════
+--   psql -f supabase/seed.sql
+-- ─────────────────────────────────────────────────────────────────────────────
 
--- ── Clear existing data (safe to re-run) ──────────────────────────
-TRUNCATE TABLE
-  trust_markers,
+-- ─── Idempotent cleanup ────────────────────────────────────────────────────
+
+TRUNCATE
   event_registrations,
   team_members,
   teams,
+  trust_markers,
   projects,
   events,
   profiles
 CASCADE;
 
--- ── Profiles ──────────────────────────────────────────────────────
--- Hackers
-INSERT INTO profiles (id, auth0_user_id, slug_id, bh_id, email, full_name, role, is_claimed, xp, bio, avatar_url)
-VALUES
-  ('a0000000-0000-0000-0000-000000000001', 'auth0|seed-hacker-1', 'BH-26-001', 'BH-26-001', 'anupa.sharma@example.com',  'Anupa Sharma',  'hacker',     true, 2450, 'Full-stack developer passionate about EdTech. Built 3 hackathon projects this year.', 'https://api.dicebear.com/9.x/avataaars/svg?seed=Anupa'),
-  ('a0000000-0000-0000-0000-000000000002', 'auth0|seed-hacker-2', 'BH-26-002', 'BH-26-002', 'bibek.rai@example.com',     'Bibek Rai',     'hacker',     true,  870, 'AI/ML enthusiast exploring computer vision applications for agriculture in Nepal.', 'https://api.dicebear.com/9.x/avataaars/svg?seed=Bibek'),
-  ('a0000000-0000-0000-0000-000000000003', 'auth0|seed-hacker-3', 'BH-26-003', 'BH-26-003', 'sneha.adhikari@example.com','Sneha Adhikari','hacker',     true, 1520, 'UI/UX designer and frontend developer. Love creating accessible, delightful interfaces.', 'https://api.dicebear.com/9.x/avataaars/svg?seed=Sneha')
-ON CONFLICT (slug_id) DO NOTHING;
+-- Reset auto-increment sequences (if any use them)
+ALTER SEQUENCE IF EXISTS profiles_id_seq RESTART WITH 1;
 
--- Organizer
-INSERT INTO profiles (id, auth0_user_id, slug_id, bh_id, email, full_name, role, is_claimed, xp, bio, avatar_url)
-VALUES
-  ('b0000000-0000-0000-0000-000000000001', 'auth0|seed-organizer-1', 'BH-26-010', 'BH-26-010', 'rajesh.gurung@example.com','Rajesh Gurung','organizer',  true, 4800, 'Community builder and hackathon organizer. Running Butwal Hacks events since 2024.', 'https://api.dicebear.com/9.x/avataaars/svg?seed=Rajesh')
-ON CONFLICT (slug_id) DO NOTHING;
+-- ─── Profiles ──────────────────────────────────────────────────────────────
 
--- Maintainer
-INSERT INTO profiles (id, auth0_user_id, slug_id, bh_id, email, full_name, role, is_claimed, xp, bio, avatar_url)
-VALUES
-  ('c0000000-0000-0000-0000-000000000001', 'auth0|seed-maintainer-1', 'BH-26-100', 'BH-26-100', 'admin@butwalhacks.com',    'Prarambha B.', 'maintainer', true, 9999, 'Core maintainer of the Butwal Hacks platform. Building the future of credentialing.', 'https://api.dicebear.com/9.x/avataaars/svg?seed=Prarambha')
-ON CONFLICT (slug_id) DO NOTHING;
+INSERT INTO profiles (id, auth0_user_id, slug_id, full_name, role, bio, skills, social_links, is_claimed, avatar_url) VALUES
 
--- ── Events ────────────────────────────────────────────────────────
-INSERT INTO events (id, organizer_id, title, description, start_date, end_date, location, is_published)
-VALUES
-  (
-    'd0000000-0000-0000-0000-000000000001',
-    'b0000000-0000-0000-0000-000000000001',
-    'DayDream Butwal 2025',
-    'A 48-hour hackathon bringing together 100+ students from Lumbini Province to build solutions for local challenges. Tracks: EdTech, Agriculture, and Civic Tech.',
-    '2025-09-15 09:00:00+05:45',
-    '2025-09-17 18:00:00+05:45',
-    'Butwal Multiple Campus, Butwal',
-    true
-  ),
-  (
-    'd0000000-0000-0000-0000-000000000002',
-    'b0000000-0000-0000-0000-000000000001',
-    'Innovate Nepal 2024',
-    'Nepal-wide virtual hackathon focused on climate resilience and sustainable development. 200+ participants from 7 provinces.',
-    '2024-03-01 09:00:00+05:45',
-    '2024-03-03 18:00:00+05:45',
-    'Virtual (Zoom + Discord)',
-    true
-  );
+-- Hacker 1: Pranav Acharya (full-stack, experienced)
+(
+  'a0000000-0000-0000-0000-000000000001',
+  'auth0|seed-hacker-01',
+  'BH-24-001',
+  'Pranav Acharya',
+  'hacker',
+  'Full-stack developer passionate about open source and building tools for Nepali education. Winner of Butwal Hacks 2024.',
+  '{"TypeScript", "React", "Next.js", "Node.js", "PostgreSQL", "Tailwind CSS"}',
+  '{"github": "https://github.com/pranav-acharya", "linkedin": "https://linkedin.com/in/pranav-acharya", "twitter": "https://twitter.com/pranav_dev"}',
+  true,
+  'https://avatars.githubusercontent.com/u/1'
+),
 
--- ── Event Registrations ───────────────────────────────────────────
-INSERT INTO event_registrations (event_id, profile_id, attended)
-VALUES
-  ('d0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', true),
-  ('d0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000002', true),
-  ('d0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000003', true),
-  ('d0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', true),
-  ('d0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000003', true);
+-- Hacker 2: Samjhana Thapa (designer + frontend, mid-level)
+(
+  'a0000000-0000-0000-0000-000000000002',
+  'auth0|seed-hacker-02',
+  'BH-24-002',
+  'Samjhana Thapa',
+  'hacker',
+  'UI/UX designer and frontend developer. I build beautiful, accessible interfaces for Nepali startups.',
+  '{"Figma", "React", "TypeScript", "CSS", "Tailwind CSS", "Accessibility"}',
+  '{"github": "https://github.com/samjhana-t", "linkedin": "https://linkedin.com/in/samjhana-thapa"}',
+  true,
+  'https://avatars.githubusercontent.com/u/2'
+),
 
--- ── Teams ─────────────────────────────────────────────────────────
-INSERT INTO teams (id, event_id, name, looking_for_members)
-VALUES
-  ('e0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'Team EduForge', false),
-  ('e0000000-0000-0000-0000-000000000002', 'd0000000-0000-0000-0000-000000000001', 'Team AgroSense', true);
+-- Hacker 3: Bishal Gurung (beginner, learning)
+(
+  'a0000000-0000-0000-0000-000000000003',
+  'auth0|seed-hacker-03',
+  'BH-24-003',
+  'Bishal Gurung',
+  'hacker',
+  'Aspiring developer from Pokhara. Learning full-stack development and looking to collaborate on impactful projects.',
+  '{"JavaScript", "Python", "HTML", "CSS", "React"}',
+  '{"github": "https://github.com/bishal-g", "linkedin": "https://linkedin.com/in/bishal-gurung"}',
+  true,
+  NULL
+),
 
-INSERT INTO team_members (team_id, profile_id, is_captain)
-VALUES
-  ('e0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', true),
-  ('e0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000002', false),
-  ('e0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000003', true);
+-- Organizer: Anjali Sharma
+(
+  'a0000000-0000-0000-0000-000000000010',
+  'auth0|seed-organizer-01',
+  'BH-24-ORG-01',
+  'Anjali Sharma',
+  'organizer',
+  'Community organizer and tech educator. Organizing hackathons across western Nepal to empower the next generation of builders.',
+  '{"Event Management", "Community Building", "Mentoring", "Public Speaking"}',
+  '{"github": "https://github.com/anjali-sharma", "linkedin": "https://linkedin.com/in/anjali-sharma", "twitter": "https://twitter.com/anjali_org"}',
+  true,
+  'https://avatars.githubusercontent.com/u/10'
+),
 
--- ── Projects ──────────────────────────────────────────────────────
-INSERT INTO projects (id, profile_id, name, description, image_url, tech_stack, github_url, demo_url, hackathon_origin)
-VALUES
-  (
-    'f0000000-0000-0000-0000-000000000001',
-    'a0000000-0000-0000-0000-000000000001',
-    'EduForge — Localized Learning Platform',
-    'An adaptive learning platform supporting Nepali and English. Features offline-capable lessons, progress tracking, and AI-powered quiz generation. Built for rural schools with limited internet access.',
-    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&q=80',
-    ARRAY['Next.js', 'PostgreSQL', 'Groq AI', 'Tailwind CSS'],
-    'https://github.com/butwalhacks/eduforge',
-    'https://eduforge.demo.butwalhacks.com',
-    'DayDream Butwal 2025'
-  ),
-  (
-    'f0000000-0000-0000-0000-000000000002',
-    'a0000000-0000-0000-0000-000000000003',
-    'AgroSense — Smart Farming Dashboard',
-    'IoT-integrated farming dashboard that analyzes soil moisture, temperature, and weather forecasts. Provides actionable insights to farmers via SMS and a simple web dashboard.',
-    'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80',
-    ARRAY['React', 'Node.js', 'MongoDB', 'Arduino', 'Twilio'],
-    'https://github.com/butwalhacks/agrosense',
-    'https://agrosense.demo.butwalhacks.com',
-    'Innovate Nepal 2024'
-  );
+-- Maintainer: Deepak Pandey (core team, god mode)
+(
+  'a0000000-0000-0000-0000-000000000020',
+  'auth0|seed-maintainer-01',
+  'BH-24-MNT-01',
+  'Deepak Pandey',
+  'maintainer',
+  'Core maintainer of the Butwal Hacks platform. Infrastructure, security, and trust markers.',
+  '{"Rust", "Go", "TypeScript", "DevOps", "Security", "PostgreSQL"}',
+  '{"github": "https://github.com/deepak-pandey", "linkedin": "https://linkedin.com/in/deepak-pandey", "website": "https://deepakpandey.dev"}',
+  true,
+  'https://avatars.githubusercontent.com/u/20'
+);
 
--- ── Trust Markers ─────────────────────────────────────────────────
--- Verified marker (issued by organizer, not revoked)
-INSERT INTO trust_markers (id, profile_id, issuer_id, event_id, type, title, description, is_revoked)
-VALUES
-  (
-    'g0000000-0000-0000-0000-000000000001',
-    'a0000000-0000-0000-0000-000000000001',
-    'b0000000-0000-0000-0000-000000000001',
-    'd0000000-0000-0000-0000-000000000001',
-    'achievement',
-    'Best Overall Hack — DayDream Butwal 2025',
-    'Awarded for building EduForge, the most impactful project addressing education accessibility in rural Nepal.',
-    false
-  );
+-- ─── Events ────────────────────────────────────────────────────────────────
 
--- Self-reported marker (claimed by hacker, no organizer verification)
-INSERT INTO trust_markers (id, profile_id, issuer_id, type, title, description, is_revoked)
-VALUES
-  (
-    'g0000000-0000-0000-0000-000000000002',
-    'a0000000-0000-0000-0000-000000000002',
-    'a0000000-0000-0000-0000-000000000002',
-    'self-reported',
-    'Completed Google Data Analytics Certificate',
-    'Successfully completed the 8-course Google Data Analytics Professional Certificate on Coursera.',
-    false
-  );
+INSERT INTO events (id, title, slug, description, start_date, end_date, location, banner_url, is_published, organizer_id) VALUES
 
--- Revoked marker (was verified, but later revoked by maintainer)
-INSERT INTO trust_markers (id, profile_id, issuer_id, event_id, type, title, description, is_revoked, revocation_reason)
-VALUES
-  (
-    'g0000000-0000-0000-0000-000000000003',
-    'a0000000-0000-0000-0000-000000000003',
-    'c0000000-0000-0000-0000-000000000001',
-    'd0000000-0000-0000-0000-000000000002',
-    'achievement',
-    'Runner-Up — Innovate Nepal 2024',
-    'Originally awarded as runner-up, but later revoked due to eligibility dispute.',
-    true,
-    'Eligibility criteria not met — participant was enrolled in a full-time degree program outside Lumbini Province.'
-  );
+-- Past event (Butwal Hacks 2024)
+(
+  'b0000000-0000-0000-0000-000000000001',
+  'Butwal Hacks 2024',
+  'butwal-hacks-2024',
+  'The inaugural Butwal Hacks — a 48-hour hackathon bringing together 100+ builders from across Lumbini Province to solve local challenges with technology.',
+  '2024-09-15 09:00:00+05:45',
+  '2024-09-17 18:00:00+05:45',
+  'Butwal Multiple Campus, Butwal',
+  'https://res.cloudinary.com/demo/image/upload/v1/events/butwal-hacks-2024',
+  true,
+  'a0000000-0000-0000-0000-000000000010'
+),
 
--- ═══════════════════════════════════════════════════════════════════
--- ✅ SEED COMPLETE
---
--- Summary:
---   3 hackers (BH-26-001, BH-26-002, BH-26-003)
---   1 organizer  (BH-26-010)
---   1 maintainer (BH-26-100)
---   2 events (1 upcoming, 1 past)
---   3 trust markers (1 verified, 1 self-reported, 1 revoked)
---   2 projects with teams
--- ═══════════════════════════════════════════════════════════════════
+-- Upcoming event (Butwal Hacks 2025)
+(
+  'b0000000-0000-0000-0000-000000000002',
+  'Butwal Hacks 2025',
+  'butwal-hacks-2025',
+  'The second edition of Butwal Hacks — bigger and better. Two tracks: Open Innovation and Climate Tech. 200+ hackers expected from across Nepal.',
+  '2025-09-20 09:00:00+05:45',
+  '2025-09-22 18:00:00+05:45',
+  'Butwal Engineering College, Butwal',
+  'https://res.cloudinary.com/demo/image/upload/v1/events/butwal-hacks-2025',
+  true,
+  'a0000000-0000-0000-0000-000000000010'
+);
+
+-- ─── Teams ─────────────────────────────────────────────────────────────────
+
+INSERT INTO teams (id, name, event_id, created_at) VALUES
+(
+  'c0000000-0000-0000-0000-000000000001',
+  'Code4Change',
+  'b0000000-0000-0000-0000-000000000001',
+  '2024-09-14 20:00:00+05:45'
+);
+
+-- ─── Team Members ──────────────────────────────────────────────────────────
+
+INSERT INTO team_members (id, team_id, profile_id, is_captain, created_at) VALUES
+(
+  'd0000000-0000-0000-0000-000000000001',
+  'c0000000-0000-0000-0000-000000000001',
+  'a0000000-0000-0000-0000-000000000001',
+  true,
+  '2024-09-14 20:00:00+05:45'
+),
+(
+  'd0000000-0000-0000-0000-000000000002',
+  'c0000000-0000-0000-0000-000000000001',
+  'a0000000-0000-0000-0000-000000000002',
+  false,
+  '2024-09-14 20:05:00+05:45'
+),
+(
+  'd0000000-0000-0000-0000-000000000003',
+  'c0000000-0000-0000-0000-000000000001',
+  'a0000000-0000-0000-0000-000000000003',
+  false,
+  '2024-09-14 20:10:00+05:45'
+);
+
+-- ─── Event Registrations ──────────────────────────────────────────────────
+
+INSERT INTO event_registrations (id, event_id, profile_id, attended, created_at) VALUES
+
+-- All 3 hackers registered for Butwal Hacks 2024 (all attended)
+(
+  'e0000000-0000-0000-0000-000000000001',
+  'b0000000-0000-0000-0000-000000000001',
+  'a0000000-0000-0000-0000-000000000001',
+  true,
+  '2024-09-01 10:00:00+05:45'
+),
+(
+  'e0000000-0000-0000-0000-000000000002',
+  'b0000000-0000-0000-0000-000000000001',
+  'a0000000-0000-0000-0000-000000000002',
+  true,
+  '2024-09-02 11:00:00+05:45'
+),
+(
+  'e0000000-0000-0000-0000-000000000003',
+  'b0000000-0000-0000-0000-000000000001',
+  'a0000000-0000-0000-0000-000000000003',
+  true,
+  '2024-09-03 09:00:00+05:45'
+),
+
+-- Pranav and Samjhana registered for BH 2025 (upcoming, not yet attended)
+(
+  'e0000000-0000-0000-0000-000000000004',
+  'b0000000-0000-0000-0000-000000000002',
+  'a0000000-0000-0000-0000-000000000001',
+  false,
+  '2025-06-15 10:00:00+05:45'
+),
+(
+  'e0000000-0000-0000-0000-000000000005',
+  'b0000000-0000-0000-0000-000000000002',
+  'a0000000-0000-0000-0000-000000000002',
+  false,
+  '2025-06-16 14:00:00+05:45'
+);
+
+-- ─── Projects ──────────────────────────────────────────────────────────────
+
+INSERT INTO projects (id, title, description, team_id, tech_stack, github_url, cover_image, created_at) VALUES
+
+-- Project 1: ShikshaSetu (by Code4Change team)
+(
+  'f0000000-0000-0000-0000-000000000001',
+  'ShikshaSetu — Bridging Rural Education Gaps',
+  'A platform connecting rural school students in Nepal with volunteer tutors via SMS and offline-first mobile app. Uses NLP to translate lessons into Nepali and Maithili. Won Best Social Impact at Butwal Hacks 2024.',
+  'c0000000-0000-0000-0000-000000000001',
+  '{"React", "Node.js", "MongoDB", "Twilio", "Python", "NLP"}',
+  'https://github.com/code4change/shikshasetu',
+  'https://res.cloudinary.com/demo/image/upload/v1/projects/shikshasetu',
+  '2024-09-17 16:00:00+05:45'
+),
+
+-- Project 2: KrishiKhoj (solo project by Pranav)
+(
+  'f0000000-0000-0000-0000-000000000002',
+  'KrishiKhoj — Smart Farming Assistant',
+  'An AI-powered assistant for Nepali farmers that provides real-time crop disease detection, weather forecasting, and market price tracking via a simple mobile interface.',
+  NULL,
+  '{"Next.js", "TypeScript", "TensorFlow.js", "PostgreSQL", "Twilio"}',
+  'https://github.com/pranav-acharya/krishikhoj',
+  'https://res.cloudinary.com/demo/image/upload/v1/projects/krishikhoj',
+  '2024-10-05 12:00:00+05:45'
+);
+
+-- ─── Trust Markers ─────────────────────────────────────────────────────────
+
+INSERT INTO trust_markers (id, title, description, type, profile_id, issuer_id, event_id, is_revoked, is_claimed, created_at) VALUES
+
+-- Verified marker: Pranav won Best Social Impact at Butwal Hacks 2024
+(
+  '90000000-0000-0000-0000-000000000001',
+  'Best Social Impact — Butwal Hacks 2024',
+  'Awarded for building ShikshaSetu, a platform bridging rural education gaps in Nepal. Chosen by judges for most impactful solution.',
+  'hackathon_award',
+  'a0000000-0000-0000-0000-000000000001',
+  'a0000000-0000-0000-0000-000000000010',
+  'b0000000-0000-0000-0000-000000000001',
+  false,
+  true,
+  '2024-09-17 19:00:00+05:45'
+),
+
+-- Self-reported marker: Samjhana's personal achievement
+(
+  '90000000-0000-0000-0000-000000000002',
+  'Google UX Design Certificate',
+  'Completed the Google UX Design Professional Certificate — 7-course program covering UX research, prototyping, and design systems.',
+  'self_reported',
+  'a0000000-0000-0000-0000-000000000002',
+  'a0000000-0000-0000-0000-000000000002',
+  NULL,
+  false,
+  true,
+  '2024-11-10 14:00:00+05:45'
+),
+
+-- Revoked marker: was issued to Bishal but later revoked
+(
+  '90000000-0000-0000-0000-000000000003',
+  'Community Mentor Badge',
+  'Temporary mentor recognition — revoked after policy violation.',
+  'badge',
+  'a0000000-0000-0000-0000-000000000003',
+  'a0000000-0000-0000-0000-000000000010',
+  'b0000000-0000-0000-0000-000000000001',
+  true,
+  true,
+  '2024-09-18 10:00:00+05:45'
+),
+
+-- Verified marker: Pranav's GitHub verified marker
+(
+  '90000000-0000-0000-0000-000000000004',
+  'Open Source Contributor — Nepal Open Source',
+  'Verified 10+ merged PRs to Nepal Open Source Collective projects including contributions to Nepali NLP libraries and educational tools.',
+  'open_source',
+  'a0000000-0000-0000-0000-000000000001',
+  'a0000000-0000-0000-0000-000000000020',
+  NULL,
+  false,
+  true,
+  '2024-12-01 09:00:00+05:45'
+);
+
+-- ─── Summary ───────────────────────────────────────────────────────────────
+
+-- After seeding, the /api/metrics endpoint should return:
+--   total_hackers: 3    (profiles with role = 'hacker')
+--   total_events: 2     (events with is_published = true)
+--   total_projects: 2
+--   total_trust_markers: 3  (trust_markers with is_revoked = false)

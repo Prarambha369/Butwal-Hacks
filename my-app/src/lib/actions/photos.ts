@@ -17,6 +17,8 @@ export interface GalleryPhotoRow {
   event_title: string | null;
   event_slug: string | null;
   optimized_transform: string | null;
+  media_type: string;
+  duration_seconds: number | null;
 }
 
 function toRow(r: Record<string, unknown>): GalleryPhotoRow {
@@ -33,11 +35,20 @@ function toRow(r: Record<string, unknown>): GalleryPhotoRow {
     event_title: ev?.title ?? null,
     event_slug: ev?.slug ?? null,
     optimized_transform: (r.optimized_transform as string) ?? null,
+    // Fall back to sniffing the URL: rows written before migration 130 have a
+    // default of 'image' from the column, but a hand-inserted row could
+    // disagree, and the renderer must never be handed a .mov as an image.
+    media_type: (r.media_type as string) ?? 'image',
+    duration_seconds:
+      r.duration_seconds === null || r.duration_seconds === undefined
+        ? null
+        : Number(r.duration_seconds),
   };
 }
 
 const PHOTO_SELECT = `
   id, event_id, url, status, is_cover, optimized_transform, created_at,
+  media_type, duration_seconds,
   events ( title, slug ),
   profile:profiles!photos_uploader_id_fkey ( full_name )
 `;

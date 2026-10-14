@@ -43,8 +43,9 @@
   },
   "overrides": {
     "js-yaml": "4.3.2",
-    "dompurify": "3.4.15",
-    "sharp": "^0.35.4",
+    "dompurify": "3.4.17",
+    "source-map-js": "1.2.2",
+    "sharp": "^0.35.5",
     "nanoid": "3.3.19"
   },
   "devDependencies": {

@@ -8,8 +8,7 @@ import { withRateLimit } from "@/lib/rate-limiter";
  * POST /api/webhooks/opencollective
  *
  * Receives webhook events from Open Collective when expenses are created,
- * approved, or paid. Used to automatically update bounty board status
- * and award XP to hackers who complete bounty tasks.
+ * approved, or paid. Used to automatically update bounty board status.
  *
  * SECURITY: HMAC-SHA256 signature verification.
  *

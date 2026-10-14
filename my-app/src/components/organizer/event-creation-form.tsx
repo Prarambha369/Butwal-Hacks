@@ -10,6 +10,7 @@ import { useAuthUser } from '@/components/auth-user-provider';
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { Button } from '@/components/ui/button';
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
+import { SlugField } from '@/components/organizer/slug-field';
 
 export default function EventCreationForm() {
   const { user } = useAuthUser();
@@ -22,6 +23,8 @@ export default function EventCreationForm() {
     location: '',
     banner_url: '',
     is_published: false,
+    // Empty means "derive it from the title" -- see SlugField.
+    slug: '',
   });
 
   const router = useRouter();
@@ -37,7 +40,14 @@ export default function EventCreationForm() {
         throw new Error(result.error || 'Failed to create event');
       }
 
-      toast.success('Event created successfully!');
+      // Surface the slug that was actually assigned. The organizer typed a
+      // slug or left it to the title, and a collision may have appended -2 --
+      // telling them is cheaper than letting them discover it in a shared link.
+      toast.success(
+        result.slug
+          ? `Event created at /events/${result.slug}`
+          : 'Event created successfully!'
+      );
       router.push('/dashboard/organizer/events');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create event';
@@ -67,6 +77,14 @@ export default function EventCreationForm() {
             value={formData.title}
             onChange={e => setFormData({ ...formData, title: e.target.value })}
             placeholder="e.g. Butwal Winter Hack 2026"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <SlugField
+            value={formData.slug}
+            onChange={(next) => setFormData({ ...formData, slug: next })}
+            fallbackTitle={formData.title}
           />
         </div>
 

@@ -91,10 +91,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   }
 
+  // content.ts events and DB events overlap: content.ts carries the tag
+  // registry for events whose pages are served from the database, so both
+  // loops would emit the same URL. Emit each URL once, preferring the
+  // content.ts metadata (which knows the completion state).
+  const seenEventUrls = new Set<string>()
+
   // ─── Dynamic: Events from content ─────────────────────────
   for (const event of events) {
+    const url = `${siteUrl}/events/${event.slug}`
+    seenEventUrls.add(url)
     entries.push({
-      url: `${siteUrl}/events/${event.slug}`,
+      url,
       lastModified: today,
       changeFrequency: event.status === 'completed' ? 'monthly' : 'weekly',
       priority: 0.8,
@@ -116,8 +124,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .limit(200)
 
     for (const event of dbEvents ?? []) {
+      const url = `${siteUrl}/events/${event.slug}`
+      if (seenEventUrls.has(url)) continue
+      seenEventUrls.add(url)
       entries.push({
-        url: `${siteUrl}/events/${event.slug}`,
+        url,
         lastModified: event.updated_at ? new Date(event.updated_at) : today,
         changeFrequency: 'weekly',
         priority: 0.8,

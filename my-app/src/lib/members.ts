@@ -12,6 +12,9 @@ export interface ExplorerMember {
   joined: string
   /** Auth0 user ID for live presence matching. */
   auth0_user_id?: string
+  /** Opt-in flags from profiles (migration 031) — directory filter facets. */
+  openToMentor: boolean
+  lookingForTeam: boolean
 }
 
 // ─── Server-side Fetcher ──────────────────────────────────────────
@@ -48,7 +51,8 @@ interface ProfileRow {
   skills: string[] | null
   created_at: string
   auth0_user_id?: string | null
-  project_count?: number
+  looking_for_team?: boolean | null
+  open_to_mentor?: boolean | null
 }
 
 export async function fetchExplorerMembers(
@@ -64,7 +68,9 @@ export async function fetchExplorerMembers(
       bio,
       skills,
       created_at,
-      auth0_user_id
+      auth0_user_id,
+      open_to_mentor,
+      looking_for_team
     `)
     .not("bh_id", "is", null)
     .limit(100);
@@ -74,7 +80,10 @@ export async function fetchExplorerMembers(
     return [];
   }
 
-  // Batch-fetch project counts and event registrations for all returned profile IDs
+  // Batch-fetch project counts and event registrations for all returned profile
+  // IDs. One pass per result set into a Map (O(n+m)) — the previous per-profile
+  // `.filter()` scan was quadratic in (profiles × rows) and only stayed cheap
+  // because both sides were ~100 rows.
   const profileIds = profiles.map((p: ProfileRow) => p.id);
   const projectCounts = new Map<string, number>();
   const eventCounts = new Map<string, number>();
@@ -85,21 +94,13 @@ export async function fetchExplorerMembers(
       supabase.from("event_registrations").select("profile_id").in("profile_id", profileIds),
     ]);
 
-    if (projectAgg.data) {
-      for (const pid of profileIds) {
-        projectCounts.set(
-          pid,
-          projectAgg.data.filter((p: { profile_id: string }) => p.profile_id === pid).length,
-        );
-      }
+    for (const row of projectAgg.data ?? []) {
+      const pid = row.profile_id;
+      projectCounts.set(pid, (projectCounts.get(pid) ?? 0) + 1);
     }
-    if (eventAgg.data) {
-      for (const pid of profileIds) {
-        eventCounts.set(
-          pid,
-          eventAgg.data.filter((e: { profile_id: string }) => e.profile_id === pid).length,
-        );
-      }
+    for (const row of eventAgg.data ?? []) {
+      const pid = row.profile_id;
+      eventCounts.set(pid, (eventCounts.get(pid) ?? 0) + 1);
     }
   }
 
@@ -123,6 +124,8 @@ export async function fetchExplorerMembers(
       events: eventCounts.get(p.id) || 0,
       joined: p.created_at ? p.created_at.slice(0, 7) : "",
       auth0_user_id: p.auth0_user_id || undefined,
+      openToMentor: p.open_to_mentor === true,
+      lookingForTeam: p.looking_for_team === true,
     };
   });
 }
@@ -140,7 +143,14 @@ export function getExplorerStats(members: ExplorerMember[]) {
     Sponsor: members.filter((m) => m.role === "Sponsor").length,
   };
 
-  return { total, totalEvents, totalProjects, byRole };
+  return {
+    total,
+    totalEvents,
+    totalProjects,
+    byRole,
+    openToMentor: members.filter((m) => m.openToMentor).length,
+    lookingForTeam: members.filter((m) => m.lookingForTeam).length,
+  };
 }
 
 // ─── Search & Filter Utilities ────────────────────────────────────
@@ -149,6 +159,9 @@ export type ExplorerFilters = {
   role?: ExplorerMember["role"] | "All"
   query?: string
   sortBy?: "activity" | "projects" | "name" | "joined"
+  /** Opt-in availability facets (profiles columns from migration 031). */
+  openToMentor?: boolean
+  lookingForTeam?: boolean
 }
 
 export function filterMembers(
@@ -172,6 +185,15 @@ export function filterMembers(
         m.skills.some((s) => s.toLowerCase().includes(q)) ||
         m.bio.toLowerCase().includes(q),
     );
+  }
+
+  // Availability facets — only applied when enabled so an unchecked box
+  // never hides anyone
+  if (filters.openToMentor) {
+    results = results.filter((m) => m.openToMentor);
+  }
+  if (filters.lookingForTeam) {
+    results = results.filter((m) => m.lookingForTeam);
   }
 
   // Sort

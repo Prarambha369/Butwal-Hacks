@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { Search, Grid3X3, List, X, ArrowUpDown, User, ChevronDown, Filter } from "lucide-react"
+import Link from "next/link"
+import { Search, Grid3X3, List, X, ArrowUpDown, User, ChevronDown, Filter, GraduationCap, Users } from "lucide-react"
 import { filterMembers, type ExplorerMember } from "@/lib/members"
 import { MemberCard } from "@/components/explorer/member-card"
 import { cn } from "@/lib/utils"
@@ -32,6 +33,8 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showFilters, setShowFilters] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
+  const [openToMentor, setOpenToMentor] = useState(false)
+  const [lookingForTeam, setLookingForTeam] = useState(false)
 
   // Debounce search to avoid excessive re-renders
   useEffect(() => {
@@ -40,8 +43,23 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
   }, [query])
 
   const results = useMemo(
-    () => filterMembers(members, { role, query: debouncedQuery, sortBy }),
-    [members, role, debouncedQuery, sortBy],
+    () => filterMembers(members, { role, query: debouncedQuery, sortBy, openToMentor, lookingForTeam }),
+    [members, role, debouncedQuery, sortBy, openToMentor, lookingForTeam],
+  )
+
+  // Facet counts — computed over the base set the same way the pills read it,
+  // so "Open to mentoring (2)" stays true whatever else is selected.
+  const counts = useMemo(
+    () => ({
+      all: members.length,
+      Builder: members.filter((m) => m.role === "Builder").length,
+      Mentor: members.filter((m) => m.role === "Mentor").length,
+      Organizer: members.filter((m) => m.role === "Organizer").length,
+      Sponsor: members.filter((m) => m.role === "Sponsor").length,
+      openToMentor: members.filter((m) => m.openToMentor).length,
+      lookingForTeam: members.filter((m) => m.lookingForTeam).length,
+    }),
+    [members],
   )
 
   // Close sort dropdown on click outside
@@ -69,11 +87,22 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
     setQuery("")
     setDebouncedQuery("")
     setRole("All")
+    setOpenToMentor(false)
+    setLookingForTeam(false)
   }, [])
 
-  const hasActiveFilters = query || role !== "All"
+  const hasActiveFilters = !!query || role !== "All" || openToMentor || lookingForTeam
 
   const roles: RoleFilter[] = ["All", "Builder", "Mentor", "Organizer", "Sponsor"]
+
+  const AVAILABILITY_FILTERS = [
+    { key: "openToMentor" as const, label: "Open to mentoring", icon: GraduationCap, active: openToMentor, toggle: () => setOpenToMentor((v) => !v), count: counts.openToMentor },
+    { key: "lookingForTeam" as const, label: "Looking for a team", icon: Users, active: lookingForTeam, toggle: () => setLookingForTeam((v) => !v), count: counts.lookingForTeam },
+  ]
+
+  // A true zero-member community is a different state from filters-matching
+  // nothing: one is an invitation, the other is a hint to widen the search.
+  const isZeroMemberCommunity = members.length === 0
 
   return (
     <div className="space-y-6">
@@ -187,6 +216,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
             <button
               key={r}
               onClick={() => { setRole(r); setShowFilters(false) }}
+              aria-pressed={role === r}
               className={cn(
                 "px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all cursor-pointer",
                 role === r
@@ -195,6 +225,9 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
               )}
             >
               {cfg.label}
+              <span className={cn("ml-1.5 font-mono font-medium", role === r ? "opacity-70" : "text-muted-foreground/40")}>
+                {r === "All" ? counts.all : counts[r]}
+              </span>
             </button>
           )
         })}
@@ -209,6 +242,28 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
             Clear
           </button>
         )}
+      </div>
+
+      {/* ── Availability Filters (profiles flags from migration 031) ── */}
+      <div className={cn(showFilters ? "flex" : "hidden", "sm:flex flex-wrap items-center gap-2")}>
+        <span className="text-[10px] font-bold text-muted-foreground/50 tracking-wider mr-1">AVAILABILITY</span>
+        {AVAILABILITY_FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={f.toggle}
+            aria-pressed={f.active}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all cursor-pointer",
+              f.active
+                ? "bg-status-green/10 text-status-green border-status-green/20 shadow-sm"
+                : "border-border text-muted-foreground hover:border-muted-foreground/30 hover:text-primary bg-surface"
+            )}
+          >
+            <f.icon className="w-3 h-3" />
+            {f.label}
+            <span className="font-mono font-medium opacity-60">{f.count}</span>
+          </button>
+        ))}
       </div>
 
       {/* ── Results Info Bar ── */}
@@ -252,6 +307,23 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
             )
           ))}
         </div>
+      ) : isZeroMemberCommunity ? (
+        /* True zero state: nobody has joined yet — an invitation, not a dead end. */
+        <div className="text-center py-20">
+          <div className="w-16 h-16 rounded-2xl bg-primary-red/10 flex items-center justify-center mx-auto mb-4 ring-1 ring-primary-red/20">
+            <Users className="w-6 h-6 text-primary-red" />
+          </div>
+          <p className="text-lg font-bold text-primary">No one has joined yet — be the first</p>
+          <p className="text-sm text-muted-foreground/60 mt-1 max-w-xs mx-auto">
+            The directory fills up as members create their BH-IDs. Claim yours and you&apos;ll be at the top.
+          </p>
+          <Link
+            href="/dashboard/hacker"
+            className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary-red/10 text-primary-red text-xs font-bold hover:bg-primary-red/20 transition-all"
+          >
+            Create your profile
+          </Link>
+        </div>
       ) : (
         <div className="text-center py-20">
           <div className="w-16 h-16 rounded-2xl bg-surface-hover flex items-center justify-center mx-auto mb-4 ring-1 ring-border">
@@ -261,7 +333,13 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
           <p className="text-sm text-muted-foreground/60 mt-1 max-w-xs mx-auto">
             {query
               ? `No members match "${query}"${role !== "All" ? ` with role "${role}"` : ""}`
-              : "Try adjusting your filters to see more members"}
+              : [
+                  role !== "All" ? `No ${role.toLowerCase()}s` : "No members",
+                  openToMentor && "open to mentoring",
+                  lookingForTeam && "looking for a team",
+                ]
+                  .filter(Boolean)
+                  .join(" · ") + " — try adjusting your filters to see more members"}
           </p>
           {hasActiveFilters && (
             <button
