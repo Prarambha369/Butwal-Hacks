@@ -1,9 +1,8 @@
 import { Calendar } from "lucide-react";
-import { createServiceClient } from "@/utils/supabase";
 import { auth0 } from "@/lib/auth0";
-import { logger } from "@/lib/logger";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
+import { fetchGalleryPage, fetchGalleryTotals } from "@/lib/actions/gallery";
 import GalleryGrid from "./gallery-grid";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -15,75 +14,16 @@ export const metadata: Metadata = buildPageMetadata({
 // This page fetches photos from Supabase at request time — must be server-rendered.
 export const dynamic = "force-dynamic";
 
-export type GalleryPhoto = {
-  id: string;
-  url: string;
-  event: string;
-  event_slug: string | null;
-  date: string;
-  span: number;
-  uploader: string | null;
-  /** Maintainer-chosen delivery recipe (null = default) */
-  optimize: string | null;
-  /** Duration in seconds — only set for video entries */
-  duration?: number;
-  /** "image" | "video". The URL is authoritative; this is the stored hint. */
-  media_type?: string;
-};
-
-async function getPhotos(): Promise<GalleryPhoto[]> {
-  // Service client: consistent with every other server read in this app.
-  // Only approved photos are ever public; pending uploads stay invisible.
-  const supabase = createServiceClient();
-
-  const { data: photos, error } = await supabase
-    .from("photos")
-    .select(`
-      id, url, span, optimized_transform, created_at, media_type, duration_seconds,
-      events ( id, title, slug ),
-      profiles!photos_uploader_id_fkey ( full_name )
-    `)
-    .eq("status", "approved")
-    .order("created_at", { ascending: false })
-    // Was 100, which predated any event having a real photo corpus: the
-    // Daydream Butwal upload alone is 566 media items, so 100 silently hid
-    // four fifths of it. Raised to cover the corpus; tiles lazy-load and the
-    // grid already defers off-screen images, so the cost is DOM nodes, not
-    // eager network.
-    .limit(600);
-
-  if (error) {
-    logger.error("Error fetching gallery photos:", error);
-    // Degrade to the honest empty state below — a DB/RLS hiccup must
-    // never take down the whole page (seen against an empty preview DB).
-    return [];
-  }
-
-  if (!photos) return [];
-
-  return photos.map((p) => {
-    const ev = Array.isArray(p.events) ? p.events[0] : p.events;
-    const prof = Array.isArray(p.profiles) ? p.profiles[0] : p.profiles;
-    return {
-      id: p.id,
-      url: p.url,
-      event: (ev as { title?: string })?.title ?? "Unknown Event",
-      event_slug: (ev as { slug?: string })?.slug ?? null,
-      date: p.created_at,
-      span: (p as { span?: number }).span ?? 1,
-      uploader: (prof as { full_name?: string })?.full_name ?? null,
-      optimize: (p as { optimized_transform?: string }).optimized_transform ?? null,
-      duration:
-        p.duration_seconds === null || p.duration_seconds === undefined
-          ? undefined
-          : Number(p.duration_seconds),
-      media_type: (p as { media_type?: string }).media_type ?? "image",
-    };
-  });
-}
+export type { GalleryPhoto } from "@/lib/actions/gallery";
 
 export default async function GalleryPage() {
-  const photos = await getPhotos();
+  // Totals and the first page are independent reads; run them together.
+  const [page, totals] = await Promise.all([
+    fetchGalleryPage(0),
+    fetchGalleryTotals(),
+  ]);
+  const photos = page.photos;
+
   // Download gate: only signed-in users get full-quality file URLs.
   const session = await auth0.getSession().catch(() => null);
 
@@ -104,7 +44,6 @@ export default async function GalleryPage() {
           </p>
         </div>
 
-        {/* Empty state */}
         {photos.length === 0 ? (
           <div className="bh-card p-20 text-center space-y-6">
             <div className="mx-auto w-20 h-20 rounded-full bg-surface-hover flex items-center justify-center">
@@ -118,7 +57,12 @@ export default async function GalleryPage() {
             </div>
           </div>
         ) : (
-          <GalleryGrid photos={photos} canDownload={!!session?.user} />
+          <GalleryGrid
+            photos={photos}
+            canDownload={!!session?.user}
+            totals={totals}
+            hasMore={page.hasMore}
+          />
         )}
       </div>
     </main>
