@@ -44,6 +44,8 @@ The lean reference for how the system is built and why. It records the decisions
 
 ### Architecture overview
 
+![Butwal Hacks system architecture: the browser reaches the Next.js app on Vercel, which passes through proxy.ts for Auth0 session and subdomain routing, then fans out to Auth0, Supabase, Cloudinary, Upstash Redis, Resend, Groq, and Open Collective. An Auth0 Post-Login Action webhook upserts the profile into Supabase.](images/architecture.png)
+
 ```text
 Browser ──► Vercel (Next.js 16) ──┬── Auth0          (identity)
                                    ├── Supabase      (PostgreSQL)
@@ -78,6 +80,8 @@ Browser ──► Vercel (Next.js 16) ──┬── Auth0          (identity)
 ### Authentication
 
 #### Flow
+
+![Login and profile sync sequence diagram: the browser signs in through Auth0, proxy.ts validates the session and reads the profile from Supabase, and the Auth0 Post-Login Action fires a webhook that upserts the profile row.](images/auth-flow.png)
 
 ```text
 User → Auth0 login → Auth0 callback → proxy.ts
@@ -197,7 +201,7 @@ Conventions:
 
 - Mock Supabase with `vi.mock("@/utils/supabase")`. Tests never touch a real database.
 - Auth-dependent E2E tests call `skipInCI()`, because Auth0 is not configured in CI.
-- The baseline is 1495 tests across 102 files.
+- The baseline is 1687 tests across 114 unit and integration files, plus 6 Playwright specs.
 
 ### Error handling
 
@@ -230,15 +234,15 @@ Return a structured `{ success: boolean; error?: string }`. Do not throw.
 
 | Measure | Count |
 |---------|-------|
-| API route files | 58 |
-| API handlers | 65 |
+| API route files | 59 |
+| API handlers | 66 |
 | Pages and layouts | 109 |
-| React components | 159 |
-| Files in `src/lib` | 150 |
-| Database migrations | 91 |
+| React components | 161 |
+| Files in `src/lib` | 159 |
+| Database migrations | 98 |
 | Design tokens | 58 |
 | Roles | 5 |
-| Tests | 1495 across 102 files |
+| Tests | 1687 across 114 unit files and 6 E2E specs |
 
 ## Troubleshooting
 

@@ -45,12 +45,14 @@ git config core.hooksPath .husky/    # enables pre-commit lint + secrets audit
 npm run dev                          # → http://localhost:3000
 ```
 
-Root `package.json` is an npm workspace that delegates every script into `my-app/`. You can run `npm run <script>` from the root or from `my-app/` interchangeably.
+Root `package.json` is an npm workspace that delegates the app scripts into `my-app/`: `dev`, `build`, `start`, `lint`, `test`, and `typecheck`. Run them from the root or from `my-app/` interchangeably. `prepare` is the one root-only script — it wires up the git hooks and has no `my-app/` equivalent.
+
+Delegation is per script, not automatic. A script that exists only in `my-app/package.json` and is not listed above fails at the root with `Missing script`, so when you add one, add the matching root entry too.
 
 **Run the verification gates — all four, every time:**
 
 ```bash
-npx tsc --noEmit     # types
+npm run typecheck    # types (tsc --noEmit)
 npm run lint         # ESLint, zero warnings
 npm run test         # Vitest
 npm run build        # production build
@@ -75,7 +77,7 @@ Butwal-Hacks/
     e2e/                   # Playwright E2E tests
   supabase/migrations/     # SQL migrations, sequentially numbered
   scripts/                 # Operational scripts
-  docs/                    # Engineering documentation
+  docs/                    # Engineering documentation and diagrams
   .github/workflows/       # CI, deploy, keep-alive
   vercel.json              # Deployment config and cron schedules
 ```
@@ -158,7 +160,7 @@ Rate limit tiers: `public_form` 5/60s, `sensitive` 3/60s, `user_action` 5/60s, `
 
 - Mock Supabase with `vi.mock("@/utils/supabase")`. Tests never touch a real database.
 - Auth-dependent E2E tests use `skipInCI()`.
-- Current baseline: 1495 tests across 102 files.
+- Current baseline: 1687 tests across 114 unit and integration files, plus 6 Playwright specs.
 
 ### Commits
 
@@ -174,11 +176,12 @@ refactor: extract rate limiter into lib/
 
 ### Before you open a PR
 
-- [ ] `npx tsc --noEmit`, `npm run lint`, `npm run test`, `npm run build` all pass
+- [ ] `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build` all pass
 - [ ] New mutation routes use `withRateLimit()`
 - [ ] New inputs validated with Zod before any database access
 - [ ] Every `createServiceClient()` call has an authorization check above it
 - [ ] New env vars added to `my-app/.env.example` and to the secrets table in [MAINTAINERS.md](MAINTAINERS.md)
+- [ ] Any new personal data collection updated in [policies/PRIVACY_POLICY.md](policies/PRIVACY_POLICY.md) in the same PR, including whether the data leaves Nepal
 - [ ] New migrations are numbered sequentially and additive
 - [ ] New UI uses design tokens, not literals — see [DESIGN.md](DESIGN.md)
 - [ ] No secrets in the diff
@@ -202,3 +205,6 @@ refactor: extract rate limiter into lib/
 - [MAINTAINERS.md](MAINTAINERS.md) — deploy, CI, secrets, rollback
 - [SECURITY.md](SECURITY.md) — vulnerability reporting
 - [PRODUCT.md](PRODUCT.md) — product identity and direction
+- [docs/SECURITY_REMEDIATION_REPORT.md](docs/SECURITY_REMEDIATION_REPORT.md) — the P0 and P1 authorization defects already fixed
+- [docs/SEO_AEO_GEO_AUDIT.md](docs/SEO_AEO_GEO_AUDIT.md) — search and AI-answer visibility audit
+- [policies/README.md](policies/README.md) — terms, privacy, guardian consent, and the open compliance gaps

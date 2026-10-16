@@ -25,6 +25,8 @@ The complete visual language for Butwal Hacks: a flat, crisp, structured SaaS su
 
 Every token lives as a `--bh-*` CSS custom property in `my-app/src/app/globals.css`. There are 58 of them. Tailwind v4 `@theme` directives map them to utility classes, and `@layer utilities` defines the `bh-*` component classes on top.
 
+![Design token pipeline: a hex literal defined as a --bh-* custom property resolves into a light and dark value, then maps through the Tailwind v4 @theme block into @layer utilities and finally into component classes. A literal hex or a Tailwind palette class bypasses that chain entirely and breaks dark mode.](docs/images/design-tokens.png)
+
 ## Who it's for
 
 | Audience | Use it for |
@@ -165,3 +167,4 @@ Motion must respect `prefers-reduced-motion`.
 - [PRODUCT.md](PRODUCT.md) — mission, users, and product direction
 - [AGENTS.md](AGENTS.md) — build, verify, and contribution rules
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — engineering reference
+- [docs/SEO_AEO_GEO_AUDIT.md](docs/SEO_AEO_GEO_AUDIT.md) — search and AI-answer visibility audit
