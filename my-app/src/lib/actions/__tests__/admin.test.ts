@@ -31,6 +31,7 @@ vi.mock("next/navigation", () => ({
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
 import { bustCache } from "@/lib/cache";
+import { logger } from "@/lib/logger";
 
 const mockedGetSession = auth0.getSession as ReturnType<typeof vi.fn>;
 const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>;
@@ -59,8 +60,16 @@ function mockSupabase() {
   return db;
 }
 
-function setAuthenticated(sub = "auth0|maintainer-123") {
-  mockedGetSession.mockResolvedValue({ user: { sub, email: "admin@butwalhacks.com" } });
+// `email_verified` is not decoration. Maintainer authority requires a
+// verified staff address, and the maintainer layouts have always required it --
+// so a fixture without it describes a session the real app refuses. Leaving it
+// out is what let the actions disagree with the layouts unnoticed.
+function setAuthenticated(
+  sub = "auth0|maintainer-123",
+  email = "admin@butwalhacks.com",
+  email_verified = true,
+) {
+  mockedGetSession.mockResolvedValue({ user: { sub, email, email_verified } });
 }
 
 function setNotAuthenticated() {
@@ -413,5 +422,81 @@ describe("getAllUsers", () => {
 
     const { getAllUsers } = await import("../admin");
     await expect(getAllUsers()).rejects.toThrow("Failed to fetch users");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// requireMaintainer — the one staff gate every admin action funnels through
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("requireMaintainer", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns the caller sub for a verified staff address", async () => {
+    setAuthenticated("auth0|staff", "admin@butwalhacks.com", true);
+    const db = mockSupabase();
+    db.single.mockResolvedValue({ data: { role: "maintainer" }, error: null });
+
+    const { requireMaintainer } = await import("../admin");
+    await expect(requireMaintainer()).resolves.toBe("auth0|staff");
+  });
+
+  // ── The three cases the old implementation got wrong or never checked. ──
+
+  it("refuses role='maintainer' on a non-staff address", async () => {
+    setAuthenticated("auth0|imposter", "someone@evil.example", true);
+    const db = mockSupabase();
+    db.single.mockResolvedValue({ data: { role: "maintainer" }, error: null });
+
+    const { requireMaintainer } = await import("../admin");
+    await expect(requireMaintainer()).rejects.toThrow("NEXT_REDIRECT:/dashboard");
+  });
+
+  it("refuses a verified-domain address whose email Auth0 has not verified", async () => {
+    // The old check never looked at email_verified, so an unverified staff
+    // address reached every admin action while the maintainer layout -- which
+    // does check it -- refused the same account.
+    setAuthenticated("auth0|unverified", "admin@butwalhacks.com", false);
+    const db = mockSupabase();
+    db.single.mockResolvedValue({ data: { role: "maintainer" }, error: null });
+
+    const { requireMaintainer } = await import("../admin");
+    await expect(requireMaintainer()).rejects.toThrow("NEXT_REDIRECT:/dashboard");
+  });
+
+  it("ignores a staff address stored on the profile when the session has none", async () => {
+    // profiles.email is not evidence of who is signed in or whether Auth0
+    // verified the address, so it cannot establish staff status. The old
+    // implementation preferred it over the session.
+    setAuthenticated("auth0|nostaff", "someone@evil.example", true);
+    const db = mockSupabase();
+    db.single.mockResolvedValue({ data: { role: "maintainer", email: "admin@butwalhacks.com" }, error: null });
+
+    const { requireMaintainer } = await import("../admin");
+    await expect(requireMaintainer()).rejects.toThrow("NEXT_REDIRECT:/dashboard");
+  });
+
+  it("fails closed and logs when the role lookup errors", async () => {
+    setAuthenticated("auth0|staff", "admin@butwalhacks.com", true);
+    const db = mockSupabase();
+    db.single.mockResolvedValue({ data: null, error: { message: "connection refused", code: "08006" } });
+
+    const { requireMaintainer } = await import("../admin");
+    await expect(requireMaintainer()).rejects.toThrow("NEXT_REDIRECT:/dashboard");
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining("Role lookup failed"),
+      expect.objectContaining({ code: "08006" }),
+    );
+  });
+
+  it("blocks a privileged action entirely when authorization fails closed", async () => {
+    // End-to-end denial: the action must not write when the gate refuses.
+    setAuthenticated("auth0|imposter", "someone@evil.example", true);
+    const db = mockSupabase();
+    db.single.mockResolvedValue({ data: { role: "maintainer" }, error: null });
+
+    const { updateUserRole } = await import("../admin");
+    await expect(updateUserRole("target-uuid", "organizer")).rejects.toThrow("NEXT_REDIRECT");
+    expect(db.update).not.toHaveBeenCalled();
   });
 });

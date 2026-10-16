@@ -269,32 +269,125 @@ describe("generateImpactReport", () => {
     title: "My Project",
     tech_stack: ["React", "Node.js"],
     created_at: "2026-06-01T00:00:00Z",
+    // Ownership fields drive the object-level authorization check.
+    profile_id: "profile-1",
+    team_id: null,
+    event_id: null,
     project_likes: [{ count: 10 }],
     project_views: [{ count: 150 }],
     comments: [{ count: 3 }],
     profile: { id: "profile-1", full_name: "Jane Doe", bh_id: "BH-26-001" },
   };
 
-  it("generates report from project data", async () => {
+  /** Resolves the caller to `callerId` with `callerRole`.
+   *
+   *  `resolveProfileId` is the real one, matching the rest of this file, so it
+   *  consumes the first `single()` looking up its own profile row; the caller's
+   *  role row is the second. The project query is whatever comes next.
+   */
+  function primeCaller(db: ReturnType<typeof mockSupabase>, callerId = "profile-1", callerRole = "hacker") {
+    mockedGetSession.mockResolvedValue({
+      user: { sub: "auth0|tester", email: "tester@test.com" },
+    });
+    db.single.mockResolvedValueOnce({ data: { id: callerId }, error: null });        // resolveProfileId
+    db.single.mockResolvedValueOnce({ data: { id: callerId, role: callerRole }, error: null }); // caller role
+  }
+
+  it("generates report from project data for the owner", async () => {
     const db = mockSupabase();
     db.select.mockReturnValue(db);
     db.eq.mockReturnValue(db);
+    primeCaller(db);
     db.single.mockResolvedValue({ data: mockProject, error: null });
 
     const { generateImpactReport } = await import("../projects");
     const report = await generateImpactReport("project-1");
 
-    expect(report.title).toBe("My Project");
-    expect(report.likes).toBe(10);
-    expect(report.views).toBe(150);
-    expect(report.comments).toBe(3);
-    expect(report.submittedBy.full_name).toBe("Jane Doe");
+    expect(report?.title).toBe("My Project");
+    expect(report?.likes).toBe(10);
+    expect(report?.views).toBe(150);
+    expect(report?.comments).toBe(3);
+    expect(report?.submittedBy).toEqual(expect.objectContaining({ full_name: "Jane Doe" }));
+  });
+
+  // ── Regression: there was no ownership check at all. Any authenticated
+  // member could read engagement metrics and the submitter's name and BH-ID
+  // for any project id. ──
+
+  it("returns null for a caller who does not own the project", async () => {
+    const db = mockSupabase();
+    db.select.mockReturnValue(db);
+    db.eq.mockReturnValue(db);
+    primeCaller(db, "profile-attacker");
+    db.single.mockResolvedValue({ data: mockProject, error: null });
+
+    const { generateImpactReport } = await import("../projects");
+    expect(await generateImpactReport("project-1")).toBeNull();
+  });
+
+  it("allows a member of the owning team", async () => {
+    const db = mockSupabase();
+    db.select.mockReturnValue(db);
+    db.eq.mockReturnValue(db);
+    primeCaller(db, "profile-teammate");
+    db.single.mockResolvedValueOnce({
+      data: { ...mockProject, profile_id: "profile-owner", team_id: "team-1" },
+      error: null,
+    });
+    db.maybeSingle.mockResolvedValue({ data: { id: "member-row" }, error: null });
+
+    const { generateImpactReport } = await import("../projects");
+    const report = await generateImpactReport("project-1");
+    expect(report?.title).toBe("My Project");
+  });
+
+  it("returns null for a non-member of the owning team", async () => {
+    const db = mockSupabase();
+    db.select.mockReturnValue(db);
+    db.eq.mockReturnValue(db);
+    primeCaller(db, "profile-outsider");
+    db.single.mockResolvedValueOnce({
+      data: { ...mockProject, profile_id: "profile-owner", team_id: "team-1" },
+      error: null,
+    });
+    db.maybeSingle.mockResolvedValue({ data: null, error: null });
+
+    const { generateImpactReport } = await import("../projects");
+    expect(await generateImpactReport("project-1")).toBeNull();
+  });
+
+  it("allows the owning event's organizer", async () => {
+    const db = mockSupabase();
+    db.select.mockReturnValue(db);
+    db.eq.mockReturnValue(db);
+    primeCaller(db, "profile-organizer");
+    db.single.mockResolvedValueOnce({
+      data: { ...mockProject, profile_id: "profile-owner", team_id: null, event_id: "event-1" },
+      error: null,
+    });
+    db.maybeSingle.mockResolvedValue({ data: { organizer_id: "profile-organizer" }, error: null });
+
+    const { generateImpactReport } = await import("../projects");
+    const report = await generateImpactReport("project-1");
+    expect(report?.title).toBe("My Project");
+  });
+
+  it("allows a maintainer regardless of ownership", async () => {
+    const db = mockSupabase();
+    db.select.mockReturnValue(db);
+    db.eq.mockReturnValue(db);
+    primeCaller(db, "profile-maintainer", "maintainer");
+    db.single.mockResolvedValue({ data: mockProject, error: null });
+
+    const { generateImpactReport } = await import("../projects");
+    expect((await generateImpactReport("project-1"))?.title).toBe("My Project");
   });
 
   it("throws when project not found", async () => {
     const db = mockSupabase();
     db.select.mockReturnValue(db);
     db.eq.mockReturnValue(db);
+    primeCaller(db);
     db.single.mockResolvedValue({ data: null, error: { message: "Not found" } });
 
     const { generateImpactReport } = await import("../projects");
@@ -305,6 +398,7 @@ describe("generateImpactReport", () => {
     const db = mockSupabase();
     db.select.mockReturnValue(db);
     db.eq.mockReturnValue(db);
+    primeCaller(db);
     db.single.mockResolvedValue({
       data: {
         ...mockProject,
@@ -318,9 +412,9 @@ describe("generateImpactReport", () => {
     const { generateImpactReport } = await import("../projects");
     const report = await generateImpactReport("project-1");
 
-    expect(report.likes).toBe(0);
-    expect(report.views).toBe(0);
-    expect(report.comments).toBe(0);
+    expect(report?.likes).toBe(0);
+    expect(report?.views).toBe(0);
+    expect(report?.comments).toBe(0);
   });
 });
 

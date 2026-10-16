@@ -4,6 +4,7 @@ import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { scoreText, searchStatic, suggestNearMisses } from "@/lib/search-index";
+import { SEARCH_TERM_PATTERN } from "@/lib/validation";
 
 type SearchType = "profile" | "project" | "event" | "blog" | "initiative" | "chapter";
 
@@ -17,8 +18,31 @@ interface SearchItem {
   score: number;
 }
 
+/**
+ * The free-text part of a search query.
+ *
+ * Comma, parenthesis, period, colon and asterisk are PostgREST's own `or()`
+ * grammar delimiters, and the query is interpolated into that grammar below.
+ * Allowing them means a crafted query can close one condition and append
+ * another. The character class is the boundary that keeps a user-supplied
+ * string a *value* rather than a fragment of filter syntax.
+ */
+const SEARCH_QUERY = z
+  .string()
+  .transform(v => v.trim())
+  .pipe(
+    z
+      .string()
+      .min(2)
+      .max(100)
+      .regex(
+        SEARCH_TERM_PATTERN,
+        "Search terms may only contain letters, numbers, spaces and _ ' & + . -",
+      ),
+  );
+
 const searchSchema = z.object({
-  q: z.string().transform(v => v.trim()).pipe(z.string().min(2).max(100)),
+  q: SEARCH_QUERY,
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(20).default(8),
 });

@@ -37,6 +37,35 @@ export interface AccessSubject {
   emailVerified?: boolean | null | undefined;
 }
 
+/** The Auth0 session fields the access model needs. Shape-compatible with
+ *  the SDK's `UserProfile`, so callers pass the session user directly. */
+export interface SessionUserLike {
+  email?: string | null;
+  email_verified?: boolean | null;
+}
+
+/**
+ * Build the canonical subject for a server-side caller.
+ *
+ * The address and the verification flag both come from the session and never
+ * from `profiles`. The database stores an address but not whether Auth0
+ * verified it, so a stored address can never establish staff status on its
+ * own -- which is exactly what the old `requireMaintainer()` did, preferring
+ * `profiles.email` over the session and checking neither verification nor
+ * case. One builder, so the layouts, the proxy, and the server actions cannot
+ * disagree about who is staff.
+ */
+export function accessSubjectFor(
+  sessionUser: SessionUserLike | null | undefined,
+  profile?: { role?: string | null } | null,
+): AccessSubject {
+  return {
+    role: profile?.role ?? null,
+    email: sessionUser?.email ?? null,
+    emailVerified: sessionUser?.email_verified === true,
+  };
+}
+
 /**
  * Maintainer = the role AND a verified address on the staff domain.
  *

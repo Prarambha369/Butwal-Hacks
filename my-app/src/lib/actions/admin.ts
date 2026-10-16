@@ -7,18 +7,35 @@ import { createServiceClient } from '@/utils/supabase';
 import { revalidatePath } from 'next/cache';
 import { bustCache } from '@/lib/cache';
 import { uniqueSlug } from '@/lib/slug';
+import { accessSubjectFor, isMaintainer } from '@/lib/dashboard-access';
 
 export async function requireMaintainer() {
   const session = await auth0.getSession();
   if (!session?.user) redirect("/auth/login");
   const supabase = createServiceClient();
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
-    .select("role, email")
+    .select("role")
     .eq("auth0_user_id", session.user.sub)
     .single();
-  const userEmail = profile?.email ?? session.user.email ?? "";
-  if ((profile?.role as string) !== "maintainer" || !userEmail.endsWith("@butwalhacks.com")) {
+
+  // The role lookup is the authorization decision, so a failed lookup cannot
+  // be treated as "no role required". Previously the error was discarded and
+  // an undefined role was compared against "maintainer", which happened to
+  // fail closed by accident while giving an operator no signal that the
+  // database was unreachable.
+  if (error) {
+    logger.error("[requireMaintainer] Role lookup failed", {
+      code: error.code,
+    });
+    redirect("/dashboard");
+  }
+
+  // One predicate, shared with the layouts and the proxy. Built from the
+  // session: `profiles.email` is not evidence of verification, and it is what
+  // let an unverified or differently-cased address pass this gate while the
+  // maintainer layout refused the same account.
+  if (!isMaintainer(accessSubjectFor(session.user, profile))) {
     redirect("/dashboard");
   }
   return session.user.sub;

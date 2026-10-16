@@ -112,29 +112,71 @@ describe("selectRole", () => {
     expect(db.eq).toHaveBeenCalledWith("auth0_user_id", "auth0|12345");
   });
 
-  it("blocks maintainer role for non-butwalhacks.com email", async () => {
+  // ── Regression: staff access used to be self-service. These three
+  // assertions are the fix; the two before them described the vulnerability.
+
+  it("refuses self-selection of maintainer on a personal address", async () => {
     setAuthenticated({ email: "user@gmail.com", email_verified: true });
+    const db = mockSupabase();
+
     const { selectRole } = await import("../role-selection");
     const result = await selectRole(makeFormData({ role: "maintainer" }));
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain("@butwalhacks.com");
+    expect(result.error).toContain("granted by a maintainer");
+    expect(db.update).not.toHaveBeenCalled();
   });
 
-  it("blocks maintainer role when email not verified", async () => {
-    setAuthenticated({ email: "admin@butwalhacks.com", email_verified: false });
+  it("refuses self-selection of maintainer when the staff address is unverified", async () => {
+    setAuthenticated({ email: STAFF_EMAIL, email_verified: false });
+    const db = mockSupabase();
+
     const { selectRole } = await import("../role-selection");
     const result = await selectRole(makeFormData({ role: "maintainer" }));
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain("verify your email");
+    expect(db.update).not.toHaveBeenCalled();
   });
 
-  it("allows maintainer role with @butwalhacks.com and verified email", async () => {
-    setAuthenticated({ email: "admin@butwalhacks.com", email_verified: true });
+  it("refuses self-selection of maintainer even with a verified staff address", async () => {
+    // The exact request that used to succeed and hand back the maintainer
+    // dashboard. A verified staff address proves who you are; it does not
+    // decide that you should hold staff authority.
+    setAuthenticated({ email: STAFF_EMAIL, email_verified: true });
+    const db = mockSupabase();
 
     const { selectRole } = await import("../role-selection");
-    await expect(selectRole(makeFormData({ role: "maintainer" }))).rejects.toThrow("NEXT_REDIRECT:/dashboard/maintainer");
+    const result = await selectRole(makeFormData({ role: "maintainer" }));
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("granted by a maintainer");
+    expect(db.update).not.toHaveBeenCalled();
+    expect(db.eq).not.toHaveBeenCalled();
+  });
+
+  it("refuses self-selection of lead", async () => {
+    setAuthenticated({ email: STAFF_EMAIL, email_verified: true });
+    const db = mockSupabase();
+
+    const { selectRole } = await import("../role-selection");
+    const result = await selectRole(makeFormData({ role: "lead" }));
+
+    expect(result.success).toBe(false);
+    expect(db.update).not.toHaveBeenCalled();
+  });
+
+  it("matches the staff address case-insensitively for display, but still refuses", async () => {
+    // The old check was `endsWith("@butwalhacks.com")` on the raw address, so
+    // this casing was refused there but would have been admitted by the
+    // case-folded layout predicate. One rule now, so it is refused everywhere.
+    setAuthenticated({ email: "Admin@ButwalHacks.COM", email_verified: true });
+    const db = mockSupabase();
+
+    const { selectRole } = await import("../role-selection");
+    const result = await selectRole(makeFormData({ role: "maintainer" }));
+
+    expect(result.success).toBe(false);
+    expect(db.update).not.toHaveBeenCalled();
   });
 
   it("blocks organizer self-selection with suggestion to request access", async () => {
@@ -334,6 +376,8 @@ describe("requestRoleUpgrade", () => {
 // getPendingRoleRequests
 // ═══════════════════════════════════════════════════════════════════════════════
 
+const STAFF_EMAIL = "admin@butwalhacks.com";
+
 describe("getPendingRoleRequests", () => {
   beforeEach(() => vi.clearAllMocks());
 
@@ -347,7 +391,7 @@ describe("getPendingRoleRequests", () => {
   it("returns empty array when user is not a maintainer", async () => {
     setAuthenticated();
     const db = mockSupabase();
-    db.single.mockResolvedValue({ data: { role: "hacker", email: "user@test.com" }, error: null });
+    db.single.mockResolvedValue({ data: { role: "hacker" }, error: null });
 
     const { getPendingRoleRequests } = await import("../role-selection");
     const result = await getPendingRoleRequests();
@@ -355,9 +399,11 @@ describe("getPendingRoleRequests", () => {
   });
 
   it("returns pending requests for maintainers", async () => {
-    setAuthenticated();
+    // Staff authority is proven by the SESSION (verified address), not by the
+    // role column on its own.
+    setAuthenticated({ email: STAFF_EMAIL, email_verified: true });
     const db = mockSupabase();
-    db.single.mockResolvedValue({ data: { role: "maintainer", email: "admin@butwalhacks.com" }, error: null });
+    db.single.mockResolvedValue({ data: { role: "maintainer" }, error: null });
     const mockRequests = [{ id: "req-1", status: "pending" }];
     db.order.mockResolvedValue({ data: mockRequests, error: null });
 
@@ -365,6 +411,30 @@ describe("getPendingRoleRequests", () => {
     const result = await getPendingRoleRequests();
 
     expect(result).toEqual(mockRequests);
+  });
+
+  // ── Regression: the queue used to be readable by role alone. ──
+
+  it("refuses a maintainer role on a non-staff address", async () => {
+    setAuthenticated({ email: "someone@evil.example", email_verified: true });
+    const db = mockSupabase();
+    db.single.mockResolvedValue({ data: { role: "maintainer" }, error: null });
+    db.order.mockResolvedValue({ data: [{ id: "leaked", status: "pending" }], error: null });
+
+    const { getPendingRoleRequests } = await import("../role-selection");
+    expect(await getPendingRoleRequests()).toEqual([]);
+    expect(db.order).not.toHaveBeenCalled();
+  });
+
+  it("refuses a maintainer role on an unverified staff address", async () => {
+    setAuthenticated({ email: STAFF_EMAIL, email_verified: false });
+    const db = mockSupabase();
+    db.single.mockResolvedValue({ data: { role: "maintainer" }, error: null });
+    db.order.mockResolvedValue({ data: [{ id: "leaked", status: "pending" }], error: null });
+
+    const { getPendingRoleRequests } = await import("../role-selection");
+    expect(await getPendingRoleRequests()).toEqual([]);
+    expect(db.order).not.toHaveBeenCalled();
   });
 });
 
@@ -403,20 +473,21 @@ describe("approveRoleRequest", () => {
   it("returns error when caller is not a maintainer", async () => {
     setAuthenticated();
     const db = mockSupabase();
-    db.single.mockResolvedValue({ data: { role: "hacker", email: "user@test.com" }, error: null });
+    db.single.mockResolvedValue({ data: { role: "hacker" }, error: null });
 
     const { approveRoleRequest } = await import("../role-selection");
     const result = await approveRoleRequest(makeFormData({ requestId: "req-1", action: "approve" }));
 
     expect(result.success).toBe(false);
     expect(result.error).toContain("Only maintainers");
+    expect(db.update).not.toHaveBeenCalled();
   });
 
   it("approves request and updates user role", async () => {
-    setAuthenticated();
+    setAuthenticated({ email: STAFF_EMAIL, email_verified: true });
     const db = mockSupabase();
-    // First single(): check maintainer role
-    db.single.mockResolvedValueOnce({ data: { role: "maintainer", email: "admin@butwalhacks.com" }, error: null });
+    // First single(): caller maintainer check
+    db.single.mockResolvedValueOnce({ data: { role: "maintainer" }, error: null });
     // Second single(): fetch the request
     db.single.mockResolvedValueOnce({
       data: { id: "req-1", requested_role: "organizer", auth0_user_id: "auth0|target" },
@@ -435,9 +506,9 @@ describe("approveRoleRequest", () => {
   });
 
   it("rejects request without updating role", async () => {
-    setAuthenticated();
+    setAuthenticated({ email: STAFF_EMAIL, email_verified: true });
     const db = mockSupabase();
-    db.single.mockResolvedValueOnce({ data: { role: "maintainer", email: "admin@butwalhacks.com" }, error: null });
+    db.single.mockResolvedValueOnce({ data: { role: "maintainer" }, error: null });
     db.single.mockResolvedValueOnce({
       data: { id: "req-1", requested_role: "organizer", auth0_user_id: "auth0|target" },
       error: null,
@@ -451,9 +522,9 @@ describe("approveRoleRequest", () => {
   });
 
   it("returns error when request not found", async () => {
-    setAuthenticated();
+    setAuthenticated({ email: STAFF_EMAIL, email_verified: true });
     const db = mockSupabase();
-    db.single.mockResolvedValueOnce({ data: { role: "maintainer", email: "admin@butwalhacks.com" }, error: null });
+    db.single.mockResolvedValueOnce({ data: { role: "maintainer" }, error: null });
     db.single.mockResolvedValueOnce({ data: null, error: null });
 
     const { approveRoleRequest } = await import("../role-selection");
@@ -461,5 +532,52 @@ describe("approveRoleRequest", () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("Request not found.");
+  });
+
+  // ── Regression: approval used to accept role alone, and to grant whatever
+  // the row said. Both are privilege-escalation paths. ──
+
+  it("refuses approval from a maintainer role on a non-staff address", async () => {
+    setAuthenticated({ email: "someone@evil.example", email_verified: true });
+    const db = mockSupabase();
+    db.single.mockResolvedValue({ data: { role: "maintainer" }, error: null });
+
+    const { approveRoleRequest } = await import("../role-selection");
+    const result = await approveRoleRequest(makeFormData({ requestId: "req-1", action: "approve" }));
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Only maintainers");
+    expect(db.update).not.toHaveBeenCalled();
+  });
+
+  it("refuses approval from an unverified staff address", async () => {
+    setAuthenticated({ email: STAFF_EMAIL, email_verified: false });
+    const db = mockSupabase();
+    db.single.mockResolvedValue({ data: { role: "maintainer" }, error: null });
+
+    const { approveRoleRequest } = await import("../role-selection");
+    const result = await approveRoleRequest(makeFormData({ requestId: "req-1", action: "approve" }));
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Only maintainers");
+    expect(db.update).not.toHaveBeenCalled();
+  });
+
+  it("refuses to grant maintainer even if the stored row asks for it", async () => {
+    setAuthenticated({ email: STAFF_EMAIL, email_verified: true });
+    const db = mockSupabase();
+    db.single.mockResolvedValueOnce({ data: { role: "maintainer" }, error: null });
+    db.single.mockResolvedValueOnce({
+      data: { id: "req-1", requested_role: "maintainer", auth0_user_id: "auth0|attacker" },
+      error: null,
+    });
+
+    const { approveRoleRequest } = await import("../role-selection");
+    const result = await approveRoleRequest(makeFormData({ requestId: "req-1", action: "approve" }));
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("cannot be granted");
+    // No write of any kind -- not the role, not the request status.
+    expect(db.update).not.toHaveBeenCalled();
   });
 });

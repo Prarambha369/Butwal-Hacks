@@ -234,7 +234,11 @@ describe("requireRole", () => {
     expect(response.headers.get("location")).toContain("/dashboard/hacker");
   });
 
-  it("passes through on Supabase query failure (graceful degradation)", async () => {
+  it("denies on Supabase query failure rather than passing through", async () => {
+    // This used to assert 200 with the comment "graceful degradation", which
+    // meant a Supabase outage opened every gated dashboard for as long as it
+    // lasted. The role query is the authorization decision, so failing to read
+    // it cannot be read as "no restriction applies".
     setAuthenticated();
     const db = mockSupabase();
     db.single.mockRejectedValue(new Error("Connection failed"));
@@ -243,7 +247,8 @@ describe("requireRole", () => {
 
     const response = await requireRole(request, "/dashboard/maintainer", ["maintainer"]);
 
-    expect(response.status).toBe(200);
+    expect(response.status).not.toBe(200);
+    expect(response.headers.get("location")).toContain("/auth/login");
   });
 });
 
@@ -765,5 +770,59 @@ describe("auth middleware misconfiguration", () => {
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toContain("/sign-in?error=auth_unavailable");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// requireRole — failure behaviour
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("requireRole failure behaviour", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function request(pathname: string) {
+    return new NextRequest(`https://app.butwalhacks.com${pathname}`);
+  }
+
+  it("denies access when the role lookup throws", async () => {
+    setAuthenticated();
+    const db = buildMockDb();
+    db.single.mockRejectedValue(new Error("supabase unreachable"));
+    mockedCreateServiceClient.mockReturnValue(db);
+
+    const { requireRole } = await import("@/proxy-helpers");
+    const res = await requireRole(request("/dashboard/maintainer/users"), "/dashboard/maintainer/users", ["maintainer"]);
+
+    // Fail closed: the gate must not become a no-op during a database outage.
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toContain("/auth/login");
+  });
+
+  it("denies access when the role lookup resolves to an error", async () => {
+    setAuthenticated();
+    const db = buildMockDb();
+    db.single.mockResolvedValue({ data: null, error: { message: "boom" } });
+    mockedCreateServiceClient.mockReturnValue(db);
+
+    const { requireRole } = await import("@/proxy-helpers");
+    const res = await requireRole(request("/portal/recruiters"), "/portal/recruiters", ["sponsor"]);
+
+    // No profile row means no claim, so this lands on the hacker dashboard --
+    // still a denial, just a different destination than the thrown-error path.
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toContain("/dashboard/hacker");
+  });
+
+  it("still allows a correctly-rolEd request", async () => {
+    setAuthenticated();
+    const db = buildMockDb();
+    setProfileRole(db, "maintainer");
+    mockedCreateServiceClient.mockReturnValue(db);
+
+    const { requireRole } = await import("@/proxy-helpers");
+    const res = await requireRole(request("/dashboard/maintainer/users"), "/dashboard/maintainer/users", ["maintainer"]);
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
   });
 });

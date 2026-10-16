@@ -336,4 +336,84 @@ describe("POST /api/search", () => {
 
     expect(JSON.stringify(json)).not.toContain("connection string");
   });
+
+  // ── PostgREST filter injection ──────────────────────────────────────────
+  // The query is interpolated into `.or("col.ilike.%q%,...")`, and comma,
+  // parenthesis, dot and colon are that grammar's own delimiters. A term
+  // carrying them could close one condition and append another, so the
+  // character class is what keeps a user-supplied string a value rather than
+  // a fragment of filter syntax.
+
+  /** Records every `.or()` filter string the route builds. */
+  function recordingDb() {
+    const orCalls: string[] = [];
+    const from = vi.fn(() => {
+      const builder = {
+        select: vi.fn(() => builder),
+        or: vi.fn((filter: string) => {
+          orCalls.push(filter);
+          return builder;
+        }),
+        range: vi.fn(() => builder),
+        then: (resolve: (v: { data: Row[] | null; error: unknown }) => unknown) =>
+          Promise.resolve({ data: null, error: null }).then(resolve),
+      };
+      return builder;
+    });
+    mockedCreateServiceClient.mockReturnValue({ from });
+    return orCalls;
+  }
+
+  const INJECTION_TERMS = [
+    "hack,and",
+    "hack),id.not.is.null",
+    "hack.not.is.null,x",
+    "hack:or",
+    "hack,x.ilike.y",
+    "a,b,c",
+    "hack*",
+    "hack(%",
+  ];
+
+  it("never lets a filter delimiter reach PostgREST", async () => {
+    const orCalls = recordingDb();
+
+    for (const term of INJECTION_TERMS) {
+      orCalls.length = 0;
+      await post({ q: term });
+
+      for (const filter of orCalls) {
+        // Each filter must be exactly `col.ilike.%term%`, or two of those --
+        // never more, and never with injected grammar.
+        const conditions = filter.split(",");
+        expect(conditions.length).toBeLessThanOrEqual(2);
+        for (const condition of conditions) {
+          expect(condition).toMatch(/^[a-z_]+\.ilike\.%[^%]*%$/);
+        }
+      }
+    }
+  });
+
+  it("still searches on a legitimate term containing spaces and punctuation", async () => {
+    const orCalls = recordingDb();
+    await post({ q: "jane-doe o'brien" });
+
+    expect(orCalls.length).toBeGreaterThan(0);
+    expect(orCalls[0]).toContain("%jane-doe o'brien%");
+  });
+
+  it("accepts a Devanagari name query", async () => {
+    const orCalls = recordingDb();
+    await post({ q: "\u0938\u0941\u0936\u093e\u0928" });
+
+    expect(orCalls.length).toBeGreaterThan(0);
+    expect(orCalls[0]).toContain("%\u0938\u0941\u0936\u093e\u0928%");
+  });
+
+  it("accepts an ampersand and plus, which are ordinary in project names", async () => {
+    const orCalls = recordingDb();
+    await post({ q: "R&D + AI" });
+
+    expect(orCalls.length).toBeGreaterThan(0);
+  });
 });

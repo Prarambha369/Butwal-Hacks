@@ -1,6 +1,18 @@
 export { twMerge as cn } from "tailwind-merge"
 
 /**
+ * True only on the real production deployment.
+ *
+ * `NODE_ENV` is "production" for preview builds too, so it is not enough on its
+ * own: a preview must never be treated as production when the question is
+ * whether to fail closed on missing security configuration. Both variables are
+ * required.
+ */
+export function isProduction(): boolean {
+  return process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === "production";
+}
+
+/**
  * Applies Cloudinary automatic optimization transforms to an image URL.
  *
  * @param url - The image URL to optimize.

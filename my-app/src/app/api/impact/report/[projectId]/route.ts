@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth0 } from '@/lib/auth0';
 import { generateImpactReport } from '@/lib/actions/projects';
 import { withRateLimit } from "@/lib/rate-limiter";
+import { logger } from "@/lib/logger";
 
 const GET = withRateLimit(async (
   request: NextRequest,
@@ -14,6 +15,12 @@ const GET = withRateLimit(async (
 
   try {
     const report = await generateImpactReport(projectId);
+    // generateImpactReport returns null when the caller is not entitled to
+    // this project. 403 rather than 404 would confirm the project exists, so
+    // the same shape is used for both.
+    if (report === null) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
     return NextResponse.json(report, {
       headers: { "Cache-Control": "private, max-age=60" },
     });
@@ -24,8 +31,11 @@ const GET = withRateLimit(async (
         { status: 404 }
       );
     }
+    logger.error('[api/impact/report]', error);
+    // The message is not echoed back: this is a service-role code path and an
+    // upstream PostgREST message can carry schema detail.
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal Server Error' },
+      { error: 'Internal Server Error' },
       { status: 500 }
     );
   }

@@ -22,9 +22,31 @@ export const POST = withRateLimit(async (request: Request) => {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
     const { resource_id } = parsed.data;
+
+    // resource_completions is keyed by profile_id (migration 035). Writing
+    // `auth0_user_id` referenced a column that does not exist, so the upsert
+    // failed with 42703 and no completion was ever recorded.
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('auth0_user_id', userId)
+      .single();
+
+    if (profileError || !profile) {
+      logger.warn('[api/resources/complete] No profile for session subject', {
+        code: profileError?.code ?? null,
+      });
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    // onConflict names the primary key so a repeat submission updates the
+    // existing row instead of colliding.
     const { error } = await supabase
       .from('resource_completions')
-      .upsert({ resource_id, auth0_user_id: userId, completed_at: new Date().toISOString() });
+      .upsert(
+        { profile_id: profile.id, resource_id, completed_at: new Date().toISOString() },
+        { onConflict: 'profile_id,resource_id' },
+      );
 
     if (error) throw error;
     return NextResponse.json({ success: true });
@@ -32,4 +54,4 @@ export const POST = withRateLimit(async (request: Request) => {
     logger.error('[api/resources/complete]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}, "frequent") // ponytail: Uses Auth0 user ID, replaced Supabase Auth.
+}, "frequent");

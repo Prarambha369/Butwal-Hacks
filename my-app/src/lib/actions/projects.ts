@@ -85,13 +85,34 @@ export async function linkProjectToTeam(projectId: string, teamId: string) {
   return { success: true };
 }
 
+/**
+ * Impact metrics for a project.
+ *
+ * Object-level authorization: the caller must own the project, sit on the
+ * owning team, be the event organizer, or hold staff authority. This runs on
+ * the service-role client, so without the check any signed-in member could
+ * read engagement metrics and the submitter's full name and BH-ID for any
+ * project id they could guess.
+ *
+ * Returns `null` rather than throwing so the caller can answer 403 without the
+ * distinction between "forbidden" and "does not exist" leaking.
+ */
 export async function generateImpactReport(projectId: string) {
   const supabase = createServiceClient();
+
+  // Resolve the caller first. resolveProfileId() is auth-scoped, so an
+  // unauthenticated call throws before any project data is read.
+  const callerId = await resolveProfileId();
+  const { data: caller } = await supabase
+    .from('profiles')
+    .select('id, role')
+    .eq('id', callerId)
+    .single();
 
   const { data: project, error } = await supabase
     .from('projects')
     .select(`
-      *,
+      id, title, tech_stack, created_at, profile_id, team_id, event_id,
       project_likes(count),
       project_views(count),
       comments:project_comments(count),
@@ -102,6 +123,33 @@ export async function generateImpactReport(projectId: string) {
 
   if (error || !project) {
     throw new Error('Project not found');
+  }
+
+  const isOwner = project.profile_id === callerId;
+
+  let isTeamMember = false;
+  if (project.team_id) {
+    const { data: membership } = await supabase
+      .from('team_members')
+      .select('id')
+      .eq('team_id', project.team_id)
+      .eq('profile_id', callerId)
+      .maybeSingle();
+    isTeamMember = !!membership;
+  }
+
+  let isEventOrganizer = false;
+  if (project.event_id) {
+    const { data: event } = await supabase
+      .from('events')
+      .select('organizer_id')
+      .eq('id', project.event_id)
+      .maybeSingle();
+    isEventOrganizer = !!event && event.organizer_id === callerId;
+  }
+
+  if (!isOwner && !isTeamMember && !isEventOrganizer && caller?.role !== 'maintainer') {
+    return null;
   }
 
   return {
