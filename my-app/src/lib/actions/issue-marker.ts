@@ -8,6 +8,58 @@ import { signTrustMarker } from "@/lib/crypto-sign";
 import { resolveProfileId } from "@/lib/profile-resolver";
 import { bustCache } from "@/lib/cache";
 import { notifyMarkerIssued } from "@/lib/discord";
+import { auth0 } from "@/lib/auth0";
+import { accessSubjectFor, isMaintainer } from "@/lib/dashboard-access";
+
+/**
+ * Roles allowed to attest a credential.
+ *
+ * The HTTP route `/api/v1/issue-marker` already enforced this. Server actions
+ * are equally reachable endpoints -- every export of a `"use server"` module
+ * is callable from the browser -- so an action that skips the check is a hole
+ * around the route that has it, not a second way to do the same thing.
+ */
+const ISSUER_ROLES = new Set(["organizer", "maintainer"]);
+
+/**
+ * Resolve the caller's issuer identity, or refuse.
+ *
+ * Throws rather than returning a union so that no code path can accidentally
+ * proceed on an unresolved identity: an unhandled throw inside the action
+ * becomes `success: false`, and no insert happens.
+ */
+async function requireIssuer(): Promise<string> {
+  const session = await auth0.getSession();
+  if (!session?.user?.sub) {
+    throw new Error("Not authenticated.");
+  }
+
+  const supabase = createServiceClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("auth0_user_id", session.user.sub)
+    .single();
+
+  const role = profile?.role;
+
+  // The maintainer role is never sufficient on its own. A profile carrying
+  // role='maintainer' on a personal or unverified address must fail the same
+  // predicate the maintainer layouts use, so the role is not simply re-used
+  // as a fallback -- otherwise it silently re-grants exactly the authority the
+  // staff-address rule exists to withhold.
+  const authorized =
+    role === "maintainer"
+      ? isMaintainer(accessSubjectFor(session.user, profile))
+      : typeof role === "string" && ISSUER_ROLES.has(role);
+
+  if (!authorized) {
+    logger.warn("[issue-marker] Refused issuance to a non-issuer role");
+    throw new Error("Only organizers and maintainers can issue trust markers.");
+  }
+
+  return resolveProfileId();
+}
 
 export async function issueTrustMarker(input: {
   email: string;
@@ -17,7 +69,10 @@ export async function issueTrustMarker(input: {
 }) {
   try {
     const supabase = createServiceClient();
-    const issuerId = await resolveProfileId();
+    // Authorization first: resolveProfileId() has a side effect (it creates a
+    // profile row for a caller that has none), so it must not run for someone
+    // who is going to be refused.
+    const issuerId = await requireIssuer();
     const title = sanitizeString(input.title, 200);
     const description = sanitizeString(input.description, 2000);
 

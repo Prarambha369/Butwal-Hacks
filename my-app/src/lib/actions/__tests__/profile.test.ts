@@ -73,7 +73,7 @@ describe("updateProfile", () => {
     mockedGetSession.mockResolvedValue(null);
     const { updateProfile } = await import("../profile");
 
-    await expect(updateProfile("auth0|12345", { full_name: "Test" })).rejects.toThrow("Unauthorized");
+    await expect(updateProfile({ full_name: "Test" })).rejects.toThrow("Unauthorized");
   });
 
   it("updates profile successfully with basic fields", async () => {
@@ -81,7 +81,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    const result = await updateProfile("auth0|12345", {
+    const result = await updateProfile({
       full_name: "Test User",
       bio: "A short bio",
     });
@@ -93,17 +93,28 @@ describe("updateProfile", () => {
     expect(updateData.bio).toBe("A short bio");
   });
 
-  it("looks up profile by auth0_user_id", async () => {
+  it("targets the session's own profile, never a caller-supplied identity", async () => {
+    // Regression: the action used to take a `userId` argument and write to
+    // whatever it was handed, so any signed-in member could rewrite any other
+    // member's name, bio, avatar and socials. The target is now derived from
+    // the session, so there is no argument to forge.
     setAuthenticated();
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|67890", { full_name: "Target User" });
+    await updateProfile({ full_name: "My Own Name" });
 
     const eqCalls = db.eq.mock.calls;
     const auth0Query = eqCalls.find(c => c[0] === "auth0_user_id");
     expect(auth0Query).toBeDefined();
-    expect(auth0Query![1]).toBe("auth0|67890");
+    expect(auth0Query?.[1]).toBe("auth0|12345");
+  });
+
+  it("has no userId parameter that could redirect the write", async () => {
+    // Structural guard: if someone re-adds a target identity parameter, this
+    // fails. Arity is checked without asserting on source text.
+    const { updateProfile } = await import("../profile");
+    expect(updateProfile.length).toBe(1);
   });
 
   it("sanitizes full_name to 100 chars", async () => {
@@ -111,7 +122,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { full_name: "A".repeat(200) });
+    await updateProfile({ full_name: "A".repeat(200) });
 
     const updateData = db.update.mock.calls[0][0];
     expect(updateData.full_name.length).toBe(100);
@@ -122,7 +133,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { bio: "B".repeat(3000) });
+    await updateProfile({ bio: "B".repeat(3000) });
 
     const updateData = db.update.mock.calls[0][0];
     expect(updateData.bio.length).toBeLessThanOrEqual(2000);
@@ -133,7 +144,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { avatar_url: null });
+    await updateProfile({ avatar_url: null });
 
     const updateData = db.update.mock.calls[0][0];
     expect(updateData.avatar_url).toBeNull();
@@ -144,7 +155,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { avatar_url: "https://example.com/avatar.jpg" });
+    await updateProfile({ avatar_url: "https://example.com/avatar.jpg" });
 
     const updateData = db.update.mock.calls[0][0];
     expect(updateData.avatar_url).toBe("https://example.com/avatar.jpg");
@@ -155,7 +166,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { cal_com_url: "https://cal.com/testuser" });
+    await updateProfile({ cal_com_url: "https://cal.com/testuser" });
 
     const updateData = db.update.mock.calls[0][0];
     expect(updateData.cal_com_url).toBe("https://cal.com/testuser");
@@ -166,7 +177,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { cal_com_url: "invalid" }); // normalizeSocialUrl returns null for "invalid"
+    await updateProfile({ cal_com_url: "invalid" }); // normalizeSocialUrl returns null for "invalid"
 
     const updateData = db.update.mock.calls[0][0];
     expect(updateData.cal_com_url).toBeNull();
@@ -177,7 +188,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", {
+    await updateProfile({
       socials: {
         github: "https://github.com/testuser",
         linkedin: "https://linkedin.com/in/testuser",
@@ -197,7 +208,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { full_name: "No Socials" });
+    await updateProfile({ full_name: "No Socials" });
 
     const updateData = db.update.mock.calls[0][0];
     expect(updateData.socials).toBeUndefined();
@@ -208,7 +219,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { open_to_mentor: true });
+    await updateProfile({ open_to_mentor: true });
 
     const updateData = db.update.mock.calls[0][0];
     expect(updateData.open_to_mentor).toBe(true);
@@ -219,7 +230,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { full_name: "Test" });
+    await updateProfile({ full_name: "Test" });
 
     const updateData = db.update.mock.calls[0][0];
     expect(updateData.open_to_mentor).toBeUndefined();
@@ -230,7 +241,7 @@ describe("updateProfile", () => {
 
     const { revalidatePath } = await import("next/cache");
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { full_name: "Test User" });
+    await updateProfile({ full_name: "Test User" });
 
     expect(revalidatePath).toHaveBeenCalledWith("/dashboard/profile");
   });
@@ -243,7 +254,7 @@ describe("updateProfile", () => {
 
     const { revalidatePath } = await import("next/cache");
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { full_name: "Test User" });
+    await updateProfile({ full_name: "Test User" });
 
     const calledWith = (revalidatePath as ReturnType<typeof vi.fn>).mock.calls.map(
       (c) => c[0]
@@ -257,7 +268,7 @@ describe("updateProfile", () => {
     db.eq.mockResolvedValue({ error: { message: "DB error" } });
 
     const { updateProfile } = await import("../profile");
-    await expect(updateProfile("auth0|12345", { full_name: "Test" })).rejects.toThrow("Failed to update profile");
+    await expect(updateProfile({ full_name: "Test" })).rejects.toThrow("Failed to update profile");
   });
 
   it("does not modify full_name when undefined", async () => {
@@ -265,7 +276,7 @@ describe("updateProfile", () => {
     const db = mockSupabase();
 
     const { updateProfile } = await import("../profile");
-    await updateProfile("auth0|12345", { bio: "Only bio" });
+    await updateProfile({ bio: "Only bio" });
 
     const updateData = db.update.mock.calls[0][0];
     expect(updateData.full_name).toBeUndefined();

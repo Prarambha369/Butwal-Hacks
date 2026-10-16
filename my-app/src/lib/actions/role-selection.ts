@@ -6,16 +6,34 @@ import { describeSupabaseError } from "@/lib/supabase-error";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logger } from "@/lib/logger";
+import { accessSubjectFor, isMaintainer } from "@/lib/dashboard-access";
 
 const ALLOWED_ROLES = ["hacker", "organizer", "maintainer", "sponsor", "lead"] as const;
 type Role = (typeof ALLOWED_ROLES)[number];
 
 /**
+ * Roles a member may grant themselves.
+ *
+ * Only `hacker`. Every other role is authority somebody had to decide to give,
+ * and a role the user picks for themselves is not a decision -- it is a
+ * request. `organizer` and `sponsor` go through `requestRoleUpgrade`;
+ * `maintainer` and `lead` are assigned by maintainer tooling or the Auth0
+ * role-sync webhook.
+ *
+ * This used to allow `maintainer` on the strength of the caller's own email
+ * address, which made staff access self-service: any account that could be
+ * created on the staff domain reached every admin surface. An address suffix
+ * is an attribute of the account, not an authorization decision, so it cannot
+ * be the second factor -- and the check was case-sensitive while the layout
+ * gate it was supposed to mirror case-folded, so the two did not even agree.
+ */
+const SELF_SELECTABLE_ROLES = ["hacker"] as const;
+
+/**
  * Select a role for the current user.
- * Handles eligibility checks for restricted roles:
- *   - hacker: always available
- *   - maintainer: requires @butwalhacks.com email + email_verified
- *   - organizer / sponsor: not available for self-selection (use requestRoleUpgrade)
+ *
+ * Only `hacker` is self-selectable. See SELF_SELECTABLE_ROLES for why the
+ * elevated roles are absent rather than merely gated.
  */
 export async function selectRole(formData: FormData) {
   const role = formData.get("role") as Role;
@@ -28,32 +46,14 @@ export async function selectRole(formData: FormData) {
     return { success: false, error: "Not authenticated." };
   }
 
-  const userEmail = session.user.email ?? "";
-  const emailVerified = session.user.email_verified === true;
-
   // ── Eligibility checks ─────────────────────────────────────
-  if (role === "maintainer") {
-    if (!userEmail.endsWith("@butwalhacks.com")) {
-      return {
-        success: false,
-        error: "Maintainer access requires a @butwalhacks.com email address.",
-      };
-    }
-    if (!emailVerified) {
-      return {
-        success: false,
-        error: "Please verify your email address before selecting Maintainer role. Check your inbox for a verification link from Auth0.",
-      };
-    }
-  }
-
-  if (role === "organizer" || role === "sponsor") {
+  if (!(SELF_SELECTABLE_ROLES as readonly string[]).includes(role)) {
     return {
       success: false,
       error:
-        role === "organizer"
-          ? "Organizer access requires approval from a Maintainer. Please use the 'Request Access' option."
-          : "Sponsor access requires approval from an Organizer or Maintainer. Please use the 'Request Access' option.",
+        role === "maintainer" || role === "lead"
+          ? `${role === "maintainer" ? "Maintainer" : "Lead"} access is granted by a maintainer, not self-assigned. Please use the 'Request Access' option.`
+          : `${role === "organizer" ? "Organizer" : "Sponsor"} access requires approval. Please use the 'Request Access' option.`,
     };
   }
 
@@ -72,9 +72,7 @@ export async function selectRole(formData: FormData) {
 
   revalidatePath("/dashboard");
 
-  // At this point `role` is already restricted to hacker, maintainer, or
-  // lead. organizer/sponsor self-selection returns early above with an error
-  // requesting approval instead.
+  // `role` is now provably "hacker" -- the only entry in SELF_SELECTABLE_ROLES.
   redirect(`/dashboard/${role}`);
 }
 
@@ -82,11 +80,13 @@ export async function selectRole(formData: FormData) {
  * Request a role upgrade to organizer or sponsor.
  * Creates a request record that maintainers can review and approve.
  */
+const APPROVABLE_REQUEST_ROLES = ["organizer", "sponsor"] as const;
+
 export async function requestRoleUpgrade(formData: FormData) {
   const requestedRole = formData.get("requestedRole") as string;
   const message = (formData.get("message") as string) ?? "";
 
-  if (!["organizer", "sponsor"].includes(requestedRole)) {
+  if (!APPROVABLE_REQUEST_ROLES.includes(requestedRole as (typeof APPROVABLE_REQUEST_ROLES)[number])) {
     return { success: false, error: "Invalid role requested." };
   }
 
@@ -170,14 +170,17 @@ export async function getPendingRoleRequests() {
 
   const db = createServiceClient();
 
-  // Verify the caller is a maintainer
+  // The canonical predicate, not a bare role comparison. This used to accept
+  // any profile carrying role='maintainer', including one on a personal
+  // address that every maintainer layout refuses -- so the queue was readable
+  // by accounts that could not otherwise reach a single admin page.
   const { data: profile } = await db
     .from("profiles")
-    .select("role, email")
+    .select("role")
     .eq("auth0_user_id", session.user.sub)
     .single();
 
-  if (profile?.role !== "maintainer") return [];
+  if (!isMaintainer(accessSubjectFor(session.user, profile))) return [];
 
   const { data: requests } = await db
     .from("role_requests")
@@ -204,14 +207,16 @@ export async function approveRoleRequest(formData: FormData) {
 
   const db = createServiceClient();
 
-  // Verify caller is a maintainer
-  const { data: profile } = await db
+  // Same canonical predicate as the layouts and requireMaintainer(). This was
+  // a bare role comparison with no address or verification check, which made
+  // role approval reachable to any profile that happened to claim the role.
+  const { data: callerProfile } = await db
     .from("profiles")
-    .select("role, email")
+    .select("role")
     .eq("auth0_user_id", session.user.sub)
     .single();
 
-  if (profile?.role !== "maintainer") {
+  if (!isMaintainer(accessSubjectFor(session.user, callerProfile))) {
     return { success: false, error: "Only maintainers can approve role requests." };
   }
 
@@ -223,6 +228,16 @@ export async function approveRoleRequest(formData: FormData) {
     .single();
 
   if (!req) return { success: false, error: "Request not found." };
+
+  // `requested_role` is CHECK-constrained to organizer|sponsor in the database
+  // (migration 091), so this is belt-and-braces: an approval must never be the
+  // mechanism that grants a privileged role, whatever the row happens to say.
+  if (!APPROVABLE_REQUEST_ROLES.includes(req.requested_role as (typeof APPROVABLE_REQUEST_ROLES)[number])) {
+    logger.error("[role-selection] Refusing to approve a non-approvable role", {
+      request_id: requestId,
+    });
+    return { success: false, error: "That role cannot be granted through a request." };
+  }
 
   if (action === "approve") {
     // Update the user's role

@@ -37,10 +37,23 @@ export function sanitizeUrl(input: string): string | null {
 
 export const sanitizeUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s.trim().toLowerCase()) ? s.trim().toLowerCase() : null;
 
+/**
+ * Characters allowed in a search term.
+ *
+ * Deliberately excludes comma, parenthesis, period, colon and asterisk: those
+ * are PostgREST's `or()` / `not.is` grammar delimiters, so a term containing
+ * them can close one filter condition and append another. Anything that will be
+ * interpolated into a PostgREST filter must match this.
+ *
+ * The Devanagari range is included because the directory is bilingual and a
+ * name search is a primary use case.
+ */
+export const SEARCH_TERM_PATTERN = /^[a-zA-Z0-9ऀ-ॿ _'&+.-]+$/;
+
 /** Validate search input length and allowed chars */
 export function validateSearchInput(input: string): { valid: boolean; error?: string } {
   if (input.length > 100) return { valid: false, error: "Keep your search under 100 characters" };
-  if (!/^[a-zA-Z0-9\s\-'_]*$/.test(input)) return { valid: false, error: "Letters, numbers, spaces, and - ' _ only, please" };
+  if (!SEARCH_TERM_PATTERN.test(input)) return { valid: false, error: "Letters, numbers, spaces, and - ' _ only, please" };
   return { valid: true };
 }
 

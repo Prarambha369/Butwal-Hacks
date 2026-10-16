@@ -7,7 +7,17 @@ import { sanitizeString, normalizeSocialUrl } from "@/lib/validation";
 import { auth0 } from "@/lib/auth0";
 import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 
-export async function updateProfile(userId: string, updates: { 
+/**
+ * Update the signed-in member's own profile.
+ *
+ * There is no `userId` parameter and there must not be one. This runs on the
+ * service-role client, which bypasses RLS, so the only thing standing between
+ * one member and another's profile was the truthiness of a caller-supplied
+ * identifier: it checked "is anyone signed in", not "is this my profile", and
+ * then wrote to whatever `auth0_user_id` it was handed. The target is now
+ * derived from the session, which cannot be forged.
+ */
+export async function updateProfile(updates: {
   full_name?: string; 
   bio?: string; 
   avatar_url?: string | null; 
@@ -21,7 +31,7 @@ export async function updateProfile(userId: string, updates: {
   } 
 }) {
   const session = await auth0.getSession();
-  if (!session?.user) throw new Error("Unauthorized");
+  if (!session?.user?.sub) throw new Error("Unauthorized");
   const supabase = createServiceClient();
 
   // Sanitize all string fields — discard invalid URLs entirely
@@ -42,11 +52,11 @@ export async function updateProfile(userId: string, updates: {
       website: normalizeOptionalUrl(updates.socials.website),
     } : undefined,
   }
-  
+
   const { error } = await supabase
     .from('profiles')
     .update(sanitized)
-    .eq('auth0_user_id', userId);
+    .eq('auth0_user_id', session.user.sub);
 
   if (error) {
     logger.error('Error updating profile:', error);

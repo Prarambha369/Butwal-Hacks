@@ -160,7 +160,7 @@ Rate limit tiers: `public_form` 5/60s, `sensitive` 3/60s, `user_action` 5/60s, `
 
 - Mock Supabase with `vi.mock("@/utils/supabase")`. Tests never touch a real database.
 - Auth-dependent E2E tests use `skipInCI()`.
-- Current baseline: 1687 tests across 114 unit and integration files, plus 6 Playwright specs.
+- Current baseline: 1672 tests across 113 unit and integration files, plus 6 Playwright specs.
 
 ### Commits
 

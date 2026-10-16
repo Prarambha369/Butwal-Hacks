@@ -55,8 +55,18 @@ export async function requireRole(
 
     return NextResponse.next();
   } catch {
-    logger.warn("[proxy] Role query failed", { auth0_user_id: session.user.sub });
-    return NextResponse.next();
+    // Fail closed. The role query IS the authorization decision for these
+    // routes, so an unreachable database cannot be read as "no restriction
+    // applies" -- that opened /dashboard/maintainer/*, /dashboard/organizer/*
+    // and /portal/* for the duration of any Supabase incident. The layout is a
+    // second gate and already fails closed, so this is defence-in-depth rather
+    // than the only control, but the middleware should not be the layer that
+    // waves the request through.
+    logger.error("[proxy] Role query failed; denying rather than allowing", {
+      path: pathname,
+      auth0_user_id: session.user.sub,
+    });
+    return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 }
 

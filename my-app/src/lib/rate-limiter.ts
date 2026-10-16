@@ -57,7 +57,24 @@ function getLimiter(tier: Tier) {
  */
 async function checkRateLimit(request: Request, tier: Tier = "user_action"): Promise<RateLimitResult> {
   const limiter = getLimiter(tier);
-  if (!limiter) return { allowed: true, remaining: 999, reset: 0 };
+  // Fail open, but never silently.
+  //
+  // Rate limiting is defence in depth, not an authorization control: refusing
+  // here would not stop an attacker who already holds valid credentials, it
+  // would only deny service to every legitimate member for the duration of a
+  // Redis incident. That trade is taken deliberately -- but it is logged at
+  // error level, because "rate limiting silently off" is otherwise
+  // indistinguishable from "rate limiting working and not triggered".
+  //
+  // The endpoints whose real gate is a shared secret (the webhooks) fail
+  // closed on that secret independently, so a Redis outage does not turn them
+  // into unauthenticated writers.
+  if (!limiter) {
+    console.error(
+      `[rate-limit] tier=${tier} no limiter (UPSTASH_REDIS_REST_URL unset) - FAILING OPEN`,
+    );
+    return { allowed: true, remaining: 999, reset: 0 };
+  }
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     request.headers.get("x-real-ip") ??
     request.headers.get("x-vercel-forwarded-for") ??
@@ -66,7 +83,7 @@ async function checkRateLimit(request: Request, tier: Tier = "user_action"): Pro
     const { success, remaining, reset } = await limiter.limit(ip);
     return { allowed: success, remaining, reset };
   } catch {
-    // Fail open: if Redis is unreachable, allow the request through.
+    console.error(`[rate-limit] tier=${tier} Redis unreachable - FAILING OPEN`);
     return { allowed: true, remaining: 999, reset: 0 };
   }
 }

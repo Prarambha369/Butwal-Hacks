@@ -116,7 +116,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
     }
 
     try {
-      await updateProfile(auth0UserId, {
+      await updateProfile({
         avatar_url: url === '' ? null : url,
       });
       setAvatarSaved(true);
@@ -145,7 +145,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
     setIsSubmitting(true);
     try {
       // Only save non-avatar fields — avatar is already auto-saved
-      await updateProfile(auth0UserId, {
+      await updateProfile({
         full_name: formData.full_name,
         bio: formData.bio,
         avatar_url: undefined, // Don't touch avatar; already saved
