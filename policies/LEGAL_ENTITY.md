@@ -166,13 +166,119 @@ Also confirm with Open Collective and with counsel:
 
 ## A note on which Companies Act applies
 
-Nepal's Companies Act 2081 (2024) is the current statute. **However, most published guidance on non-distributing company registration still cites Companies Act 2063 (2006) and its section 166**, including OCR-facing material and law-firm commentary we found.
+Nepal's Companies Act 2081 (2024) is the current statute. **However, almost all published guidance on non-distributing company registration still cites Companies Act 2063 (2006)**, including OCR-facing material and law-firm commentary we found.
 
-We have not been able to confirm whether section 166 survives in the same form under the 2081 Act, or whether non-distributing companies moved to a different provision.
+The **section number is cited inconsistently and we have not resolved it**:
 
-**Counsel must confirm which Act and section govern, and whether any transition provision applies to an application made now.** The practical requirements — five promoters, no "Limited" in the name, no distribution of profit, no later conversion — are consistently reported across both, so the shape of the decision is unlikely to change. The citation may still be wrong.
+- Several guides say **section 166** covers a company not distributing profit
+- Others point to **section 167**, described as the special provisions for such companies
+- At least one source attributes section 166 to **foreign company registration** instead
 
-This document deliberately does not assert a section number as settled.
+We are not going to assert a number we cannot verify. **Confirm the governing provision with counsel or directly with the Office of Company Registrar before filing.**
+
+The practical requirements are, however, consistently reported across every source, so the shape of the decision is unlikely to change:
+
+- minimum five promoters, no upper limit
+- **no share capital required**
+- **no "Limited" or "Pvt. Ltd." in the name**
+- no distribution of profit, and no later conversion to a profit-distributing company
+- annual return to the Company Registrar, with audited accounts
+
+### ⚠️ The naming gotcha
+
+Most general company-registration guides instruct you to end the name in "Private Limited" or "Public Limited". **That rule does not apply to a company not distributing profit.** If you follow a generic guide you will get the name rejected.
+
+The statutory carve-out exists because a non-distributing company has no share capital and its members hold no equity. `Butwal Hacks` alone is the intended form.
+
+### ⚠️ Late filing is personally liable
+
+Under the Companies Act, a company that files late is fined, and the fine **grows each year of delay**. Published reporting on the Office of Company Registrar's own filings states specifically that **directors and officers of non-profit companies are personally liable for these fines.**
+
+This matters more here than it would at a normal company. Butwal Hacks is volunteer-run. An unpaid volunteer can be personally pursued for a penalty arising from a missed filing deadline they never knew about. **Put the annual filing dates in a shared calendar the day you incorporate**, and treat them as non-negotiable.
+
+## The procedure, step by step
+
+Registration runs through **CAMIS** (Company Administration Management Information System) at `camis.ocr.gov.np`. Most of it is online; expect one possible visit to the OCR office at Tripureshwor, Kathmandu.
+
+### Step 1 — Create a CAMIS account
+
+Register at `camis.ocr.gov.np` with email, mobile number, and citizenship details, then verify by OTP.
+
+### Step 2 — Reserve the name
+
+- Enter the proposed name in **both Nepali (Devanagari) and English** — both are required
+- Select the company type as **company not distributing profit**
+- **Add the company objectives using NSIC codes** (Nepal Standard Industrial Classification). This step drives which documents CAMIS asks for next, so choose codes that genuinely match what Butwal Hacks does. It also matters later, because tax exemption and Social Welfare Council affiliation both turn on your stated objects
+- Pay the name reservation fee, then submit
+- Approval arrives by email
+
+**Watch the expiry.** Sources disagree on the validity window — **35 days** in one, **90 days** in another. Confirm the actual window when you reserve, because if it lapses you pay to reserve again.
+
+### Step 3 — Draft the MOA and AOA
+
+Two originals of each, on stamp paper, signed by all five or more promoters with witnesses. Use OCR's model formats — incomplete or non-standard MOA/AOA is a common rejection reason.
+
+| Document | Must cover |
+|----------|-----------|
+| **MOA** — Memorandum of Association | Registered office; **objects, stated precisely**; liability clause; the non-distribution condition; promoter details |
+| **AOA** — Articles of Association | Director powers and duties; appointment and removal; meeting procedure; how income is applied to the objects |
+
+**Write the objects carefully.** Vague objectives are both a rejection risk at OCR and a compliance risk afterwards, because an exemption or affiliation can be refused if income is not applied to what you said you would do.
+
+### Step 4 — Submit through CAMIS
+
+Upload:
+
+- scanned MOA and AOA, signed by all promoters
+- citizenship certificates of every promoter and director
+- passport-sized photographs
+- director consent letters
+- signature specimens of directors
+- proof of the registered office — **rent agreement or ownership certificate**, plus the landlord's citizenship certificate and land ownership certificate
+- power of attorney, if a representative files for you
+
+### Step 5 — Pay and submit
+
+Fees are calculated and paid online through **ConnectIPS**. Keep the receipt. Sources differ on the exact bands, but expect roughly **NPR 15,000** all-in for a non-distributing company, plus stamp duty around NPR 1,000.
+
+### Step 6 — Physical verification, if requested
+
+OCR may ask you to present originals. This requires a scheduled appointment at the OCR office, Tripureshwor, Kathmandu. Budget for this.
+
+### Step 7 — Certificate of Incorporation
+
+Issued digitally through CAMIS. **This is the moment Butwal Hacks becomes a legal person** and can sign contracts, including the subprocessor transfer agreements blocked in [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md).
+
+### Step 8 — After incorporation
+
+| Step | Authority | Note |
+|------|-----------|------|
+| **PAN** | Inland Revenue Department | Since Asar 15, 2083 the PAN and PAN certificate are downloadable from CAMIS directly after incorporation — no separate visit to the tax office |
+| **Corporate bank account** | Any commercial bank | Needs Certificate of Incorporation, PAN, MOA/AOA, a board resolution authorising the account, specimen signatures, and citizenship documents of signatories |
+| **Ward office registration** | Local level | Business registration locally; attracts **house rent tax at 10% of monthly rent** and an annual business tax. Sources suggest the local level may ask for 4 to 6 months of rent tax up front |
+| **Social Welfare Council affiliation** | Social Welfare Council | **Required** because we receive foreign funds. See [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md), priority 9 |
+| **VAT determination** | Inland Revenue Department | Needs an accountant's opinion. See priority 10 |
+| **Statutory registers** | At the registered office | Register of members, register of directors, register of charges |
+| **Board resolution** | Internal | Appoint the signatories, approve the bank account, adopt the policies in this directory |
+
+### Step 9 — Recurring, every year
+
+- **Annual return to the Company Registrar**, with AGM decisions and **audited** annual accounts
+- Accounts prepared to applicable accounting standards
+- Tax position substantiated, or exemption substantiated if claimed
+- Social Welfare Council reporting
+- Board and general assembly minutes kept, and producible on request
+
+**Claiming the exemption.** A company not distributing profit can obtain a **"tax exempted entity" certificate** under the Income Tax Act 2058 for its operational income. This is conditional on applying income to the stated objects, and it is **separate from the registration** — it must be applied for.
+
+### Tax exemption is not the same as being a nonprofit
+
+Both are true simultaneously and neither implies the other:
+
+- **Non-distributing status** means you cannot pay dividends. That is about governance.
+- **Tax exemption** is about your liability for income tax. It requires a certificate, and it requires that income be applied to your objects.
+
+Without the certificate, your operational income is **not automatically exempt**. Get an accountant on this before you take in significant funds.
 
 ---
 
@@ -184,39 +290,45 @@ This document deliberately does not assert a section number as settled.
 - [ ] Five (Option A) or seven (Option B) founding members identified, each with citizenship certificates
 - [ ] Passport photographs and signature specimens collected
 - [ ] Registered office address secured, with a **rent agreement or ownership certificate**, plus the landlord's citizenship and land ownership certificate
-- [ ] Name reservation sought at OCR via CAMIS — name must be unique, not misleading, and must not breach trademarks
-- [ ] **MOA and AOA drafted**, stating the non-profit objects. These objects must match what we actually do, because tax exemption and Social Welfare Council affiliation both turn on them
+- [ ] Name reserved on CAMIS in **both Nepali and English**, as a company not distributing profit, with **no "Limited" suffix**
+- [ ] **NSIC objective codes chosen**, and they genuinely match what Butwal Hacks does
+- [ ] **Name reservation expiry date noted** — the validity window is disputed between sources, so record the date OCR gives you
+- [ ] **MOA and AOA drafted** on stamp paper, using OCR model formats, with precisely stated objects
 - [ ] Board of directors or managing committee identified
 
 ### Filing
 
 - [ ] Application filed at OCR via CAMIS (Option A) or DAO (Option B)
-- [ ] Fee paid — OCR approximately NPR 15,000 for Option A
+- [ ] Fee paid via ConnectIPS and receipt kept
+- [ ] Physical verification appointment attended, if requested
 - [ ] Certificate of Incorporation obtained
-- [ ] Statutory registers created: members, directors, charges
 
 ### After incorporation
 
-- [ ] PAN obtained
+- [ ] PAN obtained from CAMIS
 - [ ] Corporate bank account opened
 - [ ] Ward office registration completed
 - [ ] **Social Welfare Council affiliation** — required because we receive foreign grants
 - [ ] VAT position determined with an accountant
+- [ ] **Tax exempted entity** status considered and applied for, if warranted
 - [ ] Non-profit clause confirmed in the MOA/AOA: no distribution to members or promoters
+- [ ] Statutory registers created: members, directors, charges
 - [ ] Legal name, registered address, and PAN inserted into every policy in this directory
 - [ ] A **data protection contact appointed in writing** — now possible to attach to a real officer ([COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md), priority 4)
-- [ ] Annual calendar created with filing and renewal dates
+- [ ] **Annual filing dates in a shared calendar** — directors of non-profit companies are personally liable for late-filing fines
 
 ---
 
 ## Open questions for counsel
 
 1. Non-distributing company or association? Which is right given we pay bounties and receive foreign grants?
-2. Which Act and section govern, post-2081?
-3. What exactly is required for Social Welfare Council affiliation, and do we need INGO status?
-4. Is bounty disbursement income or pass-through? What are the VAT and tax consequences?
-5. What is required to claim tax exemption, and what limits apply to administrative spending?
-6. What liability insurance should a youth nonprofit carrying minors hold for in-person events?
+2. **Which Act and section govern, post-2081?** Sources cite both section 166 and section 167, and one attributes 166 to foreign companies. Confirm before filing.
+3. **Confirm the name reservation validity window** — sources say 35 days and 90 days. If it lapses you pay again.
+4. What exactly is required for Social Welfare Council affiliation, and do we need INGO status?
+5. Is bounty disbursement income or pass-through? What are the VAT consequences?
+6. What is required to claim tax exempted entity status, and what limits apply to administrative spending?
+7. What liability insurance should a youth nonprofit carrying minors hold for in-person events?
+8. Given directors of non-profit companies are **personally liable for late-filing fines**, what record-keeping should we put in place to protect unpaid volunteers?
 
 ## See also
 
