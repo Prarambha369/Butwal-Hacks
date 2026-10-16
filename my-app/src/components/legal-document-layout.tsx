@@ -22,6 +22,7 @@ export default function LegalDocumentLayout({
   const policyLinks = [
     { id: "privacy", label: "Privacy Policy", href: "/legal/privacy" },
     { id: "terms", label: "Terms of Service", href: "/legal/terms" },
+    { id: "cookie-policy", label: "Cookie Policy", href: "/cookie-policy" },
   ];
 
   return (
@@ -34,6 +35,34 @@ export default function LegalDocumentLayout({
           <span>Effective: {effectiveDate}</span>
         </div>
       </div>
+
+      {/*
+        The full policy set lives in `policies/` and is governed by the Law on
+        Protection of Personal Data 2025 (91/2025/QH15) and Decree 356/2025/ND-CP.
+        This page is the public-facing summary. Where the two differ, the `policies/`
+        version governs, and it is the fuller document.
+      */}
+      <aside
+        className="mb-8 rounded-lg border border-primary-red/30 bg-primary-red/5 p-4 text-sm text-secondary"
+        aria-label="Policy status"
+      >
+        <p className="font-semibold text-primary">Draft &mdash; not yet legally reviewed</p>
+        <p className="mt-2">
+          This summary has not been reviewed by an advocate qualified in the laws of Nepal,
+          and the review is tracked as an open item. The{" "}
+          <a
+            href="https://github.com/Prarambha369/Butwal-Hacks/tree/main/policies"
+            className="text-primary-red underline hover:no-underline"
+            rel="noreferrer noopener"
+            target="_blank"
+          >
+            full policy set
+          </a>{" "}
+          in the repository is the canonical and more detailed version, and includes the
+          terms for members under 18 and our safeguarding commitments, which are not
+          summarised on this page.
+        </p>
+      </aside>
 
       <nav className="flex gap-2 mb-8 pb-4 border-b border-border overflow-x-auto">
         {policyLinks.map((link) => (
