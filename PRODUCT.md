@@ -121,7 +121,7 @@ Landing, blog, chapters, about, community, contact, cookie policy, events, explo
 
 #### Zone 9: API
 
-58 route files holding 65 handlers. The high-traffic and security-relevant ones, all verified present under `my-app/src/app/api/`:
+59 route files holding 66 handlers. The high-traffic and security-relevant ones, all verified present under `my-app/src/app/api/`:
 
 | Route | Purpose |
 |-------|---------|
@@ -207,3 +207,4 @@ Audited against the tree. Four items previously listed as backlog had already sh
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — ADRs and engineering reference
 - [AGENTS.md](AGENTS.md) — conventions and verification gates
 - [README.md](README.md) — project overview
+- [docs/SEO_AEO_GEO_AUDIT.md](docs/SEO_AEO_GEO_AUDIT.md) — the audit behind several fixes on this page

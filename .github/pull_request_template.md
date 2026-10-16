@@ -22,7 +22,7 @@ What changed, and why.
 
 All four gates, run locally:
 
-- [ ] `npx tsc --noEmit`
+- [ ] `npm run typecheck`
 - [ ] `npm run lint`
 - [ ] `npm run test`
 - [ ] `npm run build`

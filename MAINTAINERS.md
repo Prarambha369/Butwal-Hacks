@@ -61,9 +61,9 @@ Butwal-Hacks/
     src/                 # app, components, lib, hooks, utils
     e2e/                 # Playwright E2E tests
   supabase/
-    migrations/          # 91 database migrations, canonical schema
+    migrations/          # 98 database migrations, canonical schema
   scripts/               # Operational scripts
-  docs/                  # Engineering documentation
+  docs/                  # Engineering documentation and diagrams
   .github/workflows/     # CI, deploy, keep-alive
 ```
 
@@ -115,8 +115,19 @@ Where each variable is set:
 | `GROQ_API_KEY` | Runtime | Groq console |
 | `RESEND_API_KEY` | Runtime | Resend dashboard |
 | `OC_WEBHOOK_SECRET` | Runtime | `openssl rand -hex 32` |
+| `GOOGLE_CLIENT_ID` | Runtime | Google Cloud, for Calendar sync |
+| `GOOGLE_CLIENT_SECRET` | Runtime | Google Cloud, for Calendar sync |
 | `NEXT_PUBLIC_SITE_URL` | Build, CI | Canonical site URL |
+| `NEXT_PUBLIC_APP_URL` | Build, runtime | Application subdomain. Defaults to `https://app.butwalhacks.com` |
 | `APP_BASE_URL` | CI | The deployment URL; `http://localhost:3000` locally |
+
+#### Deployment
+
+| Variable | Required | Source |
+|----------|----------|--------|
+| `VERCEL_DEPLOY_HOOK_URL` | Deploy only | Vercel project, Settings, Git, Deploy Hooks |
+| `SUPABASE_URL` | Runtime | Alias used by a subset of scripts; mirrors `NEXT_PUBLIC_SUPABASE_URL` |
+| `SUPABASE_SECRET_KEY` | Runtime | Newer Supabase name for what `SUPABASE_SERVICE_ROLE_KEY` holds |
 
 #### Infrastructure
 
@@ -133,10 +144,22 @@ Where each variable is set:
 | `SENTRY_ORG` | Build | Sentry org slug |
 | `SENTRY_PROJECT` | Build | Sentry project name |
 | `SENTRY_AUTH_TOKEN` | Build | Sentry auth token, for source map uploads |
-| `NEXT_PUBLIC_POSTHOG_KEY` | Runtime | PostHog project settings |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | Runtime | PostHog project settings |
 | `NEXT_PUBLIC_POSTHOG_HOST` | Runtime | PostHog instance URL |
-| `AXIOM_TOKEN` | Runtime | Axiom ingest token |
-| `AXIOM_DATASET` | Runtime | Axiom dataset name |
+| `NEXT_PUBLIC_SENTRY_DSN` | Build, runtime | Sentry client-side DSN, for browser error reporting |
+
+#### Notifications
+
+Optional. Each feature degrades gracefully when its webhook is absent.
+
+| Variable | Required | Source |
+|----------|----------|--------|
+| `DISCORD_WEBHOOK_URL` | Optional | Discord server webhook |
+| `SLACK_WEBHOOK_URL` | Optional | Slack incoming webhook |
+| `SLACK_EMAIL_CHANNEL` | Optional | Address the Slack webhook posts to |
+| `CONTACT_EMAIL` | Optional | Where contact-form submissions go. Defaults to `hello@butwalhacks.com` |
+| `CRON_SECRET` | Runtime | Guards scheduled routes such as `/api/health` |
+| `KEEP_ALIVE_SECRET` | CI, runtime | Shared secret for the keep-alive workflow |
 
 #### CI only
 
@@ -149,19 +172,30 @@ Where each variable is set:
 
 `.github/workflows/ci.yml` runs on every push and pull request to `main`. Jobs run in parallel unless a dependency is listed.
 
+![CI pipeline: eleven checks run in parallel after a push or pull request, with build depending on typecheck, and a final quality-gate job that requires all of them.](docs/images/ci-pipeline.png)
+
 | Job | Trigger | Depends on | What it does |
 |-----|---------|------------|--------------|
 | `lint` | push, PR | none | ESLint |
-| `typecheck` | push, PR | none | `tsc --noEmit` |
-| `test` | push, PR | none | Vitest, unit and smoke |
+| `typecheck` | push, PR | none | `npm run typecheck`, which runs `tsc --noEmit` |
+| `build` | push, PR | `typecheck` | Production build with env vars |
+| `test` | push, PR | none | Vitest, unit and integration |
+| `e2e` | PR only | none | Playwright, critical user flows |
 | `security-audit` | push, PR | none | `npm audit --audit-level=high` |
 | `secrets-audit` | PR only | none | Scans the diff for leaked secrets |
-| `auth0-m2m-verify` | push, PR | none | Verifies Auth0 M2M API access |
+| `auth0-m2m-verify` | push, non-fork PR | none | Verifies Auth0 M2M API access |
 | `ai-review` | PR only | none | Claude-based review of the diff |
 | `ponytail-audit` | PR only | none | Dead code detection |
-| `build` | push, PR | `typecheck` | Production build with env vars |
+| `bot-trailer-check` | PR only | none | Rejects AI bot trailers in commit messages |
+| `quality-gate` | push, PR | all eleven above | Rollup that passes only when every check passed |
+
+`auth0-m2m-verify` is skipped on fork pull requests, because a fork cannot reach the Auth0 tenant credentials.
 
 ### Deploy flow
+
+![Deploy flow: a merge to main runs verify, then migrate with supabase db push, then vercel-deploy, which serves butwalhacks.com and wires Auth0, Cloudinary, Resend, and Groq. The Auth0 Post-Login Action webhook upserts profiles into Supabase PostgreSQL.](docs/images/deploy-flow.png)
+
+`.github/workflows/deploy.yml` runs three jobs in order on every push to `main`.
 
 #### Vercel, automatic
 
@@ -185,7 +219,7 @@ A migration failure can leave the Vercel deploy green while the app hits schema 
 
 **Before merge**
 
-- [ ] `npx tsc --noEmit` clean
+- [ ] `npm run typecheck` clean
 - [ ] `npm run lint` clean
 - [ ] `npm run test` passing
 - [ ] `npm run build` succeeding
@@ -207,8 +241,8 @@ A migration failure can leave the Vercel deploy green while the app hits schema 
 - [ ] Homepage loads at `https://butwalhacks.com`
 - [ ] Sign-in flow works
 - [ ] At least one dashboard loads after sign-in
+- [ ] The `migrate` job in `deploy.yml` is green, not just the Vercel deploy
 - [ ] Sentry shows no new errors in the first five minutes
-- [ ] Axiom shows no anomalous log patterns
 - [ ] PostHog session count matches expected traffic
 
 ### Rollback
@@ -269,11 +303,16 @@ For destructive changes such as column or table drops, write the rollback migrat
 | Failing job | First move |
 |-------------|------------|
 | `lint` | Run `npm run lint` locally and fix it |
-| `typecheck` | Run `npx tsc --noEmit` locally |
+| `typecheck` | Run `npm run typecheck` locally |
 | `build` | Check for env vars missing from GitHub secrets; they must mirror Vercel |
 | `test` | Run `npm run test` locally |
+| `e2e` | Playwright needs Auth0, which is not configured in CI; confirm the failure is `skipInCI()` and not a real break |
 | `secrets-audit` | Remove the leaked secret from the diff and rotate it |
 | `auth0-m2m-verify` | Confirm the M2M app exists and holds `read:users` and `update:users` |
+| `ai-review` | Confirm `ANTHROPIC_API_KEY` is set in GitHub secrets |
+| `ponytail-audit` | Dead code was found; delete it or add a `ponytail:` comment explaining why it stays |
+| `bot-trailer-check` | Remove the AI bot trailer from the commit message and amend |
+| `quality-gate` | Not a real failure. Read the specific job above it, which is what actually failed |
 
 ### Ownership
 
@@ -317,6 +356,7 @@ Add new patterns to `.gitignore` at the repo root.
 
 - [AGENTS.md](AGENTS.md) — the checks a change must pass
 - [docs/SECRET_ROTATION_RUNBOOK.md](docs/SECRET_ROTATION_RUNBOOK.md) — rotating exposed credentials
+- [docs/SECURITY_REMEDIATION_REPORT.md](docs/SECURITY_REMEDIATION_REPORT.md) — P0 and P1 defects that were fixed
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — engineering reference
 - [SECURITY.md](SECURITY.md) — vulnerability reporting
 - [CONTRIBUTING.md](CONTRIBUTING.md) — contributor workflow
