@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowLeft, Users, FolderGit2, Camera } from "lucide-react"
 
 import { createServiceClient } from "@/utils/supabase"
+import { logger } from "@/lib/logger"
 import { buildPageMetadata } from "@/lib/seo"
 import { initiatives, events as contentEvents, blogPosts, getRelatedByTags } from "@/lib/content"
 import RelatedLinks from "@/components/home/related-links"
@@ -76,16 +77,20 @@ export default async function EventDetailPage({ params }: Props) {
   }
 
   // Approved photos for this event (powers the gallery preview on the page).
-  const { data: photoRows } = await supabase
+  const { data: photoRows, error: photoError } = await supabase
     .from("photos")
     .select("url, media_type")
     .eq("event_id", event.id)
     .eq("status", "approved")
     .order("created_at", { ascending: false })
     .limit(8)
-  const photos = (photoRows ?? []).map((r) => ({
-    url: r.url as string,
-    media_type: (r.media_type as string) ?? "image",
+  if (photoError) {
+    logger.error("Error fetching event photos:", photoError)
+  }
+  type PhotoRow = { url: string | null; media_type: string | null }
+  const photos = ((photoRows ?? []) as PhotoRow[]).map((r) => ({
+    url: (r.url ?? "") as string,
+    media_type: r.media_type ?? "image",
   }))
 
   const locale = 'en' as Locale;
