@@ -9,6 +9,7 @@ import Image from "next/image"
 import {
   ArrowRight,
   Calendar,
+  CalendarPlus,
   MapPin,
   Clock,
   Code2,
@@ -135,6 +136,27 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
     })
 
   const durationHours = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60))
+
+  // ── Add-to-calendar links ────────────────────────────────────────
+  const toUtc = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")
+  const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${toUtc(startDate)}/${toUtc(endDate)}&details=${encodeURIComponent(`See event: ${typeof window !== "undefined" ? window.location.href : ""}`)}&location=${encodeURIComponent(event.location ?? "")}`
+  const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(event.title)}&startdt=${encodeURIComponent(startDate.toISOString())}&enddt=${encodeURIComponent(endDate.toISOString())}&body=${encodeURIComponent(event.description ?? "")}&location=${encodeURIComponent(event.location ?? "")}`
+  const icsContent = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Butwal Hacks//Event//EN",
+    "BEGIN:VEVENT",
+    `UID:${event.id}@butwalhacks.com`,
+    `DTSTAMP:${toUtc(new Date())}`,
+    `DTSTART:${toUtc(startDate)}`,
+    `DTEND:${toUtc(endDate)}`,
+    `SUMMARY:${event.title.replace(/,/g, "\\,")}`,
+    `DESCRIPTION:${(event.description ?? "").replace(/,/g, "\\,").replace(/\n/g, "\\n")}`,
+    `LOCATION:${(event.location ?? "").replace(/,/g, "\\,")}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n")
+  const icsDataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`
   const hasBanner = Boolean(event.banner_url && event.banner_url.trim().length > 0)
 
   const sections = useMemo(() => parseSections(event.description ?? ""), [event.description])
@@ -228,6 +250,34 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
             {isUpcoming && !isPast && (
               <EventRegisterButton eventId={event.id} eventSlug={event.slug} />
             )}
+            <div className="inline-flex items-center gap-2">
+              <a
+                href={googleCalendarUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-surface hover:bg-surface-hover text-primary font-bold text-sm transition-all"
+              >
+                <CalendarPlus className="w-4 h-4" />
+                Google Calendar
+              </a>
+              <a
+                href={outlookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-surface hover:bg-surface-hover text-primary font-bold text-sm transition-all"
+              >
+                <CalendarPlus className="w-4 h-4" />
+                Outlook
+              </a>
+              <a
+                href={icsDataUri}
+                download={`${event.slug || event.id}.ics`}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-surface hover:bg-surface-hover text-primary font-bold text-sm transition-all"
+              >
+                <CalendarPlus className="w-4 h-4" />
+                Apple / ICS
+              </a>
+            </div>
             {isPast && (
               <Link
                 href={`/events/${event.slug}/projects`}
