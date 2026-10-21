@@ -2,16 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Send, Github, ExternalLink, Code2, Image as ImageIcon, Calendar, Tags, Sparkles, Loader2 } from 'lucide-react';
+import { Send, Github, ExternalLink, Code2, Image as ImageIcon, Calendar, Tags, Sparkles, Loader2, Trophy, Video } from 'lucide-react';
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { submitProject } from '@/lib/actions/projects';
 import { toast } from 'sonner';
 import posthog from 'posthog-js';
 import { createClient } from '@/utils/supabase';
 import { useAuthUser } from '@/components/auth-user-provider';
+import { PROJECT_CATEGORIES, type ProjectCategory } from '@/lib/supabase-types';
+import { PRIZE_CATEGORIES } from '@/lib/prize-categories';
 
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
 
@@ -21,11 +24,17 @@ const projectSchema = z.object({
   coverImage: z.string().optional(),
   demoUrl: z.string().url("Please enter a valid demo URL").optional().or(z.literal('')),
   githubUrl: z.string().url("Please enter a valid GitHub URL").optional().or(z.literal('')),
-  videoUrl: z.string().optional(),
+  videoUrl: z.string().url("Please enter a valid video URL").optional().or(z.literal('')),
   techStack: z.string().min(1, "Please provide at least one tech stack item"),
   eventId: z.string().optional(),
   teamId: z.string().optional(),
   category: z.string().optional(),
+  prizeCategories: z.array(z.string()).optional(),
+  rulesAccepted: z.boolean().refine((v) => v === true, "You must accept the hackathon rules"),
+  publicCodeAttested: z.boolean().refine(
+    (v) => v === true,
+    "The code for this project has to be publicly available",
+  ),
 });
 
 interface EventOption {
@@ -47,9 +56,13 @@ export default function ProjectSubmissionForm() {
       techStack: '',
       demoUrl: '',
       githubUrl: '',
+      videoUrl: '',
       eventId: '',
       teamId: '',
       category: '',
+      prizeCategories: [] as string[],
+      rulesAccepted: false,
+      publicCodeAttested: false,
     }
   });
 
@@ -57,6 +70,8 @@ export default function ProjectSubmissionForm() {
   const [coverImage, setCoverImage] = useState('');
   const [bhId, setBhId] = useState<string | undefined>();
   const [usedAiPitch, setUsedAiPitch] = useState(false);
+  const [prizeCategories, setPrizeCategories] = useState<string[]>([]);
+  const [aiToolsInput, setAiToolsInput] = useState("");
 
   // Fetch hacker's registered events + bh_id for the event selector and Cloudinary metadata
   useEffect(() => {
@@ -101,6 +116,14 @@ export default function ProjectSubmissionForm() {
     }
   };
 
+  const togglePrizeCategory = (category: string) => {
+    const next = prizeCategories.includes(category)
+      ? prizeCategories.filter((c) => c !== category)
+      : [...prizeCategories, category];
+    setPrizeCategories(next);
+    setValue('prizeCategories', next, { shouldValidate: true });
+  };
+
   const onSubmit = async (data: z.infer<typeof projectSchema>) => {
     try {
       const result = await submitProject({
@@ -108,11 +131,19 @@ export default function ProjectSubmissionForm() {
         description: data.description,
         demoUrl: data.demoUrl || '',
         githubUrl: data.githubUrl || '',
+        videoUrl: data.videoUrl || '',
         coverImage: coverImage || undefined,
         techStack: techTags,
-        category: (data.category || null) as any,
+        category: (data.category || null) as ProjectCategory | null,
         eventId: data.eventId || null,
         teamId: data.teamId || null,
+        rulesAccepted: data.rulesAccepted,
+        publicCodeAttested: data.publicCodeAttested,
+        prizeCategories,
+        aiTools: aiToolsInput
+          .split(",")
+          .map((tool) => tool.trim())
+          .filter(Boolean),
       });
       if (result.success) {
         toast.success("Project submitted successfully!");
@@ -150,7 +181,7 @@ export default function ProjectSubmissionForm() {
             <label className="text-sm font-medium text-muted-foreground ml-1">Project Title</label>
             <input 
               {...register('title')}
-              className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
+              className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-primary-red focus:outline-none outline-none transition-all"
               placeholder="e.g. AgriTech Smart Monitor"
             />
             {errors.title && <p className="text-xs text-primary-red ml-1">{errors.title.message as string}</p>}
@@ -220,7 +251,7 @@ export default function ProjectSubmissionForm() {
             <textarea 
               {...register('description')}
               rows={4}
-              className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
+              className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-primary-red focus:outline-none outline-none transition-all"
               placeholder="What does your project do? What problem does it solve?"
             />
             {errors.description && <p className="text-xs text-primary-red ml-1">{errors.description.message as string}</p>}
@@ -233,19 +264,12 @@ export default function ProjectSubmissionForm() {
             </label>
             <select
               {...register('category')}
-              className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
+              className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-primary-red focus:outline-none outline-none transition-all"
             >
               <option value="">Select a category...</option>
-              <option value="Web App">Web App</option>
-              <option value="Mobile App">Mobile App</option>
-              <option value="AI/ML">AI/ML</option>
-              <option value="Data Science">Data Science</option>
-              <option value="Blockchain">Blockchain</option>
-              <option value="Hardware/IoT">Hardware/IoT</option>
-              <option value="DevOps/Tools">DevOps/Tools</option>
-              <option value="Game Dev">Game Dev</option>
-              <option value="Open Source Tool">Open Source Tool</option>
-              <option value="Other">Other</option>
+              {PROJECT_CATEGORIES.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
             </select>
           </div>
 
@@ -273,7 +297,7 @@ export default function ProjectSubmissionForm() {
               </label>
               <select
                 {...register('eventId')}
-                className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
+                className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-primary-red focus:outline-none outline-none transition-all"
               >
                 <option value="">Select an event...</option>
                 {events.map(e => (
@@ -290,7 +314,7 @@ export default function ProjectSubmissionForm() {
               </label>
               <input 
                 {...register('demoUrl')}
-                className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
+                className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-primary-red focus:outline-none outline-none transition-all"
                 placeholder="https://demo.myapp.com"
               />
               {errors.demoUrl && <p className="text-xs text-primary-red ml-1">{errors.demoUrl.message as string}</p>}
@@ -301,7 +325,7 @@ export default function ProjectSubmissionForm() {
               </label>
               <input 
                 {...register('githubUrl')}
-                className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
+                className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-primary-red focus:outline-none outline-none transition-all"
                 placeholder="https://github.com/user/repo"
               />
               {errors.githubUrl && <p className="text-xs text-primary-red ml-1">{errors.githubUrl.message as string}</p>}
@@ -310,7 +334,7 @@ export default function ProjectSubmissionForm() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground ml-1">Tech Stack (Press Enter to add)</label>
-            <div className="flex flex-wrap gap-2 p-2 bg-surface-hover border border-border rounded-lg focus-within:ring-2 focus-within:ring-[#FE0000] focus-within:outline-none transition-all">
+            <div className="flex flex-wrap gap-2 p-2 bg-surface-hover border border-border rounded-lg focus-within:ring-2 focus-within:ring-primary-red focus-within:outline-none transition-all">
               {techTags.map((tag, i) => (
                 <span key={i} className="px-2 py-1 bg-deep-red/20 text-primary-red text-xs rounded-lg border border-primary-red/30 flex items-center gap-1">
                   {tag}
@@ -336,9 +360,120 @@ export default function ProjectSubmissionForm() {
             {errors.techStack && <p className="text-xs text-primary-red ml-1">{errors.techStack.message as string}</p>}
           </div>
 
-          <button 
+          {/* Demo video */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
+              <Video className="w-3 h-3" /> Demo Video URL (optional)
+            </label>
+            <input
+              {...register('videoUrl')}
+              className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-primary-red focus:outline-none transition-all"
+              placeholder="https://youtube.com/watch?v=..."
+            />
+            {errors.videoUrl && <p className="text-xs text-primary-red ml-1">{errors.videoUrl.message as string}</p>}
+          </div>
+
+          {/* AI disclosure — required by the hackathon rules, and asked for
+              by judges, so it belongs in the submission rather than in an
+              answer given on the stage. */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
+              <Sparkles className="w-3 h-3" /> AI tools used (optional)
+            </label>
+            <input
+              value={aiToolsInput}
+              onChange={(e) => setAiToolsInput(e.target.value)}
+              className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-primary-red focus:outline-none transition-all"
+              placeholder="Claude Code, GitHub Copilot, none"
+            />
+            <p className="text-xs text-muted-foreground">
+              Comma-separated. Say what you used — we ask for it in the rules, and hiding it
+              is how a project ends up looking like something it is not.
+            </p>
+          </div>
+
+          {/* Prize category opt-in */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
+              <Trophy className="w-3 h-3" /> Prize Categories (optional)
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Pick the categories you want to be considered for. You stay eligible for the
+              overall awards either way.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {PRIZE_CATEGORIES.map((category) => {
+                const checked = prizeCategories.includes(category);
+                return (
+                  <label
+                    key={category}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-surface-hover cursor-pointer hover:border-primary-red/40 transition-colors text-sm text-secondary"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => togglePrizeCategory(category)}
+                      className="h-4 w-4 rounded border-border accent-primary-red"
+                    />
+                    {category}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Submission consent */}
+          <div className="space-y-3 border-t border-border pt-6">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                {...register('rulesAccepted')}
+                className="mt-0.5 h-4 w-4 rounded border-border accent-primary-red"
+              />
+              <span className="text-sm text-secondary leading-relaxed">
+                I built this project during the event, I have the right to submit it, and I
+                agree to the{" "}
+                <Link
+                  href="/policies/hackathon-rules"
+                  className="text-primary-red hover:underline"
+                >
+                  Hackathon Rules
+                </Link>
+                .
+              </span>
+            </label>
+            {errors.rulesAccepted && (
+              <p className="text-xs text-primary-red ml-1">{errors.rulesAccepted.message as string}</p>
+            )}
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                {...register('publicCodeAttested')}
+                className="mt-0.5 h-4 w-4 rounded border-border accent-primary-red"
+              />
+              <span className="text-sm text-secondary leading-relaxed">
+                The code for this project is publicly available, or will be when the event
+                ends. If it is not, the project can be disqualified — see the{" "}
+                <Link
+                  href="/policies/cheating-response"
+                  className="text-primary-red hover:underline"
+                >
+                  cheating response guide
+                </Link>
+                .
+              </span>
+            </label>
+            {errors.publicCodeAttested && (
+              <p className="text-xs text-primary-red ml-1">
+                {errors.publicCodeAttested.message as string}
+              </p>
+            )}
+          </div>
+
+          <button
             disabled={isSubmitting}
-            type="submit" 
+            type="submit"
             className={`w-full py-4 bg-bh-red-600 hover:bg-primary-red text-primary rounded-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-red/20 ${isSubmitting ? 'bh-btn-disabled' : ''}`}
           >
             {isSubmitting ? (

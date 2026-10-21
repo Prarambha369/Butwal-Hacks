@@ -2,7 +2,7 @@ import { Calendar } from "lucide-react";
 import { auth0 } from "@/lib/auth0";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
-import { fetchGalleryPage, fetchGalleryTotals } from "@/lib/actions/gallery";
+import { fetchGalleryPage, fetchGalleryTotals, fetchGalleryEvents } from "@/lib/actions/gallery";
 import GalleryGrid from "./gallery-grid";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -17,10 +17,11 @@ export const dynamic = "force-dynamic";
 export type { GalleryPhoto } from "@/lib/actions/gallery";
 
 export default async function GalleryPage() {
-  // Totals and the first page are independent reads; run them together.
-  const [page, totals] = await Promise.all([
+  // Totals, first page, and the event list are independent reads; run them together.
+  const [page, totals, events] = await Promise.all([
     fetchGalleryPage(0),
     fetchGalleryTotals(),
+    fetchGalleryEvents(),
   ]);
   const photos = page.photos;
 
@@ -62,6 +63,7 @@ export default async function GalleryPage() {
             canDownload={!!session?.user}
             totals={totals}
             hasMore={page.hasMore}
+            events={events.map((e) => e.title)}
           />
         )}
       </div>

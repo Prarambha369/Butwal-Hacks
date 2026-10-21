@@ -123,6 +123,7 @@ const translations: Record<string, { en: string; ne: string }> = {
   'footer.privacy': { en: 'Privacy', ne: 'गोपनीयता' },
   'footer.terms': { en: 'Terms', ne: 'सर्तहरू' },
   'footer.cookies': { en: 'Cookies', ne: 'कुकीज' },
+  'footer.policies': { en: 'Policies', ne: 'नीतिहरू' },
   'footer.legal': { en: 'Legal', ne: 'कानुनी' },
   'footer.sitemap': { en: 'Sitemap', ne: 'साइटम्याप' },
 

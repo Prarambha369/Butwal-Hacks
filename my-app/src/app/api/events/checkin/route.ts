@@ -50,9 +50,16 @@ export const POST = withRateLimit(async (request: Request) => {
 
     const nextAttended = attended ?? !reg.attended;
 
+    // `checked_in` / `check_in_at` were added by migration 036 but never
+    // written, so the attendance history was a single boolean with no time
+    // on it. Record both, and clear the timestamp when a check-in is undone.
     const { error } = await supabase
       .from('event_registrations')
-      .update({ attended: nextAttended })
+      .update({
+        attended: nextAttended,
+        checked_in: nextAttended,
+        check_in_at: nextAttended ? new Date().toISOString() : null,
+      })
       .eq('id', registration_id);
 
     if (error) throw error;

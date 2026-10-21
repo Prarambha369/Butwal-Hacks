@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-interface LegalSection {
+import type { PolicyNavLink } from "@/lib/policy-registry";
+
+export interface LegalSection {
   id: string;
   title: string;
   content: ReactNode;
@@ -14,12 +16,14 @@ interface LegalDocumentLayoutProps {
   effectiveDate: string;
   activePolicy: string;
   sections: LegalSection[];
+  /** Override the pill nav. Defaults to the two application-page policies. */
+  policyLinks?: PolicyNavLink[];
 }
 
 export default function LegalDocumentLayout({
-  title, summary, lastUpdated, effectiveDate, activePolicy, sections,
+  title, summary, lastUpdated, effectiveDate, activePolicy, sections, policyLinks,
 }: LegalDocumentLayoutProps) {
-  const policyLinks = [
+  const links: PolicyNavLink[] = policyLinks ?? [
     { id: "privacy", label: "Privacy Policy", href: "/legal/privacy" },
     { id: "terms", label: "Terms of Service", href: "/legal/terms" },
     { id: "cookie-policy", label: "Cookie Policy", href: "/cookie-policy" },
@@ -50,22 +54,17 @@ export default function LegalDocumentLayout({
         <p className="mt-2">
           This summary has not been reviewed by an advocate qualified in the laws of Nepal,
           and the review is tracked as an open item. The{" "}
-          <a
-            href="https://github.com/Prarambha369/Butwal-Hacks/tree/main/policies"
-            className="text-primary-red underline hover:no-underline"
-            rel="noreferrer noopener"
-            target="_blank"
-          >
+          <Link href="/policies" className="text-primary-red underline hover:no-underline">
             full policy set
-          </a>{" "}
-          in the repository is the canonical and more detailed version, and includes the
+          </Link>{" "}
+          on this site is the canonical and more detailed version, and includes the
           terms for members under 18 and our safeguarding commitments, which are not
           summarised on this page.
         </p>
       </aside>
 
       <nav className="flex gap-2 mb-8 pb-4 border-b border-border overflow-x-auto">
-        {policyLinks.map((link) => (
+        {links.map((link) => (
           <Link
             key={link.id}
             href={link.href}

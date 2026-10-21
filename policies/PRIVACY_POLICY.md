@@ -32,6 +32,8 @@ Under the Law on Protection of Personal Data, certain obligations fall on organi
 | Account | Auth0 account identifier, role, sign-in timestamps | Authentication and access control |
 | Digital identity | Your public profile handle (`slug_id`), social links | The ORCID-style identity you asked for |
 | Participation | Event registrations, team memberships, certificates, trust markers | Running programs and issuing credentials |
+| Consent records | The Code of Conduct, Hackathon Rules, and Privacy Policy acceptances you gave at registration, and the version of the documents you accepted | Showing which rules you agreed to, and being able to prove a consent was given |
+| Reports | A report you file: its category, the text you wrote, and the project or event it concerns | Handling a code of conduct or suspected cheating concern |
 | Professional | Projects you publish, skills, endorsements | Your public portfolio |
 | Technical | IP address, device and browser type, request logs | Security, rate limiting, and abuse prevention |
 | Usage | Pages viewed, features used, feature interactions | Aggregate improvement of the Platform |
@@ -96,6 +98,12 @@ Every provider below is one the codebase actually calls. None may process your d
 
 Sponsors never receive member personal data. Bounty winners are paid through Open Collective by the relevant bounty sponsor; we share only what is needed to pay them.
 
+### Who inside Butwal Hacks sees what
+
+- **The organizers of the event you registered for** receive that event's attendee list — your name, email address, school, role, and whether you were checked in. They do not receive your communications opt-in, and they cannot see who filed a report about one of their projects.
+- **Maintainers** can read the reports filed against a project or event, because the decision on a report is theirs. Organizers can see that a report exists about their event; they cannot see the reporter, the person reported, or the report body.
+- **Nobody outside that** needs to. The consent timestamps and the communications opt-in are not readable through the browser's public key at all: the grant on the registration table is column-level and excludes them.
+
 ## Artificial intelligence features
 
 The Platform offers an AI assistant, automated team matching, and certificate text extraction, all powered by Groq.
@@ -114,6 +122,8 @@ You can decline each AI feature independently without affecting the rest of your
 | Account and profile data | Until you delete your account |
 | Public projects, writing, and credentials | Until you remove them, or close your account |
 | Event registrations | Retained for the event plus 12 months, for attendance and dispute records |
+| Consent records | Retained with the registration. Never edited after they are written — a consent that can be changed afterwards is not a record of anything |
+| Reports and their outcomes | 24 months after the matter closes, so a decision can be explained and a sanction applied consistently |
 | Audit records of organizer and maintainer actions | 24 months |
 | In-person event safety records | Destroyed within 30 days of the event |
 | Rate-limit and security logs | 90 days |

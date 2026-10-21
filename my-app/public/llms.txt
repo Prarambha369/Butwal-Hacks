@@ -43,6 +43,7 @@ This file follows the llms.txt convention: a map of this site written for langua
 ## Reference
 
 - [Support](/support): donate or sponsor.
+- [Policies](/policies): the full policy set — code of conduct, hackathon rules, contest terms, safeguarding, and how to report something.
 - [Sitemap](/sitemap.xml): full machine-readable index of every indexable URL.
 
 ## Notes for agents

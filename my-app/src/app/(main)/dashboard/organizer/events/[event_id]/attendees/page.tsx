@@ -3,7 +3,7 @@ import { createServiceClient } from "@/utils/supabase";
 import { notFound, redirect } from "next/navigation";
 import { getAvatarUrl } from "@/lib/utils";
 import { auth0 } from "@/lib/auth0";
-import { Users, ExternalLink, CheckCircle2 } from "lucide-react";
+import { Users, ExternalLink, CheckCircle2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import AttendeeExport, { type Attendee } from "@/components/dashboard/organizer/attendee-export";
 import { CheckInButton } from "./checkin-button";
@@ -21,6 +21,11 @@ type Props = {
 interface RegistrationWithProfile {
   id: string;
   attended: boolean;
+  code_of_conduct_accepted_at: string | null;
+  rules_accepted_at: string | null;
+  privacy_accepted_at: string | null;
+  policy_version: string | null;
+  marketing_opt_in: boolean;
   profiles: {
     id: string;
     full_name: string | null;
@@ -40,6 +45,18 @@ export default async function AttendeesPage({ params }: Props) {
 
   const supabase = createServiceClient();
 
+  // Resolve the caller. The proxy only checks that the caller has the
+  // organizer role -- it cannot know whether this particular event is theirs.
+  // Without this check, any organizer could read any other organizer's
+  // attendee list by editing the URL.
+  const { data: caller } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("auth0_user_id", userId)
+    .single();
+
+  if (!caller) redirect("/sign-in");
+
   const { data: event } = await supabase
     .from("events")
     .select("*")
@@ -48,12 +65,21 @@ export default async function AttendeesPage({ params }: Props) {
 
   if (!event) notFound();
 
+  const isEventOrganizer = event.organizer_id === caller.id;
+  const isMaintainer = caller.role === "maintainer";
+  if (!isEventOrganizer && !isMaintainer) redirect("/dashboard/organizer");
+
   // ponytail: Use Supabase join syntax to get registration data + profile info
   const { data: registrations } = await supabase
     .from("event_registrations")
     .select(`
       id,
       attended,
+      code_of_conduct_accepted_at,
+      rules_accepted_at,
+      privacy_accepted_at,
+      policy_version,
+      marketing_opt_in,
       profiles!inner(id, full_name, bh_id, role, email, avatar_url)
     `)
     .eq("event_id", event_id);
@@ -65,8 +91,15 @@ export default async function AttendeesPage({ params }: Props) {
     role: r.profiles?.role,
     email: r.profiles?.email,
     avatar_url: r.profiles?.avatar_url,
+    attended: r.attended,
+    code_of_conduct_accepted_at: r.code_of_conduct_accepted_at,
+    rules_accepted_at: r.rules_accepted_at,
+    privacy_accepted_at: r.privacy_accepted_at,
+    policy_version: r.policy_version,
+    marketing_opt_in: r.marketing_opt_in,
   }));
   const attendedCount = rows.filter(r => r.attended).length;
+  const consentRecordedCount = rows.filter(r => r.code_of_conduct_accepted_at).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
@@ -83,7 +116,7 @@ export default async function AttendeesPage({ params }: Props) {
       </div>
 
       {/* Stats bar */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bh-card p-4 text-center">
           <p className="text-2xl font-bold text-primary">{rows.length}</p>
           <p className="text-xs text-muted-foreground">Registered</p>
@@ -91,6 +124,10 @@ export default async function AttendeesPage({ params }: Props) {
         <div className="bh-card p-4 text-center">
           <p className="text-2xl font-bold text-status-green">{attendedCount}</p>
           <p className="text-xs text-muted-foreground">Checked In</p>
+        </div>
+        <div className="bh-card p-4 text-center">
+          <p className="text-2xl font-bold text-primary">{consentRecordedCount}</p>
+          <p className="text-xs text-muted-foreground">Consent Recorded</p>
         </div>
         <div className="bh-card p-4 text-center flex items-center justify-center gap-2">
           <AttendeeExport attendees={attendees} eventName={event.title} />
@@ -103,7 +140,7 @@ export default async function AttendeesPage({ params }: Props) {
             <Users className="w-5 h-5 text-muted-foreground" /> Attendees ({rows.length})
           </h3>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -111,6 +148,7 @@ export default async function AttendeesPage({ params }: Props) {
                 <th className="px-6 py-4">Hacker</th>
                 <th className="px-6 py-4">BH-ID</th>
                 <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Consent</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -118,12 +156,16 @@ export default async function AttendeesPage({ params }: Props) {
               {rows.length > 0 ? (
                 rows.map((row) => {
                   const p = row.profiles;
+                  const consented =
+                    !!row.code_of_conduct_accepted_at &&
+                    !!row.rules_accepted_at &&
+                    !!row.privacy_accepted_at;
                   return (
                     <tr key={row.id} className="border-b border-border last:border-b-0 hover:bg-surface-hover transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="relative w-8 h-8 overflow-hidden rounded-full bg-surface-hover border border-border">
-                            <Image 
+                            <Image
                               src={getAvatarUrl(p?.avatar_url, p?.full_name)}
                               alt={p?.full_name || 'Hacker'}
                               fill
@@ -144,13 +186,31 @@ export default async function AttendeesPage({ params }: Props) {
                           <span className="text-xs text-muted-foreground">Not checked in</span>
                         )}
                       </td>
+                      <td className="px-6 py-4">
+                        {consented ? (
+                          <span className="flex items-center gap-1 text-xs font-semibold text-secondary">
+                            <ShieldCheck size={14} className="text-status-green" />
+                            Accepted
+                            {row.policy_version && (
+                              <span className="font-mono text-[10px] text-muted-foreground">
+                                {row.policy_version}
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            Not recorded
+                            <span className="block text-[10px]">registered before consent was tracked</span>
+                          </span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <CheckInButton
                             registrationId={row.id}
                             attended={row.attended}
                           />
-                          <Link 
+                          <Link
                             href={`/p/${p?.bh_id}`}
                             className="p-2 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-all"
                           >
@@ -163,7 +223,7 @@ export default async function AttendeesPage({ params }: Props) {
                 })
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
                     No registrations yet for this event.
                   </td>
                 </tr>

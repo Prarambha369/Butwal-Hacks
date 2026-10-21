@@ -53,12 +53,16 @@ Permitted, with three conditions:
 
 Submitting AI-generated work you cannot explain risks disqualification.
 
+**Disclose what you used.** List the AI tools you relied on in your submission, and answer honestly if a judge, mentor, or organizer asks. A project that lists its tools is a project nobody has to guess about; a project that hides them is the one that gets looked at twice. See [REGISTRATION_NOTICES.md](REGISTRATION_NOTICES.md) for where the disclosure is captured.
+
 ## Submission
 
 - Submit through the platform before the deadline. Late, lost, or incomplete submissions risk disqualification at the organizers' discretion.
 - A submission typically includes a description, a link to the repository, and a demo video.
 - **Include screenshots or a demo.** A project nobody can see is a project that cannot be judged.
 - You must have the right to submit everything you submit, and you must be able to publish it publicly.
+- **A submission records two acceptances:** that you built the project during the event and agree to these rules, and that the code is publicly available or will be when the event ends. A project without them cannot be judged. The acceptances and the version of these documents you accepted are recorded against the submission and are never edited afterwards.
+- **You may opt into prize categories.** A project that opts into none is still eligible for the overall awards. See [REGISTRATION_NOTICES.md](REGISTRATION_NOTICES.md).
 
 ## Judging
 

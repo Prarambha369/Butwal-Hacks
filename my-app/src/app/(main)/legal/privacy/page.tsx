@@ -74,11 +74,18 @@ export default function PrivacyPolicyPage() {
             <li>
               <strong>Messages to us:</strong> contact form submissions and feedback widget reports, which may include your email address and, if you choose to include it, a phone number.
             </li>
+            <li>
+              <strong>Policy consent:</strong> when you register for an event, the fact that you accepted the Code of Conduct, the Hackathon Rules, and the Privacy Policy, the version of those documents you accepted, and whether you opted into occasional emails from us. We keep this so that a registration always says which rules you agreed to.
+            </li>
+            <li>
+              <strong>Reports you file:</strong> the category of the report, what you wrote in it, the project or event it concerns, and whether you asked to file it anonymously. An anonymous report stores no reference to you at all.
+            </li>
           </ul>
 
           <h3 className="text-base font-semibold text-primary">Information generated as you use the site</h3>
           <ul className="list-disc space-y-1 pl-5">
             <li><strong>Participation records:</strong> which events you register for, certificates issued to you, and micro-credentials awarded to your profile.</li>
+            <li><strong>Attendance records:</strong> whether you were checked in at an event, and when.</li>
             <li><strong>Audit records:</strong> security-relevant actions by organizers and maintainers are recorded so we can investigate abuse and disputes.</li>
             <li><strong>Aggregate metrics:</strong> daily counts of members, projects, and events used to show public impact statistics.</li>
           </ul>
@@ -126,6 +133,8 @@ export default function PrivacyPolicyPage() {
             <li>To review role upgrade requests and sponsor applications.</li>
             <li>To respond to messages sent through our contact and feedback channels.</li>
             <li>To keep the platform secure, prevent abuse, and investigate reports of misconduct.</li>
+            <li>To record the consent you gave at registration, and to show which version of the rules you agreed to.</li>
+            <li>To handle a report of misconduct or suspected cheating, and to keep the record of what was decided.</li>
             <li>To understand, in aggregate, how the community uses the site so we can improve it.</li>
             <li>To produce AI summaries and answers grounded in our own published content (section 10).</li>
           </ul>
@@ -313,6 +322,9 @@ export default function PrivacyPolicyPage() {
               <strong>Publicly, by design.</strong> Profile information, projects, and writing you publish are visible to other members and may be indexed by search engines. Do not put anything on your profile that you would not want published.
             </li>
             <li>To moderators or maintainers, where it is necessary to investigate abuse or a report of misconduct.</li>
+            <li>
+              <strong>With the organizers of the event you registered for.</strong> They receive the attendee list — your name, email address, school, role, and check-in status — for that event, in the organizer dashboard and as a CSV export. They do <em>not</em> receive your communications opt-in, and they cannot see who filed a report about one of their projects.
+            </li>
             <li>Where required by applicable law, or in response to a valid legal process. We will tell you unless legally prohibited from doing so.</li>
           </ul>
           <p>
@@ -329,7 +341,9 @@ export default function PrivacyPolicyPage() {
           <p>We take the following measures:</p>
           <ul className="list-disc space-y-1 pl-5">
             <li>Database access is restricted to server-side code; credentials are never exposed to the browser.</li>
-            <li>Every table has row-level security enabled, so access is scoped per record.</li>
+            <li>
+              Row-level security is enabled on every table. Most tables are deny-by-default for browser access and are only reached through server-side code that checks who is asking. The tables that are genuinely public — profiles, events, projects — are readable by anyone holding the publishable key, and their column-level grants exclude consent timestamps, the communications opt-in, and other contact data.
+            </li>
             <li>Privileged roles require both the right role and a verified organisational email address, and fail closed if either is missing.</li>
             <li>All user input is validated against a schema and sanitised before it is stored or rendered.</li>
             <li>Write endpoints are rate-limited to reduce the impact of automated abuse.</li>
@@ -353,6 +367,8 @@ export default function PrivacyPolicyPage() {
           <ul className="list-disc space-y-1 pl-5">
             <li><strong>Account and community data</strong> is retained for as long as your account exists and you remain a member.</li>
             <li><strong>Event and participation records</strong> are retained so we can verify attendance and issue certificates after an event ends.</li>
+            <li><strong>Consent records</strong> are retained for as long as the registration exists. They are not edited after they are written: a consent that can be changed afterwards is not a record of anything.</li>
+            <li><strong>Reports and their outcomes</strong> are retained for a limited period after the matter is closed, so that a decision can be explained and a sanction applied consistently.</li>
             <li><strong>Audit records</strong> are retained for a limited period after an investigation is closed, to prevent disputes being reopened.</li>
             <li><strong>Rate-limit records</strong> are transient and expire automatically.</li>
             <li><strong>Analytics and error data</strong> are retained by our providers for limited periods under their own retention policies.</li>
@@ -401,9 +417,14 @@ export default function PrivacyPolicyPage() {
       id: "transfers",
       title: "17. International Transfers",
       content: (
-        <p>
-          Our providers are distributed globally, so information may be processed outside your country of residence, including in the United States and the European Economic Area. Where data is transferred across borders, providers handle it under their own transfer safeguards. We have not separately adopted standard contractual clauses, because we do not knowingly collect children&rsquo;s data and the transfers we rely on are covered by each provider&rsquo;s published transfer mechanisms.
-        </p>
+        <>
+          <p>
+            Our providers are distributed globally, so information may be processed outside your country of residence, including in the United States and the European Economic Area. Where data is transferred across borders, providers handle it under their own transfer safeguards. We have not separately adopted standard contractual clauses, because we do not knowingly collect children&rsquo;s data and the transfers we rely on are covered by each provider&rsquo;s published transfer mechanisms.
+          </p>
+          <p>
+            <strong>In practice, the personal data collected here leaves Nepal.</strong> Our organizers are in Nepal, but our database, authentication, hosting, email, storage, analytics, and error-monitoring providers are not. We would rather say that plainly than let you infer otherwise from the list in section 6.
+          </p>
+        </>
       ),
     },
     {
@@ -437,8 +458,8 @@ export default function PrivacyPolicyPage() {
       <LegalDocumentLayout
         title="Privacy Policy"
         summary="How we handle personal data — the concrete providers we use, the data we store, and the choices you have."
-        lastUpdated="October 14, 2026"
-        effectiveDate="October 14, 2026"
+        lastUpdated="October 21, 2026"
+        effectiveDate="October 21, 2026"
         activePolicy="privacy"
         sections={sections}
       />

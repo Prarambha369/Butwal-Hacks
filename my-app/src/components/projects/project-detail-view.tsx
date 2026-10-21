@@ -1,12 +1,13 @@
 /* eslint-disable @next/next/no-img-element */
 import Image from 'next/image';
-import { Github, ExternalLink, Heart, Calendar, Users, Code2, ArrowLeft } from 'lucide-react';
+import { Github, ExternalLink, Heart, Calendar, Users, Code2, ArrowLeft, Trophy, Video } from 'lucide-react';
 import Link from 'next/link';
 
 
 import { cloudinaryUrl } from '@/lib/utils';
 import { formatDualDate } from '@/lib/nepali-date';
 import type { Project } from '@/lib/supabase-types';
+import ReportProjectButton from '@/components/projects/report-project-button';
 
 interface ExtendedProject extends Project {
   project_likes?: { count: number }[];
@@ -84,6 +85,25 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
                 </span>
               ))}
             </div>
+
+            {project.prize_categories && project.prize_categories.length > 0 && (
+              <div className="pt-2">
+                <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">
+                  Prize categories
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {project.prize_categories.map((category) => (
+                    <span
+                      key={category}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-deep-red/20 border border-primary-red/30 text-primary-red text-xs font-semibold"
+                    >
+                      <Trophy className="w-3 h-3" />
+                      {category}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
 
           <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -119,6 +139,24 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
                 </div>
               </div>
             </a>
+            {project.video_url && (
+              <a
+                href={project.video_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-6 bh-card hover:border-primary-red/50 transition-all group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-lg bg-surface-hover text-primary group-hover:bg-deep-red transition-colors">
+                    <Video className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Demo Video</p>
+                    <p className="text-base font-bold text-primary">Watch the Demo</p>
+                  </div>
+                </div>
+              </a>
+            )}
           </section>
         </div>
 
@@ -172,6 +210,9 @@ export default function ProjectDetailView({ project }: ProjectDetailProps) {
                 <Heart className="w-3 h-3 fill-red-500" />
                 {likesCount}
               </div>
+            </div>
+            <div className="pt-4 border-t border-border">
+              <ReportProjectButton projectId={project.id} eventId={project.event_id} />
             </div>
           </div>
         </div>
