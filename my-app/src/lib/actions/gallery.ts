@@ -79,6 +79,32 @@ export async function fetchGalleryTotals(): Promise<GalleryTotals> {
   };
 }
 
+export type GalleryEvent = { title: string; slug: string | null };
+
+export async function fetchGalleryEvents(): Promise<GalleryEvent[]> {
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("photos")
+    .select("events!inner(id, title, slug)")
+    .eq("status", "approved")
+    .not("event_id", "is", null);
+  if (error) {
+    logger.error("Error fetching gallery events:", error);
+    return [];
+  }
+  const seen = new Set<string>();
+  const out: GalleryEvent[] = [];
+  for (const row of (data ?? []) as Array<{ events: { title?: string; slug?: string } | null }>) {
+    const ev = Array.isArray(row.events) ? row.events[0] : row.events;
+    const title = ev?.title;
+    if (!title || seen.has(title)) continue;
+    seen.add(title);
+    out.push({ title, slug: ev?.slug ?? null });
+  }
+  out.sort((a, b) => a.title.localeCompare(b.title));
+  return out;
+}
+
 export async function fetchGalleryPage(
   offset: number,
 ): Promise<{ photos: GalleryPhoto[]; hasMore: boolean }> {
