@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .from("events")
     .select("title, description, location")
     .eq("slug", slug)
+    .eq("is_published", true)
     .single()
 
   if (!event) {
@@ -55,6 +56,7 @@ export default async function EventDetailPage({ params }: Props) {
     .from("events")
     .select("*")
     .eq("slug", slug)
+    .eq("is_published", true)
     .single()
 
   if (!event) {
@@ -72,6 +74,19 @@ export default async function EventDetailPage({ params }: Props) {
     banner_url: event.banner_url,
     is_published: event.is_published,
   }
+
+  // Approved photos for this event (powers the gallery preview on the page).
+  const { data: photoRows } = await supabase
+    .from("photos")
+    .select("url, media_type")
+    .eq("event_id", event.id)
+    .eq("status", "approved")
+    .order("created_at", { ascending: false })
+    .limit(8)
+  const photos = (photoRows ?? []).map((r) => ({
+    url: r.url as string,
+    media_type: (r.media_type as string) ?? "image",
+  }))
 
   const locale = 'en' as Locale;
 
@@ -105,7 +120,7 @@ export default async function EventDetailPage({ params }: Props) {
         </Link>
       </div>
 
-      <EventDetailContent event={eventData} />
+      <EventDetailContent event={eventData} photos={photos} />
 
       {/* Explore this event: its teams, projects, and photos. */}
       <div className="mx-auto max-w-6xl px-4">
