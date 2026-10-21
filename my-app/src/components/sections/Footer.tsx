@@ -144,6 +144,9 @@ export default function Footer() {
             <Link href="/cookie-policy" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.cookies', locale)}
             </Link>
+            <Link href="/policies" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
+              {t('footer.policies', locale)}
+            </Link>
             <Link href="/sitemap" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.sitemap', locale)}
             </Link>
