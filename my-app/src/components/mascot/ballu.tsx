@@ -36,17 +36,17 @@ export type BalluEmotion =
 
 /** Source map — one entry per file in `/public/mascot/`. */
 export const BALLU_POSES: Record<BalluEmotion, string> = {
-  "calm-neutral": "/mascot/calm-neutral.png",
-  "happy-excited": "/mascot/happy-excited.png",
-  "thinking-puzzled": "/mascot/thinking-puzzled.png",
-  "confused-frustrated": "/mascot/confused-frustrated.png",
-  "celebrating-proud": "/mascot/celebrating-proud.png",
-  welcome: "/mascot/welcome.png",
-  explain: "/mascot/explain.png",
-  "think-loading": "/mascot/think-loading.png",
-  "error-calm": "/mascot/error-calm.png",
-  success: "/mascot/success.png",
-  flag: "/mascot/flag.png",
+  "calm-neutral": "/mascot/calm-neutral-v2.png",
+  "happy-excited": "/mascot/happy-excited-v2.png",
+  "thinking-puzzled": "/mascot/thinking-puzzled-v2.png",
+  "confused-frustrated": "/mascot/confused-frustrated-v2.png",
+  "celebrating-proud": "/mascot/celebrating-proud-v2.png",
+  welcome: "/mascot/welcome-v2.png",
+  explain: "/mascot/explain-v2.png",
+  "think-loading": "/mascot/think-loading-v2.png",
+  "error-calm": "/mascot/error-calm-v2.png",
+  success: "/mascot/success-v2.png",
+  flag: "/mascot/flag-v2.png",
 };
 
 export interface BalluProps {
