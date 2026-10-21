@@ -281,7 +281,7 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
         <section className="px-6 py-16 border-b border-border">
           <div className="mx-auto max-w-5xl space-y-6">
             {otherSections.map((s, i) => (
-              <div key={i} className="bh-card p-6 md:p-8">
+              <div key={s.header || i} className="bh-card p-6 md:p-8">
                 <h2 className="text-xl md:text-2xl font-bold mb-3 flex items-center gap-2">
                   {s.header}
                 </h2>
