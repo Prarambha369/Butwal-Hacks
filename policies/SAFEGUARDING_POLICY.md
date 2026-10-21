@@ -82,7 +82,7 @@ A minor may leave an event at any time and must never be prevented from doing so
 
 - **A minor may not be restrained, or asked to wait, to resolve a disagreement with an adult.** If they want to leave, they leave. An organizer may help them contact a guardian.
 - The exit protocol must be agreed in advance by organizers and communicated to guardians in advance.
-- Where a participant under 16 leaves without their guardian, we attempt to reach the guardian and supervise the participant in a staffed, safe space until they are collected.
+- Where a participant under 16 leaves without their guardian, we contact the guardian and offer the participant a staffed, safe place to wait while we reach them. **They may leave at any time, and staff must not delay or prevent their departure** — the offer is there for their comfort, not to keep them there.
 - Where a participant of any age leaves distressed, the safeguarding lead is informed immediately.
 
 ## Concerns, disclosures, and escalation
@@ -121,10 +121,16 @@ Every person who receives a safeguarding report is bound to confidentiality. A r
 
 ## Screening
 
-Anyone working directly and unsupervised with minors must be:
+Anyone working directly with minors must be:
 
 - aged 18 or over
 - subject to a proportionate criminal record and safeguarding background check, where such a check is available and lawful in Nepal
+
+**What counts as supervised.** Working with a minor while another responsible adult is present, and able to see and hear the interaction, counts as supervised. Working with a minor alone does not, whatever the setting.
+
+**Which roles this covers.** Every role that works directly with minors: mentors, volunteers, judges running one-to-one sessions, and sponsor staff with participant contact. It does not cover roles with no direct participant contact, such as sponsor marketing staff.
+
+**Where we cannot run the check ourselves.** We do not operate background checking. Where a check is available to us, we ask for confirmation that it has been done before the person works with minors; where it is not, we use reference checks and supervision instead, and we tell the event team which of those applies.
 
 **Prohibited:** any person convicted of a child-related offence, or subject to a current safeguarding ban, from working with minors at Butwal Hacks, whether paid or unpaid.
 

@@ -4,13 +4,15 @@
 
 ## What this is
 
-The procedure for exercising your rights under the **Law on Protection of Personal Data 2025** and the **Privacy Act 2075 (2018)**, with the deadlines the law sets us.
+The procedure for exercising your rights under the **Privacy Act 2075 (2018)** and under the rights we grant in these policies, with the deadlines we commit to.
+
+**These deadlines are our own targets, not statutory deadlines.** Nepal has no comprehensive personal data protection statute in force that we are aware of. Where applicable law requires a different period, that period applies and we will tell you which one we are working to.
 
 ## Quick actions
 
 **Email privacy@butwalhacks.com**, stating your username and what you want. One email is enough. You do not need to use a form or write to a particular person.
 
-| Your request | What we must do | Deadline |
+| Your request | What we must do | Our target |
 |--------------|-----------------|----------|
 | Acknowledge your request | Confirm receipt to you | **2 working days** |
 | Tell you what we hold, and for what purpose | Provide a copy, with categories, purposes, and recipients | **2 working days** |
@@ -21,7 +23,7 @@ The procedure for exercising your rights under the **Law on Protection of Person
 | Restrict processing while a dispute is investigated | Pause the disputed processing | **15 days** |
 | Nominate someone to act for you | Confirm the arrangement with them | **15 days** |
 
-Two working days is the period for responding with information or acknowledgement. Fifteen days is the period for actually implementing a change. Where the law allows an extension for complexity, we will tell you why and give you a revised date.
+Two working days is our target for responding with information or acknowledgement. Fifteen days is our target for actually implementing a change. Where a change is genuinely complex we will tell you why and give you a revised date.
 
 ## How to make a request
 
@@ -97,7 +99,7 @@ Appoint another person to make requests on your behalf, for example a parent, gu
 
 ### Complain
 
-You can complain to us, and you can complain to the authority designated under the Law on Protection of Personal Data, or to the competent police or judicial authorities where you believe an offence has been committed. Complaining to us does not stop you complaining to an authority, and doing so is not held against you.
+You can complain to us, and you can complain to any data protection authority Nepal may designate, or to the competent police or judicial authorities where you believe an offence has been committed. Complaining to us does not stop you complaining to an authority, and doing so is not held against you.
 
 We aim to acknowledge a complaint within 30 days and resolve it within 60 days. If we need longer we will tell you why.
 

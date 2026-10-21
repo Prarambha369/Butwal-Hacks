@@ -10,7 +10,7 @@ This document exists because most of this community is students. We would rather
 
 ## The legal position
 
-Under the **Privacy Act 2075 (2018)**, the consent of a guardian or curator is required before a minor's personal data is processed. Under the **Law on Protection of Personal Data 2025**, consent must be verifiable and recorded, may not be obtained through default or misleading settings, and must be as easy to withdraw as it was to give.
+Under the **Privacy Act 2075 (2018)**, the consent of a guardian or curator is required before a minor's personal data is processed. We also hold ourselves to the rules that matter most here: consent must be verifiable and recorded, may not be obtained through default or misleading settings, and must be as easy to withdraw as it was to give. (Nepal has no comprehensive personal data protection statute in force that we are aware of, so these are our own commitments — see [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md).)
 
 We take two things from this. First, a guardian's agreement is not a formality. Second, we must be able to show we obtained it and can undo it.
 
@@ -78,7 +78,7 @@ For **any in-person event**, online consent is not sufficient. A guardian must c
 - any restriction on the participant leaving the venue
 - consent to photography and media release, as a distinct, optional permission
 
-Emergency contact and medical information are held for the duration of the event and destroyed within 30 days. See [SAFEGUARDING_POLICY.md](SAFEGUARDING_POLICY.md).
+Emergency contact and medical information are held for the duration of the event and destroyed within 30 days of it ending. We do not keep them afterwards. See [SAFEGUARDING_POLICY.md](SAFEGUARDING_POLICY.md).
 
 ## Photographs and media
 
@@ -116,9 +116,10 @@ If a participant turns 18 during an event, participation continues on these term
 A guardian may withdraw consent and request deletion at any time:
 
 1. Email **privacy@butwalhacks.com** from the address associated with the account, or **legal@butwalhacks.com** from any address, stating the minor's username.
-2. We will acknowledge within two working days.
-3. We will cease processing and delete the data within fifteen days, except records we must keep for legal, security, or dispute purposes, which we will restrict rather than use.
-4. We will confirm completion in writing.
+2. **We verify the request before we act on it.** An email from any address, plus a username, is not enough to delete a minor's account: we first confirm the requester's identity and their authority over the minor, using the checks in [DATA_SUBJECT_RIGHTS.md](DATA_SUBJECT_RIGHTS.md). We will tell you which checks we need, and we will not delete on request alone. Where a guardian's consent is on file, we will act on it without a further check.
+3. We will acknowledge within two working days.
+4. We will cease processing and delete the data within fifteen days, except records we must keep for legal, security, or dispute purposes, which we will restrict rather than use.
+5. We will confirm completion in writing.
 
 If a guardian believes a minor's data is being processed without consent, contact **legal@butwalhacks.com**. We will treat that as urgent.
 

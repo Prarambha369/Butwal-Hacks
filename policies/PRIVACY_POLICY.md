@@ -4,7 +4,7 @@
 
 ## What this is
 
-The policy that governs every piece of personal data Butwal Hacks holds. Written to satisfy the **Law on Protection of Personal Data 2025** (91/2025/QH15) and **Decree 356/2025/ND-CP**, both in force since 1 January 2026, together with the **Privacy Act 2075 (2018)**.
+The policy that governs every piece of personal data Butwal Hacks holds. Nepal has no comprehensive personal data protection statute in force that we are aware of; the **Privacy Act 2075 (2018)** is the general right-to-privacy statute. Every data-protection control described here is therefore **our own commitment rather than a statutory obligation**, and mapping them onto Nepali law is an open item for a Nepal-qualified advocate — see [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md).
 
 Where a statement here describes a control we have not yet built, this policy says so. We would rather admit a gap than claim a safeguard we do not maintain.
 
@@ -19,7 +19,7 @@ Butwal Hacks is the **data controller** for the personal data described here. We
 | Legal contact | legal@butwalhacks.com |
 | Supervisory authority | To be confirmed; see [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md) |
 
-Under the Law on Protection of Personal Data, certain obligations fall on organisations of our size and on organisations processing sensitive data. Where the law requires us to designate internal personnel with data protection responsibilities, we will do so and publish the contact point here.
+We hold ourselves to obligations that many regimes place on organisations of our size and on organisations processing sensitive data: a named person responsible for data protection, a processing impact assessment, and written transfer arrangements with our processors. We will publish the contact point here once that person is appointed.
 
 ## Categories of data
 
@@ -38,21 +38,21 @@ Under the Law on Protection of Personal Data, certain obligations fall on organi
 | Technical | IP address, device and browser type, request logs | Security, rate limiting, and abuse prevention |
 | Usage | Pages viewed, features used, feature interactions | Aggregate improvement of the Platform |
 
-**Educational information** — your school, college, or university, where you choose to display it, and the school to which a credential has been dedicated. Education is treated with care under the Privacy Act 2075 and, where it forms part of sensitive data, under the Data Protection Law.
+**Educational information** — your school, college, or university, where you choose to display it, and the school to which a credential has been dedicated. Education is treated with care under the Privacy Act 2075 and, where it forms part of sensitive data, under the sensitive-data rules below.
 
 ### Sensitive personal data we hold
 
-The Data Protection Law defines sensitive personal data to include data revealing health or biometric information, political or ideological views, religious belief, and certain other categories. We hold only the following, and only where you or a guardian gives specific consent:
+We treat the following as sensitive personal data: data revealing health or biometric information, political or ideological views, and religious belief. We hold only the following, and only where you or a guardian gives specific consent:
 
 - **Photographs and video** you upload, including your face
 - **Certificate images** you submit for optical character recognition
-- **Emergency contact and support needs** you or a guardian provide for an in-person event, held only for the duration of the event
+- **Emergency contact and support needs** you or a guardian provide for an in-person event, held for the duration of the event and destroyed within 30 days of it ending
 
 **We do not collect caste, ethnicity, origin, religion, political affiliation, health records, sexual orientation, biometric templates, or government identity numbers.** If you choose to include such details in a public profile or a certificate image, that is a publishing decision you have made, and you can remove it at any time.
 
 ### Special category: members under 18
 
-Most members of this community are students and some are minors. Under the Privacy Act 2075 and the Data Protection Law, a guardian's consent is required to process the personal data of a person under 18. See [PARTICIPANT_AND_GUARDIAN_TERMS.md](PARTICIPANT_AND_GUARDIAN_TERMS.md).
+Most members of this community are students and some are minors. Under the Privacy Act 2075, and under our own rules, a guardian's consent is required before we process the personal data of a person under 18. See [PARTICIPANT_AND_GUARDIAN_TERMS.md](PARTICIPANT_AND_GUARDIAN_TERMS.md).
 
 **Current state, stated plainly:** the Platform today records no age, no date of birth, and no guardian relationship. We therefore cannot automatically know which accounts belong to minors and cannot enforce a guardian consent gate at signup. This is the most significant gap in our compliance and is tracked as priority 1 in [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md). Until it is closed, we require guardians to review this policy and consent on a minor's behalf before that minor creates an account.
 
@@ -72,7 +72,7 @@ You may withdraw consent at any time. Withdrawal does not affect processing carr
 
 ## Where your data goes
 
-Most data stays in our Supabase database. Some data is processed **outside Nepal**, by providers with servers elsewhere in the world. Under the Data Protection Law and Decree 356, transferring personal data outside Nepal engages additional requirements, including a written transfer arrangement with the recipient and additional safeguards for sensitive data.
+Most data stays in our Supabase database. Some data is processed **outside Nepal**, by providers with servers elsewhere in the world. Transferring personal data outside Nepal raises questions we have not finished answering: a written transfer arrangement with the recipient, and additional safeguards for sensitive data. We have not concluded those arrangements, and we say so rather than implying they are in place.
 
 ### Subprocessors
 
@@ -92,7 +92,7 @@ Every provider below is one the codebase actually calls. None may process your d
 | **Google** | Only if you connect it: calendar tokens and the events we synchronise | United States |
 | **Open Collective** | Sponsorship and payout records relating to bounties | United States |
 
-**Cross-border position, stated plainly.** We have not yet concluded the cross-border transfer impact assessment and written transfer agreements that the Data Protection Law contemplates for transfers of this scale. This is tracked as priority 2 in [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md). Our direction of travel is to minimise what leaves Nepal, and to keep education data and data about minors inside a jurisdiction we control wherever technically possible.
+**Cross-border position, stated plainly.** We have not yet concluded the cross-border transfer impact assessment and the written transfer agreements we committed to. This is tracked as priority 2 in [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md). Our direction of travel is to minimise what leaves Nepal, and to keep education data and data about minors inside a jurisdiction we control wherever technically possible.
 
 ### We do not share your data for marketing
 
@@ -145,7 +145,7 @@ No system is perfectly secure. If we discover a breach that affects your data, w
 
 ## Your rights
 
-Under the Law on Protection of Personal Data you have the right to:
+You have the following rights over your data. We grant them whether or not Nepali law currently compels them to:
 
 - be informed about how your data is processed
 - **view** your personal data
@@ -174,7 +174,7 @@ We do not condition a child's participation on giving more data than the activit
 
 ## Your Nepal statutory rights and their limits
 
-You may complain to the authority designated under the Law on Protection of Personal Data, and to the competent police or judicial authorities, in respect of an offence. Under the Privacy Act 2075, you have the right to keep your personal data confidential and to have it used only for the purpose for which it was collected. Under the Criminal Procedure Code 2017, certain privacy offences are state-party offences.
+You may complain to us, to the competent police or judicial authorities in respect of an offence, and to any data protection authority Nepal may designate. Under the Privacy Act 2075, you have the right to keep your personal data confidential and to have it used only for the purpose for which it was collected. Under the Criminal Procedure Code 2017, certain privacy offences are state-party offences.
 
 We set a period of **30 days** to acknowledge a complaint and **60 days** to resolve it, and we will tell you if we need longer.
 
@@ -184,7 +184,7 @@ If you are in the European Economic Area, the United Kingdom, or California, we 
 
 ## International transfers
 
-Where personal data leaves Nepal, we rely on the transfer arrangements required by the Data Protection Law and Decree 356. Those arrangements are still being finalised; see [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md). If you are in the EEA or UK and your data leaves that region, we will tell you the applicable transfer safeguard.
+Where personal data leaves Nepal, the transfer arrangements we committed to are still being finalised; see [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md). If you are in the EEA or UK and your data leaves that region, we will tell you the applicable transfer safeguard.
 
 ## Changes to this policy
 

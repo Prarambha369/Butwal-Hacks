@@ -10,7 +10,7 @@ The complete list of cookies and similar technologies used by Butwal Hacks. Shor
 
 Cookies are small files a website saves on your device to remember things between page loads. Similar technologies include local storage, session storage, and pixels. Together they let a site keep you signed in, remember a preference, or measure how it is used.
 
-Under the Law on Protection of Personal Data 2025 and the Privacy Act 2075, information collected by cookie or similar means is still personal data and must be used only for the purpose it was collected for.
+Under the Privacy Act 2075 (2018), and under our own data-handling rules, information collected by cookie or similar means is still personal data and is used only for the purpose it was collected for.
 
 ## What we use
 
@@ -33,11 +33,13 @@ Pseudonymous measurement of how the site is used, so we can improve it. Identifi
 | Provider | Purpose | When set |
 |----------|---------|----------|
 | **PostHog** | Page views, feature interactions, aggregate usage | Only if you accept analytics |
-| **Vercel Analytics** | Traffic measurement | Only if you accept analytics |
+| **Vercel Analytics** | Traffic measurement | Always — not gated by the analytics choice |
 
 ### Error monitoring
 
 **Sentry** records errors and sampled session replays so we can fix faults. **All text in a session replay is masked** before it is recorded.
+
+Session replays are **not** gated by the analytics choice above. They are set on the basis of our error-monitoring interest, not the analytics one. You can opt out of replays entirely by emailing **privacy@butwalhacks.com**; we will exclude your account and stop recording them for you.
 
 ### Functional, set only by your action
 
@@ -47,7 +49,7 @@ Pseudonymous measurement of how the site is used, so we can improve it. Identifi
 
 ## Managing your choices
 
-**Decline analytics.** Non-essential analytics are loaded only if you accept them. Declining does not affect signing in, registering for events, or any core feature. We keep no personal identifier for users who decline.
+**Decline analytics.** Our own product analytics (PostHog) are loaded only if you accept them. Declining does not affect signing in, registering for events, or any core feature. Declining stops the analytics identifiers we set ourselves; it does not remove the identifiers that signing in, rate limiting, traffic measurement, or error reporting need, which are set on the strictly necessary and legitimate-interest bases described above.
 
 **Browser controls.** Every browser lets you view and delete cookies in its settings, and most let you block them entirely. Blocking strictly necessary cookies will prevent sign-in.
 

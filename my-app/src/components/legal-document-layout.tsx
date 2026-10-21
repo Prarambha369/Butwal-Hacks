@@ -26,7 +26,7 @@ export default function LegalDocumentLayout({
   const links: PolicyNavLink[] = policyLinks ?? [
     { id: "privacy", label: "Privacy Policy", href: "/legal/privacy" },
     { id: "terms", label: "Terms of Service", href: "/legal/terms" },
-    { id: "cookie-policy", label: "Cookie Policy", href: "/cookie-policy" },
+    { id: "cookie", label: "Cookie Policy", href: "/cookie-policy" },
   ];
 
   return (
@@ -41,10 +41,11 @@ export default function LegalDocumentLayout({
       </div>
 
       {/*
-        The full policy set lives in `policies/` and is governed by the Law on
-        Protection of Personal Data 2025 (91/2025/QH15) and Decree 356/2025/ND-CP.
-        This page is the public-facing summary. Where the two differ, the `policies/`
-        version governs, and it is the fuller document.
+        The full policy set lives in `policies/`. This page is the public-facing
+        summary. Where the two differ, the `policies/` version governs, and it is
+        the fuller document. The data-protection controls described there are our
+        own commitments, not statutory obligations -- see the compliance gaps for
+        what still has to be confirmed by a Nepal-qualified advocate.
       */}
       <aside
         className="mb-8 rounded-lg border border-primary-red/30 bg-primary-red/5 p-4 text-sm text-secondary"

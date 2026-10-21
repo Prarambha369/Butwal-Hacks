@@ -78,7 +78,7 @@ Registering does not solve everything, but it removes real blockers.
 
 | Blocker | Effect of registering |
 |---------|----------------------|
-| **Cannot sign a subprocessor DPA** — the Data Protection Law requires a written transfer arrangement, and a non-distributing company cannot contract as a body | **Solved.** We can execute transfer agreements with Auth0, Supabase, Cloudinary, and the rest |
+| **Cannot sign a subprocessor DPA** — we have committed to a written transfer arrangement with every processor, and a non-distributing company cannot contract as a body | **Solved.** We can execute transfer agreements with Auth0, Supabase, Cloudinary, and the rest |
 | **Directors have no legal duty** — today no individual is legally responsible for data protection | **Solved.** The duty attaches to the company and its officers, which makes the data protection role real rather than honorary |
 | **Cannot employ** | Solved when we choose to hire |
 | **Cannot receive foreign grants formally**, or open a corporate account, or issue a proper invoice | **Solved** |
@@ -166,7 +166,7 @@ Also confirm with Open Collective and with counsel:
 
 ## A note on which Companies Act applies
 
-Nepal's Companies Act 2081 (2024) is the current statute. **However, almost all published guidance on non-distributing company registration still cites Companies Act 2063 (2006)**, including OCR-facing material and law-firm commentary we found.
+Nepal's Companies Act **2063 (2006)** is the statute, **as amended in 2081**. Almost all published guidance on non-distributing company registration still cites the 2063 Act, including OCR-facing material and law-firm commentary we found, and the amendment's effect on the numbering is not consistently reported.
 
 The **section number is cited inconsistently and we have not resolved it**:
 

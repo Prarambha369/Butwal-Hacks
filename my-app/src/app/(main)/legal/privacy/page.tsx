@@ -224,7 +224,7 @@ export default function PrivacyPolicyPage() {
             We do not set advertising cookies, and we do not share cookie identifiers with advertising networks.
           </p>
           <p className="rounded-md border border-border bg-surface/50 p-3 text-sm">
-            <strong>No consent banner.</strong> We do not currently gate non-essential analytics behind a cookie-consent prompt. Our analytics is aggregate and pseudonymous, and you can opt out at any time using the method in section 13.
+            <strong>A consent banner, and partial gating.</strong> We ask before setting our own product analytics. Traffic measurement and error monitoring are set on a strictly necessary or legitimate-interest basis and are not gated by that choice, and you can opt out of session replays by emailing us.
           </p>
         </>
       ),

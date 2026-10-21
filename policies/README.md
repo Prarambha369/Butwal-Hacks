@@ -18,7 +18,7 @@ The set has two layers, and it is worth saying which is which:
 **These documents are drafts written by engineers, not lawyers.** They are not legal advice and have not been reviewed by an advocate qualified in the laws of Nepal. Before publishing any of them as binding, the core team must have them reviewed and settled by a Nepali-qualified lawyer, and the following must be confirmed:
 
 - Butwal Hacks' own legal status. **Registration as a Nepali nonprofit business is in progress but the structure is not yet chosen** between a non-distributing company and an association/NGO. See [LEGAL_ENTITY.md](LEGAL_ENTITY.md) for the comparison and the recommendation. Until it is settled, every policy names "Butwal Hacks" without stating what it legally is, which is a defect.
-- Whether the Law on Protection of Personal Data requires this organisation to register with, or notify, any data protection authority, and which authority has been designated.
+- Whether Nepali law requires this organisation to register with, or notify, any data protection authority, and which authority has been designated. We are not aware of a comprehensive personal data protection statute in force in Nepal, so every data-protection control in this set is currently our own commitment rather than a legal obligation, and a Nepal-qualified advocate has to confirm the mapping.
 - Whether the Data Center and Cloud Service Directives 2081 impose any localisation obligation on this platform as a private operator.
 - The organisation's registered address and PAN/VAT details for the notices section of each document.
 
@@ -60,7 +60,7 @@ The Code of Conduct sits at the repository root, because it applies to every spa
 
 ## Quick actions
 
-**A participant wants their data deleted.** Follow [DATA_SUBJECT_RIGHTS.md](DATA_SUBJECT_RIGHTS.md). Statutory deadlines are two working days to respond and fifteen days to implement.
+**A participant wants their data deleted.** Follow [DATA_SUBJECT_RIGHTS.md](DATA_SUBJECT_RIGHTS.md). Our targets are two working days to respond and fifteen days to implement — commitments, not statutory deadlines.
 
 **Someone reports a safeguarding concern.** Follow [SAFEGUARDING_POLICY.md](SAFEGUARDING_POLICY.md). Do not investigate it yourself.
 
@@ -91,18 +91,17 @@ The operational layer is enforced, not described. Where the documents say someth
 
 ## Governing law
 
-These documents are governed by the laws of Nepal and subject to the exclusive jurisdiction of the courts of Nepal, with disputes escalated to arbitration under the Arbitration Act 2037 (1981) where the parties agree or where the Act so provides. Mandatory consumer protections under the Consumer Protection Act 2075 (2018) are not waived, and nothing here restricts a data subject's rights under the Law on Protection of Personal Data 2025.
+These documents are governed by the laws of Nepal and subject to the exclusive jurisdiction of the courts of Nepal, with disputes escalated to arbitration under the Arbitration Act 2037 (1981) where the parties agree or where the Act so provides. Mandatory consumer protections under the Consumer Protection Act 2075 (2018) are not waived, and nothing here restricts a data subject's rights under the Privacy Act 2075 (2018). We do not reduce the rights we grant in these documents even where no law requires us to.
 
 Primary instruments relied on:
 
-- **Law on Protection of Personal Data 2025** (91/2025/QH15), in force 1 January 2026
-- **Decree 356/2025/ND-CP**, implementing regulations, effective 1 January 2026
-- **Law on Data 2025** (90/2025/QH15)
-- **Privacy Act 2075 (2018)**
+- **Privacy Act 2075 (2018)** — the general right-to-privacy statute
+- **Criminal Procedure Code 2017** — for the privacy offences it creates
+- **Electronic Transactions Act 2063 (2007)**
 - **Electronic Transactions Act 2063 (2007)**
 - **Data Center and Cloud Service (Operation and Management) Directives 2081 (2025)**
 - **Consumer Protection Act 2075 (2018)**, **Contract Act 2056 (1999)**, **Arbitration Act 2037 (1981)**, **Copyright Act 2059 (2002)**
-- **Companies Act 2081 (2024)** — cited as the current statute; note that published guidance on nonprofit company registration still cites the previous Act. See [LEGAL_ENTITY.md](LEGAL_ENTITY.md)
+- **Companies Act 2063 (2006)**, as amended in 2081 — the section numbering for non-distributing companies is cited inconsistently across published guidance, so it must be confirmed with counsel or the Office of Company Registrar before filing. See [LEGAL_ENTITY.md](LEGAL_ENTITY.md)
 - **Social Welfare Act 2049 (1992)** and the **Social Welfare Council**, applicable because we receive foreign grants
 - **Associations Registration Act 2034 (1977)**, if the association route is chosen
 

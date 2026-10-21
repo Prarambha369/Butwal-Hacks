@@ -1,6 +1,8 @@
 # Terms of Service
 
-> The agreement that governs your use of the Butwal Hacks platform. Effective 16 October 2026.
+> The agreement that governs your use of the Butwal Hacks platform.
+>
+> **Engineering draft — pending legal review.** Not yet in force. It takes effect when the core team has had it reviewed and published; the date will be added at that point.
 
 ## What this is
 

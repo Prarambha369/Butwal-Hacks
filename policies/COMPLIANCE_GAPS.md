@@ -1,10 +1,10 @@
 # Compliance Gaps
 
-> What Butwal Hacks must fix to comply with the Law on Protection of Personal Data 2025, ranked by risk. Read this before adding any feature that collects data.
+> What Butwal Hacks must fix to meet the data-protection commitments in these policies, ranked by risk. Read this before adding any feature that collects data.
 
 ## What this is
 
-An honest assessment of where our policies and our product diverge. Every item was checked against this repository and against Nepali law as it stands in October 2026.
+An honest assessment of where our policies and our product diverge. Every item was checked against this repository. The legal questions each item depends on are still open — see the note at the top of **priority 1**.
 
 The policies in this directory describe what we **intend** to do. This document describes what we **actually** do. Where they differ, this document wins, because a policy that promises a control we do not maintain is a misrepresentation.
 
@@ -25,7 +25,9 @@ Nepali law requires a guardian's consent to process a minor's personal data. We 
 
 **Risk: critical. Status: not started.**
 
-The [Privacy Act 2075 (2018)](https://www.lawcommission.gov.np) requires guardian consent to process a minor's personal data. The **Law on Protection of Personal Data 2025** requires consent to be verifiable and recorded, prohibits default or misleading consent, and requires withdrawal to be as easy as giving. **Decree 356/2025/ND-CP Article 6** governs the methods by which consent may be expressed.
+The [Privacy Act 2075 (2018)](https://www.lawcommission.gov.np) requires guardian consent to process a minor's personal data.
+
+**Everything else in this section is our own proposed control set, not a statement of Nepali law.** Nepal has no comprehensive personal data protection statute in force that we are aware of. An earlier draft of this document cited a foreign statute — one that governs another country and does not apply to a Nepal-facing service — and that citation has been removed rather than swapped for another one we cannot verify. Only a Nepal-qualified advocate can tell us what applies here. Until they do, treat every control below as a commitment we have chosen to make, and treat the mapping onto Nepali law as an open item.
 
 We cannot currently demonstrate any of that.
 
@@ -41,7 +43,7 @@ We cannot currently demonstrate any of that.
 1. Add an explicit age attestation at signup. Self-declared is acceptable and standard; **do not** build ID verification for a hackathon platform.
 2. Where the member is under 18, collect a verifiable guardian consent record: the guardian's name, relationship, email, timestamp, the IP and user agent, the document version, and a hash of what they agreed to.
 3. Implement it as an **optional, granular control per purpose**, not a single global consent. A guardian should be able to permit an account but refuse media release, AI features, or a public profile.
-4. **Never pre-tick a box.** Decree 356 prohibits default or misleading consent, and default settings must respect data protection principles.
+4. **Never pre-tick a box.** We do not use default or misleading consent, and default settings respect data-protection principles.
 5. Provide a withdrawal path that stops processing and deletes the data within fifteen days.
 6. Make it easy to produce, on demand, the record showing *who* consented, *to what*, *when*, and *how it was verified* — because that is what the law requires us to be able to show.
 
@@ -55,7 +57,7 @@ Guardians must complete the consent in [PARTICIPANT_AND_GUARDIAN_TERMS.md](PARTI
 
 **Risk: high. Status: not started.**
 
-Every processor we use is foreign. Under the Data Protection Law and Decree 356, transferring personal data outside Nepal engages requirements we have not met, including a written transfer arrangement with the recipient and additional safeguards — including encryption and anonymisation — for sensitive data.
+Every processor we use is foreign, and the written transfer arrangements and additional safeguards we committed to — including encryption and anonymisation for sensitive data — are not in place.
 
 Separately, the **Data Center and Cloud Service (Operation and Management) Directives 2081 (2025)** push data localisation and require data centre and cloud providers to be listed with the Department of Information Technology. Government recipients must procure only from listed providers. Whether these Directives impose a localisation duty on a private community platform **must be confirmed with counsel**.
 
@@ -93,7 +95,7 @@ The draft Information Technology and Cyber Security Bill 2024 proposes destructi
 
 **Risk: medium. Status: not started.**
 
-The Law on Protection of Personal Data contemplates internal departments and personnel with data protection responsibilities, appointed **in writing**, and a data protection officer or department. Separately, **no data protection authority had been designated** as of our research; that must be confirmed, because complaint routing depends on it.
+We have committed to internal personnel with data protection responsibilities, appointed **in writing**, and a data protection officer or department. Separately, **no data protection authority had been designated** as of our research; that must be confirmed, because complaint routing depends on it.
 
 Every policy in this directory currently says *"To be confirmed."* That is not acceptable in a published policy.
 
@@ -110,7 +112,7 @@ Every policy in this directory currently says *"To be confirmed."* That is not a
 
 **Risk: medium. Status: not started.**
 
-The Data Protection Law requires a data processing impact assessment for large-scale processing. **Small enterprises may defer this for up to five years from 1 January 2026 — but the exemption does not apply where processing is large-scale.**
+We have committed to a data processing impact assessment for large-scale processing. The five-year deferral for small enterprises that a foreign statute provided does not apply here and is not relied on.
 
 We are a small organisation. Whether we are *also* processing at large scale — event rosters, an AI assistant, an analytics pipeline, a public directory of members — is a judgement call that should be made deliberately and written down.
 
@@ -124,7 +126,7 @@ A short DPIA covering: the processing, its necessity and proportionality, the ri
 
 **Risk: medium. Status: partial.**
 
-Decree 356 requires that an organisation processing sensitive personal data formulate **regulations on limited authorisation of access, procedures for processing, and security measures.**
+We have committed to formulating, for sensitive personal data, **regulations on limited authorisation of access, procedures for processing, and security measures.**
 
 We do hold some sensitive data: photographs, certificate images, and in-person event emergency and medical details.
 
@@ -146,14 +148,27 @@ Full comparison, obligations, and the incorporation checklist: **[LEGAL_ENTITY.m
 
 ### What this unblocks
 
-Registering a legal person removes the blocker on **priority 2**. Until we can contract, we cannot execute the subprocessor transfer agreements the Data Protection Law requires. It also gives the data protection duty a real attachment point, which helps **priority 4**.
+Registering a legal person removes the blocker on **priority 2**. Until we can contract, we cannot execute the subprocessor transfer agreements we have committed to. It also gives the data protection duty a real attachment point, which helps **priority 4**.
 
 ### What still must happen
 
 1. Choose the structure, on counsel's advice.
-2. Confirm which Act and section govern post-Companies Act 2081 — most published guidance still cites the previous Act, and we have not verified that the non-distributing-company provision survives in the same form.
+2. Confirm which Act and section govern — the Companies Act 2063 (2006) as amended in 2081 — since most published guidance still cites the 2063 Act, and we have not verified that the non-distributing-company provision survives in the same form.
 3. File, and complete the post-incorporation steps in [LEGAL_ENTITY.md](LEGAL_ENTITY.md#incorporation-checklist).
 4. Insert the legal name, registered address, and PAN into every policy in this directory.
+
+---
+
+## Priority 8 — Dispute resolution, not tested
+
+**Risk: low. Status: unresolved.**
+
+[TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md) commits to arbitration seated in Kathmandu under the **Arbitration Act 2037 (1981)**, with a carve-out preserving consumer rights under the **Consumer Protection Act 2075 (2018)**.
+
+Two points need confirming with counsel before we rely on them:
+
+1. Whether arbitration can be compelled against an individual consumer in Nepal, or whether the carve-out is essential. We have assumed it is essential and written the carve-out. That assumption should be tested.
+2. The limitation of liability to NPR 20,000. Confirm this is enforceable against a consumer under Nepali consumer law.
 
 ---
 
@@ -204,25 +219,12 @@ It is not a data protection gap. It is listed because a young organisation that 
 
 ---
 
-## Priority 8 — Dispute resolution, not tested
-
-**Risk: low. Status: unresolved.**
-
-[TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md) commits to arbitration seated in Kathmandu under the **Arbitration Act 2037 (1981)**, with a carve-out preserving consumer rights under the **Consumer Protection Act 2075 (2018)**.
-
-Two points need confirming with counsel before we rely on them:
-
-1. Whether arbitration can be compelled against an individual consumer in Nepal, or whether the carve-out is essential. We have assumed it is essential and written the carve-out. That assumption should be tested.
-2. The limitation of liability to NPR 20,000. Confirm this is enforceable against a consumer under Nepali consumer law.
-
----
-
 ## What is already in good shape
 
 Not everything needs work. These are already correct:
 
 - **Purpose limitation is real.** The codebase does not do advertising or cross-context tracking.
-- **Data minimisation is largely genuine.** We do not collect caste, ethnicity, religion, health, biometric, or government identity numbers.
+- **Data minimisation is largely genuine.** We do not collect caste, ethnicity, religion, biometric, or government identity numbers. The exception is in-person events, where a participant or guardian gives us an emergency contact and any medical or support needs — a limited, human, event-scoped amount of information that we destroy within 30 days.
 - **Subprocessor transparency.** Every provider named in our policies is one the code actually calls. This is verified.
 - **Access control is enforced in code.** Role predicates in `src/lib/dashboard-access.ts`, Zod validation before every database access, and rate limiting on every mutation. The authorisation-before-service-role invariant is documented and reviewed.
 - **A secrets audit runs in CI and pre-commit**, and there is no secret in the git history.

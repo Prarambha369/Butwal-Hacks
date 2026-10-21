@@ -55,7 +55,7 @@ We verify credentials issued through the platform. A verified credential that tu
 - You must have the right to upload everything you submit.
 - Do not upload content that violates these terms or the Code of Conduct.
 - **Do not upload identity documents.** Certificates should not contain passport numbers, national identity numbers, or bank details.
-- Media is stored through Cloudinary. **Do not upload sexual content involving minors, or any content depicting the abuse of a child.** This results in immediate permanent removal and, where the law requires, referral to authorities.
+- Media you upload to the platform is stored through Cloudinary. **Do not upload sexual content involving minors, or any content depicting the abuse of a child.** This results in immediate permanent removal and, where the law requires, referral to authorities.
 
 ## AI features
 
@@ -78,7 +78,7 @@ Depending on severity and how often it happens, we may:
 
 **We aim to give notice and an opportunity to respond before suspending or terminating an account**, except where we need to act immediately to prevent harm, preserve evidence, protect a minor, or comply with law. A safeguarding breach is handled under the [Safeguarding Policy](SAFEGUARDING_POLICY.md) and may result in immediate removal.
 
-**False reports are themselves a breach.** Do not report another member in bad faith.
+**Reporting in bad faith is itself a breach.** A report that is knowingly false, or made to harass or intimidate someone, is a breach of these terms. A report made in good faith that we cannot substantiate is not: we do not penalise someone for raising a concern that turned out not to be borne out.
 
 ## Reporting a problem
 
