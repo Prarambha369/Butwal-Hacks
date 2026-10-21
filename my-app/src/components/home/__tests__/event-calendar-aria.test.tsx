@@ -139,24 +139,53 @@ describe("EventCalendar ARIA grid structure", () => {
     }
   });
 
-  it("gives every cell row exactly seven slots", () => {
+  it("gives every cell row seven slots, except a trailing partial week", () => {
     for (const { rows } of infos()) {
       expect(rows.length, "guarded against vacuous iteration").toBeGreaterThan(0);
-      for (const row of rows) {
-        expect(row.querySelectorAll('[role="gridcell"], [role="columnheader"]'), "row width")
-          .toHaveLength(7);
-      }
+      rows.forEach((row, index) => {
+        const slots = row.querySelectorAll('[role="gridcell"], [role="columnheader"]');
+        if (index === rows.length - 1) {
+          // A month that does not fill a whole week ends in a short row, and
+          // the ARIA grid pattern allows that. What it does not allow is a
+          // short row in the middle of the grid, or a cell outside a row.
+          //
+          // This assertion used to demand seven slots in every row, which
+          // only held in the months the test was written in. It fails for
+          // any month whose grid does not end on a Saturday, in either
+          // calendar, which makes it a calendar coincidence rather than a
+          // structural guard.
+          expect(slots.length, "a trailing row may be short").toBeLessThanOrEqual(7);
+          expect(slots.length, "a trailing row is not empty").toBeGreaterThan(0);
+        } else {
+          expect(slots.length, "row width").toBe(7);
+        }
+      });
     }
   });
 
   it("hides only the leading pad cells, and never a day cell", () => {
-    for (const { cells, pads } of infos()) {
-      expect(pads.length, "pads exist").toBeGreaterThan(0);
+    for (const { rows, cells, pads } of infos()) {
+      // A month that starts on Sunday has no leading pads at all, so the
+      // number of pads is a property of the month rather than a property of
+      // the component. What must hold every month is that a pad never
+      // follows a day cell, and that a pad never carries a day number.
       expect(pads.length, "pads only ever lead a row").toBeLessThan(7);
       for (const pad of pads) {
         expect(pad.children.length, "pads contain no day number").toBe(0);
       }
-      expect(cells.length).toBeGreaterThan(pads.length);
+      expect(cells.length, "a grid has day cells, not only pads").toBeGreaterThan(pads.length);
+
+      for (const row of rows) {
+        let sawDayCell = false;
+        for (const cell of Array.from(row.querySelectorAll('[role="gridcell"]'))) {
+          const isPad = cell.getAttribute("aria-hidden") === "true";
+          if (isPad) {
+            expect(sawDayCell, "a pad never follows a day cell").toBe(false);
+          } else {
+            sawDayCell = true;
+          }
+        }
+      }
     }
   });
 
