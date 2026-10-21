@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, ArrowRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Ballu } from "@/components/mascot/ballu";
 
 /** Fired to open the palette from outside it. */
 export const OPEN_PALETTE_EVENT = "butwal:open-dashboard-palette";
@@ -183,7 +184,7 @@ export function DashboardCommandPalette({
           <div className="max-h-[50vh] overflow-y-auto overscroll-contain p-2">
             {filtered.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-10 text-center">
-                <Search className="h-7 w-7 text-muted-foreground/30" />
+                <Ballu emotion="thinking-puzzled" size={48} />
                 <p className="text-sm text-muted-foreground">
                   No pages match &ldquo;{query}&rdquo;
                 </p>

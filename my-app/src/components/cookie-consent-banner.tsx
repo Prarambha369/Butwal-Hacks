@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { X, Cookie, Shield } from "lucide-react";
+import { X, Shield } from "lucide-react";
+import { Ballu } from "@/components/mascot/ballu";
 
 const CONSENT_KEY = "bh:cookie-consent";
 const CONSENT_GRANTED = "granted";
@@ -84,12 +85,12 @@ export default function CookieConsentBanner() {
 
           <div className="flex items-start gap-3 md:gap-4">
             <div className="hidden sm:flex w-10 h-10 rounded-xl bg-primary-red/10 items-center justify-center shrink-0">
-              <Cookie className="w-5 h-5 text-primary-red" aria-hidden="true" />
+              <Ballu emotion="happy-excited" size={32} />
             </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 md:mb-1.5">
-                <Cookie className="w-4 h-4 text-primary-red sm:hidden" aria-hidden="true" />
+                <Ballu emotion="happy-excited" size={32} className="sm:hidden" />
                 <p className="text-sm font-bold text-primary">This site uses cookies</p>
               </div>
 

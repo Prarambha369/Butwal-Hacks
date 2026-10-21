@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ArrowRight, Calendar, MapPin } from "lucide-react"
 import { formatDualDate } from "@/lib/nepali-date"
+import { Ballu } from "@/components/mascot/ballu"
 import CountdownTimer from "./countdown-timer"
 
 export interface EventItem {
@@ -89,7 +90,9 @@ export default function EventsFilter({ events }: { events: EventItem[] }) {
         </div>
       ) : (
         <div className="bh-card p-16 text-center space-y-4">
-          <Calendar size={48} className="mx-auto opacity-20" />
+          <div className="flex justify-center">
+            <Ballu emotion="calm-neutral" size={64} />
+          </div>
           <p className="text-xl font-bold text-primary">No {filter} events</p>
           <p className="text-muted-foreground max-w-md mx-auto">
             {filter === "upcoming"
