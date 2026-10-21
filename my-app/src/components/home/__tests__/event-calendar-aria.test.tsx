@@ -139,24 +139,40 @@ describe("EventCalendar ARIA grid structure", () => {
     }
   });
 
-  it("gives every cell row exactly seven slots", () => {
+  it("gives every cell row seven slots, except a trailing partial week", () => {
     for (const { rows } of infos()) {
       expect(rows.length, "guarded against vacuous iteration").toBeGreaterThan(0);
-      for (const row of rows) {
-        expect(row.querySelectorAll('[role="gridcell"], [role="columnheader"]'), "row width")
-          .toHaveLength(7);
-      }
+      rows.forEach((row, index) => {
+        const slots = row.querySelectorAll('[role="gridcell"], [role="columnheader"]');
+        if (index === rows.length - 1) {
+          expect(slots.length, "a trailing row may be short").toBeLessThanOrEqual(7);
+          expect(slots.length, "a trailing row is not empty").toBeGreaterThan(0);
+        } else {
+          expect(slots.length, "row width").toBe(7);
+        }
+      });
     }
   });
 
   it("hides only the leading pad cells, and never a day cell", () => {
-    for (const { cells, pads } of infos()) {
-      expect(pads.length, "pads exist").toBeGreaterThan(0);
+    for (const { rows, cells, pads } of infos()) {
       expect(pads.length, "pads only ever lead a row").toBeLessThan(7);
       for (const pad of pads) {
         expect(pad.children.length, "pads contain no day number").toBe(0);
       }
-      expect(cells.length).toBeGreaterThan(pads.length);
+      expect(cells.length, "a grid has day cells, not only pads").toBeGreaterThan(pads.length);
+
+      for (const row of rows) {
+        let sawDayCell = false;
+        for (const cell of Array.from(row.querySelectorAll('[role="gridcell"]'))) {
+          const isPad = cell.getAttribute("aria-hidden") === "true";
+          if (isPad) {
+            expect(sawDayCell, "a pad never follows a day cell").toBe(false);
+          } else {
+            sawDayCell = true;
+          }
+        }
+      }
     }
   });
 
