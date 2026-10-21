@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Bot, X, Send, Loader2, Sparkles, CheckCircle2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Ballu, type BalluEmotion } from "@/components/mascot/ballu";
+import { parsePolicyMarkdown } from "@/lib/policy-markdown";
+import PolicyMarkdown, { renderInline } from "@/components/policy-markdown";
 import { useAuthUser } from "@/components/auth-user-provider";
 import { submitFeedback } from "@/lib/actions/feedback";
 import { cn } from "@/lib/utils";
@@ -18,6 +20,38 @@ interface Message {
   content: string;
   /** Optional mascot pose, so error bubbles can show the matching face. */
   mood?: BalluEmotion;
+}
+
+/**
+ * Render an assistant reply.
+ *
+ * MrBallu answers in markdown (the system prompt asks for `[text](url)`
+ * links, and the model freely uses **bold**, *italic*, headings and lists),
+ * so the bubble must render it rather than dump the raw source. We reuse the
+ * repo's own markdown parser + React renderer (see `@/lib/policy-markdown`
+ * and `@/components/policy-markdown`): it emits real elements and never raw
+ * HTML, so untrusted model output cannot inject markup.
+ *
+ * Two tweaks for the chat context:
+ *  - The parser treats `#`/`##` as a document title and drops them; in a
+ *    bubble every line is content, so promote them to `###` so they render.
+ *  - Blocks are styled to the compact bubble scale via a wrapper class.
+ */
+function AssistantReply({ content }: { content: string }) {
+  const promoted = content.replace(/^(#{1,2})\s/g, "### ");
+  const { blocks } = parsePolicyMarkdown(promoted);
+
+  // A single plain paragraph renders bare so tight one-liners don't get
+  // wrapped in an extra <p> (which would double up on the bubble padding).
+  if (blocks.length === 1 && blocks[0].kind === "paragraph") {
+    return <>{renderInline(blocks[0].text)}</>;
+  }
+
+  return (
+    <div className="[&>p]:my-1.5 [&>p:first-child]:mt-0 [&>p:last-child]:mb-0 space-y-2 text-sm leading-relaxed">
+      <PolicyMarkdown blocks={blocks} />
+    </div>
+  );
 }
 
 // Context-aware suggestion sets for onboarding surfaces.
@@ -53,7 +87,7 @@ const CHAT_SUGGESTIONS: Record<string, string[]> = {
 
 const CHAT_WELCOME: Message = {
   role: "assistant",
-  content: "Hey there! I'm BH Bot. Ask me about Butwal Hacks, our chapters, events, programs, or how to get involved.",
+  content: "Hey there! I'm MrBallu. Ask me about Butwal Hacks, our chapters, events, programs, or how to get involved.",
 };
 
 // ─── Hooks ───────────────────────────────────────────────────────────
@@ -308,7 +342,11 @@ export default function AssistantPanel({
                         ? "bg-surface-hover border border-border text-primary rounded-bl-md"
                         : "bg-bh-red-500 text-white rounded-br-md"
                     )}>
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                      {msg.role === "assistant" ? (
+                        <AssistantReply content={msg.content} />
+                      ) : (
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -369,7 +407,7 @@ export default function AssistantPanel({
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={handleChatKeyDown}
-                    placeholder="Ask BH Bot..."
+                    placeholder="Ask MrBallu..."
                     aria-label="Chat message"
                     className="flex-1 bg-transparent text-sm text-primary placeholder:text-muted-foreground/40 outline-none"
                     disabled={chatLoading}

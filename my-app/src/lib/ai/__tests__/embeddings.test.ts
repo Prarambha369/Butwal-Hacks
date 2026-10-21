@@ -1,39 +1,56 @@
-import { describe, it, expect } from "vitest";
-import {
-  isRagEnabled,
-  generateEmbedding,
-  searchContent,
-  seedEmbeddings,
-  RAG_DISABLED_MESSAGE,
-} from "@/lib/ai/embeddings";
+import { describe, it, expect, afterEach, vi } from "vitest";
+import { isRagEnabled, searchContent, RAG_DISABLED_MESSAGE } from "@/lib/ai/embeddings";
 
-// Groq-only mode: no embedding provider exists, so every entry point
-// fails fast with a clear message instead of calling a dead third party.
+// Gemini-backed mode: retrieval is on iff a Gemini key is present.
+// Without one, every entry point fails fast with a clear message rather than
+// silently returning an empty array — an empty array would read as "the
+// knowledge base has nothing", which is a different (and misleading) signal.
 
-describe("isRagEnabled", () => {
-  it("is false until an embedding provider is plugged in", () => {
-    expect(isRagEnabled()).toBe(false);
-  });
+const KEY_VARS = ["GEMINI_API_KEY", "GOOGLE_API_KEY"] as const;
+const saved: Record<string, string | undefined> = {};
+
+afterEach(() => {
+  for (const name of KEY_VARS) {
+    if (name in saved) {
+      if (saved[name] === undefined) delete process.env[name];
+      else process.env[name] = saved[name];
+      delete saved[name];
+    }
+  }
+  vi.restoreAllMocks();
 });
 
-describe("generateEmbedding", () => {
-  it("throws the disabled message without any network call", async () => {
-    await expect(generateEmbedding("Butwal Hacks community")).rejects.toThrow(
-      RAG_DISABLED_MESSAGE
-    );
+function clearKeys() {
+  for (const name of KEY_VARS) {
+    saved[name] = process.env[name];
+    delete process.env[name];
+  }
+}
+
+describe("isRagEnabled", () => {
+  it("is false with no embedding key configured", () => {
+    clearKeys();
+    expect(isRagEnabled()).toBe(false);
+  });
+
+  it("is true when GEMINI_API_KEY is set", () => {
+    clearKeys();
+    process.env.GEMINI_API_KEY = "test-key";
+    expect(isRagEnabled()).toBe(true);
+  });
+
+  it("is true when GOOGLE_API_KEY is set", () => {
+    clearKeys();
+    process.env.GOOGLE_API_KEY = "test-key";
+    expect(isRagEnabled()).toBe(true);
   });
 });
 
 describe("searchContent", () => {
   it("throws the disabled message instead of returning empty results", async () => {
+    clearKeys();
     await expect(searchContent("tell me about Butwal Hacks")).rejects.toThrow(
       RAG_DISABLED_MESSAGE
     );
-  });
-});
-
-describe("seedEmbeddings", () => {
-  it("refuses to seed with a clear message", async () => {
-    await expect(seedEmbeddings([])).rejects.toThrow(RAG_DISABLED_MESSAGE);
   });
 });
