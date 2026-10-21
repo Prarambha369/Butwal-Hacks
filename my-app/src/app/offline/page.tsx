@@ -1,6 +1,6 @@
 "use client"
 
-import { WifiOff } from "lucide-react"
+import { Ballu } from "@/components/mascot/ballu"
 import { useLanguage } from "@/components/language-provider"
 import { t } from "@/lib/i18n"
 
@@ -13,7 +13,7 @@ export default function OfflinePage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-6 text-center">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-red/10">
-        <WifiOff className="h-8 w-8 text-primary-red" aria-hidden="true" />
+        <Ballu emotion="error-calm" size={64} />
       </div>
       <h1 className="mt-8 text-3xl font-extrabold text-primary md:text-4xl">
         {t('offline.title', locale)}

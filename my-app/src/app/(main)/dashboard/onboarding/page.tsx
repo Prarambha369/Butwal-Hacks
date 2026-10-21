@@ -4,6 +4,7 @@ import { createServiceClient } from "@/utils/supabase";
 import { RoleSelector } from "@/components/dashboard/role-selector";
 import AssistantPanel from "@/components/assistant-panel";
 import { Sparkles, User, CalendarDays, Building2 } from "lucide-react";
+import { Ballu } from "@/components/mascot/ballu";
 import { buildPageMetadata } from "@/lib/seo"
 
 
@@ -91,7 +92,7 @@ function WelcomeSection() {
   return (
     <div className="text-center space-y-6 mb-10">
       <div className="inline-flex p-3 rounded-xl bg-primary-red/10">
-        <Sparkles className="w-6 h-6 text-primary-red" />
+        <Ballu emotion="welcome" size={64} />
       </div>
 
       <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Ballu } from '@/components/mascot/ballu';
 import { useLanguage } from '@/components/language-provider';
 import { t } from '@/lib/i18n';
 
@@ -115,9 +116,12 @@ export default function Footer() {
 
         {/* Brand Mark */}
         <div className="text-center py-12 border-t border-border">
-          <span className="font-black text-4xl md:text-6xl tracking-tighter text-primary">
-            Butwal<span className="text-primary-red">Hacks</span>
-          </span>
+          <div className="flex items-center justify-center gap-4">
+            <Ballu emotion="flag" size={72} />
+            <span className="font-black text-4xl md:text-6xl tracking-tighter text-primary">
+              Butwal<span className="text-primary-red">Hacks</span>
+            </span>
+          </div>
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.3em] text-primary-red mt-3">
             {t('footer.ignite_unite_lead', locale)}
           </p>
@@ -143,6 +147,9 @@ export default function Footer() {
             </Link>
             <Link href="/cookie-policy" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.cookies', locale)}
+            </Link>
+            <Link href="/policies" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
+              {t('footer.policies', locale)}
             </Link>
             <Link href="/sitemap" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.sitemap', locale)}

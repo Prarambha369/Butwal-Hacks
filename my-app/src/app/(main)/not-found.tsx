@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { ArrowLeft, Home } from "lucide-react"
+import { Ballu } from "@/components/mascot/ballu"
 
 export const metadata: Metadata = {
   title: "Page Not Found — Butwal Hacks",
@@ -17,6 +18,7 @@ export default function MainNotFound() {
         </p>
 
         <div className="space-y-2 -mt-6">
+          <Ballu emotion="thinking-puzzled" size={120} />
           <h1 className="text-2xl font-bold text-primary">
             Page not found
           </h1>

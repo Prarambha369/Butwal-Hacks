@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/components/language-provider";
+import { Ballu } from "@/components/mascot/ballu";
 import { t } from "@/lib/i18n";
 
 const STEPS = [
@@ -32,6 +33,9 @@ export default function StepsStrip() {
     <section className="border-b border-border bg-background py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4">
         <div className="text-center max-w-xl mx-auto mb-10 space-y-3">
+          <div aria-hidden="true" className="flex justify-center">
+            <Ballu emotion="explain" size={72} />
+          </div>
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.3em] text-primary-red">
             {t("home.steps.badge", locale)}
           </p>
