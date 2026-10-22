@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   BUILTIN_TOKENS,
@@ -120,7 +120,7 @@ export default function CertificateTemplateEditor({
   // matching the drag token, so duplicates moved together.
   const drag = useRef<{ id: string; startX: number; startY: number; origX: number; origY: number } | null>(null);
 
-  const fields = useMemo(() => tpl.fields, [tpl.fields]);
+  const fields = tpl.fields;
   const field = fields[selected];
 
   const patch = useCallback((next: Partial<TemplateField>) => {
@@ -620,5 +620,5 @@ export default function CertificateTemplateEditor({
 }
 
 function clamp01(v: number): number {
-  return Math.min(1, Math.max(0, Number(v.toFixed(4))));
+  return Math.min(1, Math.max(0, Math.round(v * 10000) / 10000));
 }

@@ -35,7 +35,7 @@ function ensureCloudinary() {
  *
  * `error` is safe to show a user: every string here is written for them.
  */
-export type SocialAvatarResult =
+type SocialAvatarResult =
   | { ok: true; url: string }
   | { ok: false; error: string };
 

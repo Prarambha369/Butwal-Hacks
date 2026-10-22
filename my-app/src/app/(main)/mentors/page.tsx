@@ -2,6 +2,7 @@ import { createServiceClient } from "@/utils/supabase"
 import { GraduationCap } from "lucide-react"
 import type { Metadata } from "next"
 import { MentorDirectoryClient } from "./mentor-directory-client"
+import type { MentorProfile } from "@/lib/mentor-types";
 
 export const dynamic = "force-dynamic";
 
@@ -9,16 +10,6 @@ export const metadata: Metadata = {
   title: "Mentor Directory — Butwal Hacks",
   description: "Talk 1:1 with developers and engineers volunteering as mentors. Ask anything, no stupid questions.",
 };
-
-interface MentorProfile {
-  bh_id: string
-  full_name: string
-  avatar_url: string | null
-  bio: string | null
-  skills: string[] | null
-  cal_com_url: string | null
-  socials: Record<string, string> | null
-}
 
 export default async function MentorsPage() {
   const supabase = createServiceClient();

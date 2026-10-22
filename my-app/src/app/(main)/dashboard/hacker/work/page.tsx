@@ -5,19 +5,12 @@ import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase"
 import WorkDashboardClient from "./work-dashboard-client"
 import { buildPageMetadata } from "@/lib/seo"
+import type { TeamMemberRaw } from "@/lib/team-types";
 
 
 export const metadata = { ...buildPageMetadata({title: "My Work", description: "Your submitted work", path: "/dashboard/hacker/work", keywords: []}), robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic"
-
-interface TeamMemberRaw {
-  user_id: string
-  profile: {
-    id: string
-    full_name: string | null
-  } | null
-}
 
 export default async function WorkPage() {
   const session = await auth0.getSession()

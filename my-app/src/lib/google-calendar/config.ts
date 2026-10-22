@@ -16,14 +16,14 @@ import type { Scope } from "./types";
  * sufficient and far easier to justify to Google, which matters because this
  * is a *sensitive* scope and triggers OAuth verification.
  */
-export const GOOGLE_SCOPES: Scope[] = [
+const GOOGLE_SCOPES: Scope[] = [
   "openid",
   "email",
   "profile",
   "https://www.googleapis.com/auth/calendar.events.owned",
 ];
 
-export const GOOGLE_SCOPE_STRING = GOOGLE_SCOPES.join(" ");
+const GOOGLE_SCOPE_STRING = GOOGLE_SCOPES.join(" ");
 
 /**
  * Timezone BH events are authored in. Stored instants are absolute, so this
@@ -32,7 +32,7 @@ export const GOOGLE_SCOPE_STRING = GOOGLE_SCOPES.join(" ");
  */
 export const BH_TIMEZONE = "Asia/Kathmandu";
 
-export interface GoogleOAuthConfig {
+interface GoogleOAuthConfig {
   clientId: string;
   clientSecret: string;
   redirectUri: string;
@@ -49,7 +49,7 @@ export class GoogleNotConfiguredError extends Error {
 }
 
 /** Origin the calendar app is served from. */
-export function calendarOrigin(): string {
+function calendarOrigin(): string {
   return (
     process.env.CALENDAR_BASE_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||

@@ -1,6 +1,6 @@
 // ponytail: icon string keys only — React elements live in UI components.
 
-export interface SkillCondition {
+interface SkillCondition {
   type: "tech_count" | "tech_categories" | "github_verified" | "event_count" | "project_count" | "unique_tech_count";
   tech?: string;
   categories?: string[];
@@ -16,7 +16,7 @@ export interface SkillNode {
   prerequisiteIds: string[];
 }
 
-export interface SkillTier {
+interface SkillTier {
   id: string;
   name: string;
   skills: SkillNode[];

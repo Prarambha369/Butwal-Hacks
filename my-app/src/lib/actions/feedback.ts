@@ -1,6 +1,7 @@
 "use server";
 
 import { logger } from "@/lib/logger"
+import { isProduction } from "@/lib/utils"
 import { createServiceClient } from "@/utils/supabase";
 import { sanitizeString } from "@/lib/validation";
 import { sendSlackEmail } from "@/lib/slack-email";
@@ -52,10 +53,6 @@ async function withRetry<T>(fn: () => Promise<T>, retries = DB_RETRY_MAX): Promi
     await new Promise((r) => setTimeout(r, delay));
     return withRetry(fn, retries - 1);
   }
-}
-
-function isProduction(): boolean {
-  return process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === "production";
 }
 
 export async function submitFeedback(input: SubmitFeedbackInput) {

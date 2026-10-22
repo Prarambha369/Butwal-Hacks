@@ -1,6 +1,7 @@
 import { sendResendEmail } from "@/lib/resend";
 import { logger } from "@/lib/logger";
 import { SITE_URL } from "@/lib/constants";
+import { escapeHtml } from "@/lib/validation";
 
 /**
  * Certificate delivery email.
@@ -21,16 +22,7 @@ import { SITE_URL } from "@/lib/constants";
 
 const FROM = "Butwal Hacks <notifications@butwalhacks.com>";
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-export type CertificateEmailInput = {
+type CertificateEmailInput = {
   to: string;
   name?: string | null;
   verifyUrl: string;
@@ -38,9 +30,9 @@ export type CertificateEmailInput = {
   certificateId?: string;
 };
 
-export type CertificateEmailResult = { ok: boolean; error?: string; status?: number };
+type CertificateEmailResult = { ok: boolean; error?: string; status?: number };
 
-export function buildCertificateEmail(input: CertificateEmailInput): {
+function buildCertificateEmail(input: CertificateEmailInput): {
   subject: string;
   html: string;
   text: string;

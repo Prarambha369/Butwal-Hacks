@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import DashboardSidebar from "@/components/dashboard-sidebar";
 import { DashboardTopbar } from "@/components/dashboard/shell/dashboard-topbar";
-import { roleConfig, type NavLink, type Role } from "@/components/sidebar-config";
+import { roleConfig, type NavLink } from "@/components/sidebar-config";
+import type { Role } from "@/lib/supabase-types";
 import type { SlimProfile } from "@/components/sidebar-config";
 
 /**

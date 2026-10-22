@@ -143,7 +143,7 @@ export interface ApiKey {
 
 // ─── Display Types (UI-facing, not DB schema) ─────────────────
 
-export interface GitHubMeta {
+interface GitHubMeta {
   stargazers_count: number
   forks_count: number
   commit_count: number
@@ -198,7 +198,7 @@ export interface HackerProfile {
   email?: string
 }
 
-export interface DisplayProject {
+interface DisplayProject {
   id: string
   name: string
   description: string

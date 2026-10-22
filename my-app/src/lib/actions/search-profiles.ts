@@ -13,7 +13,7 @@ export interface TalentSearchResult {
   top_markers: { title: string; type: string }[];
 }
 
-export interface TalentSearchFilters {
+interface TalentSearchFilters {
   query?: string;
   markerType?: string;
   skill?: string;
@@ -65,7 +65,7 @@ export async function searchTalent(
 
   if (!profiles || profiles.length === 0) return [];
 
-  let typedProfiles: any[] = profiles as any[];
+  let typedProfiles: { id: string; slug_id?: string; bio: string | null; avatar_url: string | null; skills?: string[] }[] = profiles as unknown as { id: string; slug_id?: string; bio: string | null; avatar_url: string | null; skills?: string[] }[];
 
   // ── Skill-based post-filter (in-memory, no extra DB call) ────────
   if (filters.skill && filters.skill.trim().length >= 2) {

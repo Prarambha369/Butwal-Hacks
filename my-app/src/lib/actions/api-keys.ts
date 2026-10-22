@@ -75,28 +75,3 @@ export async function revokeApiKey(keyId: string) {
  * Verify an API key from an Authorization header.
  * Returns the profile_id if valid, null otherwise.
  */
-export async function verifyApiKey(authHeader: string | null): Promise<string | null> {
-  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
-
-  const rawKey = authHeader.slice(7).trim();
-  const keyHash = hashKey(rawKey);
-
-  const supabase = createServiceClient();
-  const { data } = await supabase
-    .from("api_keys")
-    .select("profile_id")
-    .eq("key_hash", keyHash)
-    .eq("is_active", true)
-    .single();
-
-  if (!data) return null;
-
-  // Update last_used_at (fire-and-forget, don't block request)
-  supabase
-    .from("api_keys")
-    .update({ last_used_at: new Date().toISOString() })
-    .eq("key_hash", keyHash)
-    .then(() => {}, (err) => logger.warn("Failed to update key usage:", err));
-
-  return data.profile_id;
-}

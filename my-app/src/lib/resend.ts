@@ -20,7 +20,7 @@ export interface ResendEmail {
   reply_to?: string;
 }
 
-export interface ResendResult {
+interface ResendResult {
   ok: boolean;
   status: number;
 }

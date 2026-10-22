@@ -18,16 +18,7 @@ import {
   ArrowUpDown,
 } from "lucide-react"
 import { cn, getAvatarUrl } from "@/lib/utils"
-
-interface MentorProfile {
-  bh_id: string
-  full_name: string
-  avatar_url: string | null
-  bio: string | null
-  skills: string[] | null
-  cal_com_url: string | null
-  socials: Record<string, string> | null
-}
+import type { MentorProfile } from "@/lib/mentor-types";
 
 interface MentorDirectoryClientProps {
   mentors: MentorProfile[]

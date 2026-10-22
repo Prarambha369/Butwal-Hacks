@@ -27,7 +27,7 @@ export interface SystemCheckResult {
   healthy: boolean;
 }
 
-export async function checkSupabase(): Promise<HealthCheck> {
+async function checkSupabase(): Promise<HealthCheck> {
   const start = performance.now();
   try {
     const supabase = createServiceClient();
@@ -56,7 +56,7 @@ export async function checkSupabase(): Promise<HealthCheck> {
   }
 }
 
-export async function checkRedis(): Promise<HealthCheck> {
+async function checkRedis(): Promise<HealthCheck> {
   const start = performance.now();
   try {
     const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
@@ -90,7 +90,7 @@ export async function checkRedis(): Promise<HealthCheck> {
   }
 }
 
-export async function checkAuth0(): Promise<HealthCheck> {
+async function checkAuth0(): Promise<HealthCheck> {
   const start = performance.now();
   try {
     const domain = process.env.AUTH0_DOMAIN;
@@ -120,7 +120,7 @@ export async function checkAuth0(): Promise<HealthCheck> {
   }
 }
 
-export async function checkCloudinary(): Promise<HealthCheck> {
+async function checkCloudinary(): Promise<HealthCheck> {
   const start = performance.now();
   try {
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -151,7 +151,7 @@ export async function checkCloudinary(): Promise<HealthCheck> {
   }
 }
 
-export async function checkGroq(): Promise<HealthCheck> {
+async function checkGroq(): Promise<HealthCheck> {
   const start = performance.now();
   try {
     const apiKey = process.env.GROQ_API_KEY;

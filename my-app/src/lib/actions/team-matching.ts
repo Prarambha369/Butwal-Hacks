@@ -10,7 +10,7 @@ import { createServiceClient } from "@/utils/supabase";
  * ponytail: Simple overlap scoring. No vector DB needed for MVP.
  */
 
-export interface TeammateCandidate {
+interface TeammateCandidate {
   id: string;
   full_name: string;
   bh_id: string;

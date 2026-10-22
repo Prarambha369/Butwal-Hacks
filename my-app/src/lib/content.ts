@@ -1,4 +1,4 @@
-export type InitiativeStatus = "active" | "planned" | "proposed"
+type InitiativeStatus = "active" | "planned" | "proposed"
 
 export type Initiative = {
   slug: string
@@ -9,7 +9,7 @@ export type Initiative = {
   details: string[]
 }
 
-export type EventStatus = "completed" | "planned"
+type EventStatus = "completed" | "planned"
 
 export type EventItem = {
   slug: string
@@ -181,7 +181,7 @@ export function getProgramBySlug(slug: string): Program | undefined {
 /**
  * Shared interface for any content item that has tags.
  */
-export interface Taggable {
+interface Taggable {
   slug: string
   tags?: string[]
 }
@@ -227,15 +227,15 @@ export function getRelatedByTags<T extends Taggable>(
 
 // ─── Community Data ────────────────────────────────────────────
 
-export type CommunityRole = "Builder" | "Mentor" | "Organizer" | "Sponsor"
+type CommunityRole = "Builder" | "Mentor" | "Organizer" | "Sponsor"
 
-export interface CommunityMember {
+interface CommunityMember {
   role: CommunityRole
   count: number
   description: string
 }
 
-export interface CommunityStat {
+interface CommunityStat {
   value: string
   label: string
   description: string
@@ -255,7 +255,7 @@ export const communityMembers: CommunityMember[] = [
   { role: "Sponsor", count: 0, description: "Organizations supporting the mission" },
 ]
 
-export interface CommunityUpdate {
+interface CommunityUpdate {
   date: string
   title: string
   excerpt: string
@@ -284,7 +284,7 @@ export const communityUpdates: CommunityUpdate[] = [
 // the school's existing tech/coding club. Maintainers can dedicate
 // orgs for schools and assign leads.
 
-export type ChapterStatus = "active" | "forming" | "inactive"
+type ChapterStatus = "active" | "forming" | "inactive"
 
 export interface Chapter {
   slug: string
@@ -380,7 +380,7 @@ export const chapters: Chapter[] = [
   },
 ]
 
-export interface CommunityLink {
+interface CommunityLink {
   name: string
   description: string
   href: string

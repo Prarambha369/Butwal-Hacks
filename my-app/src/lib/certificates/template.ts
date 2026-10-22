@@ -15,7 +15,7 @@
 
 /** Values a field can be bound to. Anything else is a custom literal. */
 export const BUILTIN_TOKENS = ["name", "title", "date", "email", "bh_id"] as const;
-export type BuiltinToken = (typeof BUILTIN_TOKENS)[number];
+type BuiltinToken = (typeof BUILTIN_TOKENS)[number];
 
 export type FieldAlign = "left" | "center" | "right";
 
@@ -54,7 +54,7 @@ export interface CertificateTemplate {
   isDefault: boolean;
 }
 
-export const DEFAULT_FONT = "Helvetica";
+const DEFAULT_FONT = "Helvetica";
 // There is deliberately no BOLD_FONT constant. It used to be "Helvetica-Bold",
 // which is not a pdf-lib font key (those have no hyphen), so normaliseField
 // silently coerced it back to Helvetica and dropped the emphasis. Boldness is
