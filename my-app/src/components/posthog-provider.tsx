@@ -72,6 +72,10 @@ function PostHogTracker() {
       posthog.init(token, {
         api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
         capture_pageview: false, // we handle page views manually with pathname changes
+        // pageleave defaults to "if_capture_pageview", so it must be explicit
+        // here or bounce rate and session duration lose their end events
+        capture_pageleave: true,
+        capture_performance: { web_vitals: true },
         defaults: "2026-05-30",
         loaded: (ph) => {
           setPhReady(true)
