@@ -20,7 +20,7 @@ import {
 } from "./tokens";
 import type { BhEvent, GoogleEventRef, SyncPlan } from "./types";
 
-export interface SyncOutcome {
+interface SyncOutcome {
   ok: boolean;
   counts: SyncPlan["counts"];
   /** Set when the sync could not run at all (no connection, revoked grant). */

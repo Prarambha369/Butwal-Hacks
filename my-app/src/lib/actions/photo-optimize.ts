@@ -19,7 +19,7 @@ function configured() {
 
 const PREVIEW_WIDTH = 1200;
 
-export interface OptimizeVariant {
+interface OptimizeVariant {
   recipe: OptimizeRecipe;
   label: string;
   transform: string;

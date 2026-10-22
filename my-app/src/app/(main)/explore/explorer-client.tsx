@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
+import { useDebounce } from "@/hooks/use-debounce"
 import Link from "next/link"
 import { Search, Grid3X3, List, X, ArrowUpDown, User, ChevronDown, Filter, GraduationCap, Users } from "lucide-react"
 import { filterMembers, type ExplorerMember } from "@/lib/members"
@@ -27,7 +28,7 @@ const ROLE_CONFIG: Record<RoleFilter, { label: string; color: string }> = {
 
 export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
   const [query, setQuery] = useState("")
-  const [debouncedQuery, setDebouncedQuery] = useState("")
+  const debouncedQuery = useDebounce(query, 200)
   const [role, setRole] = useState<RoleFilter>("All")
   const [sortBy, setSortBy] = useState<SortKey>("activity")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -35,12 +36,6 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
   const [sortOpen, setSortOpen] = useState(false)
   const [openToMentor, setOpenToMentor] = useState(false)
   const [lookingForTeam, setLookingForTeam] = useState(false)
-
-  // Debounce search to avoid excessive re-renders
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query), 200)
-    return () => clearTimeout(timer)
-  }, [query])
 
   const results = useMemo(
     () => filterMembers(members, { role, query: debouncedQuery, sortBy, openToMentor, lookingForTeam }),
@@ -85,7 +80,6 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
 
   const clearAll = useCallback(() => {
     setQuery("")
-    setDebouncedQuery("")
     setRole("All")
     setOpenToMentor(false)
     setLookingForTeam(false)

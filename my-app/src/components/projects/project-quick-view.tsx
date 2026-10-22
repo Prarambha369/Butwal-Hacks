@@ -31,7 +31,6 @@ export default function ProjectQuickView({ project, onClose }: ProjectQuickViewP
     ? statusColors[project.category] || "text-muted-foreground bg-surface-hover"
     : "text-muted-foreground bg-surface-hover"
 
-  const formatDate = (dateStr: string) => formatDualDate(new Date(dateStr))
 
   return (
     <>
@@ -69,7 +68,7 @@ export default function ProjectQuickView({ project, onClose }: ProjectQuickViewP
             </span>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Calendar className="h-3.5 w-3.5" />
-              {formatDate(project.created_at)}
+              {formatDualDate(new Date(project.created_at))}
             </div>
           </div>
 
@@ -149,7 +148,7 @@ export default function ProjectQuickView({ project, onClose }: ProjectQuickViewP
 
         {/* Footer */}
         <div className="px-5 py-3 border-t border-border shrink-0 text-[11px] text-muted-foreground flex items-center justify-between">
-          <span>Created {formatDate(project.created_at)}</span>
+          <span>Created {formatDualDate(new Date(project.created_at))}</span>
           <span className="font-mono">{project.profile_initials}</span>
         </div>
       </div>

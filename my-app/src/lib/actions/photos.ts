@@ -155,22 +155,6 @@ export async function getPendingPhotos(): Promise<GalleryPhotoRow[]> {
 }
 
 /** Approved covers for home — public, newest events first. */
-export async function getCoverPhotos(limit = 6): Promise<GalleryPhotoRow[]> {
-  const supabase = createServiceClient();
-  const { data, error } = await supabase
-    .from('photos')
-    .select(PHOTO_SELECT)
-    .eq('status', 'approved')
-    .eq('is_cover', true)
-    .order('created_at', { ascending: false })
-    .limit(limit);
-  if (error) {
-    logger.error('Error fetching cover photos:', error);
-    return [];
-  }
-  return ((data ?? []) as unknown as Record<string, unknown>[]).map(toRow);
-}
-
 export async function setPhotoStatus(photoId: string, status: 'approved' | 'rejected' | 'pending') {
   const supabase = createServiceClient();
   const { data: photo, error: fetchError } = await supabase
