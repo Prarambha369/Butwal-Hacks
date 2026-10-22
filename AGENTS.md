@@ -75,6 +75,7 @@ Butwal-Hacks/
       utils/supabase/      # Client factories
       proxy.ts             # Auth + subdomain routing (Next.js 16 proxy, not middleware.ts)
     e2e/                   # Playwright E2E tests
+  policies/                # Canonical policy documents (markdown)
   supabase/migrations/     # SQL migrations, sequentially numbered
   scripts/                 # Operational scripts
   docs/                    # Engineering documentation and diagrams
@@ -95,6 +96,8 @@ Butwal-Hacks/
 | `src/lib/supabase-error.ts` | Maps PostgREST codes to distinct messages |
 | `src/lib/logger.ts` | Forwards `error` level to Sentry with an `errorId` |
 | `src/lib/i18n.ts` | English and Nepali strings |
+| `src/lib/policy-registry.ts` | The policy set, the policy version, and the consent contract |
+| `src/lib/policy-content.ts` | Reads the canonical policy markdown off disk (server-only) |
 | `src/app/globals.css` | All 58 `--bh-*` design tokens and the `bh-*` utilities |
 
 ### Access control
@@ -144,6 +147,15 @@ export const POST = withRateLimit(handler, "sensitive");     // 3/60s
 
 Rate limit tiers: `public_form` 5/60s, `sensitive` 3/60s, `user_action` 5/60s, `frequent` 10/60s, `bulk` 30/60s. The limiter fails open when Redis is unreachable.
 
+### Policies and consent
+
+- `policies/` holds the canonical policy documents as markdown. The site renders those same files at `/policies` and `/policies/<slug>`, so the repository and the website cannot drift apart. Edit the markdown, not the rendered page.
+- Privacy, terms, and cookies are the exception: they are maintained as application pages under `src/app/(main)/legal/` because they name the real subprocessors and data categories. `policies/PRIVACY_POLICY.md` and friends point at them.
+- The consent text is in `policies/REGISTRATION_NOTICES.md`, and the version recorded against a registration is `POLICY_VERSION` in `src/lib/policy-registry.ts`. Change one, change the other.
+- Consent is refused by default. The registration route rejects a request without the three required acceptances, and no row is written. The marketing opt-in is optional and off unless it was checked.
+- Registration consent is immutable once written (enforced by a trigger in migration `135`). Do not add a code path that updates it.
+- Suspected cheating and code of conduct reports go to `conduct_reports` through `/api/reports`. Reports are handled discreetly, the reporter may stay anonymous, and a report is never a verdict.
+
 ### Database
 
 - Migrations are SQL files in `supabase/migrations/`, sequentially numbered. They are the canonical schema.
@@ -160,7 +172,7 @@ Rate limit tiers: `public_form` 5/60s, `sensitive` 3/60s, `user_action` 5/60s, `
 
 - Mock Supabase with `vi.mock("@/utils/supabase")`. Tests never touch a real database.
 - Auth-dependent E2E tests use `skipInCI()`.
-- Current baseline: 1672 tests across 113 unit and integration files, plus 6 Playwright specs.
+- Current baseline: 1709 tests across 115 unit and integration files, plus 6 Playwright specs.
 
 ### Commits
 
@@ -181,7 +193,8 @@ refactor: extract rate limiter into lib/
 - [ ] New inputs validated with Zod before any database access
 - [ ] Every `createServiceClient()` call has an authorization check above it
 - [ ] New env vars added to `my-app/.env.example` and to the secrets table in [MAINTAINERS.md](MAINTAINERS.md)
-- [ ] Any new personal data collection updated in [policies/PRIVACY_POLICY.md](policies/PRIVACY_POLICY.md) in the same PR, including whether the data leaves Nepal
+- [ ] Any new personal data collection updated in the canonical privacy policy — `my-app/src/app/(main)/legal/privacy/page.tsx`, which is served at `/legal/privacy` and documented in [policies/PRIVACY_POLICY.md](policies/PRIVACY_POLICY.md) — in the same PR, including whether the data leaves Nepal
+- [ ] Any new consent captured or consent wording changed: bump `POLICY_VERSION` in `src/lib/policy-registry.ts` and update [policies/REGISTRATION_NOTICES.md](policies/REGISTRATION_NOTICES.md) in the same PR
 - [ ] New migrations are numbered sequentially and additive
 - [ ] New UI uses design tokens, not literals — see [DESIGN.md](DESIGN.md)
 - [ ] No secrets in the diff

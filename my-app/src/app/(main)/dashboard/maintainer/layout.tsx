@@ -22,6 +22,7 @@ import {
   Terminal,
   Users,
   ScrollText,
+  ShieldAlert,
   ShieldCheck,
   Stethoscope,
   Settings2,
@@ -56,6 +57,12 @@ const maintainerLinks = [
     label: "Audit Log",
     shortcut: "a",
     icon: <ScrollText className="w-4 h-4" />,
+  },
+  {
+    href: "/dashboard/maintainer/reports",
+    label: "Reports",
+    shortcut: "r",
+    icon: <ShieldAlert className="w-4 h-4" />,
   },
   {
     href: "/dashboard/maintainer/trust-override",

@@ -408,6 +408,8 @@ describe("submitProject", () => {
       techStack: ["React"],
       eventId: null,
       teamId: null,
+      rulesAccepted: true,
+      publicCodeAttested: true,
     })).rejects.toThrow("Unauthorized");
   });
 
@@ -429,6 +431,8 @@ describe("submitProject", () => {
       techStack: ["React"],
       eventId: null,
       teamId: null,
+      rulesAccepted: true,
+      publicCodeAttested: true,
     });
 
     expect(result.success).toBe(true);
@@ -450,6 +454,8 @@ describe("submitProject", () => {
       techStack: ["React", "TypeScript"],
       eventId: null,
       teamId: null,
+      rulesAccepted: true,
+      publicCodeAttested: true,
     });
 
     expect(result.success).toBe(true);
@@ -463,7 +469,7 @@ describe("submitProject", () => {
     const insertData = db.insert.mock.calls[0][0];
     expect(insertData.title).toBe("My Project");
     expect(insertData.tech_stack).toEqual(["React", "TypeScript"]);
-    expect(insertData.demo_url).toBe("https://demo.example.com");
+    expect(insertData.demo_url).toBe("https://demo.example.com/");
   });
 
   it("submits project with event and team associations", async () => {
@@ -479,14 +485,16 @@ describe("submitProject", () => {
       demoUrl: "",
       githubUrl: "",
       techStack: ["Python"],
-      eventId: "event-42",
-      teamId: "team-7",
+      eventId: "11111111-1111-4111-8111-111111111111",
+      teamId: "22222222-2222-4222-8222-222222222222",
+      rulesAccepted: true,
+      publicCodeAttested: true,
       category: "AI/ML" as any,
     });
 
     const insertData = db.insert.mock.calls[0][0];
-    expect(insertData.event_id).toBe("event-42");
-    expect(insertData.team_id).toBe("team-7");
+    expect(insertData.event_id).toBe("11111111-1111-4111-8111-111111111111");
+    expect(insertData.team_id).toBe("22222222-2222-4222-8222-222222222222");
     expect(insertData.category).toBe("AI/ML");
   });
 });

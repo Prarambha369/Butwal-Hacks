@@ -1,6 +1,10 @@
-# Contributor Covenant Code of Conduct
+# Code of Conduct
 
 > The standards that govern participation in the Butwal Hacks community, and how to report a violation. Enforced by the core maintainers.
+>
+> Adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1.
+>
+> Policy version: 2026-10-21
 
 ## What this is
 
@@ -18,7 +22,19 @@ We pledge to act and interact in ways that contribute to an open, welcoming, div
 
 ## Quick actions
 
-**Report a violation.** Email **conduct@butwalhacks.com**. All complaints are reviewed promptly and fairly. Every community leader is obligated to respect the privacy and security of the reporter.
+**Report a violation.**
+
+- Email **conduct@butwalhacks.com**, or
+- use the **in-app report form** on the project page, or
+- at an event, tell the **lead organizer**, who is named in the event's public information.
+
+All complaints are reviewed promptly and fairly. Every community leader is obligated to respect the privacy and security of the reporter. You can ask to stay anonymous, and we will not name you to the person reported without your permission.
+
+**Please do not make public accusations.** Do not post a theory about who broke this standard in a group chat, a comment thread, or on social media. Public accusations, doxxing, and pile-ons cause real damage to real people, and they are wrong even when the accusation turns out to be accurate. Report it and let us handle it.
+
+## Who it covers
+
+Everyone: hackers, volunteers, organizers, mentors, judges, sponsors, and the maintainers. It applies at every event, in our online spaces, and whenever someone is representing the community in public. See the [incident response guide](policies/INCIDENT_RESPONSE.md) for how a report is handled and [disciplinary action policy](policies/DISCIPLINARY_ACTION.md) for what happens next.
 
 ## Reference
 
@@ -52,7 +68,7 @@ This Code of Conduct applies within all community spaces, and also when an indiv
 
 ### Enforcement guidelines
 
-Community leaders follow the Community Impact Guidelines below when determining consequences.
+Community leaders follow the Community Impact Guidelines below when determining consequences. The full ladder, including the notification and appeal procedure, is in the [disciplinary action policy](policies/DISCIPLINARY_ACTION.md).
 
 #### 1. Correction
 
@@ -92,6 +108,10 @@ For answers to common questions, see the [Contributor Covenant FAQ](https://www.
 - [policies/SAFEGUARDING_POLICY.md](policies/SAFEGUARDING_POLICY.md) — commitments to participants under 18
 - [policies/HACKATHON_RULES.md](policies/HACKATHON_RULES.md) — event rules and disqualification
 - [policies/TERMS_OF_SERVICE.md](policies/TERMS_OF_SERVICE.md) — the contract of use
+- [policies/INCIDENT_RESPONSE.md](policies/INCIDENT_RESPONSE.md) — how a report is handled
+- [policies/DISCIPLINARY_ACTION.md](policies/DISCIPLINARY_ACTION.md) — sanctions and appeals
+- [policies/CHEATING_RESPONSE.md](policies/CHEATING_RESPONSE.md) — suspected cheating
+- [policies/COMMUNITY_VALUES.md](policies/COMMUNITY_VALUES.md) — what we hold ourselves to
 - [SECURITY.md](SECURITY.md) — reporting a vulnerability
 - [CONTRIBUTING.md](CONTRIBUTING.md) — how to contribute
 - [README.md](README.md) — project overview

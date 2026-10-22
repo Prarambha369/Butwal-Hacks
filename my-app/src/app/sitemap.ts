@@ -3,6 +3,7 @@ import { SITE_URL } from '@/lib/constants'
 import { createServiceClient } from '@/utils/supabase'
 import { blogPosts, initiatives, events, chapters } from '@/lib/content'
 import { ALL_FESTIVALS } from '@/lib/festivals'
+import { POLICIES } from '@/lib/policy-registry'
 
 const siteUrl = SITE_URL
 const today = new Date()
@@ -43,7 +44,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/legal/privacy`, lastModified: today, changeFrequency: 'yearly', priority: 0.5 },
     { url: `${siteUrl}/legal/terms`, lastModified: today, changeFrequency: 'yearly', priority: 0.5 },
     { url: `${siteUrl}/cookie-policy`, lastModified: today, changeFrequency: 'yearly', priority: 0.5 },
+    { url: `${siteUrl}/policies`, lastModified: today, changeFrequency: 'monthly', priority: 0.6 },
   ]
+
+  // ─── Dynamic: Policies ───────────────────────────────────────────────
+  // The policy set is canonical markdown in the repository. These pages
+  // render that same file, so the site and the repo cannot disagree.
+  for (const policy of POLICIES) {
+    entries.push({
+      url: `${siteUrl}/policies/${policy.slug}`,
+      lastModified: today,
+      changeFrequency: 'yearly',
+      priority: 0.5,
+    })
+  }
 
   // ─── Dynamic: Initiatives ─────────────────────────────────
   for (const initiative of initiatives) {
