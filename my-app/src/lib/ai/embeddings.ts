@@ -24,14 +24,14 @@ export function isRagEnabled(): boolean {
   return false;
 }
 
-interface SearchMatch {
+export interface SearchMatch {
   id: string;
   content: string;
   metadata: Record<string, unknown>;
   similarity: number;
 }
 
-interface ContentItem {
+export interface ContentItem {
   content: string;
   contentHash: string; // SHA-256 of content — detects modifications for re-embedding
   metadata: {
