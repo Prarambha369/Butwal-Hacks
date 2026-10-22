@@ -5,7 +5,7 @@
  * Logs to console; posthog-provider.tsx handles client-side capture.
  */
 
-export interface LLMCallEvent {
+interface LLMCallEvent {
   model: string;
   input_tokens: number;
   output_tokens: number;

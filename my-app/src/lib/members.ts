@@ -155,7 +155,7 @@ export function getExplorerStats(members: ExplorerMember[]) {
 
 // ─── Search & Filter Utilities ────────────────────────────────────
 
-export type ExplorerFilters = {
+type ExplorerFilters = {
   role?: ExplorerMember["role"] | "All"
   query?: string
   sortBy?: "activity" | "projects" | "name" | "joined"

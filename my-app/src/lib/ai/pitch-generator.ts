@@ -28,7 +28,7 @@ export interface PitchExample {
   likes: number;
 }
 
-export interface PitchResult {
+interface PitchResult {
   pitch: string;
   model: string;
 }

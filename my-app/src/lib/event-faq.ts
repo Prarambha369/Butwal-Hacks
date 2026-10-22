@@ -19,7 +19,7 @@
  * Google requires FAQ markup to match content actually on the page, which is
  * the same reason the homepage was moved out.
  */
-export interface EventFaq {
+interface EventFaq {
   q: string;
   a: string;
 }

@@ -1,4 +1,4 @@
-export type Role = "hacker" | "sponsor" | "organizer" | "maintainer" | "lead"
+import type { Role } from "@/lib/supabase-types";
 
 export interface NavLink {
   href: string

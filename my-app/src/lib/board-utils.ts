@@ -23,7 +23,7 @@ export function getTasksByColumn(tasks: TaskItem[], status: string): TaskItem[] 
  * Reorder a task within the same column.
  * Returns a new tasks array with updated positions.
  */
-export function reorderWithinColumn(
+function reorderWithinColumn(
   tasks: TaskItem[],
   draggableId: string,
   sourceIndex: number,
@@ -57,7 +57,7 @@ export function reorderWithinColumn(
  * Move a task from one column to another.
  * Returns a new tasks array with updated statuses and positions.
  */
-export function moveBetweenColumns(
+function moveBetweenColumns(
   tasks: TaskItem[],
   draggableId: string,
   sourceCol: string,

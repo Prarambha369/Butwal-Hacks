@@ -7,7 +7,7 @@
  * requires FAQ markup to match content actually on the page, and a hand-copied
  * list of the same six questions is exactly how that starts to drift.
  */
-export const HOME_FAQ_KEYS = [
+const HOME_FAQ_KEYS = [
   "free",
   "who-can-join",
   "donations",
