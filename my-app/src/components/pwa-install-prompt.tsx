@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { X } from "lucide-react"
 import { Ballu } from "@/components/mascot/ballu"
 import { useLanguage } from "@/components/language-provider"
+import { useAuthUser } from "@/components/auth-user-provider"
 import { t } from "@/lib/i18n"
 
 /**
@@ -16,10 +17,15 @@ export default function PWAInstallPrompt() {
   const [showUpdate, setShowUpdate] = useState(false)
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
   const { locale } = useLanguage()
+  const { user, isLoading } = useAuthUser()
 
   useEffect(() => {
     // Skip in dev mode
     if (process.env.NODE_ENV === "development") return
+
+    // Only recommend install to signed-in users, and only once ever.
+    if (isLoading || !user) return
+    if (typeof window !== "undefined" && localStorage.getItem("pwa-install-dismissed")) return
 
     // Listen for install prompt
     const handleBeforeInstall = (e: Event) => {
@@ -54,16 +60,17 @@ export default function PWAInstallPrompt() {
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstall)
     }
-  }, [])
+  }, [user, isLoading])
 
   const handleInstall = async () => {
     if (!deferredPrompt) return
     const prompt = deferredPrompt as unknown as { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> }
     await prompt.prompt()
     const { outcome } = await prompt.userChoice
-    if (outcome === "accepted") {
+    if (outcome === "accepted" || outcome === "dismissed") {
       setShowInstall(false)
       setDeferredPrompt(null)
+      try { localStorage.setItem("pwa-install-dismissed", "1") } catch {}
     }
   }
 
@@ -94,7 +101,7 @@ export default function PWAInstallPrompt() {
             {t("pwa.install_button", locale)}
           </button>
           <button
-            onClick={() => setShowInstall(false)}
+            onClick={() => { setShowInstall(false); try { localStorage.setItem("pwa-install-dismissed", "1") } catch {} }}
             className="p-1 rounded-lg hover:bg-surface/10 text-secondary shrink-0"
             aria-label={t("pwa.dismiss", locale)}
           >
