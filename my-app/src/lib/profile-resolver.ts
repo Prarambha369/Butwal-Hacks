@@ -78,7 +78,7 @@ export async function resolveProfileId(): Promise<string> {
  * @example
  *   const profileId = await resolveProfileIdFromSub(userId);
  */
-export async function resolveProfileIdFromSub(auth0Sub: string): Promise<string> {
+async function resolveProfileIdFromSub(auth0Sub: string): Promise<string> {
   const supabase = createServiceClient();
   const { data: profile } = await supabase
     .from("profiles")

@@ -29,7 +29,7 @@ export const MAINTENANCE_EMAIL_DOMAIN = "butwalhacks.com";
 /** Days after an event ends that organizer access survives. */
 export const ORGANIZER_GRACE_DAYS = 7;
 
-export interface AccessSubject {
+interface AccessSubject {
   role: string | null | undefined;
   /** Absent for a session with no address, which is not staff. */
   email?: string | null;
@@ -39,7 +39,7 @@ export interface AccessSubject {
 
 /** The Auth0 session fields the access model needs. Shape-compatible with
  *  the SDK's `UserProfile`, so callers pass the session user directly. */
-export interface SessionUserLike {
+interface SessionUserLike {
   email?: string | null;
   email_verified?: boolean | null;
 }
@@ -96,12 +96,12 @@ export function maintainerRedirect(subject: AccessSubject): string | null {
 }
 
 /** The fields organizer access is computed from. */
-export interface TimelineEvent {
+interface TimelineEvent {
   created_at: string;
   end_date: string;
 }
 
-export interface OrganizerAccess {
+interface OrganizerAccess {
   /** May the organizer dashboard render? */
   active: boolean;
   /** When the current window closes, if one is open. */

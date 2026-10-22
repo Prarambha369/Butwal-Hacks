@@ -15,7 +15,7 @@
  */
 
 /** Shape of a PostgREST error as returned by supabase-js. */
-export interface SupabaseErrorLike {
+interface SupabaseErrorLike {
   message?: string;
   code?: string;
   details?: string | null;
@@ -52,7 +52,7 @@ const KNOWN_CODES: Record<string, string> = {
   "23514": "That request did not meet the required format.",
 };
 
-export interface DescribedSupabaseError {
+interface DescribedSupabaseError {
   /** Full detail for server logs / Sentry. */
   diagnostic: string;
   /** Short, safe to render in the UI. */

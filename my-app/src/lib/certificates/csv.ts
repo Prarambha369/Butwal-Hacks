@@ -16,13 +16,13 @@ export type ImportRow = {
   email: string;
 };
 
-export type RejectedRow = {
+type RejectedRow = {
   line: number;
   raw: string;
   reason: string;
 };
 
-export type CsvParseResult = {
+type CsvParseResult = {
   rows: ImportRow[];
   rejected: RejectedRow[];
   /** Header names as detected, for the confirmation step. */

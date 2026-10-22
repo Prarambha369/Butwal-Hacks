@@ -24,12 +24,12 @@ interface MarkersChartProps {
 
 // ─── Custom Tooltip ─────────────────────────────────────────────────
 
-function ChartTooltip({ active, payload, label }: any) {
+function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name?: string; value?: string | number }>; label?: string | number }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bh-card px-3 py-2 text-xs shadow-lg">
       <p className="font-bold text-primary">{label}</p>
-      {payload.map((entry: any, i: number) => (
+      {payload.map((entry, i: number) => (
         <p key={i} className="font-mono text-muted-foreground">
           {entry.name}: {entry.value}
         </p>

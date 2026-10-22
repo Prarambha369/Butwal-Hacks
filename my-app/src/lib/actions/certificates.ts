@@ -269,7 +269,7 @@ async function requireTemplateEditor(): Promise<{ profileId: string; role: strin
 
 // ─── Templates ──────────────────────────────────────────────────────────────
 
-export type SaveTemplateInput = {
+type SaveTemplateInput = {
   id?: string;
   eventId?: string | null;
   name: string;

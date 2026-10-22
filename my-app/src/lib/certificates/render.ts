@@ -32,9 +32,9 @@ import {
 
 const PX_TO_PT = 72 / 96;
 
-export type RenderValues = Record<string, string | undefined>;
+type RenderValues = Record<string, string | undefined>;
 
-export type RenderResult = {
+type RenderResult = {
   bytes: Uint8Array;
   /** Human-readable problems: non-Latin text, unresolvable fields, image failures. */
   warnings: string[];
@@ -42,7 +42,7 @@ export type RenderResult = {
   drawn: Record<string, string>;
 };
 
-export type RenderOptions = {
+type RenderOptions = {
   template: CertificateTemplate | NormalisedTemplate | Record<string, unknown>;
   values: RenderValues;
   /** Absolute https URL of the verification page, printed as a QR. */
