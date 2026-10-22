@@ -297,36 +297,3 @@ export async function applyForOpportunity(opportunityId: string, message?: strin
 }
 
 // ── Get applications for a sponsor's opportunities ─────────────────
-
-export async function getApplicationsForSponsor() {
-  try {
-    const session = await auth0.getSession();
-    if (!session?.user) return [];
-    const supabase = createServiceClient();
-    const sponsorProfileId = await getSponsorProfileId(supabase, session.user.sub);
-
-    // First fetch the sponsor's opportunity IDs
-    const { data: oppIds } = await supabase
-      .from("sponsor_opportunities")
-      .select("id")
-      .eq("sponsor_profile_id", sponsorProfileId);
-
-    const ids = (oppIds || []).map(o => o.id);
-    if (ids.length === 0) return [];
-
-    // Then fetch applications for those opportunities
-    const { data } = await supabase
-      .from("opportunity_applications")
-      .select(`
-        *,
-        opportunity:sponsor_opportunities!inner(id, title, type),
-        profile:profiles!inner(id, full_name, email, bh_id, avatar_url, skills)
-      `)
-      .in("opportunity_id", ids)
-      .order("created_at", { ascending: false });
-
-    return data || [];
-  } catch {
-    return [];
-  }
-}

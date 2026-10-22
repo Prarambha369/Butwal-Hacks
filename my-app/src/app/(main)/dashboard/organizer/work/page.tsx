@@ -3,19 +3,12 @@ import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase"
 import WorkDashboardClient from "../../hacker/work/work-dashboard-client"
 import { buildPageMetadata } from "@/lib/seo"
+import type { TeamMemberRaw } from "@/lib/team-types";
 
 
 export const metadata = { ...buildPageMetadata({title: "Organizer Work", description: "Organizer work area", path: "/dashboard/organizer/work", keywords: []}), robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic"
-
-interface TeamMemberRaw {
-  user_id: string
-  profile: {
-    id: string
-    full_name: string | null
-  } | null
-}
 
 export default async function OrganizerWorkPage() {
   const session = await auth0.getSession()

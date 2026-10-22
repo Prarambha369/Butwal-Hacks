@@ -1,4 +1,4 @@
-import { createSign, createVerify } from "crypto"
+import { createSign } from "crypto"
 import { logger } from "@/lib/logger"
 
 /**
@@ -25,7 +25,7 @@ import { logger } from "@/lib/logger"
  * Build a canonical signing payload from marker fields.
  * This deterministic string lets anyone verify the signature independently.
  */
-export function markerSigningPayload(marker: {
+function markerSigningPayload(marker: {
   id: string
   profile_id?: string | null
   issuer_id: string
@@ -49,7 +49,7 @@ export function markerSigningPayload(marker: {
  *
  * Gracefully returns null if no private key is configured (no crash).
  */
-export function signPayload(payload: string): string | null {
+function signPayload(payload: string): string | null {
   const privateKey = process.env.TRUST_MARKER_PRIVATE_KEY
   if (!privateKey) {
     logger.warn("[crypto] TRUST_MARKER_PRIVATE_KEY not set — skipping signature")
@@ -72,25 +72,6 @@ export function signPayload(payload: string): string | null {
  * Verify a trust marker signature against the public key.
  * Returns true if the signature is valid, false otherwise.
  */
-export function verifySignature(payload: string, signature: string): boolean {
-  const publicKey = process.env.TRUST_MARKER_PUBLIC_KEY
-  if (!publicKey) {
-    logger.warn("[crypto] TRUST_MARKER_PUBLIC_KEY not set — skipping verification")
-    return false
-  }
-
-  try {
-    // ponytail: normalize escaped newlines in env vars to actual PEM newlines
-    const key = publicKey.replace(/\\n/g, "\n")
-    const verify = createVerify("ed25519")
-    verify.update(payload, "utf-8")
-    return verify.verify(key, signature, "base64")
-  } catch (error) {
-    logger.error("[crypto] verification failed:", error)
-    return false
-  }
-}
-
 /**
  * Concisely sign a marker (convenience wrapper).
  *

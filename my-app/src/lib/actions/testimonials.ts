@@ -102,7 +102,7 @@ export async function deleteTestimonial(id: string) {
   return { success: true };
 }
 
-export interface VipQuoteInput {
+interface VipQuoteInput {
   name: string;
   title: string;
   quote: string;
