@@ -28,12 +28,12 @@ export const GROQ_VISION_MODEL = "qwen/qwen3.8-27b";
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 1000;
 
-export interface GroqMessage {
+interface GroqMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
 
-export interface GroqOptions {
+interface GroqOptions {
   model?: string;
   messages: GroqMessage[];
   maxTokens?: number;
@@ -44,7 +44,7 @@ export interface GroqOptions {
   feature?: string;
 }
 
-export interface GroqResult {
+interface GroqResult {
   content: string;
   model: string;
   usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };

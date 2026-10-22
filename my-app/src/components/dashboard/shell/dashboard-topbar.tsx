@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import { Menu, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { roleConfig, type Role } from "@/components/sidebar-config";
+import { roleConfig } from "@/components/sidebar-config";
+import type { Role } from "@/lib/supabase-types";
 import { OPEN_PALETTE_EVENT } from "@/components/dashboard-command-palette";
 
 /**

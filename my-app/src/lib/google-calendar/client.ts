@@ -49,7 +49,7 @@ export class GoogleApiError extends Error {
   }
 }
 
-export interface TokenResponse {
+interface TokenResponse {
   access_token: string;
   refresh_token?: string;
   expires_in: number;
@@ -110,7 +110,7 @@ function authHeaders(accessToken: string): HeadersInit {
   return { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" };
 }
 
-export interface GoogleEventResource {
+interface GoogleEventResource {
   id: string;
   htmlLink?: string;
   summary?: string;

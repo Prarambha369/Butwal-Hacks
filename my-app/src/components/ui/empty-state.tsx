@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useState, useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles, SearchX, X } from "lucide-react";
 
@@ -42,21 +42,11 @@ export function EmptyState({
   hint,
   className,
 }: EmptyStateProps) {
-  const [reducedMotion, setReducedMotion] = useState(true);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
   return (
     <div
       className={cn(
         "bh-card p-12 text-center space-y-6",
-        reducedMotion ? "" : "animate-in fade-in duration-300",
+        "motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300",
         className
       )}
     >

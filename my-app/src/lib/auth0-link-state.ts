@@ -22,7 +22,7 @@ export const LINK_STATE_COOKIE = "bh_link_state";
 export const LINK_STATE_COOKIE_PATH = "/api/auth/link";
 
 /** 10 minutes. */
-export const LINK_STATE_TTL_MS = 10 * 60 * 1000;
+const LINK_STATE_TTL_MS = 10 * 60 * 1000;
 
 export function linkStateCookieOptions() {
   return {
@@ -45,7 +45,7 @@ export function linkStateCookieDeleteOptions() {
   return { name: LINK_STATE_COOKIE, path: LINK_STATE_COOKIE_PATH };
 }
 
-export interface ParsedLinkState {
+interface ParsedLinkState {
   nonce: string;
   primaryUserId: string;
   provider: string;

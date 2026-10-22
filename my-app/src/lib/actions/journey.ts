@@ -3,7 +3,7 @@
 import { createServiceClient } from '@/utils/supabase';
 import { logger } from '@/lib/logger';
 
-export type JourneyKind =
+type JourneyKind =
   | 'skill'
   | 'event'
   | 'project'
@@ -11,7 +11,7 @@ export type JourneyKind =
   | 'badge'
   | 'certificate';
 
-export interface JourneyEntry {
+interface JourneyEntry {
   kind: JourneyKind;
   title: string;
   detail: string | null;

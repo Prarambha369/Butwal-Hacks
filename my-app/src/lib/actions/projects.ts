@@ -419,7 +419,7 @@ export async function deleteProject(projectId: string) {
   return { success: true };
 }
 
-export interface PaginatedResult<T> {
+interface PaginatedResult<T> {
   data: T[]
   totalCount: number
   page: number

@@ -9,7 +9,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * collision risk in checking one and falling back to the other.
  */
 
-export type VerifiedProfile = {
+type VerifiedProfile = {
   id: string;
   full_name?: string | null;
   bh_id?: string | null;
@@ -17,7 +17,7 @@ export type VerifiedProfile = {
   email?: string | null;
 } | null;
 
-export type VerifiedEvent = { id: string; title?: string | null } | null;
+type VerifiedEvent = { id: string; title?: string | null } | null;
 
 export type VerifiedMarker = {
   id: string;
