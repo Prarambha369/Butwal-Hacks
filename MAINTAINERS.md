@@ -125,7 +125,7 @@ Where each variable is set:
 
 | Variable | Required | Source |
 |----------|----------|--------|
-| `VERCEL_DEPLOY_HOOK_URL` | Deploy only | Vercel project, Settings, Git, Deploy Hooks |
+| `VERCEL_DEPLOY_HOOK_URL` | Optional | Vercel project, Settings, Git, Deploy Hooks. The Vercel GitHub integration already deploys `main` on push, so the Deploy workflow skips this step when unset |
 | `SUPABASE_URL` | Runtime | Alias used by a subset of scripts; mirrors `NEXT_PUBLIC_SUPABASE_URL` |
 | `SUPABASE_SECRET_KEY` | Runtime | Newer Supabase name for what `SUPABASE_SERVICE_ROLE_KEY` holds |
 

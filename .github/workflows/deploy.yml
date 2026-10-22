@@ -117,9 +117,12 @@ jobs:
         env:
           VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
         run: |
+          # Vercel's GitHub integration already deploys main on every push, so
+          # this hook is an optional second trigger. Failing the whole workflow
+          # when it is unset reported a red deploy for a site that shipped.
           if [ -z "${VERCEL_DEPLOY_HOOK_URL}" ]; then
-            echo "::error::VERCEL_DEPLOY_HOOK_URL is not set. Nothing was deployed."
-            exit 1
+            echo "::notice::VERCEL_DEPLOY_HOOK_URL is not set. Skipping the explicit hook; the Vercel GitHub integration deploys main on push."
+            exit 0
           fi
           echo "Triggering Vercel deployment..."
           code="$(curl -X POST -s -o /dev/null -w '%{http_code}' "$VERCEL_DEPLOY_HOOK_URL")"
