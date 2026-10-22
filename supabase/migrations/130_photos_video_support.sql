@@ -33,18 +33,24 @@ ALTER TABLE photos
 --    convention: the CHECK is enforced for new rows immediately without
 --    taking an ACCESS EXCLUSIVE lock on a table the gallery reads on every
 --    page load, then validated once.
-ALTER TABLE photos
-  ADD CONSTRAINT photos_media_type_check
-  CHECK (media_type IN ('image', 'video')) NOT VALID;
+DO $$ BEGIN
+  ALTER TABLE photos
+    ADD CONSTRAINT photos_media_type_check
+    CHECK (media_type IN ('image', 'video')) NOT VALID;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 ALTER TABLE photos VALIDATE CONSTRAINT photos_media_type_check;
 
 -- 4. duration_seconds is meaningless for images and the app treats a missing
 --    duration as "unknown", so reject the contradictory combination rather
 --    than letting it rot into UI that renders "NaN:NaN".
-ALTER TABLE photos
-  ADD CONSTRAINT photos_duration_only_for_video
-  CHECK (media_type = 'video' OR duration_seconds IS NULL) NOT VALID;
+DO $$ BEGIN
+  ALTER TABLE photos
+    ADD CONSTRAINT photos_duration_only_for_video
+    CHECK (media_type = 'video' OR duration_seconds IS NULL) NOT VALID;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 ALTER TABLE photos VALIDATE CONSTRAINT photos_duration_only_for_video;
 
