@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles, SearchX, X } from "lucide-react";
+import { Ballu, type BalluEmotion } from "@/components/mascot/ballu";
 
 interface EmptyStateAction {
   label: string;
@@ -12,13 +13,19 @@ interface EmptyStateAction {
   variant?: "primary" | "secondary";
 }
 
-interface EmptyStateProps {
-  icon: ReactNode;
+export interface EmptyStateProps {
+  /** Ignored when `mascot` is set (the container then shows Mr. Ballu). */
+  icon?: ReactNode;
   title: string;
   description: string;
   actions?: EmptyStateAction[];
   hint?: string;
   className?: string;
+  /**
+   * When set, Mr. Ballu renders in place of `icon` inside the same icon
+   * container. Leave undefined to keep the existing lucide icon behaviour.
+   */
+  mascot?: BalluEmotion;
 }
 
 /**
@@ -41,6 +48,7 @@ export function EmptyState({
   actions,
   hint,
   className,
+  mascot,
 }: EmptyStateProps) {
   return (
     <div
@@ -50,10 +58,10 @@ export function EmptyState({
         className
       )}
     >
-      {/* Icon container */}
+      {/* Icon container — Mr. Ballu when `mascot` is set, else the lucide icon */}
       <div className="flex justify-center">
         <div className="p-4 rounded-lg bg-primary-red/5 border border-primary-red/10 text-primary-red/40">
-          {icon}
+          {mascot ? <Ballu emotion={mascot} size={64} /> : icon}
         </div>
       </div>
 
@@ -114,17 +122,23 @@ export function EmptyState({
 interface NoResultsStateProps {
   searchQuery: string;
   onClear: () => void;
+  /** Optional Mr. Ballu pose shown instead of the SearchX icon. */
+  mascot?: BalluEmotion;
 }
 
 /**
  * NoResultsState — shown when search or filter returns zero results.
  * Displays the query and a button to clear filters.
  */
-export function NoResultsState({ searchQuery, onClear }: NoResultsStateProps) {
+export function NoResultsState({ searchQuery, onClear, mascot }: NoResultsStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
       <div className="p-4 rounded-lg bg-primary-red/5 border border-primary-red/10">
-        <SearchX className="w-12 h-12 text-primary-red/40" />
+        {mascot ? (
+          <Ballu emotion={mascot} size={48} />
+        ) : (
+          <SearchX className="w-12 h-12 text-primary-red/40" />
+        )}
       </div>
       <div className="space-y-1.5">
         <h3 className="text-lg font-bold text-primary">No results found</h3>

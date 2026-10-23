@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import AuthAwareCta from "@/components/auth-aware-cta"
+import { Ballu } from "@/components/mascot/ballu"
 import { useLanguage } from "@/components/language-provider"
 import { t } from "@/lib/i18n"
 import { useSiteContent } from "@/components/site-content"
@@ -104,6 +105,16 @@ export default function Hero() {
           >
             {t("home.hero.sticker3", locale)}
           </span>
+          {/* Mr. Ballu — desktop-only floating sticker, bottom-right.
+              Positioned inside the same `hidden lg:block` absolute layer so
+              mobile renders nothing and the fixed-px wrapper keeps CLS at zero. */}
+          <Ballu
+            emotion="happy-excited"
+            size={128}
+            priority
+            float
+            className="absolute bottom-[4%] right-[3%]"
+          />
         </div>
 
         <div className="flex flex-col items-center text-center max-w-4xl mx-auto">

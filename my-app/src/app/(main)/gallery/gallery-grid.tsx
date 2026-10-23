@@ -9,7 +9,7 @@ import {
   ExternalLink, Download, LogIn,
 } from "lucide-react";
 import { getDiceBearPlaceholder } from "@/lib/utils";
-import { cloudinaryDownloadUrl, displayPhotoUrl } from "@/lib/cloudinary-url";
+import { cloudinaryDownloadUrl, displayPhotoUrl, videoPlaybackUrl, videoPosterUrl } from "@/lib/cloudinary-url";
 // Server actions live in `lib`; the page's types are re-exported there, so
 // import both from one place rather than through `./page`.
 import { fetchGalleryPage } from "@/lib/actions/gallery";
@@ -94,13 +94,13 @@ function VideoThumbnail({ url, alt: _alt }: { url: string; alt: string }) {
     >
       <video
         ref={videoRef}
-        src={url}
+        src={videoPlaybackUrl(url, 640)}
         muted={muted}
         loop
         playsInline
         preload="metadata"
         className="absolute inset-0 w-full h-full object-cover"
-        poster={url + "?poster=true"}
+        poster={videoPosterUrl(url, 640) ?? undefined}
       />
       {!playing && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300">
@@ -269,13 +269,13 @@ function Lightbox({
             {isVideo ? (
               <video
                 ref={videoRef}
-                src={photo.url}
+                src={videoPlaybackUrl(photo.url, 1600)}
                 controls
                 autoPlay
                 playsInline
                 className="w-full h-full object-contain"
               >
-                <source src={photo.url} />
+                <source src={videoPlaybackUrl(photo.url, 1600)} />
               </video>
             ) : (
               <Image
@@ -442,11 +442,13 @@ export default function GalleryGrid({
   canDownload,
   totals,
   hasMore: initialHasMore,
+  events: initialEvents,
 }: {
   photos: GalleryPhoto[];
   canDownload: boolean;
   totals: GalleryTotals;
   hasMore: boolean;
+  events?: string[];
 }) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [filter, setFilter] = useState<string | null>(null);
@@ -456,14 +458,27 @@ export default function GalleryGrid({
   const [photos, setPhotos] = useState(initialPhotos);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [isPending, startTransition] = useTransition();
+  const eventOptions = initialEvents && initialEvents.length ? initialEvents : [];
 
   // On filter change the lightbox index points into a different slice; closing
   // it avoids landing on an unrelated tile.
   useEffect(() => setSelectedIdx(null), [filter]);
 
+  // Fetch a server-filtered first page whenever the event filter changes, so
+  // selecting an event that is not yet represented in the loaded photos still
+  // renders its media instead of an empty grid.
+  const applyFilter = useCallback((nextFilter: string | null) => {
+    setFilter(nextFilter);
+    startTransition(async () => {
+      const page = await fetchGalleryPage(0, nextFilter ?? undefined);
+      setPhotos(page.photos);
+      setHasMore(page.hasMore);
+    });
+  }, []);
+
   const handleLoadMore = useCallback(() => {
     startTransition(async () => {
-      const next = await fetchGalleryPage(photos.length);
+      const next = await fetchGalleryPage(photos.length, filter ?? undefined);
       // Guard against a double click racing the transition: dedupe by id.
       setPhotos((prev) => {
         const seen = new Set(prev.map((p) => p.id));
@@ -471,19 +486,17 @@ export default function GalleryGrid({
       });
       setHasMore(next.hasMore);
     });
-  }, [photos.length]);
+  }, [photos.length, filter]);
 
-  // Extract unique events for filter dropdown
+  // Event list for the filter dropdown: prefer the server-provided list so all
+  // events show even before their photos are paginated in.
   const events = useMemo(() => {
-    const eventSet = new Set(photos.map((p) => p.event));
-    return Array.from(eventSet).sort();
-  }, [photos]);
+    const base = eventOptions.length ? eventOptions : Array.from(new Set(photos.map((p) => p.event)));
+    return [...base].sort();
+  }, [eventOptions, photos]);
 
-  // Filter photos by selected event
-  const filtered = useMemo(
-    () => (filter ? photos.filter((p) => p.event === filter) : photos),
-    [photos, filter]
-  );
+  // Server already filters by event, so the grid uses the loaded photos directly.
+  const filtered = photos;
 
   // Build the lightbox photo with nav fields
   const selectedPhoto: LightboxPhoto | null = useMemo(() => {
@@ -548,7 +561,7 @@ export default function GalleryGrid({
           <div className="relative">
             <select
               value={filter ?? ""}
-              onChange={(e) => setFilter(e.target.value || null)}
+              onChange={(e) => applyFilter(e.target.value || null)}
               className="appearance-none rounded-xl border border-border bg-surface px-4 py-2.5 pr-10 text-sm font-medium text-primary cursor-pointer hover:bg-surface-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red/30"
               aria-label="Filter by event"
             >

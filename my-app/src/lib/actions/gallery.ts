@@ -79,8 +79,45 @@ export async function fetchGalleryTotals(): Promise<GalleryTotals> {
   };
 }
 
+export type GalleryEvent = { title: string; slug: string | null };
+
+export async function fetchGalleryEvents(): Promise<GalleryEvent[]> {
+  const supabase = createServiceClient();
+  // Paginate so event discovery is not truncated by the PostgREST row cap
+  // before deduplication.
+  const seen = new Set<string>();
+  const out: GalleryEvent[] = [];
+  const PAGE = 1000;
+  let offset = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from("photos")
+      .select("events!inner(id, title, slug)")
+      .eq("status", "approved")
+      .not("event_id", "is", null)
+      .range(offset, offset + PAGE - 1);
+    if (error) {
+      logger.error("Error fetching gallery events:", error);
+      break;
+    }
+    const rows = (data ?? []) as Array<{ events: { title?: string; slug?: string } | null }>;
+    for (const row of rows) {
+      const ev = Array.isArray(row.events) ? row.events[0] : row.events;
+      const title = ev?.title;
+      if (!title || seen.has(title)) continue;
+      seen.add(title);
+      out.push({ title, slug: ev?.slug ?? null });
+    }
+    if (rows.length < PAGE) break;
+    offset += PAGE;
+  }
+  out.sort((a, b) => a.title.localeCompare(b.title));
+  return out;
+}
+
 export async function fetchGalleryPage(
   offset: number,
+  eventFilter?: string,
 ): Promise<{ photos: GalleryPhoto[]; hasMore: boolean }> {
   const supabase = createServiceClient();
 
@@ -90,7 +127,7 @@ export async function fetchGalleryPage(
       ? Math.min(Math.floor(offset), MAX_OFFSET)
       : 0;
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("photos")
     .select(PHOTO_SELECT)
     .eq("status", "approved")
@@ -99,7 +136,10 @@ export async function fetchGalleryPage(
     // an unstable sort is what makes paged UIs drop or duplicate rows at the
     // page boundary when a future upload lands in the same millisecond.
     .order("id", { ascending: true })
-    .range(safeOffset, safeOffset + PAGE_SIZE);
+  if (eventFilter) {
+    query = query.eq("events.title", eventFilter)
+  }
+  const { data, error } = await query.range(safeOffset, safeOffset + PAGE_SIZE);
 
   if (error) {
     logger.error("Error fetching gallery page:", error);

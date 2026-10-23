@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Download, X, RefreshCw } from "lucide-react"
+import { X } from "lucide-react"
+import { Ballu } from "@/components/mascot/ballu"
 import { useLanguage } from "@/components/language-provider"
 import { useAuthUser } from "@/components/auth-user-provider"
 import { t } from "@/lib/i18n"
@@ -87,7 +88,7 @@ export default function PWAInstallPrompt() {
       {showInstall && (
         <div className="bh-card p-4 flex items-center gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] animate-in slide-in-from-bottom-4 duration-300">
           <div className="p-2 rounded-xl bg-primary-red/10">
-            <Download className="w-5 h-5 text-primary-red" />
+            <Ballu emotion="welcome" size={32} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-primary">{t("pwa.install_title", locale)}</p>
@@ -112,7 +113,7 @@ export default function PWAInstallPrompt() {
       {showUpdate && (
         <div className="bh-card p-4 flex items-center gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] animate-in slide-in-from-bottom-4 duration-300">
           <div className="p-2 rounded-xl bg-status-blue/10">
-            <RefreshCw className="w-5 h-5 text-status-blue" />
+            <Ballu emotion="happy-excited" size={32} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-primary">{t("pwa.update_title", locale)}</p>

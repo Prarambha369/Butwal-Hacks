@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Search, Loader2, Users, Code2, Calendar, ArrowRight, X } from "lucide-react"
+import { Ballu } from "@/components/mascot/ballu"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/language-provider"
@@ -196,7 +197,7 @@ export default function CommandSearch() {
         <div className="max-h-[60vh] overflow-y-auto overscroll-contain p-2">
           {results.length === 0 && query.trim().length >= 2 && !loading && (
             <div className="flex flex-col items-center gap-2 py-12 text-center">
-              <Search className="h-8 w-8 text-muted-foreground/30" />
+              <Ballu emotion="thinking-puzzled" size={32} />
               <p className="text-sm text-muted-foreground">{t("common.no_results", locale)}</p>
               <p className="text-xs text-muted-foreground/50">{t("search.try_different", locale)}</p>
             </div>
@@ -204,7 +205,7 @@ export default function CommandSearch() {
 
           {results.length === 0 && query.trim().length < 2 && !loading && (
             <div className="flex flex-col items-center gap-2 py-12 text-center">
-              <Search className="h-8 w-8 text-muted-foreground/30" />
+              <Ballu emotion="calm-neutral" size={32} />
               <p className="text-sm text-muted-foreground">{t("search.type_to_search", locale)}</p>
               <p className="text-xs text-muted-foreground/50">{t("search.search_hint", locale)}</p>
             </div>

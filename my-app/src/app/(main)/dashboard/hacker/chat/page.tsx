@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { MessageSquare } from "lucide-react";
 import TeamChat from "@/components/chat/team-chat";
+import { Ballu } from "@/components/mascot/ballu";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ export default function TeamChatPage() {
           </p>
         </div>
         <div className="p-2 rounded-lg bg-primary-red/10">
-          <MessageSquare className="w-6 h-6 text-primary-red" />
+          <Ballu emotion="happy-excited" size={32} />
         </div>
       </div>
       <TeamChat />
