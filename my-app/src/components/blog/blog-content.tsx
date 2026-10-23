@@ -280,6 +280,7 @@ export function BlogContent({ posts: initialPosts }: { posts?: BlogPost[] } = {}
           ) : !hasResults ? (
             <NoResultsState
               searchQuery={searchQuery || selectedCategory}
+              mascot="thinking-puzzled"
               onClear={() => {
                 setSearchQuery("")
                 setSelectedCategory("All Posts")

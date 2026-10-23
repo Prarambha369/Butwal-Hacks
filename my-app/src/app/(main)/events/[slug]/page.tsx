@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowLeft, Users, FolderGit2, Camera } from "lucide-react"
 
 import { createServiceClient } from "@/utils/supabase"
+import { logger } from "@/lib/logger"
 import { buildPageMetadata } from "@/lib/seo"
 import { initiatives, events as contentEvents, blogPosts, getRelatedByTags } from "@/lib/content"
 import RelatedLinks from "@/components/home/related-links"
@@ -26,6 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .from("events")
     .select("title, description, location")
     .eq("slug", slug)
+    .eq("is_published", true)
     .single()
 
   if (!event) {
@@ -55,6 +57,7 @@ export default async function EventDetailPage({ params }: Props) {
     .from("events")
     .select("*")
     .eq("slug", slug)
+    .eq("is_published", true)
     .single()
 
   if (!event) {
@@ -72,6 +75,23 @@ export default async function EventDetailPage({ params }: Props) {
     banner_url: event.banner_url,
     is_published: event.is_published,
   }
+
+  // Approved photos for this event (powers the gallery preview on the page).
+  const { data: photoRows, error: photoError } = await supabase
+    .from("photos")
+    .select("url, media_type")
+    .eq("event_id", event.id)
+    .eq("status", "approved")
+    .order("created_at", { ascending: false })
+    .limit(8)
+  if (photoError) {
+    logger.error("Error fetching event photos:", photoError)
+  }
+  type PhotoRow = { url: string | null; media_type: string | null }
+  const photos = ((photoRows ?? []) as PhotoRow[]).map((r) => ({
+    url: (r.url ?? "") as string,
+    media_type: r.media_type ?? "image",
+  }))
 
   const locale = 'en' as Locale;
 
@@ -105,7 +125,7 @@ export default async function EventDetailPage({ params }: Props) {
         </Link>
       </div>
 
-      <EventDetailContent event={eventData} />
+      <EventDetailContent event={eventData} photos={photos} />
 
       {/* Explore this event: its teams, projects, and photos. */}
       <div className="mx-auto max-w-6xl px-4">

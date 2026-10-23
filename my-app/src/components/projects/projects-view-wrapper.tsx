@@ -31,6 +31,7 @@ export default function ProjectsViewWrapper({
     return (
       <EmptyState
         icon={<FolderKanban className="w-12 h-12" />}
+        mascot="calm-neutral"
         title="No projects yet"
         description="You haven&apos;t submitted any projects yet. Your first project starts your portfolio and unlocks the First Ship achievement."
         actions={[

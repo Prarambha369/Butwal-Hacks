@@ -82,6 +82,7 @@ export default async function AchievementsPage() {
       ) : (
         <EmptyState
           icon={<Award className="w-12 h-12" />}
+          mascot="calm-neutral"
           title="No achievements yet"
           description="Start building to unlock achievements. Submit your first project, join a team, and earn trust markers."
           actions={[

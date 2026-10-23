@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Ballu } from "@/components/mascot/ballu";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
 
@@ -12,6 +13,7 @@ export default function NotFound() {
     <div className="min-h-dvh flex items-center justify-center px-4">
       <div className="text-center space-y-6 max-w-md">
         <h1 className="text-8xl font-extrabold tracking-tight text-primary">404</h1>
+        <Ballu emotion="thinking-puzzled" size={96} />
         <h2 className="text-2xl font-semibold text-primary">{t('not_found.title', locale)}</h2>
         <p className="text-secondary">
           {t('not_found.description', locale)}

@@ -149,6 +149,7 @@ export default async function TeamsPage() {
       {showcase.length === 0 ? (
         <EmptyState
           icon={<Users className="w-12 h-12" />}
+          mascot="thinking-puzzled"
           title="No event teams yet"
           description="Teams appear here once organizers attach them to a published event. Create your own or find teammates."
           actions={[

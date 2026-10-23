@@ -5,12 +5,11 @@ import {
   Send,
   Loader2,
   MessageSquare,
-  Users,
-  AlertCircle,
   ChevronDown,
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { Ballu } from "@/components/mascot/ballu";
 import { logger } from "@/lib/logger";
 import { usePresence } from "@/hooks/use-presence";
 import { createClient } from "@/utils/supabase";
@@ -281,7 +280,7 @@ export default function TeamChat({ className }: TeamChatProps) {
         {!loading && error && (
           <div className="flex items-center justify-center h-full">
             <div className="bh-card p-4 border border-primary-red/30 max-w-sm text-center space-y-2">
-              <AlertCircle className="w-6 h-6 text-primary-red mx-auto" />
+              <Ballu emotion="error-calm" size={48} />
               <p className="text-sm font-bold text-primary">Could not load messages</p>
               <p className="text-xs text-muted-foreground">{error}</p>
               <button
@@ -297,7 +296,7 @@ export default function TeamChat({ className }: TeamChatProps) {
         {!loading && !error && teams.length === 0 && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-2">
-              <Users className="w-8 h-8 text-muted-foreground/30 mx-auto" />
+              <Ballu emotion="thinking-puzzled" size={48} />
               <p className="text-sm font-bold text-primary">No team yet</p>
               <p className="text-xs text-muted-foreground">
                 Join or create a team to start chatting with your squad.
@@ -309,7 +308,7 @@ export default function TeamChat({ className }: TeamChatProps) {
         {!loading && !error && teams.length > 0 && messages.length === 0 && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-2">
-              <MessageSquare className="w-8 h-8 text-muted-foreground/30 mx-auto" />
+              <Ballu emotion="welcome" size={48} />
               <p className="text-sm font-bold text-primary">No messages yet</p>
               <p className="text-xs text-muted-foreground">
                 Send the first message to your team.

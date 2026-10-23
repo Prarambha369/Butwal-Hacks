@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Dices } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
+import { Ballu } from "@/components/mascot/ballu";
 import { t } from "@/lib/i18n";
 import SectionEyebrow from "@/components/section-eyebrow";
 
@@ -44,12 +45,15 @@ export default function ExcuseGenerator() {
         </p>
 
         <div className="bh-card mx-auto mt-8 max-w-xl p-6 md:p-8">
-          <p
-            key={`${index}-${locale}-${spins}`}
-            className="animate-bh-pop-in min-h-12 font-mono text-sm leading-relaxed text-primary md:text-base"
-          >
-            &ldquo;{t(`home.excuses.${index + 1}`, locale)}&rdquo;
-          </p>
+          <div className="flex items-start gap-4">
+            <Ballu emotion="happy-excited" size={64} />
+            <p
+              key={`${index}-${locale}-${spins}`}
+              className="animate-bh-pop-in min-h-12 text-left font-mono text-sm leading-relaxed text-primary md:text-base"
+            >
+              &ldquo;{t(`home.excuses.${index + 1}`, locale)}&rdquo;
+            </p>
+          </div>
           <button
             type="button"
             onClick={roll}

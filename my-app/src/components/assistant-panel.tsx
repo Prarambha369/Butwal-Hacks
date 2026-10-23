@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Bot, X, Send, Loader2, Sparkles, CheckCircle2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
+import { Ballu, type BalluEmotion } from "@/components/mascot/ballu";
 import { useAuthUser } from "@/components/auth-user-provider";
 import { submitFeedback } from "@/lib/actions/feedback";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,8 @@ type Tab = "chat" | "feedback";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  /** Optional mascot pose, so error bubbles can show the matching face. */
+  mood?: BalluEmotion;
 }
 
 // Context-aware suggestion sets for onboarding surfaces.
@@ -168,6 +171,7 @@ export default function AssistantPanel({
         content: isRateLimit
           ? "You're sending messages too quickly. Please wait a moment before trying again."
           : "Sorry, I had trouble connecting. Please try again in a moment.",
+        mood: isRateLimit ? "confused-frustrated" : "error-calm",
       }]);
     } finally {
       setChatLoading(false);
@@ -221,7 +225,7 @@ export default function AssistantPanel({
             : "bg-surface border border-border text-primary hover:scale-110 hover:border-primary-red/50 outline-none focus-visible:ring-2 focus-visible:ring-bh-red-500/50 focus-visible:ring-offset-2"
         )}
       >
-        {isOpen ? <X size={22} /> : <Bot size={22} />}
+        {isOpen ? <X size={22} /> : <Ballu emotion="calm-neutral" size={28} priority popOnHover />}
       </button>
 
       {/* Backdrop */}
@@ -296,7 +300,7 @@ export default function AssistantPanel({
                       "w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
                       msg.role === "assistant" ? "bg-primary-red/10 text-primary-red" : "bg-surface-hover text-muted-foreground"
                     )}>
-                      {msg.role === "assistant" ? <Bot className="w-3.5 h-3.5" /> : <MessageSquare className="w-3.5 h-3.5" />}
+                      {msg.role === "assistant" ? <Ballu emotion={msg.mood ?? "calm-neutral"} size={20} /> : <MessageSquare className="w-3.5 h-3.5" />}
                     </div>
                     <div className={cn(
                       "max-w-[80%] px-3.5 py-2.5 rounded-lg text-sm leading-relaxed",
@@ -312,7 +316,7 @@ export default function AssistantPanel({
                 {chatLoading && (
                   <div className={cn("flex gap-2.5", reducedMotion ? "" : "animate-in fade-in duration-200")}>
                     <div className="w-7 h-7 rounded-full bg-primary-red/10 flex items-center justify-center shrink-0">
-                      <Bot className="w-3.5 h-3.5 text-primary-red" />
+                      <Ballu emotion="think-loading" size={20} />
                     </div>
                     <div className="bg-surface-hover border border-border rounded-lg rounded-bl-md px-4 py-3 space-y-2">
                       <div className="flex gap-1" role="status" aria-label="Bot is thinking">
@@ -335,6 +339,9 @@ export default function AssistantPanel({
               {/* Suggestions */}
               {messages.length <= 2 && !chatLoading && (
                 <div className="px-4 pb-2">
+                  <div className="flex justify-center mb-2">
+                    <Ballu emotion="welcome" size={48} />
+                  </div>
                   <p className="text-[10px] font-mono text-muted-foreground/50 mb-2">
                     Suggested questions
                   </p>
@@ -388,6 +395,9 @@ export default function AssistantPanel({
                 <div className={cn("px-6 py-10 text-center space-y-3 flex-1", reducedMotion ? "" : "animate-in fade-in zoom-in duration-300")}>
                   <div className="mx-auto w-12 h-12 rounded-full bg-status-green/10 border border-status-green/30 flex items-center justify-center">
                     <CheckCircle2 className="w-6 h-6 text-status-green" />
+                  </div>
+                  <div className="flex justify-center">
+                    <Ballu emotion="celebrating-proud" size={48} />
                   </div>
                   <p className="text-sm font-bold text-primary">Message sent!</p>
                   <p className="text-xs text-muted-foreground">Your message has been received. We review every submission.</p>
