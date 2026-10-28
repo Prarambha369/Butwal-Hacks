@@ -124,6 +124,10 @@ describe("classifyHref", () => {
     expect(classifyHref("//evil.example/phish")).toEqual({ kind: "unsafe" });
   });
 
+  it("does not treat slash-backslash targets as internal", () => {
+    expect(classifyHref("/\\\\evil.example/phish")).toEqual({ kind: "unsafe" });
+  });
+
   it("allows in-page anchors", () => {
     expect(classifyHref("#reporting")).toEqual({ kind: "anchor", href: "#reporting" });
   });

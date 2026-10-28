@@ -33,6 +33,21 @@ create table if not exists public.knowledge_embeddings (
   created_at timestamptz not null default now()
 );
 
+-- Databases that already contain a 384-dimensional knowledge_embeddings table
+-- from an older attempt cannot be altered in place while incompatible rows
+-- remain. Drop the dependent HNSW index, remove rows whose embeddings do not
+-- fit vector(768), then widen the column. Historical migration 096 is left
+-- unchanged so the 768-dimensional seeder and match_knowledge use this column.
+drop index if exists idx_knowledge_embeddings_hnsw;
+
+delete from public.knowledge_embeddings
+where embedding is not null
+  and vector_dims(embedding) <> 768;
+
+alter table public.knowledge_embeddings
+  alter column embedding type vector(768)
+  using embedding::vector(768);
+
 -- HNSW: fast approximate nearest-neighbour on cosine distance, which is the
 -- right metric for text embeddings (angle, not magnitude).
 create index if not exists idx_knowledge_embeddings_hnsw

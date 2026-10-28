@@ -54,7 +54,18 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       ? history
           .slice(-MAX_HISTORY)
           .filter((m) => m && typeof m === "object" && ["user", "assistant"].includes(m.role) && typeof m.content === "string")
-          .map((m) => ({ role: m.role as "user" | "assistant", content: m.content.slice(0, MAX_MSG_LEN) }))
+          .map((m) => {
+            if (m.role === "assistant") {
+              return { role: "assistant" as const, content: m.content.slice(0, MAX_MSG_LEN) };
+            }
+            const screenedTurn = screenUserMessage(m.content);
+            if (!screenedTurn.ok) return null;
+            return {
+              role: "user" as const,
+              content: screenedTurn.message.slice(0, MAX_MSG_LEN),
+            };
+          })
+          .filter((m): m is { role: "user" | "assistant"; content: string } => m !== null)
       : [];
 
     // ── Retrieve relevant context via vector search ───────────

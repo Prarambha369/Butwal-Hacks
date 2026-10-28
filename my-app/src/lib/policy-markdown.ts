@@ -220,8 +220,17 @@ export function classifyHref(href: string): LinkTarget {
   if (!target) return { kind: "unsafe" };
 
   // `//host/path` is protocol-relative and points off-site, so it must not be
-  // mistaken for an internal route.
-  if (target.startsWith("/") && !target.startsWith("//")) {
+  // mistaken for an internal route. A backslash after the leading slash is
+  // also treated as an escape into an off-site/Windows-style target.
+  if (
+    target.startsWith("/") &&
+    target.length > 1 &&
+    target[1] !== "/" &&
+    target[1] !== "\\"
+  ) {
+    return { kind: "internal", href: target };
+  }
+  if (target === "/") {
     return { kind: "internal", href: target };
   }
   if (target.startsWith("#")) {
