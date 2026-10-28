@@ -63,14 +63,6 @@ export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalE
   return (
     <section className="relative overflow-hidden border-b border-border" aria-label="Explore Hero">
       <div className="mx-auto max-w-6xl px-4 pb-14 pt-16 md:pb-16 md:pt-20">
-        {/* ── Eyebrow ── */}
-        <div className="mb-6 flex">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-primary-red">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary-red" aria-hidden="true" />
-            Member directory
-          </span>
-        </div>
-
         {/* ── Headline ── */}
         <div className="max-w-3xl">
           <h1 className="text-4xl font-black leading-[1.02] tracking-tight text-primary md:text-6xl">
@@ -81,19 +73,16 @@ export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalE
             Every profile is a real member of the Butwal Hacks community — students, mentors, and
             organizers across Lumbini Province. Look someone up by name or BH-ID and start a thread.
           </p>
+          {/* One primary action. The mentor strip further down owns /mentors, and
+              the closing section owns the "already a member" path, so neither is
+              repeated here. */}
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Link
               href="/auth/login?screen_hint=signup"
-              className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-deep-red"
+              className="bh-btn-primary text-sm"
             >
               Join the directory
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-            <Link
-              href="/mentors"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-surface-hover"
-            >
-              Browse mentors
             </Link>
           </div>
         </div>
@@ -110,7 +99,7 @@ export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalE
                     <p className="font-mono text-2xl font-black tabular-nums leading-none text-primary">
                       <AnimatedCounter value={value} />
                     </p>
-                    <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/70">
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
                       {value === 1 ? one : label}
                     </p>
                   </div>
@@ -121,7 +110,7 @@ export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalE
         ) : null}
 
         {isEarly && (
-          <p className="mt-8 max-w-xl text-xs leading-relaxed text-muted-foreground/70">
+          <p className="mt-8 max-w-xl text-xs leading-relaxed text-muted-foreground">
             The directory is small because it is new. Profiles appear here after a member joins and
             completes onboarding — nothing is seeded or invented.
           </p>

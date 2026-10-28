@@ -4,10 +4,8 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Copy, Check, Github, Linkedin, Twitter, Globe, Trophy } from 'lucide-react';
 import { logger } from '@/lib/logger';
-import { cloudinaryUrl, cn, getAvatarUrl } from '@/lib/utils';
+import { cloudinaryUrl, getAvatarUrl } from '@/lib/utils';
 import { HackerProfile } from '@/lib/supabase-types';
-import { usePresence } from '@/hooks/use-presence';
-import { LiveDot } from '@/components/hacker-id/live-dot';
 import AvatarPreviewModal from '@/components/dashboard/hacker/avatar-preview-modal';
 
 interface IdentityCardProps {
@@ -23,9 +21,6 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
     setMounted(true);
   }, []);
 
-  // ponytail: hooks must be called before early return — moved usePresence here
-  const onlineIds = usePresence();
-
   const copyId = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -37,7 +32,6 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
   };
 
   if (!mounted) return <div className="h-80 w-full bh-card animate-pulse" />;
-  const isOnline = !!(profile.auth0_user_id && onlineIds.has(profile.auth0_user_id))
 
   const isOrganizer = profile.role === 'organizer';
   const hasGoldBorder = profile.trustMarkers?.some(tm => tm.title === 'Golden Profile Border');
@@ -89,10 +83,6 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
                 </div>
               </div>
             </button>
-            {/* Live presence dot — visible on the avatar rim */}
-            <div className="absolute -bottom-0.5 -right-0.5 z-20">
-              <LiveDot online={isOnline} size="lg" />
-            </div>
           </div>
 
           {/* Info Block */}
@@ -105,18 +95,9 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
                 <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
                   <div className={`
                     px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest
-                    ${isOrganizer ? 'bg-primary-red text-white border-deep-red' : 'bg-surface-hover text-muted-foreground border-border'}
+                    ${isOrganizer ? 'bg-bh-red-action text-white border-deep-red' : 'bg-surface-hover text-muted-foreground border-border'}
                   `}>
                     {profile.role}
-                  </div>
-                  {/* Online / Offline badge */}
-                  <div className={cn(
-                    "px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all",
-                    isOnline
-                      ? 'bg-status-green/10 border-status-green/30 text-status-green shadow-[0_0_10px_var(--glow-status-green)]'
-                      : 'bg-surface/5 border-border/30 text-muted-foreground/50',
-                  )}>
-                    <LiveDot online={isOnline} size="sm" showLabel />
                   </div>
                 </div>
               </div>

@@ -53,7 +53,7 @@ export default function EventsFilter({ events }: { events: EventItem[] }) {
           onClick={() => setFilter("upcoming")}
           className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
             filter === "upcoming"
-              ? "bg-bh-red-500 text-white"
+              ? "bg-bh-red-action text-white"
               : "text-muted-foreground hover:text-primary"
           }`}
         >
@@ -68,7 +68,7 @@ export default function EventsFilter({ events }: { events: EventItem[] }) {
           onClick={() => setFilter("past")}
           className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
             filter === "past"
-              ? "bg-bh-red-500 text-white"
+              ? "bg-bh-red-action text-white"
               : "text-muted-foreground hover:text-primary"
           }`}
         >

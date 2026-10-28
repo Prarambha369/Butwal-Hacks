@@ -74,9 +74,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // ─── Chapters ─────────────────────────────────────────────
   // Intentionally omitted: the public directory is a "coming soon" page and
-  // nothing links to the legacy static chapter pages, so listing them would
-  // ask crawlers to index content the site no longer presents as current.
-  // They remain reachable at /chapters/[slug] for old links.
+  // chapter detail pages are noindex legacy links, so listing them would ask
+  // crawlers to index content the site no longer presents as current.
 
   // ─── Static: Festival index + permanent festival pages ────
   // Samiti-seeded, dates never change once published.

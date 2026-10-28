@@ -67,7 +67,7 @@ export default function TestimonialCarousel({ items }: { items: CarouselTestimon
             {[1, 2, 3, 4, 5].map((i) => (
               <Star
                 key={i}
-                className={`h-4 w-4 ${i <= (t.rating ?? 0) ? "fill-bh-red-500 text-primary-red" : "text-muted-foreground/30"}`}
+                className={`h-4 w-4 ${i <= (t.rating ?? 0) ? "fill-bh-red-500 text-primary-red" : "text-muted-foreground"}`}
               />
             ))}
           </div>

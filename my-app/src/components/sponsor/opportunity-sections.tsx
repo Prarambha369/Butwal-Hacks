@@ -78,10 +78,10 @@ export default function OpportunitySections({
                     </div>
                   )}
                   <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <span className="text-[10px] text-secondary/60 flex items-center gap-1">
+                    <span className="text-[10px] text-secondary flex items-center gap-1">
                       <Clock size={10} /> {new Date(bounty.created_at).toLocaleDateString()}
                     </span>
-                    <span className="text-[10px] text-secondary/60">
+                    <span className="text-[10px] text-secondary">
                       {bounty.sponsor_profiles?.company_name || "Sponsor"}
                     </span>
                   </div>
@@ -124,7 +124,7 @@ export default function OpportunitySections({
                         <span className="px-2 py-0.5 rounded-md bg-surface/20 border border-border text-[10px] font-bold uppercase text-secondary">
                           {TYPE_LABELS[opp.type] || opp.type}
                         </span>
-                        {opp.is_remote && <span className="text-[10px] text-secondary/60">Remote</span>}
+                        {opp.is_remote && <span className="text-[10px] text-secondary">Remote</span>}
                       </div>
                       <h3 className="font-bold text-primary">{opp.title}</h3>
                       <p className="text-xs text-secondary line-clamp-2">{opp.description}</p>
@@ -135,7 +135,7 @@ export default function OpportunitySections({
                           ))}
                         </div>
                       )}
-                      <div className="flex items-center gap-4 text-[11px] text-secondary/60">
+                      <div className="flex items-center gap-4 text-[11px] text-secondary">
                         {opp.sponsor_profiles?.company_name && (
                           <span className="font-medium text-primary/60">{opp.sponsor_profiles.company_name}</span>
                         )}
@@ -149,12 +149,12 @@ export default function OpportunitySections({
                           href={opp.application_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-full bg-bh-red-500 px-4 py-2 text-xs font-bold text-white hover:bg-deep-red transition-all"
+                          className="inline-flex items-center gap-1 rounded-full bg-bh-red-action px-4 py-2 text-xs font-bold text-white hover:bg-deep-red transition-all"
                         >
                           Apply <ExternalLink size={11} />
                         </a>
                       ) : (
-                        <span className="text-[10px] text-secondary/60">Apply on platform</span>
+                        <span className="text-[10px] text-secondary">Apply on platform</span>
                       )}
                     </div>
                   </div>

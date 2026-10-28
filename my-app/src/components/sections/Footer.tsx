@@ -129,7 +129,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-3">
-            <p className="text-xs font-mono text-muted-foreground/60 text-center md:text-left">
+            <p className="text-xs font-mono text-muted-foreground text-center md:text-left">
               {t('footer.copyright', locale).replace('{year}', String(currentYear))}
             </p>
             <div className="flex items-center gap-3">

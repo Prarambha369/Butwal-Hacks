@@ -64,11 +64,12 @@ The foundation is a flat Kloner.app-style SaaS surface. What that rules out:
 
 ### Color
 
-Red is the only accent, and it is budgeted at roughly 10% of any screen.
+Red is the only accent, and it is budgeted at roughly 10% of any screen. `--bh-primary-red` is a fill/border color; small text and icons use `--bh-primary-red-text` so the accent clears WCAG AA without changing the brand fill.
 
 | Role | Token | Light | Dark |
 |------|-------|-------|------|
 | Primary accent | `--bh-primary-red` | `#FE0000` | `#FE0000` |
+| Accent text | `--bh-primary-red-text` | `#C40000` | `#ff6b6b` |
 | Accent pressed | `--bh-red-action` | `#E60000` | `#E60000` |
 | Accent deep | `--bh-deep-red` | `#B10000` | `#B10000` |
 | Accent darkest | `--bh-dark-red` | `#7b0000` | `#7b0000` |
@@ -80,11 +81,11 @@ Red is the only accent, and it is budgeted at roughly 10% of any screen.
 | Border subtle | `--bh-border-light` | `#EBEBEB` | `#3a3a3a` |
 | Text primary | `--bh-text-primary` | `#1F1F1F` | `#f0f0f0` |
 | Text body | `--bh-text-body` | `#333333` | `#cccccc` |
-| Text secondary | `--bh-text-secondary` | `#666666` | `#909090` |
-| Text muted | `--bh-text-muted` | `#888888` | `#7a7a7a` |
+| Text secondary | `--bh-text-secondary` | `#666666` | `#b0b0b0` |
+| Text muted | `--bh-text-muted` | `#6b6b6b` | `#a3a3a3` |
 | Inverse surface | `--bh-surface-inverse` | `#1F1F1F` | `#333333` |
 
-Status colors are for state, never for decoration. Each has a light and dark value: `--bh-status-green`, `--bh-status-blue`, `--bh-status-teal`, `--bh-status-yellow`, `--bh-status-orange`, `--bh-status-red`.
+Status colors are for state, never for decoration. Each has a light and dark value: `--bh-status-green`, `--bh-status-blue`, `--bh-status-teal`, `--bh-status-yellow`, `--bh-status-orange`, `--bh-status-red`. Light-mode status tokens are darkened to clear 4.5:1 when used as small text; the vivid versions return in dark mode.
 
 The `--bh-glass-*` tokens exist (`--bh-glass-bg`, `--bh-glass-border`, `--bh-glass-blur`, `--bh-glass-saturate`) but resolve to a blur of `0px`. They are intentionally inert; do not reintroduce blur through them.
 
@@ -105,6 +106,28 @@ Two families, loaded via `next/font` in `my-app/src/app/layout.tsx`.
 - Buttons: pill shape (`rounded-full`) for primary CTAs, outline for secondary.
 - Shadows (`--bh-shadow-sm` through `--bh-shadow-xl`) are for overlays and hover lift only, never for a static card.
 
+#### Button hierarchy
+
+One primary action per section. Which fill is primary depends on the surface:
+
+| Surface | Primary action | Red is reserved for |
+|---------|----------------|---------------------|
+| Public and marketing (`/`, `/explore`, `/about`, `/projects`, `/support`, `/partners`, `/learn`, nav, footer) | `.bh-btn-primary` — red fill, white label | — |
+| Authenticated (`/dashboard/*`, `/portal/*`) | `.bh-btn-ink` — neutral fill | Irreversible actions: delete, publish, revoke |
+
+Both are 44px minimum, pill-shaped, and carry a tokenised focus ring
+(`ring-primary-red` with `ring-offset-background`). Never hand-roll a button
+from `bg-`/`text-` utilities; a hand-rolled variant is how the mentor strip
+shipped white-on-white in dark mode.
+
+**Never use `bg-primary` as a button fill.** `--color-primary` aliases
+`--bh-text-primary`, which flips to `#f0f0f0` in dark mode. As a fill it
+produces a near-white button with white text. Action fills use
+`--bh-action-ink` (with `--bh-action-ink-fg`) or `--bh-primary-red`, never a
+text token.
+
+Label the destination, not the gesture: "Become a mentor", not "Become one".
+
 ### Glow rules
 
 Glow is the strongest signal in this design system. It is spent only on verified trust.
@@ -123,7 +146,7 @@ Defined in `@layer utilities` in `globals.css`.
 | Class | Use |
 |-------|-----|
 | `bh-card`, `bh-card-hover`, `bh-card-interactive` | Card surface, with and without hover response |
-| `bh-btn-primary`, `bh-btn-secondary`, `bh-btn-ghost` | Button variants |
+| `bh-btn-primary`, `bh-btn-secondary`, `bh-btn-ghost`, `bh-btn-ink` | Button variants |
 | `bh-input`, `bh-input-sm`, `bh-select`, `bh-textarea` | Form controls |
 | `bh-heading-xl`, `bh-heading-lg`, `bh-heading-md` | Section headings |
 | `bh-trust-marker-verified`, `bh-trust-marker-self-reported`, `bh-trust-marker-revoked` | The three trust states |

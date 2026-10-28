@@ -90,7 +90,7 @@ export function BHIDClaimCard({ bhId, role, fullName }: BHIDClaimCardProps) {
           <div className="flex flex-col gap-2 shrink-0">
             <Link
               href={`/p/${bhId}`}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all shadow-[--bh-glow-red-soft] hover:shadow-[--bh-glow-red] active:scale-[0.97]"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all shadow-[--bh-glow-red-soft] hover:shadow-[--bh-glow-red] active:scale-[0.97]"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               Public Profile

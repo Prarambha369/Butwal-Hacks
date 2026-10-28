@@ -19,7 +19,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
         <div className="w-16 h-16 bg-surface-hover rounded-full flex items-center justify-center mx-auto">
           <ImageIcon className="w-8 h-8 text-muted-foreground opacity-20" />
         </div>
-        <p className="text-muted-foreground font-mono text-sm opacity-60">
+        <p className="text-muted-foreground font-mono text-sm">
           No photos yet. Come to an event and bring your camera.
         </p>
       </div>
@@ -32,7 +32,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
         <h3 className="text-xs font-black uppercase tracking-widest text-primary opacity-40">
           Hackathon Memories
         </h3>
-        <span className="text-[10px] font-mono text-muted-foreground opacity-60">
+        <span className="text-[10px] font-mono text-muted-foreground">
           {photos.length} Captures
         </span>
       </div>

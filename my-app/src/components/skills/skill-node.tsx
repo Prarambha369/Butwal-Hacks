@@ -41,8 +41,8 @@ export default function SkillNode({ skill, treeColor }: SkillNodeProps) {
       icon: Lock,
       bg: "bg-surface-hover/30",
       border: "border-border/30",
-      text: "text-muted-foreground/40",
-      badge: "bg-muted-foreground/10 text-muted-foreground/50",
+      text: "text-muted-foreground",
+      badge: "bg-muted-foreground/10 text-muted-foreground",
       badgeText: "Locked",
     },
     available: {
@@ -140,7 +140,7 @@ export default function SkillNode({ skill, treeColor }: SkillNodeProps) {
       </div>
 
       {/* Description */}
-      <p className="text-xs text-muted-foreground/70 mb-3 leading-relaxed">
+      <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
         {skill.description}
       </p>
 
@@ -153,7 +153,7 @@ export default function SkillNode({ skill, treeColor }: SkillNodeProps) {
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <p className="text-[10px] text-muted-foreground/50 font-mono">
+          <p className="text-[10px] text-muted-foreground font-mono">
             {skill.progress} / {skill.progressMax} completed
           </p>
         </div>
@@ -162,8 +162,8 @@ export default function SkillNode({ skill, treeColor }: SkillNodeProps) {
       {/* Prerequisites hint */}
       {skill.status === "locked" && skill.prerequisiteIds.length > 0 && (
         <div className="flex items-center gap-1.5 mt-2">
-          <Lock className="w-3 h-3 text-muted-foreground/30" />
-          <p className="text-[10px] text-muted-foreground/40 font-mono">
+          <Lock className="w-3 h-3 text-muted-foreground" />
+          <p className="text-[10px] text-muted-foreground font-mono">
             Complete prerequisites first
           </p>
         </div>

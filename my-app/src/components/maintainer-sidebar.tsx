@@ -92,7 +92,7 @@ export default function MaintainerSidebar({
         >
           <HelpCircle className="w-4 h-4 shrink-0" />
           <span className="flex-1">Help &amp; Docs</span>
-          <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
+          <ExternalLink className="w-3 h-3 text-muted-foreground" />
         </Link>
       </div>
     </aside>

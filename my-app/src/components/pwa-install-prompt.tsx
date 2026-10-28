@@ -96,7 +96,7 @@ export default function PWAInstallPrompt() {
           </div>
           <button
             onClick={handleInstall}
-            className="px-4 py-2 rounded-xl bg-bh-red-500 text-white text-xs font-bold hover:bg-deep-red transition-all shrink-0"
+            className="px-4 py-2 rounded-xl bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all shrink-0"
           >
             {t("pwa.install_button", locale)}
           </button>
@@ -121,7 +121,7 @@ export default function PWAInstallPrompt() {
           </div>
           <button
             onClick={handleUpdate}
-            className="px-4 py-2 rounded-xl bg-bh-red-500 text-white text-xs font-bold hover:bg-deep-red transition-all shrink-0"
+            className="px-4 py-2 rounded-xl bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all shrink-0"
           >
             {t("pwa.refresh_button", locale)}
           </button>

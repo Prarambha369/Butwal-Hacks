@@ -132,8 +132,8 @@ export default function AuditLogFeed({ initialLogs }: AuditLogFeedProps) {
                 )}
               </p>
               <div className="flex items-center gap-2 mt-0.5">
-                <Clock className="w-2.5 h-2.5 text-muted-foreground/50 shrink-0" />
-                <span className="text-[9px] font-mono text-muted-foreground/60">
+                <Clock className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
+                <span className="text-[9px] font-mono text-muted-foreground">
                   {formatDate(log.created_at)}
                 </span>
               </div>

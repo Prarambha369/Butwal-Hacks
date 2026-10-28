@@ -35,6 +35,7 @@ import { dirname, join, resolve } from "node:path";
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, "..");
 const POLICIES_DIR = join(REPO_ROOT, "policies");
+const KNOWLEDGE_DIR = join(REPO_ROOT, "knowledge");
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const GEMINI_MODEL = "models/gemini-embedding-001";
@@ -171,18 +172,29 @@ const PUBLIC_POLICY_FILES = [
 ];
 
 /**
- * Curated policy documents. These are the canonical fact sheets.
+ * Organisation facts, kept out of the policy allowlist on purpose.
  *
- * Deliberately NOT sourced from readdir(): only PUBLIC_POLICY_FILES is read,
+ * These are answers to "who founded this, when, and what have you run" rather
+ * than rules a participant must follow. The KB is publicly queryable, so the
+ * same allowlist rule applies: a file has to be listed here by name to be
+ * ingested, and `knowledge/README.md` style internal notes are never picked up
+ * by accident.
+ */
+const PUBLIC_KNOWLEDGE_FILES = ["org-facts.md"];
+
+/**
+ * Read and chunk an explicit allowlist of markdown files from one directory.
+ *
+ * Deliberately NOT sourced from readdir(): only the given filenames are read,
  * so internal documents can never reach the public-facing bot. A file listed
- * here but missing on disk is skipped silently — the policy set is still in
+ * here but missing on disk is skipped silently — the document set is still in
  * flux and a rename should not crash the seeder.
  */
-function collectDocs() {
-  if (!existsSync(POLICIES_DIR)) return [];
+function readMarkdownSet(dir, files, { type, tags, sourcePrefix }) {
+  if (!existsSync(dir)) return [];
   const items = [];
-  for (const file of PUBLIC_POLICY_FILES) {
-    const absolute = join(POLICIES_DIR, file);
+  for (const file of files) {
+    const absolute = join(dir, file);
     if (!existsSync(absolute)) continue;
     const raw = readFileSync(absolute, "utf8");
     const titleMatch = /^#\s+(.+)$/m.exec(raw);
@@ -191,16 +203,35 @@ function collectDocs() {
       items.push({
         content: `# ${title}\n\n${chunk}`,
         metadata: {
-          type: "community",
+          type,
           slug: file.replace(/\.md$/i, "").toLowerCase(),
           title,
-          tags: ["policy", "docs"],
-          source: `policies/${file}#${i}`,
+          tags,
+          source: `${sourcePrefix}/${file}#${i}`,
         },
       });
     }
   }
   return items;
+}
+
+/** Keep the documented "policy documents" contract for readers of collectDocs. */
+function collectDocs() {
+  const policyChunks = readMarkdownSet(POLICIES_DIR, PUBLIC_POLICY_FILES, {
+    type: "community",
+    tags: ["policy", "docs"],
+    sourcePrefix: "policies",
+  });
+  // Organisation facts get their own directory rather than joining the policy
+  // allowlist: a policy is a rules document, whereas these are answers to
+  // "who founded this, when, and what have you run". Keeping them apart means
+  // one allowlist can change without the other silently picking up a file.
+  const knowledgeChunks = readMarkdownSet(KNOWLEDGE_DIR, PUBLIC_KNOWLEDGE_FILES, {
+    type: "community",
+    tags: ["about"],
+    sourcePrefix: "knowledge",
+  });
+  return [...policyChunks, ...knowledgeChunks];
 }
 
 async function supabaseRpc(path, init) {
@@ -221,10 +252,28 @@ async function supabaseRpc(path, init) {
 }
 
 /** Live DB content: site copy, published posts, active chapters. */
+/**
+ * Read one PostgREST source, treating "table missing" as empty rather than fatal.
+ *
+ * The database a given environment points at may not have every table this
+ * seeder knows about — `site_content` and `blog_posts` are both optional for
+ * this project today. A single absent table used to abort the whole run, which
+ * meant no source could be ingested at all. A missing source is data we do not
+ * have, not a reason to refuse the sources we do have.
+ */
+async function optionalRpc(path, label) {
+  try {
+    return await supabaseRpc(path, { method: "GET" });
+  } catch (err) {
+    console.warn(`  ! skipped ${label}: ${err.message}`);
+    return [];
+  }
+}
+
 async function collectDb() {
   const items = [];
 
-  const siteContent = await supabaseRpc("site_content?select=key,value", { method: "GET" });
+  const siteContent = await optionalRpc("site_content?select=key,value", "site_content");
   for (const row of siteContent ?? []) {
     const en = row.value?.en;
     if (typeof en !== "string" || !en.trim()) continue;
@@ -240,9 +289,9 @@ async function collectDb() {
     });
   }
 
-  const posts = await supabaseRpc(
+  const posts = await optionalRpc(
     "blog_posts?select=slug,title,excerpt,body,tags&is_published=eq.true",
-    { method: "GET" },
+    "blog_posts",
   );
   for (const post of posts ?? []) {
     const body = Array.isArray(post.body) ? post.body.join("\n\n") : String(post.body ?? "");
@@ -261,15 +310,17 @@ async function collectDb() {
     }
   }
 
-  const chapters = await supabaseRpc(
-    "chapters?select=slug,name,city,description,status",
-    { method: "GET" },
+  // `chapters` has `location`, not `city`, and no `status` column at all — the
+  // earlier query threw even when the table was present. Every chapter row is
+  // published by definition, so there is nothing to filter on.
+  const chapters = await optionalRpc(
+    "chapters?select=slug,name,location,description",
+    "chapters",
   );
   for (const ch of chapters ?? []) {
-    if (ch.status !== "active") continue;
     const text = [
       `# Chapter: ${ch.name}`,
-      ch.city ? `City: ${ch.city}` : null,
+      ch.location ? `Location: ${ch.location}` : null,
       ch.description || null,
     ]
       .filter(Boolean)
@@ -280,7 +331,7 @@ async function collectDb() {
         type: "chapter",
         slug: ch.slug,
         title: ch.name,
-        tags: ["chapter", ch.city].filter(Boolean),
+        tags: ["chapter", ch.location].filter(Boolean),
         source: `chapters/${ch.slug}`,
       },
     });

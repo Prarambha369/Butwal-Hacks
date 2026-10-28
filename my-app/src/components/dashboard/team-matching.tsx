@@ -158,7 +158,7 @@ export default function TeamMatching() {
                         {candidate.matchReasons.map((reason, i) => (
                           <span
                             key={i}
-                            className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground/60"
+                            className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground"
                           >
                             <Zap className="w-2.5 h-2.5 text-status-yellow" />
                             {reason}
@@ -200,7 +200,7 @@ export default function TeamMatching() {
         /* Empty state */
         <div className="bh-card p-8 text-center">
           <div className="mx-auto w-12 h-12 rounded-full bg-surface-hover flex items-center justify-center mb-3">
-            <Search className="w-6 h-6 text-muted-foreground/50" />
+            <Search className="w-6 h-6 text-muted-foreground" />
           </div>
           <p className="text-sm font-bold text-primary mb-1">No matches found</p>
           <p className="text-xs text-muted-foreground max-w-xs mx-auto">

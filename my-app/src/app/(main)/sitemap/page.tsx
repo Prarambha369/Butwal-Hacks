@@ -137,7 +137,7 @@ export default function SitemapPage() {
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background border border-border text-primary">
                   {section.icon}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h2 className="text-base font-bold text-primary">{section.title}</h2>
                   <p className="text-xs text-secondary mt-0.5">{section.description}</p>
                 </div>
@@ -153,11 +153,15 @@ export default function SitemapPage() {
                     >
                       <div className="min-w-0">
                         <span className="font-medium">{link.label}</span>
-                        <p className="text-xs text-secondary/60 truncate mt-0.5 group-hover:text-secondary/80">
+                        {/* line-clamp, not truncate: `truncate` sets
+                            white-space:nowrap, whose min-content is the full
+                            line — it blew the card out to 424px on a 390px
+                            phone and clipped it past the viewport. */}
+                        <p className="text-xs text-secondary line-clamp-2 mt-0.5 group-hover:text-secondary">
                           {link.description}
                         </p>
                       </div>
-                      <ArrowRight className="h-3.5 w-3.5 ml-3 shrink-0 text-secondary/40 group-hover:text-primary transition-colors" />
+                      <ArrowRight className="h-3.5 w-3.5 ml-3 shrink-0 text-secondary group-hover:text-primary transition-colors" />
                     </Link>
                   </li>
                 ))}
@@ -179,7 +183,7 @@ export default function SitemapPage() {
             </p>
             <div className="flex items-center gap-4 text-xs text-secondary">
               <span>{sections.reduce((acc, s) => acc + s.links.length, 0)} pages</span>
-              <span className="text-secondary/30">·</span>
+              <span className="text-secondary">·</span>
               <span>{sections.length} categories</span>
             </div>
           </div>

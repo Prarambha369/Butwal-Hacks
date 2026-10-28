@@ -103,7 +103,7 @@ function WelcomeSection() {
         Pick the role that fits what you want to do next. Your BH-ID travels with
         you either way, and you can change your role later or request an upgrade.
       </p>
-      <p className="text-xs text-muted-foreground/80 max-w-lg mx-auto leading-relaxed">
+      <p className="text-xs text-muted-foreground max-w-lg mx-auto leading-relaxed">
         New here? Everything is free, beginners are welcome, and our community is moderated.
         You are safe to ask basic questions.
       </p>
@@ -136,7 +136,7 @@ function WelcomeSection() {
         />
       </div>
 
-      <p className="text-[11px] text-muted-foreground/60">
+      <p className="text-[11px] text-muted-foreground">
         Already have a role? Choose it below and the system sends you there.
       </p>
     </div>

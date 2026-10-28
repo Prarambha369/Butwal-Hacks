@@ -63,10 +63,10 @@ export default async function AchievementsPage() {
               }`}
             >
               <div className="flex items-start justify-between mb-6">
-                <div className={`p-3 rounded-lg ${ach.unlocked ? 'bg-bh-red-500 text-white' : 'bg-surface-hover text-muted-foreground'}`}>
+                <div className={`p-3 rounded-lg ${ach.unlocked ? 'bg-bh-red-action text-white' : 'bg-surface-hover text-muted-foreground'}`}>
                   {ach.icon}
                 </div>
-                {!ach.unlocked && <Lock size={16} className="text-muted-foreground/30" />}
+                {!ach.unlocked && <Lock size={16} className="text-muted-foreground" />}
               </div>
               <h3 className="text-xl font-bold mb-2">{ach.title}</h3>
               <p className="text-sm text-muted-foreground mb-6">{ach.desc}</p>

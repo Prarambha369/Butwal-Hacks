@@ -6,55 +6,99 @@
 -- policies are not the only gate. They exist so that a future anon/
 -- authenticated client (or a direct PostgREST call with a user JWT) cannot
 -- read someone else's unpublished draft or flip `is_published` itself.
+--
+-- ── Why this is guarded ──────────────────────────────────────────────────
+-- This file assumes three earlier objects exist: `blog_posts` (122),
+-- `set_updated_at()` (124), and `current_profile_id()` (127). In this
+-- project's database the migration history is known to be out of sync with
+-- the live schema — 125 exists purely to reconcile `chapters` after 121 ran
+-- without being recorded — so any of the three can be missing.
+--
+-- Unguarded, a missing `blog_posts` makes `ALTER TABLE` raise
+-- `relation "public.blog_posts" does not exist`. `supabase db push` then
+-- aborts, the `migrate` job fails, and because `vercel-deploy` needs
+-- `migrate`, the release is blocked entirely by an unrelated feature.
+--
+-- The guard below skips cleanly with a NOTICE when a prerequisite is absent,
+-- so the rest of the migration run — including 136, which MrBallu needs —
+-- still lands.
+--
+-- CAVEAT: `supabase db push` records a migration as applied once it succeeds,
+-- even when this guard skipped the work. After 122/124/127 are present, a
+-- maintainer must re-run this file explicitly:
+--   psql "$SUPABASE_DB_URL" -f supabase/migrations/137_blog_post_authors.sql
+-- The statements below are idempotent, so re-running is safe.
 
-ALTER TABLE public.blog_posts
-  ADD COLUMN IF NOT EXISTS author_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS author_name TEXT,
-  ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
+DO $$
+DECLARE
+  missing text[] := ARRAY[]::text[];
+BEGIN
+  IF to_regclass('public.blog_posts') IS NULL THEN
+    missing := array_append(missing, 'public.blog_posts (migration 122)');
+  END IF;
+  IF to_regprocedure('public.set_updated_at()') IS NULL THEN
+    missing := array_append(missing, 'public.set_updated_at() (migration 124)');
+  END IF;
+  IF to_regprocedure('public.current_profile_id()') IS NULL THEN
+    missing := array_append(missing, 'public.current_profile_id() (migration 127)');
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_blog_posts_author
-  ON public.blog_posts (author_id, created_at DESC);
+  IF array_length(missing, 1) > 0 THEN
+    RAISE NOTICE '137_blog_post_authors skipped — missing: %', array_to_string(missing, ', ');
+    RETURN;
+  END IF;
 
--- `updated_at` maintenance. `set_updated_at()` is defined in migration 124.
-DROP TRIGGER IF EXISTS blog_posts_set_updated_at ON public.blog_posts;
-CREATE TRIGGER blog_posts_set_updated_at
-  BEFORE UPDATE ON public.blog_posts
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+  EXECUTE $sql$
+    ALTER TABLE public.blog_posts
+      ADD COLUMN IF NOT EXISTS author_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+      ADD COLUMN IF NOT EXISTS author_name TEXT,
+      ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
 
--- ── Row-level security ────────────────────────────────────────────────────
--- RLS is already enabled on this table with no policies, which is why only
--- the service role could touch it. `current_profile_id()` (migration 127)
--- maps the JWT subject to a profile.
+    CREATE INDEX IF NOT EXISTS idx_blog_posts_author
+      ON public.blog_posts (author_id, created_at DESC);
 
--- Anyone may read a published post; an author may read their own draft.
-DROP POLICY IF EXISTS "Published posts are public" ON public.blog_posts;
-CREATE POLICY "Published posts are public" ON public.blog_posts
-  FOR SELECT
-  TO anon, authenticated
-  USING (is_published = true OR author_id = current_profile_id());
+    -- `updated_at` maintenance. `set_updated_at()` is defined in migration 124.
+    DROP TRIGGER IF EXISTS blog_posts_set_updated_at ON public.blog_posts;
+    CREATE TRIGGER blog_posts_set_updated_at
+      BEFORE UPDATE ON public.blog_posts
+      FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
--- A member may create a draft attributed to themselves, never pre-published.
-DROP POLICY IF EXISTS "Members can create own drafts" ON public.blog_posts;
-CREATE POLICY "Members can create own drafts" ON public.blog_posts
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    author_id = current_profile_id()
-    AND is_published = false
-  );
+    -- ── Row-level security ───────────────────────────────────────────────
+    -- RLS is already enabled on this table with no policies, which is why only
+    -- the service role could touch it. `current_profile_id()` (migration 127)
+    -- maps the JWT subject to a profile.
 
--- A member may edit or delete their own draft. The WITH CHECK repeats the
--- `is_published = false` guard so an UPDATE cannot publish as a side effect;
--- once a maintainer publishes it, the author loses write access.
-DROP POLICY IF EXISTS "Members can update own drafts" ON public.blog_posts;
-CREATE POLICY "Members can update own drafts" ON public.blog_posts
-  FOR UPDATE
-  TO authenticated
-  USING (author_id = current_profile_id() AND is_published = false)
-  WITH CHECK (author_id = current_profile_id() AND is_published = false);
+    -- Anyone may read a published post; an author may read their own draft.
+    DROP POLICY IF EXISTS "Published posts are public" ON public.blog_posts;
+    CREATE POLICY "Published posts are public" ON public.blog_posts
+      FOR SELECT
+      TO anon, authenticated
+      USING (is_published = true OR author_id = current_profile_id());
 
-DROP POLICY IF EXISTS "Members can delete own drafts" ON public.blog_posts;
-CREATE POLICY "Members can delete own drafts" ON public.blog_posts
-  FOR DELETE
-  TO authenticated
-  USING (author_id = current_profile_id() AND is_published = false);
+    -- A member may create a draft attributed to themselves, never pre-published.
+    DROP POLICY IF EXISTS "Members can create own drafts" ON public.blog_posts;
+    CREATE POLICY "Members can create own drafts" ON public.blog_posts
+      FOR INSERT
+      TO authenticated
+      WITH CHECK (
+        author_id = current_profile_id()
+        AND is_published = false
+      );
+
+    -- A member may edit or delete their own draft. The WITH CHECK repeats the
+    -- `is_published = false` guard so an UPDATE cannot publish as a side effect;
+    -- once a maintainer publishes it, the author loses write access.
+    DROP POLICY IF EXISTS "Members can update own drafts" ON public.blog_posts;
+    CREATE POLICY "Members can update own drafts" ON public.blog_posts
+      FOR UPDATE
+      TO authenticated
+      USING (author_id = current_profile_id() AND is_published = false)
+      WITH CHECK (author_id = current_profile_id() AND is_published = false);
+
+    DROP POLICY IF EXISTS "Members can delete own drafts" ON public.blog_posts;
+    CREATE POLICY "Members can delete own drafts" ON public.blog_posts
+      FOR DELETE
+      TO authenticated
+      USING (author_id = current_profile_id() AND is_published = false);
+  $sql$;
+END $$;

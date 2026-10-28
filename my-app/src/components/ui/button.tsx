@@ -11,7 +11,10 @@ const BASE = "inline-flex items-center justify-center gap-2 whitespace-nowrap te
 
 const VARIANT_CLASSES: Record<string, string> = {
   default:
-    "bg-deep-red border border-primary-red/40 text-primary rounded-full shadow-[0_0_20px_var(--glow-bh-red)] hover:scale-[1.03] hover:shadow-[0_0_40px_var(--glow-bh-red)]",
+    // Fill is deep red, so the label must be white: text-primary painted
+    // charcoal on #B10000 (2.25:1) in light mode and near-white in dark,
+    // which are both unreadable.
+    "bg-deep-red border border-primary-red/40 text-white rounded-full shadow-[0_0_20px_var(--glow-bh-red)] hover:scale-[1.03] hover:shadow-[0_0_40px_var(--glow-bh-red)]",
   ghost:
     "bg-transparent border border-border text-primary rounded-full hover:bg-surface-hover hover:scale-[1.02] hover:border-primary-red/20",
   outline:

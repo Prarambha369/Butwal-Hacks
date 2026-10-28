@@ -71,7 +71,7 @@ function CertificateCard({ cert }: CertificateCardProps) {
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
               <span className="font-medium">{cert.issuer}</span>
               <span className="hidden md:inline opacity-30">•</span>
-              <span className="font-mono text-[11px] opacity-60">{cert.date}</span>
+              <span className="font-mono text-[11px]">{cert.date}</span>
             </div>
           </div>
 
@@ -139,7 +139,7 @@ function CertificateCard({ cert }: CertificateCardProps) {
                     <span className="text-xs text-muted-foreground font-mono">Issuer: {cert.issuer}</span>
                     <button 
                       onClick={() => setIsOpen(false)}
-                      className="px-4 py-2 rounded-full bg-bh-red-500 text-primary text-xs font-bold hover:bg-deep-red transition-all"
+                      className="px-4 py-2 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all"
                     >
                       Close Audit
                     </button>
@@ -161,7 +161,7 @@ export default function CertificateList({ certificates }: { certificates: Certif
         <div className="w-16 h-16 bg-surface-hover rounded-full flex items-center justify-center mx-auto">
           <CheckCircle2 size={32} className="text-muted-foreground opacity-20" />
         </div>
-        <p className="text-muted-foreground font-mono text-sm opacity-60">
+        <p className="text-muted-foreground font-mono text-sm">
           No certificates yet. They show up here after your first verified event.
         </p>
       </div>
@@ -174,7 +174,7 @@ export default function CertificateList({ certificates }: { certificates: Certif
         <h3 className="text-xs font-black uppercase tracking-widest text-primary opacity-40">
           Verified Credentials
         </h3>
-        <span className="text-[10px] font-mono text-muted-foreground opacity-60">
+        <span className="text-[10px] font-mono text-muted-foreground">
           {certificates.length} Issued
         </span>
       </div>

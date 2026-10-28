@@ -217,9 +217,9 @@ export default function SkillTreeView({ className }: SkillTreeViewProps) {
                       </p>
                     </div>
                     {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-muted-foreground/40" />
+                      <ChevronUp className="w-4 h-4 text-muted-foreground" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-muted-foreground/40" />
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
                     )}
                   </button>
 

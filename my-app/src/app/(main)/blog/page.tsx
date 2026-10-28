@@ -22,7 +22,7 @@ export default async function BlogPage() {
 
       <section className="px-4 py-10">
         <div className="mx-auto mb-8 flex max-w-6xl flex-wrap items-center justify-between gap-3">
-          <p className="text-xs font-mono uppercase tracking-[0.14em] text-muted-foreground/70">
+          <p className="text-xs font-mono uppercase tracking-[0.14em] text-muted-foreground">
             Stories from the community
           </p>
           <Link

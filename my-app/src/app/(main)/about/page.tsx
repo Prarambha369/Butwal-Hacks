@@ -98,7 +98,7 @@ export default function AboutPage() {
           <ol className="mt-10 space-y-10">
             {beliefs.map((b, i) => (
               <li key={b.title} className="flex gap-4 sm:gap-5">
-                <span aria-hidden="true" className="font-mono text-sm font-bold text-primary-red/60 pt-1.5">
+                <span aria-hidden="true" className="font-mono text-sm font-bold text-muted-foreground pt-1.5">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <div>

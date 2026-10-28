@@ -190,7 +190,7 @@ export default function LearnPage() {
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
+            className="bh-btn-primary text-sm"
           >
             Share Resources
           </Link>

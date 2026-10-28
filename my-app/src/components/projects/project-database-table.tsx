@@ -48,7 +48,7 @@ function SortIcon({
   sortKey: SortKey
   sortDir: SortDir
 }) {
-  if (sortKey !== columnKey) return <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />
+  if (sortKey !== columnKey) return <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
   return sortDir === "asc"
     ? <ArrowUp className="h-3 w-3 text-primary-red" />
     : <ArrowDown className="h-3 w-3 text-primary-red" />
@@ -469,7 +469,7 @@ export default function ProjectDatabaseTable({
               className={cn(
                 "min-w-[32px] min-h-[32px] flex items-center justify-center rounded-md text-xs transition-colors",
                 safePage === 0 || loading
-                  ? "text-muted-foreground/30 cursor-not-allowed"
+                  ? "text-muted-foreground cursor-not-allowed"
                   : "text-muted-foreground hover:text-primary hover:bg-surface-hover"
               )}
               aria-label="Previous page"
@@ -479,7 +479,7 @@ export default function ProjectDatabaseTable({
 
             {pageNumbers.map((p, i) =>
               p === "ellipsis-start" || p === "ellipsis-end" ? (
-                <span key={`ellipsis-${i}`} className="px-1 text-xs text-muted-foreground/40">...</span>
+                <span key={`ellipsis-${i}`} className="px-1 text-xs text-muted-foreground">...</span>
               ) : (
                 <button
                   key={p}
@@ -488,7 +488,7 @@ export default function ProjectDatabaseTable({
                   className={cn(
                     "min-w-[32px] min-h-[32px] flex items-center justify-center rounded-md text-xs font-medium transition-colors",
                     p === safePage
-                      ? "bg-bh-red-500 text-white shadow-sm"
+                      ? "bg-bh-red-action text-white shadow-sm"
                       : "text-muted-foreground hover:text-primary hover:bg-surface-hover"
                   )}
                   aria-label={`Page ${p + 1}`}
@@ -505,7 +505,7 @@ export default function ProjectDatabaseTable({
               className={cn(
                 "min-w-[32px] min-h-[32px] flex items-center justify-center rounded-md text-xs transition-colors",
                 safePage >= totalPages - 1 || loading
-                  ? "text-muted-foreground/30 cursor-not-allowed"
+                  ? "text-muted-foreground cursor-not-allowed"
                   : "text-muted-foreground hover:text-primary hover:bg-surface-hover"
               )}
               aria-label="Next page"

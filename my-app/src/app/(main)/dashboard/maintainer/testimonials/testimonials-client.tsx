@@ -94,23 +94,23 @@ function VipForm({ onDone }: { onDone: () => void }) {
         <input
           value={name} onChange={(e) => setName(e.target.value)} required minLength={2} maxLength={200}
           placeholder="Name — e.g. Sita Sharma"
-          className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-red/40"
+          className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/40"
         />
         <input
           value={title} onChange={(e) => setTitle(e.target.value)} required minLength={2} maxLength={200}
           placeholder="Title — e.g. Principal, XYZ School"
-          className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-red/40"
+          className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/40"
         />
       </div>
       <textarea
         value={quote} onChange={(e) => setQuote(e.target.value)} required minLength={10} maxLength={2000} rows={3}
         placeholder="Their words, as spoken…"
-        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-primary placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-red/40"
+        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/40"
       />
       <input
         value={source} onChange={(e) => setSource(e.target.value)} maxLength={300}
         placeholder="Source occasion (optional) — e.g. said at Butwal orientation, Mar 2026"
-        className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-red/40"
+        className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/40"
       />
       {error && <p className="text-sm text-primary-red" role="alert">{error}</p>}
       <div className="flex items-center gap-2">

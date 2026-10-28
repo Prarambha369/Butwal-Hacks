@@ -61,7 +61,7 @@ export default async function EventsPage() {
                 <>
                   <Link
                     href={`${APP_URL}/dashboard/hacker`}
-                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
                   >
                     Your Dashboard <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -76,7 +76,7 @@ export default async function EventsPage() {
                 <>
                   <Link
                     href={`${APP_URL}/auth/login?screen_hint=signup`}
-                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
                   >
                     Join an Event <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -95,7 +95,7 @@ export default async function EventsPage() {
         <div className="mt-12">
           <div className="mb-6 flex items-baseline justify-between gap-3">
             <h2 className="text-xl font-black tracking-tight text-primary">Events</h2>
-            <p className="text-xs font-mono uppercase tracking-[0.12em] text-muted-foreground/70">
+            <p className="text-xs font-mono uppercase tracking-[0.12em] text-muted-foreground">
               Upcoming &amp; past
             </p>
           </div>

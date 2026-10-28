@@ -160,7 +160,7 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
             onChange={(event) => update("title", event.target.value)}
             maxLength={160}
             placeholder="What did you build, learn, or notice?"
-            className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground/50 focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
+            className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
           />
         </label>
 
@@ -173,7 +173,7 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
             onChange={(event) => update("excerpt", event.target.value)}
             maxLength={500}
             placeholder="One sentence that appears in the blog list."
-            className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground/50 focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
+            className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
           />
         </label>
 
@@ -189,7 +189,7 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
             onChange={(event) => update("body", event.target.value)}
             rows={14}
             placeholder="Write in plain prose. Leave a blank line between paragraphs."
-            className="mt-2 w-full resize-y rounded-lg border border-border bg-background px-3 py-2.5 font-mono text-sm leading-relaxed text-primary outline-none placeholder:text-muted-foreground/50 focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
+            className="mt-2 w-full resize-y rounded-lg border border-border bg-background px-3 py-2.5 font-mono text-sm leading-relaxed text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
           />
         </label>
 
@@ -202,7 +202,7 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
               value={form.tags}
               onChange={(event) => update("tags", event.target.value)}
               placeholder="community, learning"
-              className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground/50 focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
+              className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
             />
           </label>
           <label className="block">
@@ -214,7 +214,7 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
               onChange={(event) => update("cover_image", event.target.value)}
               inputMode="url"
               placeholder="https://…"
-              className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground/50 focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
+              className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
             />
           </label>
         </div>
@@ -223,7 +223,7 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-deep-red disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-deep-red disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />

@@ -37,9 +37,9 @@ export default function PayoutsClient({ payouts }: { payouts: Payout[] }) {
 
       {payouts.length === 0 ? (
         <div className="bh-card p-12 text-center">
-          <DollarSign className="w-12 h-12 mx-auto text-secondary/40 mb-4" />
+          <DollarSign className="w-12 h-12 mx-auto text-secondary mb-4" />
           <p className="text-secondary opacity-60">No payouts yet.</p>
-          <p className="text-xs text-secondary/40 mt-2">
+          <p className="text-xs text-secondary mt-2">
             Payouts appear here when bounties are completed and processed.
           </p>
         </div>
@@ -73,7 +73,7 @@ export default function PayoutsClient({ payouts }: { payouts: Payout[] }) {
                           <span className="text-sm font-medium">
                             {payout.hacker?.full_name ?? "Unknown"}
                           </span>
-                          <span className="text-[10px] font-mono text-secondary/40">
+                          <span className="text-[10px] font-mono text-secondary">
                             {payout.hacker?.bh_id ?? payout.hacker?.email ?? ""}
                           </span>
                         </div>
@@ -94,7 +94,7 @@ export default function PayoutsClient({ payouts }: { payouts: Payout[] }) {
                           {statusCfg.label}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-secondary/60">
+                      <td className="px-6 py-4 text-xs text-secondary">
                         {new Date(payout.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -109,7 +109,7 @@ export default function PayoutsClient({ payouts }: { payouts: Payout[] }) {
                             OC
                           </a>
                         ) : (
-                          <span className="text-xs text-secondary/30">—</span>
+                          <span className="text-xs text-secondary">—</span>
                         )}
                       </td>
                     </tr>

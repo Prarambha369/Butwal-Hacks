@@ -57,7 +57,7 @@ export default async function TransparencyPage({
                   aria-selected={!showReport}
                   className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
                     !showReport
-                      ? "bg-bh-red-500 text-white"
+                      ? "bg-bh-red-action text-white"
                       : "text-muted-foreground hover:text-primary"
                   }`}
                 >
@@ -69,7 +69,7 @@ export default async function TransparencyPage({
                   aria-selected={showReport}
                   className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
                     showReport
-                      ? "bg-bh-red-500 text-white"
+                      ? "bg-bh-red-action text-white"
                       : "text-muted-foreground hover:text-primary"
                   }`}
                 >
@@ -93,7 +93,7 @@ export default async function TransparencyPage({
                     href={`/transparency?view=report&year=${y}`}
                     className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
                       y === year
-                        ? "bg-bh-red-500 text-white"
+                        ? "bg-bh-red-action text-white"
                         : "border border-border text-muted-foreground hover:border-primary-red/30 hover:text-primary"
                     }`}
                   >

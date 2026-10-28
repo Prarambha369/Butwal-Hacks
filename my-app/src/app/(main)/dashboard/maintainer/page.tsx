@@ -260,7 +260,7 @@ function ControlLink({ href, icon, label, desc, color }: { href: string; icon: R
         <p className="text-xs font-bold text-primary">{label}</p>
         <p className="text-[10px] text-muted-foreground truncate">{desc}</p>
       </div>
-      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary-red transition-all group-hover:translate-x-0.5 shrink-0" />
+      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary-red transition-all group-hover:translate-x-0.5 shrink-0" />
     </Link>
   );
 }

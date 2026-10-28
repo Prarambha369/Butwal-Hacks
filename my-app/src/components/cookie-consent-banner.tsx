@@ -120,7 +120,7 @@ export default function CookieConsentBanner() {
               <div className="flex items-center gap-2 md:gap-3 mt-3 md:mt-4">
                 <button
                   onClick={handleAccept}
-                  className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-full bg-bh-red-500 px-5 py-2.5 md:py-2 text-xs font-bold text-white hover:bg-deep-red transition-all active:scale-95 min-h-[44px]"
+                  className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-full bg-bh-red-action px-5 py-2.5 md:py-2 text-xs font-bold text-white hover:bg-deep-red transition-all active:scale-95 min-h-[44px]"
                 >
                   Accept All
                 </button>

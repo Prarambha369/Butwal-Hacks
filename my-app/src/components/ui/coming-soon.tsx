@@ -74,7 +74,7 @@ export function ComingSoon({
             </li>
           ))}
         </ul>
-        <p className="mt-6 border-t border-border pt-4 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+        <p className="mt-6 border-t border-border pt-4 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
           {status}
         </p>
       </div>
@@ -87,7 +87,7 @@ export function ComingSoon({
                 href={primary.href}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-deep-red"
+                className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-deep-red"
               >
                 {primary.label}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -95,7 +95,7 @@ export function ComingSoon({
             ) : (
               <Link
                 href={primary.href}
-                className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-deep-red"
+                className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-deep-red"
               >
                 {primary.label}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />

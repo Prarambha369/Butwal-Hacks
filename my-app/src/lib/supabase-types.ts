@@ -192,7 +192,8 @@ export interface HackerProfile {
   photos: DisplayPhoto[]
   trustMarkers?: TrustMarker[]
   id?: string
-  /** Auth0 user ID (auth0|abc...) — used for live presence matching */
+  /** Auth0 user ID (auth0|abc...) — server-side lookups only. Never serialised
+   *  to a public page; the public profile deliberately omits it. */
   auth0_user_id?: string
   /** Email address — used for Gravatar fallback on the public profile */
   email?: string

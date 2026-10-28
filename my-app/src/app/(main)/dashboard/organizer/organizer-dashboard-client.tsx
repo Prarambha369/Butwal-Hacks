@@ -95,7 +95,7 @@ function CalendarGrid({ events }: { events: EventItem[] }) {
       </div>
       <div className="grid grid-cols-7 gap-1">
         {WEEKDAYS.map((d) => (
-          <span key={d} className="text-[10px] font-mono font-bold text-muted-foreground/60 text-center uppercase tracking-wider">{d}</span>
+          <span key={d} className="text-[10px] font-mono font-bold text-muted-foreground text-center uppercase tracking-wider">{d}</span>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1">
@@ -169,7 +169,7 @@ export default function OrganizerDashboardClient({ events, notices, totalEvents,
             <div className="flex items-center gap-1 rounded-xl border border-border bg-surface p-1">
               {(["overview", "calendar", "tasks"] as const).map((v) => (
                 <button key={v} onClick={() => setView(v)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${view === v ? "bg-primary-red text-white shadow-sm" : "text-muted-foreground hover:text-primary"}`}>
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${view === v ? "bg-bh-red-action text-white shadow-sm" : "text-muted-foreground hover:text-primary"}`}>
                   {v === "overview" ? "Overview" : v === "calendar" ? "Calendar" : "Tasks"}
                 </button>
               ))}
@@ -287,7 +287,7 @@ export default function OrganizerDashboardClient({ events, notices, totalEvents,
                         <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${t.done ? "bg-status-green border-status-green" : "border-border"}`}>
                           {t.done && <CheckCircle2 className="w-3 h-3 text-white" />}
                         </div>
-                        <span className={`text-xs flex-1 ${t.done ? "line-through text-muted-foreground/50" : "text-primary"}`}>{t.text}</span>
+                        <span className={`text-xs flex-1 ${t.done ? "line-through text-muted-foreground" : "text-primary"}`}>{t.text}</span>
                       </button>
                     ))}
                   </div>
@@ -331,7 +331,7 @@ export default function OrganizerDashboardClient({ events, notices, totalEvents,
                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${t.done ? "bg-status-green border-status-green" : "border-border"}`}>
                     {t.done && <CheckCircle2 className="w-3 h-3 text-white" />}
                   </div>
-                  <span className={`text-sm flex-1 ${t.done ? "line-through text-muted-foreground/50" : "text-primary"}`}>{t.text}</span>
+                  <span className={`text-sm flex-1 ${t.done ? "line-through text-muted-foreground" : "text-primary"}`}>{t.text}</span>
                 </button>
               ))}
             </div>
@@ -372,7 +372,7 @@ function FirstEventGate() {
         {/* Primary CTA higher, larger, and not competing with the heading */}
         <Link
           href="/dashboard/organizer/events/new"
-          className="block w-full sm:w-auto mx-auto sm:mx-0 mb-6 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary-red text-white text-sm font-bold hover:bg-deep-red transition-all shadow-[--bh-glow-red-soft] hover:shadow-[--bh-glow-red] active:scale-[0.97]"
+          className="block w-full sm:w-auto mx-auto sm:mx-0 mb-6 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-bh-red-action text-white text-sm font-bold hover:bg-deep-red transition-all shadow-[--bh-glow-red-soft] hover:shadow-[--bh-glow-red] active:scale-[0.97]"
         >
           Create Your First Event
           <ArrowRight className="w-4 h-4" />

@@ -168,7 +168,7 @@ export function OnboardingSteps({
               <div className="flex items-center gap-3 mt-3">
                 <Link
                   href="/dashboard/hacker"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all"
                 >
                   Go to Dashboard <ArrowRight className="w-3 h-3" />
                 </Link>
@@ -272,7 +272,7 @@ export function OnboardingSteps({
                   className={cn(
                     "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-all",
                     isComplete && "bg-status-green/20 text-status-green",
-                    isCurrent && "bg-primary-red text-white",
+                    isCurrent && "bg-bh-red-action text-white",
                     !isComplete && !isCurrent && "bg-surface-hover text-muted-foreground border border-border"
                   )}
                 >
@@ -389,7 +389,7 @@ export function OnboardingSteps({
                       className={cn(
                         "inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full transition-all",
                         isCurrent
-                          ? "bg-primary-red text-white hover:bg-deep-red shadow-[--bh-glow-red-soft]"
+                          ? "bg-bh-red-action text-white hover:bg-deep-red shadow-[--bh-glow-red-soft]"
                           : "bg-surface-hover text-muted-foreground border border-border hover:text-primary"
                       )}
                     >
@@ -406,12 +406,12 @@ export function OnboardingSteps({
 
       {/* Footer */}
       <div className="p-4 md:p-5 border-t border-border flex items-center justify-between">
-        <p className="text-[10px] text-muted-foreground/40">
+        <p className="text-[10px] text-muted-foreground">
           {completedCount}/{totalCount} steps completed
         </p>
         <button
           onClick={handleDismiss}
-          className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          className="text-xs text-muted-foreground hover:text-muted-foreground transition-colors"
         >
           Skip for now
         </button>

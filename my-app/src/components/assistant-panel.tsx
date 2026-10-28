@@ -257,7 +257,7 @@ export default function AssistantPanel({
           // on md+ the tab bar is gone and the button returns to the corner.
           "fixed bottom-24 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 md:bottom-6 md:right-6",
           isOpen
-            ? "scale-90 bg-bh-red-500 text-white ring-2 ring-bh-red-500/40"
+            ? "scale-90 bg-bh-red-action text-white ring-2 ring-bh-red-500/40"
             : "bg-surface border border-border text-primary hover:scale-110 hover:border-primary-red/50 outline-none focus-visible:ring-2 focus-visible:ring-bh-red-500/50 focus-visible:ring-offset-2"
         )}
       >
@@ -342,7 +342,7 @@ export default function AssistantPanel({
                       "max-w-[80%] px-3.5 py-2.5 rounded-lg text-sm leading-relaxed",
                       msg.role === "assistant"
                         ? "bg-surface-hover border border-border text-primary rounded-bl-md"
-                        : "bg-bh-red-500 text-white rounded-br-md"
+                        : "bg-bh-red-action text-white rounded-br-md"
                     )}>
                       {msg.role === "assistant" ? (
                         <AssistantReply content={msg.content} />
@@ -369,7 +369,7 @@ export default function AssistantPanel({
                           )} />
                         ))}
                       </div>
-                      <p className="text-[10px] text-muted-foreground/50 font-mono tracking-wider">Thinking...</p>
+                      <p className="text-[10px] text-muted-foreground font-mono tracking-wider">Thinking...</p>
                     </div>
                   </div>
                 )}
@@ -382,7 +382,7 @@ export default function AssistantPanel({
                   <div className="flex justify-center mb-2">
                     <Ballu emotion="waving" size={48} />
                   </div>
-                  <p className="text-[10px] font-mono text-muted-foreground/50 mb-2">
+                  <p className="text-[10px] font-mono text-muted-foreground mb-2">
                     Suggested questions
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -411,19 +411,19 @@ export default function AssistantPanel({
                     onKeyDown={handleChatKeyDown}
                     placeholder="Ask MrBallu..."
                     aria-label="Chat message"
-                    className="flex-1 bg-transparent text-sm text-primary placeholder:text-muted-foreground/40 outline-none"
+                    className="flex-1 bg-transparent text-sm text-primary placeholder:text-muted-foreground outline-none"
                     disabled={chatLoading}
                   />
                   <button
                     onClick={() => handleChatSubmit(chatInput)}
                     disabled={!chatInput.trim() || chatLoading}
                     aria-label="Send message"
-                    className="min-w-[44px] min-h-[44px] p-1.5 rounded-lg bg-bh-red-500 text-white hover:bg-deep-red transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+                    className="min-w-[44px] min-h-[44px] p-1.5 rounded-lg bg-bh-red-action text-white hover:bg-deep-red transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-[9px] text-muted-foreground/30 text-center mt-1.5">Powered by Groq Llama 3.3</p>
+                <p className="text-[9px] text-muted-foreground text-center mt-1.5">Powered by Groq Llama 3.3</p>
               </div>
             </>
           )}
@@ -453,11 +453,11 @@ export default function AssistantPanel({
                       placeholder="Send a message to the team..."
                       rows={6}
                       maxLength={2000}
-                      className="flex-1 w-full rounded-lg bg-background/50 border border-border px-4 py-3 text-sm text-primary placeholder:text-muted-foreground/40 focus:border-bh-red-500/50 focus:outline-none resize-none transition-all"
+                      className="flex-1 w-full rounded-lg bg-background/50 border border-border px-4 py-3 text-sm text-primary placeholder:text-muted-foreground focus:border-bh-red-500/50 focus:outline-none resize-none transition-all"
                     />
                     <span className={cn(
                       "absolute bottom-2 right-3 text-[10px] transition-colors",
-                      msgCharCount > 1800 ? "text-status-orange" : "text-muted-foreground/40"
+                      msgCharCount > 1800 ? "text-status-orange" : "text-muted-foreground"
                     )}>{msgCharCount}/2000</span>
                   </div>
 
@@ -465,7 +465,7 @@ export default function AssistantPanel({
                   <button
                     type="submit"
                     disabled={msgSubmitting || msgText.trim().length < 3}
-                    className="w-full rounded-full px-6 py-2.5 text-sm font-bold text-white bg-bh-red-500 hover:bg-deep-red transition-all disabled:opacity-40"
+                    className="w-full rounded-full px-6 py-2.5 text-sm font-bold text-white bg-bh-red-action hover:bg-deep-red transition-all disabled:opacity-40"
                   >
                     {msgSubmitting ? (
                       <span className="flex items-center justify-center gap-2">
@@ -475,7 +475,7 @@ export default function AssistantPanel({
                     ) : "Send Message"}
                   </button>
 
-                  <p className="text-[10px] text-muted-foreground/40 text-center">
+                  <p className="text-[10px] text-muted-foreground text-center">
                     {user?.name ? `Sent as ${user.name}` : "You can send messages without an account"}
                   </p>
                 </form>

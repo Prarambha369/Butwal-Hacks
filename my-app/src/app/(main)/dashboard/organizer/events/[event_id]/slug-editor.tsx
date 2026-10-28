@@ -95,7 +95,7 @@ export function EventSlugEditor({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex-1 rounded-lg bg-primary-red px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+              className="flex-1 rounded-lg bg-bh-red-action px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
             >
               {saving ? "Saving…" : "Yes, change it"}
             </button>
@@ -112,7 +112,7 @@ export function EventSlugEditor({
         <button
           onClick={() => setConfirming(true)}
           disabled={!slug}
-          className="w-full rounded-lg bg-primary-red px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+          className="w-full rounded-lg bg-bh-red-action px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
         >
           Change URL
         </button>

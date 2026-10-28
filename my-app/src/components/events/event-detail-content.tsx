@@ -281,7 +281,7 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
             {isPast && (
               <Link
                 href={`/events/${event.slug}/projects`}
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-bh-red-600 hover:bg-primary-red text-white font-bold text-sm transition-all group"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-bh-red-600 hover:bg-bh-red-action text-white font-bold text-sm transition-all group"
               >
                 <Code2 className="w-5 h-5" />
                 View Projects

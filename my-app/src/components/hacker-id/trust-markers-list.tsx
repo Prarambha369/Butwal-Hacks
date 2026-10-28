@@ -37,7 +37,7 @@ export default function TrustMarkersList({ markers }: TrustMarkersListProps) {
         <h3 className="text-xs font-black uppercase tracking-widest text-primary opacity-40">
           Trust Markers
         </h3>
-        <span className="text-[10px] font-mono text-muted-foreground opacity-60">
+        <span className="text-[10px] font-mono text-muted-foreground">
           {active.length} Verified
         </span>
       </div>
