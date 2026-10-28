@@ -63,18 +63,14 @@ export default async function ExplorePage() {
         />
 
         {/* ── MEMBER DIRECTORY ────────────────────────────────────── */}
-        <section className="py-16 md:py-20" aria-label="Member Directory">
+        <section className="py-12 md:py-16" aria-label="Member Directory">
           <div className="mx-auto max-w-6xl px-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Users className="w-4 h-4 text-primary-red" />
-                  <h2 className="text-sm font-bold text-primary">Community</h2>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {stats.total} people building the future of tech in Lumbini Province.
-                </p>
-              </div>
+            <div className="mb-6 flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary-red" aria-hidden="true" />
+              <h2 className="text-sm font-bold text-primary">
+                {stats.total === 1 ? "1 member" : `${stats.total} members`}
+              </h2>
+              <span className="text-sm text-muted-foreground">in the public directory</span>
             </div>
 
             {/* Client-Side Interactive Explorer */}

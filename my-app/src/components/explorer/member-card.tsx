@@ -34,7 +34,10 @@ export function MemberCard({
     <Link
       href={`/p/${member.bhId}`}
       className={cn(
-        "bh-card border p-5 transition-all duration-300 group relative overflow-hidden",
+        // `block` matters: the first result is wrapped in a spanning <div>, so
+        // this anchor stops being a grid item and would otherwise fall back to
+        // inline layout (no card surface, no width, ring only on one edge).
+        "bh-card block h-full border p-5 transition-all duration-300 group relative overflow-hidden",
         "hover:shadow-md hover:-translate-y-1",
         isHighlighted ? "ring-2 ring-primary-red/30" : "border-border",
       )}
