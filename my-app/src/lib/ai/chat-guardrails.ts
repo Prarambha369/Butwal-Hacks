@@ -56,7 +56,6 @@ const INJECTION_PATTERNS: readonly string[] = [
   "pretend you have no",
   "override your",
   "bypass your",
-  "your safety",
   "hidden instructions",
 ];
 
@@ -156,15 +155,24 @@ export function screenUserMessage(raw: string): GuardrailVerdict {
  * Neutralise any instruction-like content that rode in on a retrieved chunk.
  *
  * Our knowledge base is curated, but it is still text that gets inlined into the
- * system prompt. Wrapping each chunk and stripping common "assistant/system"
- * role markers means a poisoned doc cannot reassign its own role or hand the
- * model new instructions by echoing our own prompt grammar back at it.
+ * system prompt. Stripping our own `<context>` wrappers and defusing common
+ * "system:/developer:/assistant:" role markers means a poisoned doc cannot
+ * close the block early or hand the model new instructions by echoing our own
+ * prompt grammar back at it.
+ *
+ * Deliberately does NOT rewrite ordinary prose: a policy chunk may legitimately
+ * say "you are responsible for...", and mangling that changes the meaning of
+ * text we are trying to answer from. This is a bounded passthrough, not a
+ * paraphrase. It is for retrieved context only — conversation history is passed
+ * through as its own role-tagged message and must not be altered.
  */
+const MAX_CONTEXT_CHUNK_CHARS = 4000;
+
 export function sanitizeContextChunk(chunk: string): string {
-  const bounded = chunk.slice(0, 1200);
-  return bounded
-    .replace(/\b(system|developer|assistant)\s*[:\n]/gi, "$1:\n")
-    .replace(/you\s+are\s+(now\s+)?/gi, "the org is ")
+  return (chunk ?? "")
+    .slice(0, MAX_CONTEXT_CHUNK_CHARS)
+    .replace(/<\/?context>/gi, "")
+    .replace(/\b(system|developer|assistant)\s*:/gi, "$1 -")
     .trim();
 }
 

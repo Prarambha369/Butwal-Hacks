@@ -1,5 +1,10 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { isRagEnabled, searchContent, RAG_DISABLED_MESSAGE } from "@/lib/ai/embeddings";
+import {
+  EMBEDDING_DIMENSIONS,
+  GEMINI_EMBEDDING_MODEL,
+  embedText,
+} from "@/lib/ai/gemini-embeddings";
 
 // Gemini-backed mode: retrieval is on iff a Gemini key is present.
 // Without one, every entry point fails fast with a clear message rather than
@@ -18,6 +23,7 @@ afterEach(() => {
     }
   }
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 function clearKeys() {
@@ -52,5 +58,31 @@ describe("searchContent", () => {
     await expect(searchContent("tell me about Butwal Hacks")).rejects.toThrow(
       RAG_DISABLED_MESSAGE
     );
+  });
+});
+
+describe("embedText", () => {
+  // `embedContent` returns `{ embedding: { values } }`. Reading
+  // `embeddings[0].values` (the `batchEmbedContents` shape) yielded zero
+  // dimensions and broke every retrieval, so this pins the single-item shape.
+  const values = Array.from({ length: EMBEDDING_DIMENSIONS }, (_, i) => i / EMBEDDING_DIMENSIONS);
+
+  it("reads the single embedding.values shape and returns the vector", async () => {
+    clearKeys();
+    process.env.GEMINI_API_KEY = "test-key";
+    const fetchMock = vi.fn(async (_url: unknown) => ({
+      ok: true,
+      json: async () => ({ embedding: { values } }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(embedText("hello")).resolves.toEqual(values);
+    expect(String(fetchMock.mock.calls[0][0])).toContain(
+      `${GEMINI_EMBEDDING_MODEL}:embedContent`,
+    );
+  });
+
+  it("uses the current Gemini embedding model, not the shut-down one", () => {
+    expect(GEMINI_EMBEDDING_MODEL).toBe("models/gemini-embedding-001");
   });
 });

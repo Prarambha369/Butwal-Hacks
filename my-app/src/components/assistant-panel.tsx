@@ -38,7 +38,7 @@ interface Message {
  *  - Blocks are styled to the compact bubble scale via a wrapper class.
  */
 function AssistantReply({ content }: { content: string }) {
-  const promoted = content.replace(/^(#{1,2})\s/g, "### ");
+  const promoted = content.replace(/^#{1,2}[ \t]/gm, "### ");
   const { blocks } = parsePolicyMarkdown(promoted);
 
   // A single plain paragraph renders bare so tight one-liners don't get

@@ -6,9 +6,14 @@
  * no card required, which is why it was chosen over HuggingFace (which now
  * bills inference) or a self-hosted model (too heavy for the deploy target).
  *
- * Model note: Gemini text-embedding models emit 768-dim vectors, not the
- * 384 the original MiniLM-era schema assumed. The knowledge base is built at
- * 768 to match — see the migration that creates `knowledge_embeddings`.
+ * Model note: Gemini embedding models emit 768-dim vectors, not the 384 the
+ * original MiniLM-era schema assumed. The knowledge base is built at 768 to
+ * match — see the migration that creates `knowledge_embeddings`.
+ *
+ * `models/gemini-embedding-001` superseded `models/text-embedding-004`, which
+ * Google shut down on 2026-01-14. The request shape is unchanged, but a single
+ * `embedContent` call returns one `embedding` object (not an `embeddings`
+ * array — that is `batchEmbedContents`), and the vector lives in `.values`.
  *
  * Everything here fails loudly rather than returning empty vectors: a silent
  * zero-vector would make every similarity search meaningless (a zero vector has
@@ -18,13 +23,20 @@
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 /** Single source of truth — import instead of hardcoding, so a model swap is one line. */
-export const GEMINI_EMBEDDING_MODEL = "models/text-embedding-004";
+export const GEMINI_EMBEDDING_MODEL = "models/gemini-embedding-001";
 
 /** Output dimensionality. Must match `knowledge_embeddings.embedding VECTOR(768)`. */
 export const EMBEDDING_DIMENSIONS = 768;
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 400;
+
+/**
+ * Per-attempt ceiling. The chat route blocks on this call, so a hung socket
+ * must not be able to hold the request open; the caller's signal (if any) is
+ * combined with the timeout rather than replaced.
+ */
+const REQUEST_TIMEOUT_MS = 8_000;
 
 /**
  * Reads the Gemini key from the environment.
@@ -50,7 +62,8 @@ function backoffMs(attempt: number): number {
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 interface GeminiEmbeddingResponse {
-  embeddings?: { values: number[] }[];
+  /** `embedContent` returns a single embedding; `batchEmbedContents` returns an array. */
+  embedding?: { values: number[] };
   error?: { message?: string };
 }
 
@@ -70,6 +83,11 @@ export async function embedText(text: string, signal?: AbortSignal): Promise<num
   for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
     if (signal?.aborted) throw new Error("Embedding aborted");
 
+    // Combine the caller's cancellation with a hard per-attempt timeout so
+    // neither a caller abort nor a stalled socket can pin the request open.
+    const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+    const requestSignal = signal ? AbortSignal.any([signal, timeout]) : timeout;
+
     try {
       const res = await fetch(`${GEMINI_BASE}/${GEMINI_EMBEDDING_MODEL}:embedContent`, {
         method: "POST",
@@ -82,7 +100,7 @@ export async function embedText(text: string, signal?: AbortSignal): Promise<num
           content: { parts: [{ text: trimmed }] },
           outputDimensionality: EMBEDDING_DIMENSIONS,
         }),
-        signal,
+        signal: requestSignal,
       });
 
       if (!res.ok) {
@@ -97,7 +115,7 @@ export async function embedText(text: string, signal?: AbortSignal): Promise<num
       }
 
       const json = (await res.json()) as GeminiEmbeddingResponse;
-      const values = json.embeddings?.[0]?.values;
+      const values = json.embedding?.values;
       if (!Array.isArray(values) || values.length !== EMBEDDING_DIMENSIONS) {
         throw new Error(
           `Gemini returned ${values?.length ?? 0} dims, expected ${EMBEDDING_DIMENSIONS}`,

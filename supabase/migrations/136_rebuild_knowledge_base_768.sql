@@ -2,7 +2,7 @@
 --
 -- Why a fresh table rather than reusing the one from migration 096:
 --   096 declared VECTOR(384) for the old MiniLM embedding model. The stack now
---   embeds with Gemini text-embedding-004, which emits 768-dim vectors. That
+--   embeds with Gemini gemini-embedding-001, which emits 768-dim vectors. That
 --   table was never applied to this project, so rather than carry a dimension
 --   mismatch forward we create the knowledge base at 768 from the start.
 --
@@ -15,7 +15,12 @@
 --
 -- Applied by CI (`supabase db push`), not locally.
 
-create extension if not exists vector;
+-- Migration 117 moved pgvector into the `extensions` schema (Supabase's
+-- recommended layout), so the vector type and its operators need that schema
+-- on the path here too.
+set search_path = public, extensions;
+
+create extension if not exists vector with schema extensions;
 
 create table if not exists public.knowledge_embeddings (
   id uuid primary key default gen_random_uuid(),
@@ -61,7 +66,7 @@ returns table (
 )
 language sql
 stable
-set search_path = public
+set search_path = public, extensions
 as $$
   select
     ke.id,
@@ -82,6 +87,6 @@ alter table public.knowledge_embeddings enable row level security;
 revoke all on table public.knowledge_embeddings from anon, authenticated;
 
 comment on table public.knowledge_embeddings is
-  'Curated public knowledge base for MrBallu (RAG). Seeded by scripts/seed-knowledge-base.ts. Contains only public content — never private or personal data.';
+  'Curated public knowledge base for MrBallu (RAG). Seeded by scripts/seed-knowledge-base.mjs. Contains only public content — never private or personal data.';
 comment on function public.match_knowledge is
   'Cosine similarity search over the knowledge base. Returns chunks above match_threshold, nearest first. Intended for the server-side chat route only.';

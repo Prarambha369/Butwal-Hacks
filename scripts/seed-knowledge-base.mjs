@@ -19,7 +19,7 @@
  * Gemini quota (the free tier is metered). `--prune` removes rows whose source
  * no longer produces that chunk.
  *
- * Embeddings come from Gemini text-embedding-004 (768-dim). Groq has no
+ * Embeddings come from Gemini gemini-embedding-001 (768-dim). Groq has no
  * embedding endpoint, which is why the stack needed a second provider. Set
  * GOOGLE_API_KEY or GEMINI_API_KEY before running.
  *
@@ -37,7 +37,7 @@ const REPO_ROOT = resolve(SCRIPT_DIR, "..");
 const POLICIES_DIR = join(REPO_ROOT, "policies");
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
-const GEMINI_MODEL = "models/text-embedding-004";
+const GEMINI_MODEL = "models/gemini-embedding-001";
 const EMBEDDING_DIMS = 768;
 
 // Above this many characters a doc gets split; below it the whole doc is one
@@ -307,7 +307,9 @@ async function embed(text) {
     throw new Error(`Gemini ${res.status}: ${body}`);
   }
   const json = await res.json();
-  const values = json.embeddings?.[0]?.values;
+  // `embedContent` returns a single embedding object; `batchEmbedContents`
+  // (which we do not use) is the one that returns an `embeddings` array.
+  const values = json.embedding?.values;
   if (!Array.isArray(values) || values.length !== EMBEDDING_DIMS) {
     throw new Error(`Gemini returned ${values?.length ?? 0} dims, expected ${EMBEDDING_DIMS}`);
   }

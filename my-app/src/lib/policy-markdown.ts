@@ -197,3 +197,38 @@ export function rewriteLinks(text: string, resolveHref: (href: string) => string
     return `[${label}](${resolveHref(href)})`;
   });
 }
+
+/** How a rendered markdown link target should be treated. */
+export type LinkTarget =
+  | { kind: "internal"; href: string }
+  | { kind: "anchor"; href: string }
+  | { kind: "external"; href: string }
+  | { kind: "unsafe" };
+
+/**
+ * Decide whether a link target is safe to turn into an `href`.
+ *
+ * Policy documents are trusted, but the same renderer draws MrBallu's replies,
+ * which are model output. Allowing `javascript:`, `data:`, or any other scheme
+ * through would let a crafted answer execute or exfiltrate, so the allowlist is
+ * explicit: site routes (`/` only, never protocol-relative `//`), in-page
+ * anchors (`#`), and the two web schemes plus `mailto:`. Everything else is
+ * reported as `unsafe` and the renderer falls back to showing just the label.
+ */
+export function classifyHref(href: string): LinkTarget {
+  const target = href.trim();
+  if (!target) return { kind: "unsafe" };
+
+  // `//host/path` is protocol-relative and points off-site, so it must not be
+  // mistaken for an internal route.
+  if (target.startsWith("/") && !target.startsWith("//")) {
+    return { kind: "internal", href: target };
+  }
+  if (target.startsWith("#")) {
+    return { kind: "anchor", href: target };
+  }
+  if (/^(?:https?:|mailto:)/i.test(target)) {
+    return { kind: "external", href: target };
+  }
+  return { kind: "unsafe" };
+}

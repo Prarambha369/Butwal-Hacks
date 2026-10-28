@@ -54,7 +54,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       ? history
           .slice(-MAX_HISTORY)
           .filter((m) => m && typeof m === "object" && ["user", "assistant"].includes(m.role) && typeof m.content === "string")
-          .map((m) => ({ role: m.role as "user" | "assistant", content: sanitizeContextChunk(m.content.slice(0, MAX_MSG_LEN)) }))
+          .map((m) => ({ role: m.role as "user" | "assistant", content: m.content.slice(0, MAX_MSG_LEN) }))
       : [];
 
     // ── Retrieve relevant context via vector search ───────────
@@ -62,13 +62,18 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     // comes from this retrieval, so the knowledge base is the single source of
     // truth and the prompt cannot drift from it.
     let contextChunks: string[] = [];
-    if (isRagEnabled()) {
+    let retrievalFailed = false;
+    const ragEnabled = isRagEnabled();
+    if (ragEnabled) {
       try {
         const matches = await searchContent(screened.message, { limit: 4, threshold: 0.35 });
-        contextChunks = matches.map((m) => m.content);
+        // Retrieved text is inlined into the system prompt, so neutralize our
+        // own <context> wrappers and role markers before it gets there.
+        contextChunks = matches.map((m) => sanitizeContextChunk(m.content));
       } catch (searchErr) {
         // Retrieval down. Answer from the minimal identity block only and say
         // so, rather than inventing facts we cannot verify.
+        retrievalFailed = true;
         logger.warn("[bh-bot] Vector search failed, answering without context", {
           error: searchErr instanceof Error ? searchErr.message : String(searchErr),
         });
@@ -124,17 +129,30 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     // so this bounds prompt size regardless of what the client sent.
     messages.push({ role: "user", content: screened.message });
 
-    // ── No retrieval, no answer ───────────────────────────────
+    // ── No context, no answer ────────────────────────────────
     // With facts stripped from the prompt, calling the model with an empty
     // context guarantees a hallucination. Refuse deterministically instead —
     // cheaper, and it cannot invent an event that does not exist.
-    if (!isRagEnabled() || contextChunks.length === 0) {
-      logger.warn("[bh-bot] No context retrieved — refusing deterministically", {
-        rag_enabled: isRagEnabled(),
+    //
+    // Two distinct cases, because they mean different things to the user:
+    // the knowledge base being unavailable (no key, or retrieval threw) is an
+    // outage; a successful search that matched nothing is simply "not covered".
+    if (!ragEnabled || retrievalFailed) {
+      logger.warn("[bh-bot] Knowledge base unavailable — refusing deterministically", {
+        rag_enabled: ragEnabled,
+        retrieval_failed: retrievalFailed,
       });
       return NextResponse.json({
         reply:
           "I don't have that information right now — my knowledge base isn't available, so I'd only be guessing. Please check butwalhacks.com or ask again later.",
+      });
+    }
+
+    if (contextChunks.length === 0) {
+      logger.info("[bh-bot] No matching context — refusing deterministically");
+      return NextResponse.json({
+        reply:
+          "I couldn't find anything about that in what I know about Butwal Hacks. Try asking about our events, chapters, programs, or how to get involved — or check butwalhacks.com.",
       });
     }
 
@@ -161,7 +179,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       context_chunks: contextChunks.length,
       history_depth: history?.length ?? 0,
       model: result.model,
-      rag_enabled: isRagEnabled(),
+      rag_enabled: ragEnabled,
     });
 
     return NextResponse.json({ reply: result.content });
