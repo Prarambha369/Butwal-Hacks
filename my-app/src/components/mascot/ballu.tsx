@@ -60,7 +60,7 @@ export const BALLU_POSES: Record<BalluEmotion, string> = {
   "think-loading": "/mascot/think-loading-v2.png",
   "error-calm": "/mascot/error-calm-v2.png",
   success: "/mascot/success-v2.png",
-  flag: "/mascot/flag-v2.png",
+  flag: "/mascot/flag-v3.png",
   "ai-logo": "/mascot/ai-logo.png",
   waving: "/mascot/waving.png",
   pointing: "/mascot/pointing-right.png",

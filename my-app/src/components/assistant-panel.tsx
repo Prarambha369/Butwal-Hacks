@@ -253,13 +253,15 @@ export default function AssistantPanel({
         aria-label={isOpen ? "Close assistant" : "Open assistant"}
         aria-expanded={isOpen}
         className={cn(
-          "fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300",
+          // Sits above the mobile tab bar (bottom-0, ~64px tall + safe area);
+          // on md+ the tab bar is gone and the button returns to the corner.
+          "fixed bottom-24 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 md:bottom-6 md:right-6",
           isOpen
             ? "scale-90 bg-bh-red-500 text-white ring-2 ring-bh-red-500/40"
             : "bg-surface border border-border text-primary hover:scale-110 hover:border-primary-red/50 outline-none focus-visible:ring-2 focus-visible:ring-bh-red-500/50 focus-visible:ring-offset-2"
         )}
       >
-        {isOpen ? <X size={22} /> : <Ballu emotion="ai-logo" size={28} priority popOnHover />}
+        {isOpen ? <X size={22} /> : <Ballu emotion="ai-logo" size={36} priority popOnHover />}
       </button>
 
       {/* Backdrop */}
@@ -281,7 +283,7 @@ export default function AssistantPanel({
         aria-modal="true"
         aria-label="Assistant panel"
         className={cn(
-          "fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-2rem)]",
+          "fixed bottom-44 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)] md:bottom-24 md:right-6",
           reducedMotion
             ? cn(isOpen ? "opacity-100" : "opacity-0 pointer-events-none")
             : cn("transition-all duration-300",
@@ -334,7 +336,7 @@ export default function AssistantPanel({
                       "w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
                       msg.role === "assistant" ? "bg-primary-red/10 text-primary-red" : "bg-surface-hover text-muted-foreground"
                     )}>
-                      {msg.role === "assistant" ? <Ballu emotion={msg.mood ?? "calm-neutral"} size={20} /> : <MessageSquare className="w-3.5 h-3.5" />}
+                      {msg.role === "assistant" ? <Ballu emotion={msg.mood ?? "ai-logo"} size={20} /> : <MessageSquare className="w-3.5 h-3.5" />}
                     </div>
                     <div className={cn(
                       "max-w-[80%] px-3.5 py-2.5 rounded-lg text-sm leading-relaxed",

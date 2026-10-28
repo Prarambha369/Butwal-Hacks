@@ -114,15 +114,14 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Brand Mark */}
-        <div className="text-center py-12 border-t border-border">
-          <div className="flex items-center justify-center gap-4">
-            <Ballu emotion="flag" size={72} />
-            <span className="font-black text-4xl md:text-6xl tracking-tighter text-primary">
-              Butwal<span className="text-primary-red">Hacks</span>
-            </span>
-          </div>
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.3em] text-primary-red mt-3">
+        {/* Brand Mark — mascot sits above the wordmark so the two marks are
+            never fighting for the same optical baseline. */}
+        <div className="flex flex-col items-center gap-2 border-t border-border py-12 text-center">
+          <Ballu emotion="flag" size={96} className="mb-1" />
+          <span className="font-black text-4xl md:text-6xl tracking-tighter text-primary">
+            Butwal<span className="text-primary-red">Hacks</span>
+          </span>
+          <p className="mt-2 font-mono text-[10px] font-semibold uppercase tracking-[0.3em] text-primary-red">
             {t('footer.ignite_unite_lead', locale)}
           </p>
         </div>
