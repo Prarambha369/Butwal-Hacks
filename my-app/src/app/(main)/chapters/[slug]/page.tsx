@@ -2,8 +2,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { MapPin, Users, Calendar, ArrowLeft, MessageSquare, ExternalLink, GraduationCap, User } from "lucide-react"
 
-import { chapters, blogPosts, getRelatedByTags, type Chapter } from "@/lib/content"
-import { getChapterBySlug } from "@/lib/actions/chapters"
+import { getActiveChapters, getChapterBySlug } from "@/lib/actions/chapters"
 import { buildPageMetadata } from "@/lib/seo"
 import Breadcrumbs from "@/components/breadcrumbs"
 import RelatedLinks from "@/components/home/related-links"
@@ -14,35 +13,9 @@ type Props = {
 
 export const revalidate = 300;
 
-/** DB row → content shape (DB-first, static fallback inside the action). */
-async function loadChapter(slug: string): Promise<Chapter | null> {
-  const row = await getChapterBySlug(slug);
-  if (!row) return chapters.find((c) => c.slug === slug) ?? null;
-  return {
-    slug: row.slug,
-    name: row.name,
-    tags: [],
-    school: row.school,
-    leadName: row.lead_name,
-    city: row.city,
-    district: row.district,
-    province: "Lumbini Province",
-    status: row.status,
-    established: row.established,
-    memberCount: row.member_count,
-    description: row.description,
-    highlights: row.highlights,
-    socialLinks: { whatsapp: row.whatsapp ?? "" },
-  };
-}
-
-export function generateStaticParams() {
-  return chapters.map((chapter) => ({ slug: chapter.slug }))
-}
-
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params
-  const chapter = await loadChapter(slug)
+  const chapter = await getChapterBySlug(slug)
 
   // The public chapter directory is a coming-soon page, so these legacy
   // detail pages stay reachable for old links but must not be indexed.
@@ -71,11 +44,23 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function ChapterDetailPage({ params }: Props) {
   const { slug } = await params
-  const chapter = await loadChapter(slug)
+  const chapter = await getChapterBySlug(slug)
 
   if (!chapter) {
     notFound()
   }
+
+  const otherChapters = (await getActiveChapters())
+    .filter((c) => c.slug !== chapter.slug)
+    .slice(0, 2)
+    .map((c) => ({
+      title: c.name,
+      description: c.school || c.city,
+      href: `/chapters/${c.slug}`,
+      meta: c.established ? `Est. ${c.established}` : undefined,
+    }))
+
+  const location = [chapter.city, chapter.district].filter(Boolean).join(", ")
 
   return (
     <main className="min-h-dvh bg-background">
@@ -107,9 +92,11 @@ export default async function ChapterDetailPage({ params }: Props) {
               }`} />
               {chapter.status === "active" ? "Active" : chapter.status === "forming" ? "Forming" : "Inactive"}
             </span>
-            <span className="text-[10px] font-medium text-muted-foreground/50">
-              Est. {chapter.established}
-            </span>
+            {chapter.established && (
+              <span className="text-[10px] font-medium text-muted-foreground">
+                Est. {chapter.established}
+              </span>
+            )}
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-primary">
@@ -118,61 +105,73 @@ export default async function ChapterDetailPage({ params }: Props) {
 
           {/* School + Location */}
           <div className="space-y-3">
-            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <GraduationCap className="w-3.5 h-3.5 text-primary-red" />
-              {chapter.school}
-            </p>
-            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <MapPin className="w-3.5 h-3.5" />
-              {chapter.city}, {chapter.district} — {chapter.province}
-            </p>
+            {chapter.school && (
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <GraduationCap className="w-3.5 h-3.5 text-primary-red" />
+                {chapter.school}
+              </p>
+            )}
+            {location && (
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="w-3.5 h-3.5" />
+                {location}
+              </p>
+            )}
           </div>
 
-          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-            {chapter.description}
-          </p>
+          {chapter.description && (
+            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+              {chapter.description}
+            </p>
+          )}
 
           {/* Stats + Lead */}
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-primary-red" />
-              <span className="text-sm font-bold text-primary">{chapter.memberCount}</span>
+              <span className="text-sm font-bold text-primary">{chapter.member_count}</span>
               <span className="text-xs text-muted-foreground">members</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary-red" />
-              <span className="text-xs text-muted-foreground/50">Est. {chapter.established}</span>
-            </div>
-            <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1">
-              <User className="w-3 h-3 text-primary-red" />
-              <span className="text-xs font-medium text-muted-foreground">
-                Lead: <span className="text-primary font-semibold">{chapter.leadName}</span>
-              </span>
-            </div>
+            {chapter.established && (
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-primary-red" />
+                <span className="text-xs text-muted-foreground">Est. {chapter.established}</span>
+              </div>
+            )}
+            {chapter.lead_name && (
+              <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1">
+                <User className="w-3 h-3 text-primary-red" />
+                <span className="text-xs font-medium text-muted-foreground">
+                  Lead: <span className="text-primary font-semibold">{chapter.lead_name}</span>
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Highlights */}
-        <div className="mt-12 pt-10 border-t border-border">
-          <h2 className="text-xl font-bold text-primary mb-5">Highlights</h2>
-          <ul className="space-y-3">
-            {chapter.highlights.map((h, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-status-green shrink-0" />
-                {h}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {chapter.highlights.length > 0 && (
+          <div className="mt-12 pt-10 border-t border-border">
+            <h2 className="text-xl font-bold text-primary mb-5">Highlights</h2>
+            <ul className="space-y-3">
+              {chapter.highlights.map((h, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-status-green shrink-0" />
+                  {h}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* WhatsApp CTA */}
-        {chapter.socialLinks?.whatsapp && (
+        {chapter.whatsapp && (
           <div className="mt-8">
             <a
-              href={chapter.socialLinks.whatsapp}
+              href={chapter.whatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-primary-red px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+              className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               Join {chapter.name} on WhatsApp <ExternalLink className="w-3 h-3" />
@@ -180,25 +179,8 @@ export default async function ChapterDetailPage({ params }: Props) {
           </div>
         )}
 
-        {/* Continue Reading: blog posts + other school chapters, matched by tags */}
-        <RelatedLinks
-          title="Other School Chapters"
-          links={[
-            ...getRelatedByTags(blogPosts, chapter.tags).map((p) => ({
-              title: p.title,
-              description: p.excerpt,
-              href: `/blog/${p.slug}`,
-              image: p.cover_image,
-              meta: p.publishedAt,
-            })),
-            ...getRelatedByTags(chapters, chapter.tags, { excludeSlug: chapter.slug, max: 2 }).map((c) => ({
-              title: c.name,
-              description: c.school,
-              href: `/chapters/${c.slug}`,
-              meta: `${c.memberCount} members`,
-            })),
-          ]}
-        />
+        {/* Other chapters, read from the same table */}
+        <RelatedLinks title="Other School Chapters" links={otherChapters} />
       </section>
     </main>
   )
