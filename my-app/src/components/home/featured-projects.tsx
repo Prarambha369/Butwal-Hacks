@@ -20,7 +20,7 @@ export default function FeaturedProjects({ projects }: { projects: FeaturedProje
         <div className="mx-auto max-w-6xl px-4">
           <div className="text-center space-y-4">
             <div className="bh-wiggle-hover mx-auto flex h-24 w-24 items-center justify-center cursor-default">
-              <Ballu emotion="calm-neutral" size={96} />
+              <Ballu emotion="sitting" size={96} />
             </div>
             <p className="text-sm text-muted-foreground font-mono opacity-60">
               Nothing featured yet. Your half-broken demo could live here.

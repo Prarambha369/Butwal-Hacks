@@ -18,7 +18,7 @@ export default function MainNotFound() {
         </p>
 
         <div className="space-y-2 -mt-6">
-          <Ballu emotion="thinking-puzzled" size={120} />
+          <Ballu emotion="question" size={120} />
           <h1 className="text-2xl font-bold text-primary">
             Page not found
           </h1>

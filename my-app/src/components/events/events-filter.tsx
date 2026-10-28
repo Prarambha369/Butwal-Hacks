@@ -91,7 +91,7 @@ export default function EventsFilter({ events }: { events: EventItem[] }) {
       ) : (
         <div className="bh-card p-16 text-center space-y-4">
           <div className="flex justify-center">
-            <Ballu emotion="calm-neutral" size={64} />
+            <Ballu emotion="question" size={64} />
           </div>
           <p className="text-xl font-bold text-primary">No {filter} events</p>
           <p className="text-muted-foreground max-w-md mx-auto">

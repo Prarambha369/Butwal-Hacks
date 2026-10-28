@@ -92,7 +92,7 @@ function WelcomeSection() {
   return (
     <div className="text-center space-y-6 mb-10">
       <div className="inline-flex p-3 rounded-xl bg-primary-red/10">
-        <Ballu emotion="welcome" size={64} />
+        <Ballu emotion="waving" size={64} />
       </div>
 
       <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">

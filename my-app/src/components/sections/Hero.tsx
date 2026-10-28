@@ -109,7 +109,7 @@ export default function Hero() {
               Positioned inside the same `hidden lg:block` absolute layer so
               mobile renders nothing and the fixed-px wrapper keeps CLS at zero. */}
           <Ballu
-            emotion="happy-excited"
+            emotion="arms-up"
             size={128}
             priority
             float

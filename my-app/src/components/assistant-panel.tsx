@@ -259,7 +259,7 @@ export default function AssistantPanel({
             : "bg-surface border border-border text-primary hover:scale-110 hover:border-primary-red/50 outline-none focus-visible:ring-2 focus-visible:ring-bh-red-500/50 focus-visible:ring-offset-2"
         )}
       >
-        {isOpen ? <X size={22} /> : <Ballu emotion="calm-neutral" size={28} priority popOnHover />}
+        {isOpen ? <X size={22} /> : <Ballu emotion="ai-logo" size={28} priority popOnHover />}
       </button>
 
       {/* Backdrop */}
@@ -378,7 +378,7 @@ export default function AssistantPanel({
               {messages.length <= 2 && !chatLoading && (
                 <div className="px-4 pb-2">
                   <div className="flex justify-center mb-2">
-                    <Ballu emotion="welcome" size={48} />
+                    <Ballu emotion="waving" size={48} />
                   </div>
                   <p className="text-[10px] font-mono text-muted-foreground/50 mb-2">
                     Suggested questions
@@ -435,7 +435,7 @@ export default function AssistantPanel({
                     <CheckCircle2 className="w-6 h-6 text-status-green" />
                   </div>
                   <div className="flex justify-center">
-                    <Ballu emotion="celebrating-proud" size={48} />
+                    <Ballu emotion="celebrating-arms-up" size={48} />
                   </div>
                   <p className="text-sm font-bold text-primary">Message sent!</p>
                   <p className="text-xs text-muted-foreground">Your message has been received. We review every submission.</p>

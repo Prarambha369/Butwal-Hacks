@@ -85,12 +85,12 @@ export default function CookieConsentBanner() {
 
           <div className="flex items-start gap-3 md:gap-4">
             <div className="hidden sm:flex w-10 h-10 rounded-xl bg-primary-red/10 items-center justify-center shrink-0">
-              <Ballu emotion="happy-excited" size={32} />
+              <Ballu emotion="cookies" size={32} />
             </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 md:mb-1.5">
-                <Ballu emotion="happy-excited" size={32} className="sm:hidden" />
+                <Ballu emotion="cookies" size={32} className="sm:hidden" />
                 <p className="text-sm font-bold text-primary">This site uses cookies</p>
               </div>
 
