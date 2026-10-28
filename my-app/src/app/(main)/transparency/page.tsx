@@ -7,7 +7,10 @@ import { buildPageMetadata } from "@/lib/seo"
 import AnnualReportVisualization from "@/components/annual-report/annual-report-visualization"
 import { ComingSoon } from "@/components/ui/coming-soon"
 
-export const dynamic = "force-static";
+// The view comes from a query string (`?view=report`), so the route cannot be
+// force-static: Next supplies empty `searchParams` to static renders, which
+// silently served the overview at /annual-report's redirect target. ISR still
+// caches each URL variant.
 export const revalidate = 300;
 
 export const metadata: Metadata = buildPageMetadata({

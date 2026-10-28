@@ -29,6 +29,15 @@ interface CallerProfile {
   full_name: string | null;
 }
 
+/** `request.json()` throws on malformed input; treat that as a 400, not a 500. */
+async function readJson(request: Request): Promise<unknown | null> {
+  try {
+    return await request.json();
+  } catch {
+    return null;
+  }
+}
+
 /** Resolve the session user to a profile row; null when unauthenticated. */
 async function resolveCaller(): Promise<CallerProfile | null> {
   const session = await auth0.getSession();
@@ -45,7 +54,11 @@ async function resolveCaller(): Promise<CallerProfile | null> {
   return data as CallerProfile;
 }
 
-/** Owned-draft lookup. Returns null when the row is not the caller's. */
+/** Owned-draft lookup. Returns null when the row is not the caller's.
+ *
+ *  Must only be called after `resolveCaller()` has authenticated the request:
+ *  the service client below bypasses RLS, and `authorId` is the authorization
+ *  input, not a hint. */
 async function findOwnedDraft(id: string, authorId: string) {
   const supabase = createServiceClient();
   const { data } = await supabase
@@ -87,7 +100,11 @@ export const POST = withRateLimit(async (request: Request) => {
     const caller = await resolveCaller();
     if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const parsed = draftCreateSchema.safeParse(await request.json());
+    const payload = await readJson(request);
+    if (payload === null) {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+    const parsed = draftCreateSchema.safeParse(payload);
     if (!parsed.success) {
       return NextResponse.json(
         { error: parsed.error.issues[0]?.message ?? "Invalid draft" },
@@ -143,7 +160,11 @@ export const PATCH = withRateLimit(async (request: Request) => {
     const caller = await resolveCaller();
     if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const parsed = draftUpdateSchema.safeParse(await request.json());
+    const payload = await readJson(request);
+    if (payload === null) {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+    const parsed = draftUpdateSchema.safeParse(payload);
     if (!parsed.success) {
       return NextResponse.json(
         { error: parsed.error.issues[0]?.message ?? "Invalid draft" },
@@ -198,7 +219,11 @@ export const DELETE = withRateLimit(async (request: Request) => {
     const caller = await resolveCaller();
     if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const parsed = draftDeleteSchema.safeParse(await request.json());
+    const payload = await readJson(request);
+    if (payload === null) {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+    const parsed = draftDeleteSchema.safeParse(payload);
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid draft id" }, { status: 400 });
     }

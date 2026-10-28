@@ -44,19 +44,29 @@ export async function generateMetadata({ params }: Props) {
   const { slug } = await params
   const chapter = await loadChapter(slug)
 
+  // The public chapter directory is a coming-soon page, so these legacy
+  // detail pages stay reachable for old links but must not be indexed.
+  const noindex = { robots: { index: false, follow: false } }
+
   if (!chapter) {
-    return buildPageMetadata({
-      title: "Chapter Not Found",
-      description: "We could not find that chapter. See all chapters instead.",
-      path: `/chapters/${slug}`,
-    })
+    return {
+      ...buildPageMetadata({
+        title: "Chapter Not Found",
+        description: "We could not find that chapter. See all chapters instead.",
+        path: `/chapters/${slug}`,
+      }),
+      ...noindex,
+    }
   }
 
-  return buildPageMetadata({
-    title: `${chapter.name} — Butwal Hacks`,
-    description: chapter.description.slice(0, 160),
-    path: `/chapters/${chapter.slug}`,
-  })
+  return {
+    ...buildPageMetadata({
+      title: `${chapter.name} — Butwal Hacks`,
+      description: chapter.description.slice(0, 160),
+      path: `/chapters/${chapter.slug}`,
+    }),
+    ...noindex,
+  }
 }
 
 export default async function ChapterDetailPage({ params }: Props) {
