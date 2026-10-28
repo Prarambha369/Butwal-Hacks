@@ -44,6 +44,7 @@ const sections: SiteSection[] = [
     icon: <Calendar className="h-5 w-5" />,
     links: [
       { href: "/events", label: "All Events", description: "Upcoming and past events calendar" },
+      { href: "/calendar", label: "Calendar", description: "Every event and festival on one calendar" },
       { href: "/gallery", label: "Event Gallery", description: "Photos from hackathons and meetups" },
     ],
   },
