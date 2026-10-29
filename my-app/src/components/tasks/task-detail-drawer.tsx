@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { X, Trash2, Calendar, User, Tag, AlignLeft } from "lucide-react"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import type { TaskItem } from "./task-card"
 
 interface TaskDetailDrawerProps {
@@ -29,6 +30,7 @@ const priorityOptions = [
 export default function TaskDetailDrawer({ task, onClose, onUpdate, onDelete, teamMembers = [] }: TaskDetailDrawerProps) {
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description || "")
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const handleSave = async (updates: Partial<TaskItem>) => {
     try {
@@ -38,11 +40,9 @@ export default function TaskDetailDrawer({ task, onClose, onUpdate, onDelete, te
     }
   }
 
-  const handleDelete = async () => {
-    if (confirm("Delete this task?")) {
-      await onDelete(task.id)
-      onClose()
-    }
+  const handleDeleteConfirm = async () => {
+    await onDelete(task.id)
+    onClose()
   }
 
   return (
@@ -56,7 +56,7 @@ export default function TaskDetailDrawer({ task, onClose, onUpdate, onDelete, te
         <div className="flex items-center justify-between px-5 py-3 border-b border-border">
           <div className="flex items-center gap-2">
             <button
-              onClick={handleDelete}
+              onClick={() => setConfirmDelete(true)}
               className="text-muted-foreground hover:text-status-red transition-colors min-w-[44px] min-h-[44px] p-1 flex items-center justify-center"
               title="Delete task"
             >
@@ -181,6 +181,17 @@ export default function TaskDetailDrawer({ task, onClose, onUpdate, onDelete, te
           <span>ID: {task.id.slice(0, 8)}</span>
         </div>
       </div>
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete this task?"
+          entityName={task.title}
+          consequence="The task is removed from your board along with its status, assignee, and description. You can recreate it with the same details if you need to."
+          confirmLabel="Delete task"
+          onConfirm={handleDeleteConfirm}
+          onClose={() => setConfirmDelete(false)}
+        />
+      )}
     </>
   )
 }

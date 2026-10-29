@@ -7,6 +7,7 @@ import {
   deleteChapter,
   type ChapterRow,
 } from "@/lib/actions/chapters";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const emptyForm = {
   name: "", slug: "", school: "", lead_name: "", city: "",
@@ -21,6 +22,7 @@ export function ChaptersClient({ initialChapters }: { initialChapters: ChapterRo
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [chapterToDelete, setChapterToDelete] = useState<{ id: string; name: string } | null>(null);
 
   async function refresh() {
     const { getAllChapters } = await import("@/lib/actions/chapters");
@@ -90,7 +92,6 @@ export function ChaptersClient({ initialChapters }: { initialChapters: ChapterRo
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this chapter?")) return;
     setBusy(true);
     try {
       await deleteChapter(id);
@@ -133,7 +134,7 @@ export function ChaptersClient({ initialChapters }: { initialChapters: ChapterRo
               <button onClick={() => startEdit(c)} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Edit ${c.name}`}>
                 <Pencil className="w-4 h-4" />
               </button>
-              <button onClick={() => remove(c.id)} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Delete ${c.name}`}>
+              <button onClick={() => setChapterToDelete({ id: c.id, name: c.name })} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Delete ${c.name}`}>
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -179,6 +180,18 @@ export function ChaptersClient({ initialChapters }: { initialChapters: ChapterRo
             </button>
           </div>
         </form>
+      )}
+
+      {chapterToDelete && (
+        <ConfirmDialog
+          title="Delete chapter"
+          entityName={chapterToDelete.name}
+          consequence="The chapter record is deleted permanently, along with its school, leads, and member details. This cannot be undone."
+          confirmLabel="Delete chapter"
+          irreversible
+          onConfirm={() => remove(chapterToDelete.id)}
+          onClose={() => setChapterToDelete(null)}
+        />
       )}
     </div>
   );

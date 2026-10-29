@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Briefcase, EyeOff, Eye, Trash2, Edit3, Clock, MapPin, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { toggleOpportunity, deleteOpportunity } from "@/lib/actions/sponsor-opportunities";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 type Opportunity = {
@@ -37,6 +38,7 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
   const [sortKey, setSortKey] = useState<SortKey>("created_at");
   const [filterType, setFilterType] = useState<string>("all");
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null);
 
   const filtered = opportunities
     .filter((o) => filterType === "all" || o.type === filterType)
@@ -57,8 +59,7 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
     setLoadingId(null);
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+  const handleDelete = async (id: string) => {
     setLoadingId(id);
     const result = await deleteOpportunity(id);
     if (result.success) {
@@ -181,7 +182,7 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
                 <Edit3 size={14} />
               </a>
               <button
-                onClick={() => handleDelete(opp.id, opp.title)}
+                onClick={() => setPendingDelete({ id: opp.id, title: opp.title })}
                 disabled={loadingId === opp.id}
                 className="p-2 rounded-lg bg-surface/10 border border-border text-secondary hover:text-primary-red transition-all disabled:opacity-40"
                 title="Delete"
@@ -192,6 +193,18 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
           </div>
         </div>
       ))}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete opportunity"
+          entityName={pendingDelete.title}
+          consequence="The opportunity is removed from the portal permanently. Hackers and bounty hunters can no longer find or apply for it. This cannot be undone."
+          confirmLabel="Delete opportunity"
+          irreversible
+          onConfirm={() => handleDelete(pendingDelete.id)}
+          onClose={() => setPendingDelete(null)}
+        />
+      )}
     </div>
   );
 }
