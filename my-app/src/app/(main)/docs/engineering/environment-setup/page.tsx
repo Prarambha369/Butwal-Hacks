@@ -139,7 +139,7 @@ export default function EnvironmentSetupDocPage() {
                 aria-label="Email address"
                 className="mt-3 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-primary placeholder:text-secondary"
               />
-              <button type="button" className="mt-3 w-full rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+              <button type="button" className="bh-btn-primary mt-3 w-full text-sm">
                 Subscribe
               </button>
             </div>

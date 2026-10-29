@@ -390,7 +390,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
               <span className="text-sm font-bold text-primary group-hover:text-primary-red transition-colors">
                 Available for Mentorship
               </span>
-              <span className="text-[10px] text-muted-foreground/60">
+              <span className="text-[10px] text-muted-foreground">
                 Show your profile in the Mentor Directory so hackers can request 1:1 chats.
               </span>
             </div>
@@ -408,7 +408,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
                 placeholder="https://cal.com/username/15min"
                 className={cn(inputClass)}
               />
-              <p className="text-[10px] text-muted-foreground/40">
+              <p className="text-[10px] text-muted-foreground">
                 Create a free 15-min booking page at Cal.com and paste the link here. Hackers will use it to schedule mentorship sessions.
               </p>
             </div>
@@ -420,7 +420,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
         <button
           type="submit"
           disabled={isSubmitting || (touched.size > 0 && hasErrors)}
-          className={cn("inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-6 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95", (isSubmitting || (touched.size > 0 && hasErrors)) && "bh-btn-disabled")}
+          className={cn("inline-flex items-center gap-2 rounded-full bg-bh-red-action px-6 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95", (isSubmitting || (touched.size > 0 && hasErrors)) && "bh-btn-disabled")}
         >
           {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <><Save size={16} /> Save Changes</>}
         </button>

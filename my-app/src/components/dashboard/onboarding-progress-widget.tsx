@@ -89,7 +89,7 @@ export default function OnboardingProgressWidget({
         {currentStep && (
           <Link
             href={currentStep.href}
-            className="flex items-center justify-center gap-1 w-full py-1.5 rounded-md bg-primary-red text-white text-[10px] font-bold hover:bg-deep-red transition-all active:scale-[0.97]"
+            className="flex items-center justify-center gap-1 w-full py-1.5 rounded-md bg-bh-red-action text-white text-[10px] font-bold hover:bg-deep-red transition-all active:scale-[0.97]"
           >
             {currentStep.title}
             <ArrowRight className="w-3 h-3" />

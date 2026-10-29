@@ -331,7 +331,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
                     {provider.description}
                   </p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary-red/60 group-hover:translate-x-0.5 transition-all" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary-red/60 group-hover:translate-x-0.5 transition-all" />
               </button>
             );
           })}
@@ -343,7 +343,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
       ) && (
         <div className="text-center py-6 space-y-2">
           <div className="mx-auto w-12 h-12 rounded-full bg-surface-hover flex items-center justify-center">
-            <Link2 className="w-6 h-6 text-muted-foreground/40" />
+            <Link2 className="w-6 h-6 text-muted-foreground" />
           </div>
           <p className="text-sm font-bold text-primary">No accounts linked</p>
           <p className="text-xs text-muted-foreground max-w-xs mx-auto">
@@ -370,7 +370,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
 
       {/* Footer info */}
       <div className="pt-2 border-t border-border/40">
-        <p className="text-[9px] text-muted-foreground/60 leading-relaxed">
+        <p className="text-[9px] text-muted-foreground leading-relaxed">
           Accounts are linked through Auth0. You can sign in with any connected account.
           Disconnecting an account only removes it from your sign-in options - it won&apos;t
           affect your profile data.

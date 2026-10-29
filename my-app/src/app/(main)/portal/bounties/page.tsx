@@ -28,7 +28,7 @@ export default async function SponsorOpportunitiesPage() {
         </div>
         <a
           href="/portal/bounties/new"
-          className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all"
+          className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all"
         >
           <Plus size={16} />
           New Opportunity

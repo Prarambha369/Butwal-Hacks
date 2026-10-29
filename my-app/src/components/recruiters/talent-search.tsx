@@ -57,7 +57,7 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && doSearch()}
             placeholder="Search by BH-ID or bio..."
-            className="w-full bg-surface-hover border border-border rounded-lg pl-11 pr-4 py-3 text-sm text-primary placeholder:text-secondary/50 outline-none focus:border-bh-red-500/50 transition-all"
+            className="w-full bg-surface-hover border border-border rounded-lg pl-11 pr-4 py-3 text-sm text-primary placeholder:text-secondary outline-none focus:border-bh-red-500/50 transition-all"
           />
         </div>
 
@@ -89,7 +89,7 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
               onChange={(e) => setSkillFilter(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && doSearch()}
               placeholder="e.g. React, Python, IoT"
-              className="bg-surface-hover border border-border rounded-lg px-3 py-1.5 text-xs text-primary placeholder:text-secondary/40 outline-none focus:border-bh-red-500/30 transition-all w-40"
+              className="bg-surface-hover border border-border rounded-lg px-3 py-1.5 text-xs text-primary placeholder:text-secondary outline-none focus:border-bh-red-500/30 transition-all w-40"
             />
           </div>
 
@@ -97,7 +97,7 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
           <button
             onClick={doSearch}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-bh-red-500 text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50 shadow-[0_4px_12px_-4px_var(--glow-bh-red)]"
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50 shadow-[0_4px_12px_-4px_var(--glow-bh-red)]"
           >
             {loading ? (
               <RoseSpinner size="sm" />
@@ -155,7 +155,7 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
 
               {/* Bio */}
               {hacker.bio && (
-                <p className="text-xs text-secondary/70 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-secondary line-clamp-2 leading-relaxed">
                   {hacker.bio}
                 </p>
               )}
@@ -185,7 +185,7 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
       ) : hasSearched ? (
         <div className="flex flex-col items-center py-16 space-y-4">
           <div className="p-4 rounded-lg bg-surface-hover border border-border">
-            <Users className="w-8 h-8 text-secondary/40" />
+            <Users className="w-8 h-8 text-secondary" />
           </div>
           <div className="text-center space-y-1">
             <p className="text-base font-bold text-primary">No hackers found</p>

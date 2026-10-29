@@ -582,7 +582,7 @@ export default function GalleryGrid({
         <ScrollReveal>
           <div className="rounded-xl border border-border bg-surface p-16 text-center space-y-4">
             <div className="mx-auto w-14 h-14 rounded-full bg-surface-hover flex items-center justify-center">
-              <ImageIcon className="w-7 h-7 text-muted-foreground/40" />
+              <ImageIcon className="w-7 h-7 text-muted-foreground" />
             </div>
             <p className="text-lg font-bold text-primary">No media found</p>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
@@ -590,7 +590,7 @@ export default function GalleryGrid({
             </p>
             <button
               onClick={() => setFilter(null)}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-red px-5 py-2 text-sm font-bold text-white hover:bg-deep-red transition-all"
+              className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2 text-sm font-bold text-white hover:bg-deep-red transition-all"
             >
               <X className="w-4 h-4" />
               Clear filter

@@ -32,7 +32,7 @@ const SendMessageSchema = z.object({
 export async function sendMessage(teamId: string, message: string) {
   const parsed = SendMessageSchema.safeParse({ teamId, message });
   if (!parsed.success) {
-    throw new Error(parsed.error.errors[0]?.message ?? "Invalid input");
+    throw new Error(parsed.error.issues[0]?.message ?? "Invalid input");
   }
 
   const supabase = createServiceClient();

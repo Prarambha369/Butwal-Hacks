@@ -53,7 +53,7 @@ export default function ProjectsViewWrapper({
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150",
               viewMode === "grid"
-                ? "bg-primary-red text-white shadow-sm"
+                ? "bg-bh-red-action text-white shadow-sm"
                 : "text-muted-foreground hover:text-primary"
             )}
           >
@@ -65,7 +65,7 @@ export default function ProjectsViewWrapper({
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150",
               viewMode === "table"
-                ? "bg-primary-red text-white shadow-sm"
+                ? "bg-bh-red-action text-white shadow-sm"
                 : "text-muted-foreground hover:text-primary"
             )}
           >
@@ -78,7 +78,7 @@ export default function ProjectsViewWrapper({
           <GitHubSyncButton />
           <a
             href="/dashboard/projects/new"
-            className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+            className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
           >
             <Plus size={16} /> New Project
           </a>

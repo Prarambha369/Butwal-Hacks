@@ -68,7 +68,7 @@ export default function TrustedByClient({ partners }: { partners: Partner[] }) {
           </div>
         </div>
 
-        <p className="mt-8 text-center text-[10px] font-mono text-muted-foreground/60">
+        <p className="mt-8 text-center text-[10px] font-mono text-muted-foreground">
           {t("home.trusted_by.footer", locale)}
         </p>
       </div>

@@ -101,7 +101,7 @@ export default async function SponsorDashboardPage() {
             <div className="p-2.5 rounded-xl bg-status-teal/10">
               <Briefcase className="w-5 h-5 text-status-teal" />
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">Bounties</span>
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Bounties</span>
           </div>
           <p className="text-4xl font-bold text-primary">{bountyCount ?? 0}</p>
           <p className="text-xs text-muted-foreground">Active bounties and opportunities</p>
@@ -112,7 +112,7 @@ export default async function SponsorDashboardPage() {
             <div className="p-2.5 rounded-xl bg-status-blue/10">
               <Eye className="w-5 h-5 text-status-blue" />
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">Discovery</span>
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Discovery</span>
           </div>
           <p className="text-4xl font-bold text-primary">{hackerCount ?? 0}</p>
           <p className="text-xs text-muted-foreground">Hackers in the talent pool</p>
@@ -123,7 +123,7 @@ export default async function SponsorDashboardPage() {
             <div className="p-2.5 rounded-xl bg-status-green/10">
               <DollarSign className="w-5 h-5 text-status-green" />
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">Distributed</span>
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Distributed</span>
           </div>
           <p className="text-4xl font-bold text-primary">$0</p>
           <p className="text-xs text-muted-foreground">Funds distributed via Open Collective</p>

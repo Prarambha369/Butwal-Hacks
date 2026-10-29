@@ -45,7 +45,7 @@ export default function AttendeeExport({ attendees, eventName }: AttendeeExportP
   return (
     <button
       onClick={handleExport}
-      className="inline-flex items-center gap-2 rounded-lg bg-bh-red-500 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-deep-red"
+      className="inline-flex items-center gap-2 rounded-lg bg-bh-red-action px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-deep-red"
     >
       <Download className="w-4 h-4" /> Export CSV
     </button>

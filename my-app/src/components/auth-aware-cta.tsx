@@ -38,7 +38,7 @@ export default function AuthAwareCta({
 
   const variantClasses =
     variant === "primary"
-      ? "bg-bh-red-500 text-white hover:bg-deep-red shadow-[0_0_20px_var(--glow-bh-red)]"
+      ? "bg-bh-red-action text-white hover:bg-deep-red shadow-[0_0_20px_var(--glow-bh-red)]"
       : "bg-surface border border-border text-primary hover:bg-surface-hover";
 
   // The loading state must occupy exactly the same box as the resolved button,

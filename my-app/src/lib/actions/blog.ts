@@ -16,12 +16,21 @@ export interface BlogRow {
   cover_image: string | null;
   is_published: boolean;
   published_at: string;
+  /** Bumped by the set_updated_at() trigger (migration 137). */
+  updated_at: string | null;
 }
 
 const COLUMNS =
-  'id, slug, title, excerpt, body, tags, cover_image, is_published, published_at';
+  'id, slug, title, excerpt, body, tags, cover_image, is_published, published_at, updated_at';
 
-function toPost(r: BlogRow): StaticPost {
+/**
+ * A static seed post, plus the DB-only refresh date that the detail page feeds
+ * to blogPostingJsonLd as dateModified. Static posts carry no updatedAt, so
+ * their markup keeps the datePublished-only fallback.
+ */
+export type BlogPostWithMeta = StaticPost & { updatedAt?: string };
+
+function toPost(r: BlogRow): BlogPostWithMeta {
   return {
     slug: r.slug,
     title: r.title,
@@ -30,11 +39,12 @@ function toPost(r: BlogRow): StaticPost {
     excerpt: r.excerpt,
     body: r.body,
     cover_image: r.cover_image ?? undefined,
+    updatedAt: r.updated_at ?? undefined,
   };
 }
 
 /** Published posts, newest first (static fallback). */
-export async function getPublishedPosts(): Promise<StaticPost[]> {
+export async function getPublishedPosts(): Promise<BlogPostWithMeta[]> {
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from('blog_posts')
@@ -51,7 +61,7 @@ export async function getPublishedPosts(): Promise<StaticPost[]> {
 }
 
 /** Single published post (static fallback). */
-export async function getPublishedPost(slug: string): Promise<StaticPost | null> {
+export async function getPublishedPost(slug: string): Promise<BlogPostWithMeta | null> {
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from('blog_posts')

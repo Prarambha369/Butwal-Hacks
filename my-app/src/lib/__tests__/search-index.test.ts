@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { blogPosts, chapters, initiatives, programs } from "@/lib/content";
+import { blogPosts, initiatives, programs } from "@/lib/content";
 import { scoreText, searchStatic, suggestNearMisses } from "@/lib/search-index";
 
 /**
@@ -31,27 +31,22 @@ describe("searchStatic", () => {
     expect(hits.some((h) => h.id === post!.slug)).toBe(true);
   });
 
-  it("indexes chapters and initiatives", () => {
-    const chapter = chapters[0];
+  it("indexes initiatives", () => {
     const initiative = initiatives[0];
 
-    expect(searchStatic(chapter.name).some((h) => h.type === "chapter")).toBe(true);
     expect(searchStatic(initiative.name).some((h) => h.type === "initiative")).toBe(true);
   });
 
   it("links every result to a real route", () => {
     const slugs = new Set(blogPosts.map((p) => p.slug));
-    const chapterSlugs = new Set(chapters.map((c) => c.slug));
     const initiativeSlugs = new Set(initiatives.map((i) => i.slug));
 
     for (const doc of searchStatic("a")) {
       const expected = doc.href.startsWith("/blog/")
         ? slugs.has(doc.href.replace("/blog/", ""))
-        : doc.href.startsWith("/chapters/")
-          ? chapterSlugs.has(doc.href.replace("/chapters/", ""))
-          : doc.href.startsWith("/initiatives/")
-            ? initiativeSlugs.has(doc.href.replace("/initiatives/", ""))
-            : false;
+        : doc.href.startsWith("/initiatives/")
+          ? initiativeSlugs.has(doc.href.replace("/initiatives/", ""))
+          : false;
       expect(expected).toBe(true);
     }
   });
@@ -86,8 +81,8 @@ describe("searchStatic", () => {
   });
 
   it("tolerates a typo", () => {
-    const exact = searchStatic("chapters").length;
-    const typo = searchStatic("chaptes").length;
+    const exact = searchStatic("hackathon").length;
+    const typo = searchStatic("hackaton").length;
     expect(typo).toBeGreaterThan(0);
     expect(exact).toBeGreaterThan(0);
   });
@@ -110,11 +105,11 @@ describe("suggestNearMisses", () => {
   it("suggests terms that actually lead to results", () => {
     // The contract is "clicking a suggestion gets you results", not "returns
     // any particular plural". The vocabulary holds the forms that appear in
-    // the content, so "chaptes" may well be corrected to "chapter".
-    for (const suggestion of suggestNearMisses("chaptes")) {
+    // the content, so "hackaton" may well be corrected to "hackathon".
+    for (const suggestion of suggestNearMisses("hackaton")) {
       expect(searchStatic(suggestion).length).toBeGreaterThan(0);
     }
-    expect(suggestNearMisses("chaptes").length).toBeGreaterThan(0);
+    expect(suggestNearMisses("hackaton").length).toBeGreaterThan(0);
   });
 
   it("returns nothing for nonsense input", () => {
@@ -122,10 +117,10 @@ describe("suggestNearMisses", () => {
   });
 
   it("returns nothing when the query is already exact", () => {
-    expect(suggestNearMisses("chapters")).not.toContain("chapters");
+    expect(suggestNearMisses("hackathon")).not.toContain("hackathon");
   });
 
   it("caps the number of suggestions", () => {
-    expect(suggestNearMisses("chaptes").length).toBeLessThanOrEqual(3);
+    expect(suggestNearMisses("hackaton").length).toBeLessThanOrEqual(3);
   });
 });

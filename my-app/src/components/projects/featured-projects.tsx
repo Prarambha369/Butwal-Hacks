@@ -60,7 +60,7 @@ export default async function FeaturedProjects() {
                 </div>
               )}
               {idx === 0 && (
-                <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-bh-red-500 text-primary text-[10px] font-bold uppercase tracking-tighter">
+                <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-bh-red-action text-white text-[10px] font-bold uppercase tracking-tighter">
                   Editor&apos;s Choice
                 </div>
               )}

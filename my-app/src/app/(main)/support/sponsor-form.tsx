@@ -89,7 +89,7 @@ export function SponsorForm() {
         <button
           type="submit"
           disabled={formState === "submitting" || formState === "success"}
-          className={`mt-5 w-full rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 ${formState === "submitting" || formState === "success" ? 'bh-btn-disabled' : ''}`}
+          className={`bh-btn-primary mt-5 w-full text-sm ${formState === "submitting" || formState === "success" ? 'bh-btn-disabled' : ''}`}
         >
           {formState === "submitting" ? "Sending..." : "Send Inquiry"}
         </button>

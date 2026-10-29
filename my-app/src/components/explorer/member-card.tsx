@@ -3,8 +3,6 @@
 import Link from "next/link"
 import { GraduationCap, Users } from "lucide-react"
 import type { ExplorerMember } from "@/lib/members"
-import { usePresence } from "@/hooks/use-presence"
-import { LiveDot } from "@/components/hacker-id/live-dot"
 import { cn } from "@/lib/utils"
 
 // ponytail: Shared between explore/page.tsx (server) and explore/explorer-client.tsx (client).
@@ -26,15 +24,16 @@ export function MemberCard({
   member: ExplorerMember
   isHighlighted?: boolean
 }) {
-  const onlineIds = usePresence()
   const colorSet = roleColors[member.role] || ""
-  const isOnline = !!(member.auth0_user_id && onlineIds.has(member.auth0_user_id))
 
   return (
     <Link
       href={`/p/${member.bhId}`}
       className={cn(
-        "bh-card border p-5 transition-all duration-300 group relative overflow-hidden",
+        // `block` matters: the first result is wrapped in a spanning <div>, so
+        // this anchor stops being a grid item and would otherwise fall back to
+        // inline layout (no card surface, no width, ring only on one edge).
+        "bh-card block h-full border p-5 transition-all duration-300 group relative overflow-hidden",
         "hover:shadow-md hover:-translate-y-1",
         isHighlighted ? "ring-2 ring-primary-red/30" : "border-border",
       )}
@@ -52,10 +51,6 @@ export function MemberCard({
             )}
           >
             {member.avatar}
-          </div>
-          {/* Live presence dot */}
-          <div className="absolute -top-0.5 -right-0.5">
-            <LiveDot online={isOnline} size="sm" />
           </div>
         </div>
 
@@ -78,13 +73,13 @@ export function MemberCard({
 
           {/* Bio */}
           {member.bio && (
-            <p className="text-xs text-muted-foreground/70 leading-relaxed line-clamp-2">
+            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
               {member.bio}
             </p>
           )}
 
           {/* Meta row */}
-          <div className="flex items-center gap-3 text-[10px] font-mono text-muted-foreground/50">
+          <div className="flex items-center gap-3 text-[10px] font-mono text-muted-foreground">
             <span>{member.bhId}</span>
             {member.projects > 0 && (
               <>
@@ -118,13 +113,13 @@ export function MemberCard({
               {member.skills.slice(0, 4).map((skill) => (
                 <span
                   key={skill}
-                  className="text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-surface-hover text-muted-foreground/60 border border-border/50"
+                  className="text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-surface-hover text-muted-foreground border border-border/50"
                 >
                   {skill}
                 </span>
               ))}
               {member.skills.length > 4 && (
-                <span className="text-[9px] text-muted-foreground/40 px-1.5 py-0.5">
+                <span className="text-[9px] text-muted-foreground px-1.5 py-0.5">
                   +{member.skills.length - 4}
                 </span>
               )}

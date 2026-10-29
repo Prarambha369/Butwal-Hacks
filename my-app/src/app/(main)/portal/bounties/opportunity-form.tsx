@@ -105,7 +105,7 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
         <input
           type="text" value={title} onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g., Full-Stack Developer Intern"
-          className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary/40 focus:border-bh-red-500/50 focus:outline-none transition-all"
+          className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary focus:border-bh-red-500/50 focus:outline-none transition-all"
           maxLength={200} required
         />
       </div>
@@ -140,7 +140,7 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
               <input
                 type="number" value={bountyAmount} onChange={(e) => setBountyAmount(e.target.value)}
                 placeholder="500"
-                className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary/40 focus:border-bh-red-500/50 focus:outline-none transition-all"
+                className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary focus:border-bh-red-500/50 focus:outline-none transition-all"
                 min={0} step={0.01}
               />
             </div>
@@ -164,10 +164,10 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
           value={description} onChange={(e) => setDescription(e.target.value)}
           placeholder="Describe the role, responsibilities, what you're looking for..."
           rows={5}
-          className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-3 text-sm text-primary placeholder:text-secondary/40 focus:border-bh-red-500/50 focus:outline-none transition-all resize-none"
+          className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-3 text-sm text-primary placeholder:text-secondary focus:border-bh-red-500/50 focus:outline-none transition-all resize-none"
           maxLength={5000} required
         />
-        <p className="mt-1 text-[10px] text-secondary/60 text-right">{description.length}/5000</p>
+        <p className="mt-1 text-[10px] text-secondary text-right">{description.length}/5000</p>
       </div>
 
       {/* Compensation + Location */}
@@ -177,7 +177,7 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
           <input
             type="text" value={compensation} onChange={(e) => setCompensation(e.target.value)}
             placeholder="e.g., $2000/month"
-            className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary/40 focus:border-bh-red-500/50 focus:outline-none transition-all"
+            className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary focus:border-bh-red-500/50 focus:outline-none transition-all"
           />
         </div>
         <div>
@@ -185,7 +185,7 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
           <input
             type="text" value={location} onChange={(e) => setLocation(e.target.value)}
             placeholder="e.g., Butwal, Nepal"
-            className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary/40 focus:border-bh-red-500/50 focus:outline-none transition-all"
+            className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary focus:border-bh-red-500/50 focus:outline-none transition-all"
           />
         </div>
         <div>
@@ -210,9 +210,9 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
         <input
           type="url" value={applicationUrl} onChange={(e) => setApplicationUrl(e.target.value)}
           placeholder="https://your-company.com/apply"
-          className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary/40 focus:border-bh-red-500/50 focus:outline-none transition-all"
+          className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary focus:border-bh-red-500/50 focus:outline-none transition-all"
         />
-        <p className="mt-1 text-[10px] text-secondary/60">Leave blank to accept applications directly on Butwal Hacks</p>
+        <p className="mt-1 text-[10px] text-secondary">Leave blank to accept applications directly on Butwal Hacks</p>
       </div>
 
       {/* Submit */}
@@ -220,7 +220,7 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
         <button
           type="submit"
           disabled={saving}
-          className={`inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-8 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all ${saving ? 'bh-btn-disabled' : ''}`}
+          className={`inline-flex items-center gap-2 rounded-full bg-bh-red-action px-8 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all ${saving ? 'bh-btn-disabled' : ''}`}
         >
           {saving ? (
             <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Saving...</>

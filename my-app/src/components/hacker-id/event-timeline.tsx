@@ -12,7 +12,7 @@ function EventNode({ event }: EventNodeProps) {
 
   const roleDesign = {
     Organizer: {
-      color: 'bg-primary-red text-white border-deep-red shadow-[0_0_10px_rgba(254,0,0,0.2)]',
+      color: 'bg-bh-red-action text-white border-deep-red shadow-[0_0_10px_rgba(254,0,0,0.2)]',
       icon: <Star size={12} fill="currentColor" />,
       label: 'Organizer',
       glow: 'group-hover:shadow-[0_0_15px_var(--glow-bh-red)]'
@@ -93,7 +93,7 @@ function EventNode({ event }: EventNodeProps) {
               </span>
             </div>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1 font-mono opacity-60 text-[11px]">
+              <span className="flex items-center gap-1 font-mono text-[11px]">
                 <Calendar size={12} />
                 {event.date}
               </span>
@@ -109,7 +109,7 @@ function EventNode({ event }: EventNodeProps) {
           </div>
 
           {isCompleted && (
-            <div className="flex items-center gap-1 text-primary-red text-[10px] font-bold uppercase tracking-widest opacity-60">
+            <div className="flex items-center gap-1 text-primary-red text-[10px] font-bold uppercase tracking-widest">
               <CheckCircle2 size={12} />
               Attended
             </div>
@@ -127,7 +127,7 @@ export default function EventTimeline({ events }: { events: EventHistory[] }) {
         <div className="w-16 h-16 bg-surface-hover rounded-full flex items-center justify-center mx-auto">
           <Calendar size={32} className="text-muted-foreground opacity-20" />
         </div>
-        <p className="text-muted-foreground font-mono text-sm opacity-60">
+        <p className="text-muted-foreground font-mono text-sm">
           No events yet. Join one to get started.
         </p>
       </div>
@@ -140,7 +140,7 @@ export default function EventTimeline({ events }: { events: EventHistory[] }) {
         <h3 className="text-xs font-black uppercase tracking-widest text-primary opacity-40">
           Event Timeline
         </h3>
-        <span className="text-[10px] font-mono text-muted-foreground opacity-60">
+        <span className="text-[10px] font-mono text-muted-foreground">
           {events.length} Milestones
         </span>
       </div>

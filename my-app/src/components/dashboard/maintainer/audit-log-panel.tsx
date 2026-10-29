@@ -316,7 +316,7 @@ export default function AuditLogPanel({ entries, total, page, pageSize }: AuditL
               "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all border",
               page > 1
                 ? "bg-surface-hover border-border text-primary hover:bg-border"
-                : "bg-surface-hover border-border text-muted-foreground/40 cursor-not-allowed"
+                : "bg-surface-hover border-border text-muted-foreground cursor-not-allowed"
             )}
             aria-disabled={page <= 1}
           >
@@ -327,7 +327,7 @@ export default function AuditLogPanel({ entries, total, page, pageSize }: AuditL
           <div className="flex items-center gap-1.5">
             {generatePageNumbers(page, totalPages).map((p, i) =>
               p === "..." ? (
-                <span key={`ellipsis-${i}`} className="text-xs text-muted-foreground/40 px-1">
+                <span key={`ellipsis-${i}`} className="text-xs text-muted-foreground px-1">
                   ...
                 </span>
               ) : (
@@ -337,7 +337,7 @@ export default function AuditLogPanel({ entries, total, page, pageSize }: AuditL
                   className={cn(
                     "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all border",
                     p === page
-                      ? "bg-bh-red-500 border-primary-red text-white"
+                      ? "bg-bh-red-action border-primary-red text-white"
                       : "bg-surface-hover border-border text-muted-foreground hover:bg-border"
                   )}
                 >
@@ -357,7 +357,7 @@ export default function AuditLogPanel({ entries, total, page, pageSize }: AuditL
               "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all border",
               page < totalPages
                 ? "bg-surface-hover border-border text-primary hover:bg-border"
-                : "bg-surface-hover border-border text-muted-foreground/40 cursor-not-allowed"
+                : "bg-surface-hover border-border text-muted-foreground cursor-not-allowed"
             )}
             aria-disabled={page >= totalPages}
           >

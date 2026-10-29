@@ -363,8 +363,8 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
                 aria-pressed={visible}
                 aria-label={(visible ? t("home.calendar.hide_layer", locale) : t("home.calendar.show_layer", locale)).replace("{layer}", label)}
                 title={(visible ? t("home.calendar.hide_layer", locale) : t("home.calendar.show_layer", locale)).replace("{layer}", label)}
-                className={`inline-flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-mono transition-all ${
-                  visible ? "text-muted-foreground hover:text-primary" : "text-muted-foreground/40 hover:text-muted-foreground"
+                className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 min-h-[32px] sm:min-h-0 text-[10px] font-mono transition-all ${
+                  visible ? "text-muted-foreground hover:text-primary" : "text-muted-foreground hover:text-muted-foreground"
                 }`}
               >
                 <span className={`h-1.5 w-1.5 rounded-full ${dot} ${visible ? "" : "opacity-30"}`} aria-hidden="true" />
@@ -572,7 +572,7 @@ function AdGrid({ date, byAdDay, festivalsByAd, holidaysByAd, today, weekdays, l
             key={day}
             role="gridcell"
             aria-label={`${iso}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length === 1 ? "" : "s"}` : ""}${dayFestivals.length > 0 ? `, ${dayFestivals.length} festival${dayFestivals.length === 1 ? "" : "s"}` : ""}${dayHolidays.length > 0 ? `, ${dayHolidays.length} public holiday${dayHolidays.length === 1 ? "" : "s"}` : ""}`}
-            className={`p-2 sm:p-3 h-20 sm:h-28 transition-colors border-t border-border ${isToday ? "bg-primary-red/5 hover:bg-primary-red/10 ring-1 ring-inset ring-primary-red/40" : "bg-background hover:bg-surface-hover"}`}
+            className={`p-2 sm:p-3 h-20 sm:h-28 transition-colors border-t border-border ${isToday ? "bg-surface hover:bg-surface-hover ring-1 ring-inset ring-primary-red/60" : "bg-background hover:bg-surface-hover"}`}
           >
             <time dateTime={iso} className={`text-xs font-bold block ${isToday ? "text-primary-red" : "text-primary"}`}>
               {day}
@@ -664,7 +664,7 @@ function BsGrid({ bsView, byBsDay, festivalsByBs, holidaysByBs, today, weekdays,
             key={day}
             role="gridcell"
             aria-label={`${iso}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length === 1 ? "" : "s"}` : ""}${dayFestivals.length > 0 ? `, ${dayFestivals.length} festival${dayFestivals.length === 1 ? "" : "s"}` : ""}${dayHolidays.length > 0 ? `, ${dayHolidays.length} public holiday${dayHolidays.length === 1 ? "" : "s"}` : ""}`}
-            className={`p-2 sm:p-3 h-20 sm:h-28 transition-colors border-t border-border ${isToday ? "bg-primary-red/5 hover:bg-primary-red/10 ring-1 ring-inset ring-primary-red/40" : "bg-background hover:bg-surface-hover"}`}
+            className={`p-2 sm:p-3 h-20 sm:h-28 transition-colors border-t border-border ${isToday ? "bg-surface hover:bg-surface-hover ring-1 ring-inset ring-primary-red/60" : "bg-background hover:bg-surface-hover"}`}
           >
             <time dateTime={iso} className={`text-xs font-bold block ${isToday ? "text-primary-red" : "text-primary"}`}>
               {locale === "ne" ? toNepaliDigits(day) : day}

@@ -199,7 +199,7 @@ export default function CommandSearch() {
             <div className="flex flex-col items-center gap-2 py-12 text-center">
               <Ballu emotion="thinking-puzzled" size={32} />
               <p className="text-sm text-muted-foreground">{t("common.no_results", locale)}</p>
-              <p className="text-xs text-muted-foreground/50">{t("search.try_different", locale)}</p>
+              <p className="text-xs text-muted-foreground">{t("search.try_different", locale)}</p>
             </div>
           )}
 
@@ -207,14 +207,14 @@ export default function CommandSearch() {
             <div className="flex flex-col items-center gap-2 py-12 text-center">
               <Ballu emotion="calm-neutral" size={32} />
               <p className="text-sm text-muted-foreground">{t("search.type_to_search", locale)}</p>
-              <p className="text-xs text-muted-foreground/50">{t("search.search_hint", locale)}</p>
+              <p className="text-xs text-muted-foreground">{t("search.search_hint", locale)}</p>
             </div>
           )}
 
           {Object.entries(grouped).map(([type, items]) => (
             <div key={type} className="mb-2 last:mb-0">
               <div className="flex items-center gap-2 px-3 py-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   {t(SECTION_I18N_KEYS[type] || type, locale)}
                 </span>
                 <div className="h-px flex-1 bg-border/20" />
@@ -236,7 +236,7 @@ export default function CommandSearch() {
                     <span
                       className={cn(
                         "flex h-7 w-7 items-center justify-center rounded-lg",
-                        idx === selectedIdx ? "text-primary-red" : "text-muted-foreground/50",
+                        idx === selectedIdx ? "text-primary-red" : "text-muted-foreground",
                       )}
                     >
                       {item.icon}
@@ -244,7 +244,7 @@ export default function CommandSearch() {
                     <div className="flex-1 truncate">
                       <p className="truncate font-medium">{item.title}</p>
                       {item.subtitle && (
-                        <p className="truncate text-xs text-muted-foreground/60">{item.subtitle}</p>
+                        <p className="truncate text-xs text-muted-foreground">{item.subtitle}</p>
                       )}
                     </div>
                     <ArrowRight className={cn(
@@ -260,14 +260,14 @@ export default function CommandSearch() {
 
         {/* Footer hint */}
         <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
-          <div className="flex items-center gap-3 text-[10px] text-muted-foreground/50">
+          <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
             <span><kbd className="rounded border border-border/30 px-1 font-mono">&uarr;&darr;</kbd> {t("search.kbd_navigate", locale)}</span>
             <span><kbd className="rounded border border-border/30 px-1 font-mono">&crarr;</kbd> {t("search.kbd_open", locale)}</span>
             <span><kbd className="rounded border border-border/30 px-1 font-mono">esc</kbd> {t("search.kbd_close", locale)}</span>
           </div>
           <button
             onClick={() => dialogRef.current?.close()}
-            className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-muted-foreground transition-colors hover:text-muted-foreground"
           >
             <X className="h-3 w-3" />
             {t("action.close", locale)}

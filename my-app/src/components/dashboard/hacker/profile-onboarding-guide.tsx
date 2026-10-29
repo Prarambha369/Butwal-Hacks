@@ -122,7 +122,7 @@ export default function ProfileOnboardingGuide({
             <div className="flex items-center gap-3 mt-3">
               <Link
                 href="/dashboard/hacker"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all"
               >
                 Back to Dashboard <ArrowRight className="w-3 h-3" />
               </Link>
@@ -233,7 +233,7 @@ export default function ProfileOnboardingGuide({
               </div>
 
               {!isComplete && (
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
               )}
             </div>
           )
@@ -243,12 +243,12 @@ export default function ProfileOnboardingGuide({
       {/* Footer */}
       {!allComplete && (
         <div className="px-4 md:px-5 py-3 border-t border-border flex items-center justify-between">
-          <p className="text-[10px] text-muted-foreground/40">
+          <p className="text-[10px] text-muted-foreground">
             BH-ID: {bhId || "—"}
           </p>
           <button
             onClick={handleDismiss}
-            className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+            className="text-[10px] text-muted-foreground hover:text-muted-foreground transition-colors"
           >
             Skip guide
           </button>

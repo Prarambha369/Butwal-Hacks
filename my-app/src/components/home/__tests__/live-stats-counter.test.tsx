@@ -25,8 +25,9 @@ describe("LiveStatsCounter", () => {
 
       const { container } = render(<LiveStatsCounter />);
 
-      // Should show loading badge
-      expect(screen.getByText((_, el) => el?.tagName === "SPAN" && el?.textContent === "// loading platform stats?")).toBeInTheDocument();
+      // The loading eyebrow was removed to kill CLS; the footnote's line box
+      // is reserved instead, so assert that rather than the old badge.
+      expect(screen.getByText((_, el) => el?.tagName === "P" && el?.textContent === "\u00a0")).toBeInTheDocument();
 
       // Should render 4 skeleton cards with animate-pulse
       const skeletonCards = container.querySelectorAll(".animate-pulse");
@@ -68,8 +69,10 @@ describe("LiveStatsCounter", () => {
     it("renders live from the database badge", async () => {
       render(<LiveStatsCounter />);
 
-      const badge = await screen.findByText((_, el) => el?.tagName === "SPAN" && el?.textContent === "// live from the database?");
-      expect(badge).toBeInTheDocument();
+      // The success eyebrow was removed to kill CLS; assert the footnote
+      // that now always occupies that line box.
+      const footnote = await screen.findByText("Fresh from the database. No rounding up, we promise.");
+      expect(footnote).toBeInTheDocument();
     });
 
     it("renders all four stat labels", async () => {

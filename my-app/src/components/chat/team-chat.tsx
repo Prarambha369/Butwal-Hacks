@@ -11,8 +11,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Ballu } from "@/components/mascot/ballu";
 import { logger } from "@/lib/logger";
-import { usePresence } from "@/hooks/use-presence";
-import { createClient } from "@/utils/supabase";
+import { createClient } from "@/utils/supabase";;
 import { getAvatarUrl } from "@/lib/utils";
 import type { ChatMessage } from "@/lib/actions/team-chat";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
@@ -42,7 +41,6 @@ export default function TeamChat({ className }: TeamChatProps) {
   const profileCache = useRef<Map<string, NonNullable<ChatMessage['profile']>>>(new Map());
   const seenIds = useRef<Set<string>>(new Set());
   const supabase = createClient();
-  const onlineIds = usePresence();
 
   // Fetch user teams on mount
   const fetchTeams = useCallback(async () => {
@@ -178,7 +176,7 @@ export default function TeamChat({ className }: TeamChatProps) {
             // Cache miss — fetch once, cache for all future messages from this user
             supabase
               .from("profiles")
-              .select("full_name, avatar_url, slug_id, auth0_user_id")
+              .select("full_name, avatar_url, slug_id")
               .eq("id", newMsg.profile_id)
               .single()
               .then(({ data: profile }) => {
@@ -318,7 +316,7 @@ export default function TeamChat({ className }: TeamChatProps) {
         )}
 
         {!loading && messages.map((msg) => (
-          <ChatBubble key={msg.id} message={msg} onlineIds={onlineIds} />
+          <ChatBubble key={msg.id} message={msg} />
         ))}
         <div ref={messagesEndRef} />
       </div>
@@ -347,7 +345,7 @@ export default function TeamChat({ className }: TeamChatProps) {
             placeholder={activeTeam ? `Message ${activeTeam.name}...` : "Select a team to chat"}
             disabled={!activeTeamId}
             rows={1}
-            className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-primary placeholder:text-muted-foreground/40 resize-none focus:outline-none focus:ring-1 focus:ring-primary-red/30 min-h-[36px] max-h-[120px]"
+            className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-primary placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary-red/30 min-h-[36px] max-h-[120px]"
           />
           <button
             onClick={handleSend}
@@ -356,7 +354,7 @@ export default function TeamChat({ className }: TeamChatProps) {
               "p-2 rounded-lg transition-all flex-shrink-0",
               input.trim() && activeTeamId
                 ? "bg-primary-red text-primary hover:bg-primary-red/90"
-                : "bg-surface-hover text-muted-foreground/40 cursor-not-allowed",
+                : "bg-surface-hover text-muted-foreground cursor-not-allowed",
             )}
           >
             {sending ? (
@@ -373,14 +371,9 @@ export default function TeamChat({ className }: TeamChatProps) {
 
 function ChatBubble({
   message,
-  onlineIds,
 }: {
   message: ChatMessage;
-  onlineIds: Set<string>;
 }) {
-  // Use auth0_user_id for presence matching (usePresence tracks Auth0 sub, not UUID)
-  const isOnline = onlineIds.has(message.profile?.auth0_user_id ?? "");
-
   // "now" is computed after mount so relative timestamps match between
   // the server (UTC) and client (Asia/Kathmandu) renders.
   const [now, setNow] = useState<number | null>(null);
@@ -401,16 +394,13 @@ function ChatBubble({
             unoptimized
           />
         </div>
-        {isOnline && (
-          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-status-green ring-2 ring-background" />
-        )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           <span className="text-xs font-bold text-primary truncate">
             {message.profile?.full_name ?? "Unknown"}
           </span>
-          <span className="text-[10px] font-mono text-muted-foreground/50">
+          <span className="text-[10px] font-mono text-muted-foreground">
             {formatTime(message.created_at, now)}
           </span>
         </div>

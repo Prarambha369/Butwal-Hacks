@@ -100,7 +100,7 @@ export function BlogClient({ initialPosts }: { initialPosts: BlogRow[] }) {
         <p className="max-w-2xl text-sm text-muted-foreground leading-relaxed">
           Body paragraphs are separated by a blank line. Uncheck published to keep a draft.
         </p>
-        <button onClick={startAdd} className="inline-flex items-center gap-1.5 rounded-full bg-primary-red px-4 py-2 text-xs font-bold text-white hover:bg-deep-red transition-all">
+        <button onClick={startAdd} className="inline-flex items-center gap-1.5 rounded-full bg-bh-red-action px-4 py-2 text-xs font-bold text-white hover:bg-deep-red transition-all">
           <Plus className="w-3.5 h-3.5" /> New post
         </button>
       </div>
@@ -145,7 +145,7 @@ export function BlogClient({ initialPosts }: { initialPosts: BlogRow[] }) {
             </label>
           </div>
           <div className="flex gap-2">
-            <button type="submit" disabled={busy} className="inline-flex items-center gap-1.5 rounded-full bg-primary-red px-5 py-2 text-xs font-bold text-white hover:bg-deep-red transition-all disabled:opacity-50">
+            <button type="submit" disabled={busy} className="inline-flex items-center gap-1.5 rounded-full bg-bh-red-action px-5 py-2 text-xs font-bold text-white hover:bg-deep-red transition-all disabled:opacity-50">
               <Check className="w-3.5 h-3.5" /> Save
             </button>
             <button type="button" onClick={() => setEditingId(null)} className="inline-flex items-center gap-1.5 rounded-full border border-border px-5 py-2 text-xs font-bold text-muted-foreground hover:text-primary transition-all">

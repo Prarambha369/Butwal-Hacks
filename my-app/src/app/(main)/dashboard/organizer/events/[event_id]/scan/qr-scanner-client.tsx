@@ -295,7 +295,7 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
               <button
                 onClick={startCamera}
                 disabled={!barcodeSupported}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50"
               >
                 <Camera className="w-3.5 h-3.5" />
                 Start Camera
@@ -331,8 +331,8 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
           </div>
         ) : (
           <div className="rounded-xl border border-border/50 bg-surface-hover/30 p-10 text-center space-y-3">
-            <Camera className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-            <p className="text-sm text-muted-foreground/60">
+            <Camera className="w-10 h-10 text-muted-foreground mx-auto" />
+            <p className="text-sm text-muted-foreground">
               {barcodeSupported
                 ? "Tap 'Start Camera' to scan QR codes. You'll hear a beep on successful check-in."
                 : "QR scanning unavailable in this browser. Use manual entry below."}
@@ -375,7 +375,7 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
           <button
             onClick={handleManualCheckin}
             disabled={manualLoading || !manualId.trim()}
-            className="inline-flex items-center gap-1.5 px-4 py-3 rounded-lg bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50 shrink-0"
+            className="inline-flex items-center gap-1.5 px-4 py-3 rounded-lg bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50 shrink-0"
           >
             {manualLoading ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -420,7 +420,7 @@ export function QrScannerClient({ eventId: _eventId }: QrScannerClientProps) {
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-bold text-primary truncate">{r.name}</p>
-                    <p className="text-[10px] font-mono text-muted-foreground/50">
+                    <p className="text-[10px] font-mono text-muted-foreground">
                       {r.message}
                     </p>
                   </div>

@@ -41,7 +41,7 @@ export default async function OrganizerEventsPage() {
           <h1 className="text-3xl font-bold tracking-tight text-primary">My Events</h1>
           <p className="text-sm text-muted-foreground">Manage your event lifecycle and participant engagement.</p>
         </div>
-        <Link href="/dashboard/organizer/events/new" className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-deep-red">
+        <Link href="/dashboard/organizer/events/new" className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-4 py-2 text-sm font-bold text-white transition-all hover:bg-deep-red">
           <Plus size={16} /> Create New Event
         </Link>
       </div>

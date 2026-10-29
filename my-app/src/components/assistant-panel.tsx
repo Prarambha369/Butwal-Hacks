@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Bot, X, Send, Loader2, Sparkles, CheckCircle2, MessageSquare } from "lucide-react";
+import { X, Send, Loader2, Sparkles, CheckCircle2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Ballu, type BalluEmotion } from "@/components/mascot/ballu";
+import { parsePolicyMarkdown } from "@/lib/policy-markdown";
+import PolicyMarkdown, { renderInline } from "@/components/policy-markdown";
 import { useAuthUser } from "@/components/auth-user-provider";
 import { submitFeedback } from "@/lib/actions/feedback";
 import { cn } from "@/lib/utils";
@@ -18,6 +20,38 @@ interface Message {
   content: string;
   /** Optional mascot pose, so error bubbles can show the matching face. */
   mood?: BalluEmotion;
+}
+
+/**
+ * Render an assistant reply.
+ *
+ * MrBallu answers in markdown (the system prompt asks for `[text](url)`
+ * links, and the model freely uses **bold**, *italic*, headings and lists),
+ * so the bubble must render it rather than dump the raw source. We reuse the
+ * repo's own markdown parser + React renderer (see `@/lib/policy-markdown`
+ * and `@/components/policy-markdown`): it emits real elements and never raw
+ * HTML, so untrusted model output cannot inject markup.
+ *
+ * Two tweaks for the chat context:
+ *  - The parser treats `#`/`##` as a document title and drops them; in a
+ *    bubble every line is content, so promote them to `###` so they render.
+ *  - Blocks are styled to the compact bubble scale via a wrapper class.
+ */
+function AssistantReply({ content }: { content: string }) {
+  const promoted = content.replace(/^#{1,2}[ \t]/gm, "### ");
+  const { blocks } = parsePolicyMarkdown(promoted, { extractVersion: false });
+
+  // A single plain paragraph renders bare so tight one-liners don't get
+  // wrapped in an extra <p> (which would double up on the bubble padding).
+  if (blocks.length === 1 && blocks[0].kind === "paragraph") {
+    return <>{renderInline(blocks[0].text)}</>;
+  }
+
+  return (
+    <div className="[&>p]:my-1.5 [&>p:first-child]:mt-0 [&>p:last-child]:mb-0 space-y-2 text-sm leading-relaxed">
+      <PolicyMarkdown blocks={blocks} />
+    </div>
+  );
 }
 
 // Context-aware suggestion sets for onboarding surfaces.
@@ -53,7 +87,7 @@ const CHAT_SUGGESTIONS: Record<string, string[]> = {
 
 const CHAT_WELCOME: Message = {
   role: "assistant",
-  content: "Hey there! I'm BH Bot. Ask me about Butwal Hacks, our chapters, events, programs, or how to get involved.",
+  content: "Hey there! I'm MrBallu. Ask me about Butwal Hacks, our chapters, events, programs, or how to get involved.",
 };
 
 // ─── Hooks ───────────────────────────────────────────────────────────
@@ -219,13 +253,15 @@ export default function AssistantPanel({
         aria-label={isOpen ? "Close assistant" : "Open assistant"}
         aria-expanded={isOpen}
         className={cn(
-          "fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300",
+          // Sits above the mobile tab bar (bottom-0, ~64px tall + safe area);
+          // on md+ the tab bar is gone and the button returns to the corner.
+          "fixed bottom-24 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 md:bottom-6 md:right-6",
           isOpen
-            ? "scale-90 bg-bh-red-500 text-white ring-2 ring-bh-red-500/40"
+            ? "scale-90 bg-bh-red-action text-white ring-2 ring-bh-red-500/40"
             : "bg-surface border border-border text-primary hover:scale-110 hover:border-primary-red/50 outline-none focus-visible:ring-2 focus-visible:ring-bh-red-500/50 focus-visible:ring-offset-2"
         )}
       >
-        {isOpen ? <X size={22} /> : <Ballu emotion="calm-neutral" size={28} priority popOnHover />}
+        {isOpen ? <X size={22} /> : <Ballu emotion="ai-logo" size={34} />}
       </button>
 
       {/* Backdrop */}
@@ -247,7 +283,7 @@ export default function AssistantPanel({
         aria-modal="true"
         aria-label="Assistant panel"
         className={cn(
-          "fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-2rem)]",
+          "fixed bottom-44 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)] md:bottom-24 md:right-6",
           reducedMotion
             ? cn(isOpen ? "opacity-100" : "opacity-0 pointer-events-none")
             : cn("transition-all duration-300",
@@ -266,7 +302,7 @@ export default function AssistantPanel({
                   : "text-muted-foreground hover:text-primary"
               )}
             >
-              <Bot className="w-4 h-4" />
+              <Ballu emotion="ai-logo" size={18} />
               Chat
             </button>
             <button
@@ -300,15 +336,19 @@ export default function AssistantPanel({
                       "w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
                       msg.role === "assistant" ? "bg-primary-red/10 text-primary-red" : "bg-surface-hover text-muted-foreground"
                     )}>
-                      {msg.role === "assistant" ? <Ballu emotion={msg.mood ?? "calm-neutral"} size={20} /> : <MessageSquare className="w-3.5 h-3.5" />}
+                      {msg.role === "assistant" ? <Ballu emotion={msg.mood ?? "ai-logo"} size={18} /> : <MessageSquare className="w-3.5 h-3.5" />}
                     </div>
                     <div className={cn(
                       "max-w-[80%] px-3.5 py-2.5 rounded-lg text-sm leading-relaxed",
                       msg.role === "assistant"
                         ? "bg-surface-hover border border-border text-primary rounded-bl-md"
-                        : "bg-bh-red-500 text-white rounded-br-md"
+                        : "bg-bh-red-action text-white rounded-br-md"
                     )}>
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                      {msg.role === "assistant" ? (
+                        <AssistantReply content={msg.content} />
+                      ) : (
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -329,7 +369,7 @@ export default function AssistantPanel({
                           )} />
                         ))}
                       </div>
-                      <p className="text-[10px] text-muted-foreground/50 font-mono tracking-wider">Thinking...</p>
+                      <p className="text-[10px] text-muted-foreground font-mono tracking-wider">Thinking...</p>
                     </div>
                   </div>
                 )}
@@ -340,9 +380,9 @@ export default function AssistantPanel({
               {messages.length <= 2 && !chatLoading && (
                 <div className="px-4 pb-2">
                   <div className="flex justify-center mb-2">
-                    <Ballu emotion="welcome" size={48} />
+                    <Ballu emotion="waving" size={48} />
                   </div>
-                  <p className="text-[10px] font-mono text-muted-foreground/50 mb-2">
+                  <p className="text-[10px] font-mono text-muted-foreground mb-2">
                     Suggested questions
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -369,21 +409,21 @@ export default function AssistantPanel({
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={handleChatKeyDown}
-                    placeholder="Ask BH Bot..."
+                    placeholder="Ask MrBallu..."
                     aria-label="Chat message"
-                    className="flex-1 bg-transparent text-sm text-primary placeholder:text-muted-foreground/40 outline-none"
+                    className="flex-1 bg-transparent text-sm text-primary placeholder:text-muted-foreground outline-none"
                     disabled={chatLoading}
                   />
                   <button
                     onClick={() => handleChatSubmit(chatInput)}
                     disabled={!chatInput.trim() || chatLoading}
                     aria-label="Send message"
-                    className="min-w-[44px] min-h-[44px] p-1.5 rounded-lg bg-bh-red-500 text-white hover:bg-deep-red transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+                    className="min-w-[44px] min-h-[44px] p-1.5 rounded-lg bg-bh-red-action text-white hover:bg-deep-red transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-[9px] text-muted-foreground/30 text-center mt-1.5">Powered by Groq Llama 3.3</p>
+                <p className="text-[9px] text-muted-foreground text-center mt-1.5">Powered by Groq Llama 3.3</p>
               </div>
             </>
           )}
@@ -397,7 +437,7 @@ export default function AssistantPanel({
                     <CheckCircle2 className="w-6 h-6 text-status-green" />
                   </div>
                   <div className="flex justify-center">
-                    <Ballu emotion="celebrating-proud" size={48} />
+                    <Ballu emotion="celebrating-arms-up" size={48} />
                   </div>
                   <p className="text-sm font-bold text-primary">Message sent!</p>
                   <p className="text-xs text-muted-foreground">Your message has been received. We review every submission.</p>
@@ -413,11 +453,11 @@ export default function AssistantPanel({
                       placeholder="Send a message to the team..."
                       rows={6}
                       maxLength={2000}
-                      className="flex-1 w-full rounded-lg bg-background/50 border border-border px-4 py-3 text-sm text-primary placeholder:text-muted-foreground/40 focus:border-bh-red-500/50 focus:outline-none resize-none transition-all"
+                      className="flex-1 w-full rounded-lg bg-background/50 border border-border px-4 py-3 text-sm text-primary placeholder:text-muted-foreground focus:border-bh-red-500/50 focus:outline-none resize-none transition-all"
                     />
                     <span className={cn(
                       "absolute bottom-2 right-3 text-[10px] transition-colors",
-                      msgCharCount > 1800 ? "text-status-orange" : "text-muted-foreground/40"
+                      msgCharCount > 1800 ? "text-status-orange" : "text-muted-foreground"
                     )}>{msgCharCount}/2000</span>
                   </div>
 
@@ -425,7 +465,7 @@ export default function AssistantPanel({
                   <button
                     type="submit"
                     disabled={msgSubmitting || msgText.trim().length < 3}
-                    className="w-full rounded-full px-6 py-2.5 text-sm font-bold text-white bg-bh-red-500 hover:bg-deep-red transition-all disabled:opacity-40"
+                    className="w-full rounded-full px-6 py-2.5 text-sm font-bold text-white bg-bh-red-action hover:bg-deep-red transition-all disabled:opacity-40"
                   >
                     {msgSubmitting ? (
                       <span className="flex items-center justify-center gap-2">
@@ -435,7 +475,7 @@ export default function AssistantPanel({
                     ) : "Send Message"}
                   </button>
 
-                  <p className="text-[10px] text-muted-foreground/40 text-center">
+                  <p className="text-[10px] text-muted-foreground text-center">
                     {user?.name ? `Sent as ${user.name}` : "You can send messages without an account"}
                   </p>
                 </form>

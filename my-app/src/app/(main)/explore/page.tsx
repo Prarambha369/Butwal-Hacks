@@ -63,18 +63,15 @@ export default async function ExplorePage() {
         />
 
         {/* ── MEMBER DIRECTORY ────────────────────────────────────── */}
-        <section className="py-16 md:py-20" aria-label="Member Directory">
+        <section className="py-12 md:py-16" aria-label="Member Directory">
           <div className="mx-auto max-w-6xl px-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Users className="w-4 h-4 text-primary-red" />
-                  <h2 className="text-sm font-bold text-primary">Community</h2>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {stats.total} people building the future of tech in Lumbini Province.
-                </p>
-              </div>
+            {/* The count already appears in the hero stats and the aria-label.
+                Repeating it here was the third instance on one screen. */}
+            <div className="mb-6">
+              <h2 className="text-xl font-bold tracking-tight text-primary">Member directory</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Search by name, BH-ID, or skill.
+              </p>
             </div>
 
             {/* Client-Side Interactive Explorer */}
@@ -83,7 +80,7 @@ export default async function ExplorePage() {
             {/* Static fallback for JS-disabled users */}
             <noscript>
               <div className="mt-8 p-8 text-center rounded-xl border border-border bg-surface">
-                <Users className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
                 <p className="text-sm font-medium text-muted-foreground">
                   Enable JavaScript to browse the full member directory, search by BH-ID, and connect with the community.
                 </p>
@@ -108,18 +105,12 @@ export default async function ExplorePage() {
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/mentors"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                Find a mentor <ArrowRight className="h-4 w-4" />
+            <div className="flex flex-wrap items-center gap-2">
+              <Link href="/mentors" className="bh-btn-primary text-sm">
+                Find a mentor <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
-              <Link
-                href={PROFILE_SETTINGS_PATH}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-surface-hover"
-              >
-                Become one
+              <Link href={PROFILE_SETTINGS_PATH} className="bh-btn-secondary text-sm">
+                Become a mentor
               </Link>
             </div>
           </div>
@@ -138,7 +129,7 @@ export default async function ExplorePage() {
         <ExcuseGenerator />
 
         {/* ── CTA ──────────────────────────────────────────────────── */}
-        <ExploreCta totalMembers={stats.total} />
+        <ExploreCta />
       </main>
     </>
   )

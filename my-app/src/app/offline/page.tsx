@@ -23,7 +23,7 @@ export default function OfflinePage() {
       </p>
       <button
         onClick={() => window.location.reload()}
-        className="mt-8 inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-8 py-3 text-sm font-bold text-white shadow-[0_0_20px_var(--glow-bh-red)] transition-all hover:bg-deep-red"
+        className="mt-8 inline-flex items-center gap-2 rounded-full bg-bh-red-action px-8 py-3 text-sm font-bold text-white shadow-[0_0_20px_var(--glow-bh-red)] transition-all hover:bg-deep-red"
       >
         {t('common.retry', locale)}
       </button>

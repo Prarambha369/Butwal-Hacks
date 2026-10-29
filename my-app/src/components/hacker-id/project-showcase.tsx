@@ -16,7 +16,7 @@ export default function ProjectShowcase({ projects, isProfileView = false }: Pro
         <div className="w-16 h-16 bg-surface-hover rounded-full flex items-center justify-center mx-auto">
           <Code2 className="w-8 h-8 text-muted-foreground opacity-20" />
         </div>
-        <p className="text-muted-foreground font-mono text-sm opacity-60">
+        <p className="text-muted-foreground font-mono text-sm">
           No projects yet. Ship your first one at a build night and it will show up here.
         </p>
       </div>
@@ -29,7 +29,7 @@ export default function ProjectShowcase({ projects, isProfileView = false }: Pro
         <h3 className="text-xs font-black uppercase tracking-widest text-primary opacity-40">
           {isProfileView ? 'Project Contributions' : 'Shipped Projects'}
         </h3>
-        <span className="text-[10px] font-mono text-muted-foreground opacity-60">
+        <span className="text-[10px] font-mono text-muted-foreground">
           {projects.length} Projects
         </span>
       </div>

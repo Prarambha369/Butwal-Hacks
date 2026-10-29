@@ -124,7 +124,7 @@ export default function ApiKeysPage() {
         </div>
         <button
           onClick={() => setShowNewForm(true)}
-          className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+          className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
         >
           <Plus className="w-4 h-4" />
           New Key
@@ -148,7 +148,7 @@ export default function ApiKeysPage() {
             <button
               onClick={handleCreate}
               disabled={!newKeyName.trim()}
-              className="rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all disabled:opacity-40"
+              className="rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all disabled:opacity-40"
             >
               Generate
             </button>
@@ -200,7 +200,7 @@ export default function ApiKeysPage() {
           </p>
           <button
             onClick={() => setShowNewForm(true)}
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all"
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all"
           >
             <Plus className="w-4 h-4" />
             Create API Key

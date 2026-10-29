@@ -63,7 +63,7 @@ function KeyEditor({
             onChange={(e) => setEn(e.target.value)}
             rows={3}
             placeholder="Empty = default text"
-            className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm text-primary placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-red/40"
+            className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/40"
           />
         </label>
         <label className="block">
@@ -75,7 +75,7 @@ function KeyEditor({
             onChange={(e) => setNe(e.target.value)}
             rows={3}
             placeholder="Empty = default text"
-            className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm text-primary placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-red/40"
+            className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/40"
           />
         </label>
       </div>

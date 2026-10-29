@@ -95,10 +95,10 @@ export default async function EventQrPage({
         {rows.length === 0 ? (
           <div className="text-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-surface-hover flex items-center justify-center mx-auto mb-4 ring-1 ring-border">
-              <QrCode className="w-6 h-6 text-muted-foreground/40" />
+              <QrCode className="w-6 h-6 text-muted-foreground" />
             </div>
             <p className="text-lg font-bold text-primary">No registrations yet</p>
-            <p className="text-sm text-muted-foreground/60 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               QR codes will appear here once hackers register for this event.
             </p>
           </div>
@@ -132,7 +132,7 @@ export default async function EventQrPage({
                     {p?.full_name ?? "Unknown"}
                   </p>
                   {/* BH-ID */}
-                  <p className="text-[9px] font-mono text-muted-foreground/50 truncate">
+                  <p className="text-[9px] font-mono text-muted-foreground truncate">
                     {p?.bh_id ?? "—"}
                   </p>
                   {/* Status badge */}
@@ -141,7 +141,7 @@ export default async function EventQrPage({
                       CHECKED IN
                     </span>
                   ) : (
-                    <span className="inline-block text-[8px] font-mono text-muted-foreground/40">
+                    <span className="inline-block text-[8px] font-mono text-muted-foreground">
                       pending
                     </span>
                   )}

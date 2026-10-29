@@ -143,7 +143,7 @@ export default function ProjectGrid() {
 
       {/* Filters Section */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-surface-hover p-4 rounded-lg border border-border">
-        <div className="relative w-full md:w-96">
+        <div className="relative w-full md:w-96 md:shrink-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input 
             className="w-full pl-10 pr-4 py-2 rounded-lg bg-background border border-border focus:border-bh-red-500 outline-none transition-all text-sm"
@@ -153,15 +153,16 @@ export default function ProjectGrid() {
           />
         </div>
         
-        <div className="flex flex-col gap-4 w-full">
+        <div className="flex flex-col gap-4 w-full md:min-w-0 md:flex-1">
           {/* Row 1: Sort + Tech filters */}
           <div className="flex items-center gap-2 overflow-x-auto">
             <div className="flex items-center gap-2 mr-4 border-r border-border pr-4 shrink-0">
               <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest shrink-0">Sort:</span>
               <select 
+                aria-label="Sort projects"
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as 'newest' | 'trending' | 'top')}
-                className="bg-transparent text-xs font-bold outline-none cursor-pointer hover:text-primary-red transition-colors"
+                className="min-h-[44px] bg-transparent pr-1 text-xs font-bold outline-none cursor-pointer hover:text-primary-red transition-colors"
               >
                 <option value="newest" className="bg-background">Newest</option>
                 <option value="trending" className="bg-background">Trending</option>
@@ -173,7 +174,7 @@ export default function ProjectGrid() {
               onClick={() => setSelectedTech(null)}
               className={cn(
                 "inline-flex items-center px-3 min-h-[44px] rounded-full text-xs font-medium transition-all whitespace-nowrap",
-                !selectedTech ? "bg-bh-red-500 text-primary" : "bg-surface-hover text-muted-foreground hover:bg-background/20"
+                !selectedTech ? "bg-bh-red-action text-white" : "bg-surface-hover text-muted-foreground hover:bg-background/20"
               )}
             >
               All
@@ -184,14 +185,14 @@ export default function ProjectGrid() {
                 onClick={() => setSelectedTech(tech)}
                 className={cn(
                   "inline-flex items-center px-3 min-h-[44px] rounded-full text-xs font-medium transition-all whitespace-nowrap",
-                  selectedTech === tech ? "bg-bh-red-500 text-primary" : "bg-surface-hover text-muted-foreground hover:bg-background/20"
+                  selectedTech === tech ? "bg-bh-red-action text-white" : "bg-surface-hover text-muted-foreground hover:bg-background/20"
                 )}
               >
                 {tech}
               </button>
             ))}
             {allTech.length === 0 && !loading && (
-              <span className="text-[10px] text-muted-foreground opacity-40 italic shrink-0">No tech data yet</span>
+              <span className="text-[10px] text-muted-foreground italic shrink-0">No tech data yet</span>
             )}
           </div>
 
@@ -202,7 +203,7 @@ export default function ProjectGrid() {
               onClick={() => setSelectedCategory(null)}
               className={cn(
                 "inline-flex items-center px-3 min-h-[44px] rounded-full text-xs font-medium transition-all whitespace-nowrap",
-                !selectedCategory ? "bg-bh-red-500 text-primary" : "bg-surface-hover text-muted-foreground hover:bg-background/20"
+                !selectedCategory ? "bg-bh-red-action text-white" : "bg-surface-hover text-muted-foreground hover:bg-background/20"
               )}
             >
               All Categories
@@ -252,7 +253,7 @@ export default function ProjectGrid() {
                       </div>
                     )}
                     {project.github_verified && (
-                      <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-bh-red-500 text-primary text-[10px] font-bold uppercase tracking-tighter flex items-center gap-1 shadow-lg">
+                      <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-bh-red-action text-white text-[10px] font-bold uppercase tracking-tighter flex items-center gap-1 shadow-lg">
                         <ShieldCheck className="w-3 h-3" /> Verified
                       </div>
                     )}
@@ -342,7 +343,7 @@ export default function ProjectGrid() {
                     className={cn(
                       "w-8 h-8 rounded-full text-xs font-bold transition-all",
                       page === i
-                        ? "bg-bh-red-500 text-primary"
+                        ? "bg-bh-red-action text-white"
                         : "bg-surface-hover border border-border text-muted-foreground hover:bg-surface/20"
                     )}
                   >

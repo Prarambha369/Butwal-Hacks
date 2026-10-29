@@ -32,7 +32,7 @@ export function CloseEventClientButton({ eventId }: { eventId: string }) {
     <button
       onClick={handleClose}
       disabled={isLoading}
-      className="w-full rounded-lg bg-bh-red-500 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-deep-red disabled:opacity-50"
+      className="w-full rounded-lg bg-bh-red-action px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-deep-red disabled:opacity-50"
     >
       {isLoading ? (
         <RoseSpinner size="sm" color="white" />

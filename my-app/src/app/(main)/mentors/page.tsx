@@ -40,7 +40,7 @@ export default async function MentorsPage() {
               </p>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground/70 max-w-2xl leading-relaxed">
+          <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
             Browse experienced developers and engineers who have volunteered to mentor community members.
             Book a 15-minute chat to ask questions, get career advice, or discuss your project.
           </p>

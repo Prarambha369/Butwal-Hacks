@@ -125,7 +125,7 @@ export default function TeamRequestList({ teamId, onUpdate }: TeamRequestListPro
               </button>
               <button 
                 onClick={() => handleRespond(req.id, true)}
-                className="p-2 rounded-lg bg-bh-red-500 text-primary hover:bg-primary-red/90 transition-colors"
+                className="p-2 rounded-lg bg-bh-red-action text-white hover:bg-deep-red transition-colors"
                 title="Approve"
               >
                 <Check className="w-4 h-4" />

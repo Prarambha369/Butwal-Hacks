@@ -82,7 +82,7 @@ export function EmptyState({
                 className={cn(
                   "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200",
                   action.variant === "primary"
-                    ? "bg-bh-red-500 text-white hover:bg-deep-red hover:shadow-[0_0_20px_rgba(254,0,0,0.2)]"
+                    ? "bg-bh-red-action text-white hover:bg-deep-red hover:shadow-[0_0_20px_rgba(254,0,0,0.2)]"
                     : "bg-surface-hover text-secondary hover:text-primary border border-border"
                 )}
               >
@@ -96,7 +96,7 @@ export function EmptyState({
                 className={cn(
                   "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200",
                   action.variant === "primary"
-                    ? "bg-bh-red-500 text-white hover:bg-deep-red"
+                    ? "bg-bh-red-action text-white hover:bg-deep-red"
                     : "bg-surface-hover text-secondary hover:text-primary border border-border"
                 )}
               >
@@ -112,7 +112,7 @@ export function EmptyState({
       {hint && (
         <div className="flex items-center justify-center gap-1.5">
           <Sparkles className="w-3 h-3 text-primary-red/40" />
-          <p className="text-[11px] text-secondary/40">{hint}</p>
+          <p className="text-[11px] text-secondary">{hint}</p>
         </div>
       )}
     </div>

@@ -131,13 +131,13 @@ export function DashboardRoleSwitcher({ currentRole, slugId }: DashboardRoleSwit
         <span className={cn("w-2 h-2 rounded-full shrink-0", current.dot)} />
         <div className="flex-1 text-left min-w-0">
           <p className="text-xs font-bold text-primary">{current.label}</p>
-          <p className="text-[10px] font-mono text-muted-foreground/60 truncate">
+          <p className="text-[10px] font-mono text-muted-foreground truncate">
             {slugId}
           </p>
         </div>
         <ChevronDown
           className={cn(
-            "w-3.5 h-3.5 text-muted-foreground/40 transition-transform shrink-0",
+            "w-3.5 h-3.5 text-muted-foreground transition-transform shrink-0",
             open && "rotate-180",
           )}
         />
@@ -146,7 +146,7 @@ export function DashboardRoleSwitcher({ currentRole, slugId }: DashboardRoleSwit
       {/* Dropdown */}
       {open && (
         <div className="absolute left-0 right-0 top-full mt-1 z-50 bh-card p-1.5 shadow-xl border-border rounded-xl" role="listbox">
-          <div className="px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground/50">
+          <div className="px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
             Switch dashboard
           </div>
           {ALL_DASHBOARDS.map((role) => {
@@ -180,10 +180,10 @@ export function DashboardRoleSwitcher({ currentRole, slugId }: DashboardRoleSwit
                       <CheckCircle2 className="w-3 h-3 text-primary-red" />
                     )}
                   </div>
-                  <p className="text-[10px] text-muted-foreground/70 truncate">{role.description}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{role.description}</p>
                 </div>
                 {!isCurrent && (
-                  <ExternalLink className="w-3 h-3 text-muted-foreground/30 group-hover:text-primary-red/50 transition-colors shrink-0" />
+                  <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-primary-red/50 transition-colors shrink-0" />
                 )}
               </Link>
             );

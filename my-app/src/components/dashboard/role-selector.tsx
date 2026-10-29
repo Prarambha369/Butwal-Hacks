@@ -248,7 +248,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
             </p>
             <button
               onClick={handleSkip}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary-red text-white text-sm font-bold hover:bg-deep-red transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-bh-red-action text-white text-sm font-bold hover:bg-deep-red transition-all"
             >
               Proceed as Hacker <ArrowRight className="w-4 h-4" />
             </button>
@@ -293,7 +293,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
                 <button
                   type="submit"
                   disabled={requestSubmitting || requestMessage.trim().length < 10}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all ${requestSubmitting || requestMessage.trim().length < 10 ? 'bh-btn-disabled' : ''}`}
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all ${requestSubmitting || requestMessage.trim().length < 10 ? 'bh-btn-disabled' : ''}`}
                 >
                   {requestSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -458,7 +458,7 @@ export function RoleSelector({ email, emailVerified }: RoleSelectorProps) {
         >
           Skip — I&apos;ll join as a Hacker for now
         </button>
-        <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground/40">
+        <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
           <span>Roles can be changed later</span>
           <span className="w-1 h-1 rounded-full bg-border" />
           <span>{email}</span>

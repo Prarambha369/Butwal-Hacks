@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { createServiceClient } from "@/utils/supabase";
 import type { Metadata } from "next";
-import { WidgetPresenceDot } from "@/components/widget/widget-presence-dot";
 
 type Props = {
   params: Promise<{ slugId: string }>;
@@ -20,9 +19,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 /**
  * /widget/[slugId] — embeddable BH-ID verification widget.
  *
- * Fetches the profile server-side, then passes `auth0_user_id` to a lightweight
- * client component that uses the Realtime presence channel for the live dot.
- * This way the green dot reflects actual online status even in embedded iframes.
+ * Fetches the profile server-side and renders a lightweight, self-contained
+ * card. No client JavaScript is needed for the identity data itself, so the
+ * widget works inside embedded iframes without a Realtime subscription.
  *
  * Variants (via ?variant=):
  *   card    (default) Full Liquid Glass identity card with trust markers
@@ -52,7 +51,7 @@ export default async function WidgetPage({ params, searchParams }: Props) {
   const { data: profile, error } = await supabase
     .from("profiles")
     .select(`
-      full_name, bh_id, role, bio, avatar_url, auth0_user_id,
+      full_name, bh_id, role, bio, avatar_url,
       trust_markers!trust_markers_profile_id_fkey (
         id, title, description, type, is_revoked,
         issuer:profiles!trust_markers_issuer_id_fkey ( full_name )
@@ -110,7 +109,6 @@ export default async function WidgetPage({ params, searchParams }: Props) {
           }
         `}</style>
         <div className="wb">
-          <WidgetPresenceDot auth0UserId={profile.auth0_user_id} size="sm" />
           <span className="wb-txt">Verified</span>
           <span className="wb-id">{profile.bh_id}</span>
         </div>
@@ -169,11 +167,6 @@ export default async function WidgetPage({ params, searchParams }: Props) {
               )}
             </div>
           </div>
-
-          {/* Live presence dot — margin-left:auto pushes it to the right edge */}
-          <span style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
-            <WidgetPresenceDot auth0UserId={profile.auth0_user_id} size="md" />
-          </span>
         </div>
       </>
     );
@@ -388,7 +381,6 @@ export default async function WidgetPage({ params, searchParams }: Props) {
               gap: 6,
             }}
           >
-            <WidgetPresenceDot auth0UserId={profile.auth0_user_id} size="sm" />
             <span className="wc-s" style={{ fontSize: 10 }}>
               {hasTrust
                 ? `Verified with ${activeMarkers.length} trust marker${activeMarkers.length !== 1 ? "s" : ""}`

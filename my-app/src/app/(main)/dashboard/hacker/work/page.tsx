@@ -91,7 +91,7 @@ export default async function WorkPage() {
         />
       ) : (
         <div className="bh-card p-12 text-center space-y-4">
-          <Users className="w-10 h-10 mx-auto text-muted-foreground/40" />
+          <Users className="w-10 h-10 mx-auto text-muted-foreground" />
           <h3 className="text-lg font-semibold text-primary">No Active Workspace</h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
             Join a team to get access to your workspace and start managing tasks.
@@ -99,7 +99,7 @@ export default async function WorkPage() {
           <div className="pt-2">
             <Link
               href="/teams"
-              className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+              className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
             >
               <Users className="w-4 h-4" />
               Join a Team

@@ -26,7 +26,7 @@ export default async function MaintainerChaptersPage() {
       </div>
       {missing && (
         <p className="rounded-xl border border-status-yellow/30 bg-status-yellow/5 p-4 text-sm text-muted-foreground" role="alert">
-          The chapters table is missing here (migration 121 not applied). Apply migrations to manage chapters; the public page uses the built-in list until then.
+          The chapters table is missing here (migration 121 not applied). Apply migrations to manage chapters; the public page stays empty until then.
         </p>
       )}
       <ChaptersClient initialChapters={chapters} />

@@ -63,7 +63,7 @@ export function TagInput({ tags, setTags, placeholder, label, icon }: TagInputPr
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 rounded-xl bg-surface/10 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary/50 focus:border-bh-red-500/50 focus:outline-none transition-all"
+          className="flex-1 rounded-xl bg-surface/10 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary focus:border-bh-red-500/50 focus:outline-none transition-all"
         />
         <button
           type="button"
@@ -86,7 +86,7 @@ export function TagInput({ tags, setTags, placeholder, label, icon }: TagInputPr
               <button
                 type="button"
                 onClick={() => removeTag(i)}
-                className="text-secondary/50 hover:text-primary-red"
+                className="text-secondary hover:text-primary-red"
               >
                 <X size={12} />
               </button>

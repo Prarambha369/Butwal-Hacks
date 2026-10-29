@@ -63,12 +63,7 @@ export default function ImpactMetrics() {
   return (
     <section className="py-16 md:py-20 bg-surface border-b border-border">
       <div className="mx-auto max-w-6xl px-4">
-        <div className="flex items-center justify-center gap-3 mb-12">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/8 text-[10px] font-mono font-semibold text-primary-red tracking-tight">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-red" />
-            {t("home.impact.badge", locale)}
-          </span>
-        </div>
+
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {values.map((item, i) => {

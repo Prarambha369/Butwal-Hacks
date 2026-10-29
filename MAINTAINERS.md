@@ -113,6 +113,7 @@ Where each variable is set:
 | Variable | Required | Source |
 |----------|----------|--------|
 | `GROQ_API_KEY` | Runtime | Groq console |
+| `GEMINI_API_KEY` | Runtime | Google AI Studio, for the MrBallu knowledge-base embeddings. `GOOGLE_API_KEY` is accepted as an alias |
 | `RESEND_API_KEY` | Runtime | Resend dashboard |
 | `OC_WEBHOOK_SECRET` | Runtime | `openssl rand -hex 32` |
 | `GOOGLE_CLIENT_ID` | Runtime | Google Cloud, for Calendar sync |

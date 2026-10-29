@@ -78,6 +78,14 @@ export interface EventSchemaInput {
     addressCountry?: string | null;
   } | null;
   attendanceMode?: "OfflineEventAttendanceMode" | "OnlineEventAttendanceMode" | "MixedEventAttendanceMode";
+  /**
+   * Ticket price as a string (schema.org requires `price` to be a string, not
+   * a number). Supplied only when the caller knows it -- most events here are
+   * free, so the caller passes "0" rather than this builder inventing a value.
+   */
+  price?: string | null;
+  /** ISO 4217 code. Defaults to NPR, the same hardcode festivals.ts uses. */
+  priceCurrency?: string;
 }
 
 /**
@@ -129,6 +137,19 @@ export function eventJsonLd(e: EventSchemaInput) {
             ...(addressFields(e.locationAddress)
               ? { address: { "@type": "PostalAddress", ...addressFields(e.locationAddress)! } }
               : {}),
+          },
+        }
+      : {}),
+    // Google's event guidelines ask for an offers block with the ticket price;
+    // only emitted when the caller supplies one, never defaulted to a guess.
+    ...(e.price
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: e.price,
+            priceCurrency: e.priceCurrency ?? "NPR",
+            url: e.url,
+            availability: "https://schema.org/InStock",
           },
         }
       : {}),

@@ -208,7 +208,7 @@ export function DashboardCommandPalette({
                         "flex h-7 w-7 items-center justify-center rounded-lg",
                         idx === selectedIdx
                           ? "text-primary-red"
-                          : "text-muted-foreground/50",
+                          : "text-muted-foreground",
                       )}
                     >
                       {link.icon}
@@ -221,7 +221,7 @@ export function DashboardCommandPalette({
                         "flex items-center gap-1 text-[10px] font-mono transition-opacity",
                         idx === selectedIdx
                           ? "opacity-100 text-muted-foreground"
-                          : "opacity-40 text-muted-foreground/50",
+                          : "opacity-40 text-muted-foreground",
                       )}
                     >
                       <kbd className="rounded border border-border/30 px-1 py-0.5">
@@ -245,7 +245,7 @@ export function DashboardCommandPalette({
 
           {/* Footer */}
           <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
-            <div className="flex items-center gap-3 text-[10px] text-muted-foreground/50">
+            <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
               <span>
                 <kbd className="rounded border border-border/30 px-1 font-mono">
                   ↑↓
@@ -267,7 +267,7 @@ export function DashboardCommandPalette({
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+              className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-muted-foreground transition-colors hover:text-muted-foreground"
             >
               <X className="h-3 w-3" />
               Close

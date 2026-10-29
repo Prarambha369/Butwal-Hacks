@@ -10,6 +10,7 @@
 const HOME_FAQ_KEYS = [
   "free",
   "who-can-join",
+  "how-to-join",
   "donations",
   "volunteer",
   "events",

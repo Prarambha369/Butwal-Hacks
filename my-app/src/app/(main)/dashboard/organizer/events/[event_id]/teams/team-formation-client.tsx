@@ -150,7 +150,7 @@ export function TeamFormationClient({
           {!showCreateForm && (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-red text-white text-[10px] font-bold hover:bg-deep-red transition-all"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bh-red-action text-white text-[10px] font-bold hover:bg-deep-red transition-all"
             >
               <Plus className="w-3 h-3" />
               New Team
@@ -180,7 +180,7 @@ export function TeamFormationClient({
                 Assign Members ({selectedMembers.size} selected)
               </label>
               {unassigned.length === 0 ? (
-                <p className="text-xs text-muted-foreground/60 py-4 text-center">
+                <p className="text-xs text-muted-foreground py-4 text-center">
                   No unassigned attendees available. All registered attendees are already on a team.
                 </p>
               ) : (
@@ -210,7 +210,7 @@ export function TeamFormationClient({
                         <p className="text-xs font-bold text-primary truncate">
                           {attendee.full_name}
                         </p>
-                        <p className="text-[10px] font-mono text-muted-foreground/50">
+                        <p className="text-[10px] font-mono text-muted-foreground">
                           {attendee.bh_id}
                         </p>
                       </div>
@@ -234,7 +234,7 @@ export function TeamFormationClient({
               <button
                 onClick={handleCreate}
                 disabled={creating || !newTeamName.trim()}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50"
               >
                 {creating ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -252,10 +252,10 @@ export function TeamFormationClient({
       {teams.length === 0 && !showCreateForm ? (
         <div className="text-center py-16">
           <div className="w-16 h-16 rounded-2xl bg-surface-hover flex items-center justify-center mx-auto mb-4 ring-1 ring-border">
-            <Users className="w-6 h-6 text-muted-foreground/40" />
+            <Users className="w-6 h-6 text-muted-foreground" />
           </div>
           <p className="text-lg font-bold text-primary">No teams yet</p>
-          <p className="text-sm text-muted-foreground/60 mt-1 max-w-xs mx-auto">
+          <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
             Create teams and assign attendees to organize participants for this event.
           </p>
         </div>
@@ -270,13 +270,13 @@ export function TeamFormationClient({
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-base font-bold text-primary">{team.name}</h3>
-                  <p className="text-[10px] font-mono text-muted-foreground/50">
+                  <p className="text-[10px] font-mono text-muted-foreground">
                     {team.member_count} member{team.member_count !== 1 ? "s" : ""}
                   </p>
                 </div>
                 <button
                   onClick={() => handleDeleteTeam(team.id)}
-                  className="p-2 rounded-lg text-muted-foreground/40 hover:text-primary-red transition-colors"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-primary-red transition-colors"
                   title="Delete team"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -303,12 +303,12 @@ export function TeamFormationClient({
                       </div>
                       <div>
                         <p className="text-xs font-bold text-primary">{member.full_name}</p>
-                        <p className="text-[9px] font-mono text-muted-foreground/50">{member.bh_id}</p>
+                        <p className="text-[9px] font-mono text-muted-foreground">{member.bh_id}</p>
                       </div>
                     </div>
                     <button
                       onClick={() => handleRemoveMember(team.id, member.profile_id)}
-                      className="p-1.5 rounded-md text-muted-foreground/30 hover:text-primary-red transition-colors"
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-primary-red transition-colors"
                       title="Remove member"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -346,7 +346,7 @@ export function TeamFormationClient({
                           </option>
                         ))}
                       </select>
-                      <UserPlus className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40 pointer-events-none" />
+                      <UserPlus className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
                     </div>
                   )}
                 </div>

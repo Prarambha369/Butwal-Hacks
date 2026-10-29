@@ -13,6 +13,11 @@
   :root {
     /* 🔴 Brand red — same in both modes */
     --bh-primary-red: #FE0000;
+    /* Text-safe red. The brand red is a fill color: #FE0000 on white is
+       4.03:1, which fails AA for every label and inline link. Text uses this
+       darker value (6.27:1 on white, 5.48:1 on the red tint); fills, borders,
+       and icons keep the brand token. */
+    --bh-primary-red-text: #C40000;
     --bh-deep-red: #B10000;
     --bh-dark-red: #7b0000;
 
@@ -33,17 +38,24 @@
   --bh-surface-hover: #F0F0F2;
   --bh-border: #E5E5E5;
   --bh-border-light: #EBEBEB;
-  --bh-text-muted: #888888;
+  /* Muted text is the smallest type on the site, so it must clear 4.5:1
+     against white, #F7F7F8, and #F0F0F2. #6b6b6b measures 5.33 / 4.98 /
+     4.68. The old #888888 measured 3.54 / 3.31 / 3.11 and failed WCAG AA
+     for every 10-12px label. */
+  --bh-text-muted: #6b6b6b;
   --bh-text-secondary: #666666;
   --bh-text-body: #333333;
   --bh-text-primary: #1F1F1F;
 
-  /* 🎨 Status colors */
-  --bh-status-green: #16A34A;
-  --bh-status-blue: #2563EB;
-  --bh-status-teal: #0D9488;
-  --bh-status-yellow: #CA8A04;
-  --bh-status-orange: #EA580C;
+  /* 🎨 Status colors — darkened for 4.5:1 on white and tinted chips.
+     Vivid status hues are kept for dark mode below. */
+  --bh-status-green: #15803D;
+  /* #2563EB measured 4.49:1 on its own 10% tint — a hair under AA for the
+     9-10px chips that use it. #1D4ED8 measures 5.82:1 and reads the same. */
+  --bh-status-blue: #1D4ED8;
+  --bh-status-teal: #0F766E;
+  --bh-status-yellow: #A16207;
+  --bh-status-orange: #B03A0B;
   --bh-status-red: #DC2626;
 
   /* 🌟 Shadows — subtle on light backgrounds */
@@ -59,6 +71,13 @@
   /* 🌑 Inverse surface — dark background for CTAs and code blocks */
   --bh-surface-inverse: #1F1F1F;
 
+  /* 🎯 Action surface — the FILL of a button, deliberately not a text token.
+     `bg-primary` aliases --bh-text-primary, which flips to #f0f0f0 in dark
+     mode. Used as a fill it produced white-on-near-white CTAs. Anything that
+     draws a neutral primary button uses these two, never bg-primary. */
+  --bh-action-ink: #1F1F1F;
+  --bh-action-ink-fg: #FFFFFF;
+
   /* 🧱 Surface tokens — solid, no blur */
   --bh-glass-bg: #FFFFFF;
   --bh-glass-border: #E5E5E5;
@@ -72,9 +91,19 @@
   --bh-surface: #2a2a2a;
   --bh-surface-hover: #3a3a3a;
   --bh-border: #4a4a4a;
+  /* Lightened for dark surfaces so AA clears everywhere red text renders:
+     #ff7c7c measures 6.98:1 on the page background (#1a1a1a), 5.76:1 on cards
+     (#2a2a2a), 5.56:1 on the red-tinted chip fill (primary-red/10 over
+     #2a2a2a), and 4.56:1 even on surface-hover — all AA-passing. The old
+     #ff3333 measured 3.95:1 on #2a2a2a and 3.81:1 on the /10 chip fill and
+     failed dark-mode AA for 10-12px red labels, links, and badges. */
+  --bh-primary-red-text: #ff7c7c;
   --bh-border-light: #3a3a3a;
-  --bh-text-muted: #7a7a7a;
-  --bh-text-secondary: #909090;
+  /* #7a7a7a measured 4.05:1 on the page background and 3.34:1 on cards,
+     so muted labels failed AA in dark mode too. #a3a3a3 clears 6.90 / 5.69
+     / 4.51 across base, surface, and surface-hover. */
+  --bh-text-muted: #a3a3a3;
+  --bh-text-secondary: #b0b0b0;
   --bh-text-body: #cccccc;
   --bh-text-primary: #f0f0f0;
 
@@ -98,6 +127,11 @@
 
   /* 🌑 Inverse surface — lighter panel in dark mode to contrast against bg-base */
   --bh-surface-inverse: #333333;
+
+  /* 🎯 Action surface — see the light-mode block for why this is not
+     --bh-text-primary. On dark, an ink button is near-white with dark text. */
+  --bh-action-ink: #f0f0f0;
+  --bh-action-ink-fg: #1a1a1a;
 
   /* 🧱 Surface tokens — solid dark, no blur */
   --bh-glass-bg: #2a2a2a;
@@ -144,6 +178,12 @@
   --color-primary: var(--bh-text-primary);
   --color-primary-foreground: white;
   --color-surface-hover: var(--bh-surface-hover);
+
+  /* Action fills. Distinct from --color-primary on purpose: `primary` is a
+     TEXT colour, and aliasing it to a background is what made dark-mode
+     primary CTAs white-on-near-white. */
+  --color-action-ink: var(--bh-action-ink);
+  --color-action-ink-fg: var(--bh-action-ink-fg);
 
   /* 🌑 Inverse surface */
   --color-surface-inverse: var(--bh-surface-inverse);
@@ -256,7 +296,7 @@
     gap: 0.5rem;
     min-width: 44px;
     min-height: 44px;
-    background-color: var(--bh-primary-red);
+    background-color: var(--bh-red-action);
     color: white;
     font-weight: 600;
     border-radius: 9999px;
@@ -269,7 +309,7 @@
     box-shadow: var(--bh-glow-red);
   }
   .bh-btn-primary:focus-visible {
-    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-[#242424];
+    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-background;
   }
   .bh-btn-primary:active {
     transform: scale(0.97);
@@ -302,10 +342,44 @@
     border-color: var(--bh-border);
   }
   .bh-btn-secondary:focus-visible {
-    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-[#242424];
+    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-background;
   }
   .bh-btn-secondary:active {
     transform: scale(0.97);
+  }
+
+  /* 🔘 Ink button — the neutral primary for authenticated surfaces.
+     Public/marketing surfaces use .bh-btn-primary (red). Dashboards use this
+     for routine saves and submits, so red stays reserved for irreversible
+     actions (delete, publish, revoke). See DESIGN.md. */
+  .bh-btn-ink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    background-color: var(--bh-action-ink);
+    color: var(--bh-action-ink-fg);
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s;
+    outline: none;
+  }
+  .bh-btn-ink:hover {
+    opacity: 0.88;
+  }
+  .bh-btn-ink:focus-visible {
+    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-background;
+  }
+  .bh-btn-ink:active {
+    transform: scale(0.97);
+  }
+  .bh-btn-ink:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
   }
 
   /* 🔘 Ghost button — transparent, borderless */
@@ -328,7 +402,7 @@
     color: var(--bh-text-primary);
   }
   .bh-btn-ghost:focus-visible {
-    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-[#242424];
+    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-background;
   }
   .bh-btn-ghost:active {
     transform: scale(0.97);
@@ -351,7 +425,7 @@
     color: var(--bh-text-primary);
   }
   .bh-icon-btn:focus-visible {
-    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-[#242424];
+    @apply ring-2 ring-primary-red ring-offset-2 ring-offset-background;
   }
 
   /* 📝 Inputs — flat, no blur */
@@ -724,4 +798,11 @@
       transform: rotate(var(--bh-float-rot, 0deg));
     }
   }
+}
+
+/* Brand red stays the fill/border color. Text uses the darker text token so
+   eyebrows, inline links, and small labels clear WCAG AA on white and tinted
+   surfaces. Unlayered on purpose: it must beat Tailwind's text-color utility. */
+.text-primary-red {
+  color: var(--bh-primary-red-text);
 }

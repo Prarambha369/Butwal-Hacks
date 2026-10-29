@@ -20,7 +20,7 @@ export default function TeamChatPage() {
           </p>
         </div>
         <div className="p-2 rounded-lg bg-primary-red/10">
-          <Ballu emotion="happy-excited" size={32} />
+          <Ballu emotion="waving" size={32} />
         </div>
       </div>
       <TeamChat />

@@ -49,16 +49,27 @@ Root `package.json` is an npm workspace that delegates the app scripts into `my-
 
 Delegation is per script, not automatic. A script that exists only in `my-app/package.json` and is not listed above fails at the root with `Missing script`, so when you add one, add the matching root entry too.
 
-**Run the verification gates — all four, every time:**
+**Run the verification gates — all five, every time:**
 
 ```bash
 npm run typecheck    # types (tsc --noEmit)
 npm run lint         # ESLint, zero warnings
 npm run test         # Vitest
 npm run build        # production build
+npm run audit:ui     # axe + responsive audit (CI runs it for you; see below)
 ```
 
-Do not open a PR until all four pass. If a gate cannot run locally, say so explicitly rather than reporting success.
+Do not open a PR until all five pass. If a gate cannot run locally, say so
+explicitly rather than reporting success.
+
+`audit:ui` needs the built app serving: `npm run build && npm run start`, then
+`npm run audit:ui`. It loads 30 public routes (plus the signed-in dashboard
+routes when `AUTH0_TEST_EMAIL`/`AUTH0_TEST_PASSWORD` are set) at 390/768/1440px
+in light and dark, and fails on axe violations of impact serious/critical,
+horizontal overflow, uncaught page errors, or a 5xx. Screenshots and the JSON
+report land in `/tmp/bh-ui-audit`. In CI the same script runs as the **UI Audit**
+job — it builds, serves on :3000 and audits `mobile,dark` — so a regression
+fails `Quality Gate` even if nobody ran it locally.
 
 ## Reference
 
@@ -157,6 +168,7 @@ Rate limit tiers: `public_form` 5/60s, `sensitive` 3/60s, `user_action` 5/60s, `
 |-------|------|----------|
 | Unit and integration | Vitest | `src/**/__tests__/*.test.ts` |
 | End-to-end | Playwright | `my-app/e2e/` |
+| Accessibility and responsive layout | axe-core + Playwright | `my-app/scripts/audit-ui.mjs` (`npm run audit:ui`) |
 
 - Mock Supabase with `vi.mock("@/utils/supabase")`. Tests never touch a real database.
 - Auth-dependent E2E tests use `skipInCI()`.
@@ -177,6 +189,7 @@ refactor: extract rate limiter into lib/
 ### Before you open a PR
 
 - [ ] `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build` all pass
+- [ ] `npm run audit:ui` passes (or relies on the CI **UI Audit** job having run it)
 - [ ] New mutation routes use `withRateLimit()`
 - [ ] New inputs validated with Zod before any database access
 - [ ] Every `createServiceClient()` call has an authorization check above it

@@ -317,7 +317,7 @@ export default function TableTaskView({ workspaceId, initialTasks, teamMembers =
   }
 
   const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
-    if (sortKey !== columnKey) return <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />
+    if (sortKey !== columnKey) return <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
     return sortDir === "asc"
       ? <ArrowUp className="h-3 w-3 text-primary-red" />
       : <ArrowDown className="h-3 w-3 text-primary-red" />

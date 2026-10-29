@@ -64,7 +64,7 @@ export function GenerateKeyForm() {
         <div className="flex gap-2">
           <button
             onClick={copyKey}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-bh-red-500 text-white text-xs font-bold hover:bg-deep-red transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all"
           >
             {copied ? <Check size={14} /> : <Copy size={14} />}
             {copied ? "Copied!" : "Copy to Clipboard"}
@@ -84,7 +84,7 @@ export function GenerateKeyForm() {
     return (
       <button
         onClick={() => setShowForm(true)}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-bh-red-500 text-white text-sm font-bold hover:bg-deep-red transition-all"
+        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-bh-red-action text-white text-sm font-bold hover:bg-deep-red transition-all"
       >
         <KeyRound size={16} /> Generate New Key
       </button>
@@ -105,7 +105,7 @@ export function GenerateKeyForm() {
       <button
         type="submit"
         disabled={isGenerating}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-bh-red-500 text-white text-sm font-bold hover:bg-deep-red transition-all disabled:opacity-50"
+        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-bh-red-action text-white text-sm font-bold hover:bg-deep-red transition-all disabled:opacity-50"
       >
         {isGenerating ? "Generating..." : "Generate"}
       </button>
