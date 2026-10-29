@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "audit:ui": "node scripts/audit-ui.mjs"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.30.0",

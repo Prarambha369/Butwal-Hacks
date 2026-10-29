@@ -12,7 +12,8 @@
     "test": "cd my-app && npm run test",
     "typecheck": "cd my-app && npm run typecheck",
     "seed:kb": "cd my-app && node ../scripts/seed-knowledge-base.mjs",
-    "prepare": "[ -d .git ] && git config core.hooksPath .husky/ || true"
+    "prepare": "[ -d .git ] && git config core.hooksPath .husky/ || true",
+    "audit:ui": "cd my-app && npm run audit:ui"
   },
   "overrides": {
     "postcss": "^8.5.19",
