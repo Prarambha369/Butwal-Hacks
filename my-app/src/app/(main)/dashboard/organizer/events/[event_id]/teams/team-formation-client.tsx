@@ -6,6 +6,7 @@ import { Plus, Trash2, UserPlus, Loader2, Users, Check, X } from "lucide-react";
 import { cn, getAvatarUrl } from "@/lib/utils";
 import { toast } from "sonner";
 import type { EventTeam, TeamFormationMember } from "@/lib/actions/teams";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface TeamFormationClientProps {
   eventId: string;
@@ -250,15 +251,15 @@ export function TeamFormationClient({
 
       {/* Teams List */}
       {teams.length === 0 && !showCreateForm ? (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 rounded-2xl bg-surface-hover flex items-center justify-center mx-auto mb-4 ring-1 ring-border">
-            <Users className="w-6 h-6 text-muted-foreground" />
-          </div>
-          <p className="text-lg font-bold text-primary">No teams yet</p>
-          <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
-            Create teams and assign attendees to organize participants for this event.
-          </p>
-        </div>
+        <EmptyState
+          icon={<Users className="w-12 h-12" />}
+          mascot="thinking-puzzled"
+          title="No teams yet"
+          description="Create teams and assign attendees to organize participants for this event."
+          actions={[
+            { label: "Open team matching", href: "/dashboard/hacker/team-matching", variant: "primary" },
+          ]}
+        />
       ) : (
         <div className="grid gap-4">
           {teams.map((team) => (

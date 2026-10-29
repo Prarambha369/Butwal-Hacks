@@ -5,6 +5,7 @@ import { Briefcase, EyeOff, Eye, Trash2, Edit3, Clock, MapPin, DollarSign } from
 import { toast } from "sonner";
 import { toggleOpportunity, deleteOpportunity } from "@/lib/actions/sponsor-opportunities";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 
 type Opportunity = {
@@ -72,21 +73,15 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
 
   if (opportunities.length === 0) {
     return (
-      <div className="bh-card p-12 text-center">
-        <div className="mx-auto w-14 h-14 rounded-full bg-surface/10 flex items-center justify-center mb-4">
-          <Briefcase size={28} className="text-secondary" />
-        </div>
-        <h3 className="text-base font-bold text-primary mb-1">No opportunities yet</h3>
-        <p className="text-sm text-secondary max-w-sm mx-auto">
-          Create your first opportunity to attract hackers, interns, and bounty hunters.
-        </p>
-        <a
-          href="/portal/bounties/new"
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-bh-red-action px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all"
-        >
-          Create Opportunity
-        </a>
-      </div>
+      <EmptyState
+        icon={<Briefcase className="w-12 h-12" />}
+        mascot="welcome"
+        title="No opportunities yet"
+        description="Create your first opportunity to attract hackers, interns, and bounty hunters."
+        actions={[
+          { label: "Create Opportunity", href: "/portal/bounties/new", variant: "primary" },
+        ]}
+      />
     );
   }
 

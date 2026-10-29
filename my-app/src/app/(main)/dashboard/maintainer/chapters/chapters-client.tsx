@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, School } from "lucide-react";
 import {
   saveChapter,
   deleteChapter,
   type ChapterRow,
 } from "@/lib/actions/chapters";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const emptyForm = {
   name: "", slug: "", school: "", lead_name: "", city: "",
@@ -141,7 +142,15 @@ export function ChaptersClient({ initialChapters }: { initialChapters: ChapterRo
           </div>
         ))}
         {chapters.length === 0 && !editingId && (
-          <p className="text-sm text-muted-foreground">No chapters in the database yet. The public page stays empty until you add one.</p>
+          <EmptyState
+            icon={<School className="w-12 h-12" />}
+            mascot="welcome"
+            title="No chapters yet"
+            description="The public chapters page stays empty until you add a school chapter."
+            actions={[
+              { label: "Add chapter", onClick: () => startAdd(), variant: "primary" },
+            ]}
+          />
         )}
       </div>
 
