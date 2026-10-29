@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { AsyncStatus, type AsyncState } from "@/components/ui/async-status";
 // Client-safe module only. Importing from @/lib/auth0-management here would
 // pull the Management API (and its secret lookups) into the browser bundle.
 import { getProviderDisplayName } from "@/lib/auth0-providers";
@@ -29,7 +30,7 @@ type LinkStatus =
   | { type: "loading" }
   | { type: "linking"; provider: string }
   | { type: "error"; message: string }
-  | { type: "success"; message: string };
+  | { type: "success"; message: string; source: "link" | "unlink" };
 
 /**
  * Account staged for disconnect. Held until the confirm dialog resolves, so
@@ -162,7 +163,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
           (l) => !(l.provider === account.provider && l.user_id === account.user_id)
         )
       );
-      setStatus({ type: "success", message: data.message });
+      setStatus({ type: "success", message: data.message, source: "unlink" });
       toast.success(data.message);
       setTimeout(() => setStatus({ type: "idle" }), 3000);
     } catch (err) {
@@ -179,7 +180,11 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
     if (linkedParam) {
       if (linkedParam.startsWith("success:")) {
         const provider = linkedParam.replace("success:", "");
-        setStatus({ type: "success", message: `${provider} connected successfully!` });
+        setStatus({
+          type: "success",
+          message: `${provider} connected successfully!`,
+          source: "link",
+        });
         toast.success(`${provider} connected successfully!`);
         // Refresh the list
         fetchLinkedAccounts();
@@ -199,6 +204,8 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
   }, [fetchLinkedAccounts]);
 
   const isLinking = status.type === "linking";
+  const statusState: AsyncState =
+    status.type === "success" ? "success" : status.type === "error" ? "error" : "idle";
 
   const availableProviders = [
     { id: "github", name: "GitHub", description: "Connect your GitHub account for automatic repo syncing and contribution tracking." },
@@ -243,19 +250,32 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
         </div>
       </div>
 
-      {/* Status banner */}
-      {status.type === "success" && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-status-green/10 border border-status-green/20 animate-in fade-in slide-in-from-top-1 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-status-green shrink-0" />
-          <span className="text-xs font-medium text-status-green">{status.message}</span>
-        </div>
-      )}
-      {status.type === "error" && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-status-red/10 border border-status-red/20 animate-in fade-in slide-in-from-top-1 duration-200">
-          <AlertCircle className="w-4 h-4 text-status-red shrink-0" />
-          <span className="text-xs font-medium text-status-red">{status.message}</span>
-        </div>
-      )}
+      {/* Outcome of the last linking/unlinking attempt. Rendered from first
+          paint so the text is swapped inside existing live regions. */}
+      <AsyncStatus
+        state={statusState}
+        success={
+          <span className="flex items-start gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span>
+              {status.type === "success" ? status.message : null}
+              {status.type === "success" && status.source === "link" && (
+                <span className="block font-normal text-muted-foreground">
+                  You can now sign in with it.
+                </span>
+              )}
+            </span>
+          </span>
+        }
+        successClassName="flex items-start gap-2 px-3 py-2 rounded-lg bg-status-green/10 border border-status-green/20 text-xs font-medium text-status-green"
+        error={
+          <span className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span>{status.type === "error" ? status.message : null}</span>
+          </span>
+        }
+        errorClassName="flex items-start gap-2 px-3 py-2 rounded-lg bg-status-red/10 border border-status-red/20 text-xs font-medium text-status-red"
+      />
 
       {/* Linked accounts list */}
       {linkedAccounts.length > 0 && (
@@ -285,6 +305,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
                 <button
                   onClick={() => setPendingUnlink(account)}
                   disabled={status.type === "loading" || status.type === "linking"}
+                  aria-busy={status.type === "loading"}
                   className="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-status-red/10 text-muted-foreground hover:text-status-red transition-all disabled:opacity-40"
                   title={`Disconnect ${displayName}`}
                   aria-label={`Disconnect ${displayName}`}
@@ -315,6 +336,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
                 key={provider.id}
                 onClick={() => handleLink(provider.id)}
                 disabled={isLinking}
+                aria-busy={isLinking}
                 className={cn(
                   "w-full flex items-center gap-3 p-3 rounded-lg border border-border/60 hover:border-primary-red/30 hover:bg-primary-red/[0.03] transition-all text-left group",
                   isLinking && status.type === "linking" && (status as { provider: string }).provider === provider.id && "opacity-60"

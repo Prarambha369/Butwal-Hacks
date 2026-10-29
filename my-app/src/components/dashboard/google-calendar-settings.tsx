@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { AsyncStatus } from "@/components/ui/async-status";
 
 /**
  * Google Calendar connection settings.
@@ -185,9 +186,13 @@ export default function GoogleCalendarSettings({ className }: { className?: stri
     return (
       <div className={cn("bh-card p-6 space-y-3", className)}>
         <Header />
-        <div className="flex items-center gap-2 text-status-red text-xs">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{state.message}</span>
+        <div className="flex items-start gap-2 text-status-red text-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+          <AsyncStatus
+            state="error"
+            error={state.message}
+            errorClassName="text-xs text-status-red"
+          />
         </div>
         <button
           onClick={load}
@@ -213,6 +218,7 @@ export default function GoogleCalendarSettings({ className }: { className?: stri
         <button
           onClick={handleConnect}
           disabled={busy === "connect"}
+          aria-busy={busy === "connect"}
           className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-primary-red/10 border border-primary-red/20 hover:bg-primary-red/15 transition-all text-xs font-bold text-primary-red disabled:opacity-50"
         >
           {busy === "connect" ? (
@@ -261,6 +267,7 @@ export default function GoogleCalendarSettings({ className }: { className?: stri
         <button
           onClick={handleSync}
           disabled={busy !== null || revoked}
+          aria-busy={busy === "sync"}
           className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg bg-surface/10 hover:bg-surface/20 transition-all text-xs font-semibold disabled:opacity-50"
         >
           {busy === "sync" ? (
@@ -273,6 +280,7 @@ export default function GoogleCalendarSettings({ className }: { className?: stri
         <button
           onClick={handleDisconnect}
           disabled={busy !== null}
+          aria-busy={busy === "disconnect"}
           className="flex items-center justify-center gap-2 p-2.5 rounded-lg hover:bg-status-red/10 text-status-red transition-all text-xs font-semibold disabled:opacity-50"
           title="Disconnect Google Calendar"
         >
@@ -289,6 +297,7 @@ export default function GoogleCalendarSettings({ className }: { className?: stri
         <button
           onClick={handleConnect}
           disabled={busy === "connect"}
+          aria-busy={busy === "connect"}
           className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg bg-primary-red/10 border border-primary-red/20 text-xs font-bold text-primary-red disabled:opacity-50"
         >
           <ExternalLink className="w-3.5 h-3.5" />

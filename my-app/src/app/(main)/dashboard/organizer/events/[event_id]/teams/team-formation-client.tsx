@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Plus, Trash2, UserPlus, Loader2, Users, Check, X } from "lucide-react";
 import { cn, getAvatarUrl } from "@/lib/utils";
 import { toast } from "sonner";
 import type { EventTeam, TeamFormationMember } from "@/lib/actions/teams";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FormField, focusFirstInvalidField } from "@/components/ui/form-field";
+import { AsyncStatus } from "@/components/ui/async-status";
 
 interface TeamFormationClientProps {
   eventId: string;
@@ -27,6 +29,11 @@ export function TeamFormationClient({
   const [creating, setCreating] = useState(false);
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
+  /** Field error on the team-name input; cleared once the name is valid again. */
+  const [nameError, setNameError] = useState<string | null>(null);
+  /** The create attempt itself failed (action rejected). */
+  const [createError, setCreateError] = useState<string | null>(null);
+  const createFormRef = useRef<HTMLDivElement>(null);
 
   const refreshData = useCallback(async () => {
     const [updatedTeams, updatedUnassigned] = await Promise.all([
@@ -41,22 +48,27 @@ export function TeamFormationClient({
     setShowCreateForm(false);
     setNewTeamName("");
     setSelectedMembers(new Set());
+    setNameError(null);
+    setCreateError(null);
   }, []);
 
   const handleCreate = useCallback(async () => {
     const name = newTeamName.trim();
     if (!name) {
-      toast.error("Team name is required.");
+      setNameError("Team name is required.");
+      // rAF: the aria-invalid attribute lands in the DOM after this commit.
+      requestAnimationFrame(() => focusFirstInvalidField(createFormRef.current));
       return;
     }
 
     setCreating(true);
+    setCreateError(null);
     try {
       const { forceCreateTeam } = await import("@/lib/actions/teams");
       const result = await forceCreateTeam(eventId, name, [...selectedMembers]);
 
       if (!result.success) {
-        toast.error(result.error ?? "Failed to create team.");
+        setCreateError(result.error ?? "Could not create the team. Try again.");
         return;
       }
 
@@ -64,7 +76,7 @@ export function TeamFormationClient({
       await refreshData();
       resetForm();
     } catch {
-      toast.error("Failed to create team.");
+      setCreateError("Could not create the team. Try again.");
     } finally {
       setCreating(false);
     }
@@ -160,20 +172,31 @@ export function TeamFormationClient({
         </div>
 
         {showCreateForm && (
-          <div className="space-y-4 pt-2 border-t border-border">
-            <div className="space-y-2">
-              <label className="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">
-                Team Name
-              </label>
-              <input
-                type="text"
-                value={newTeamName}
-                onChange={(e) => setNewTeamName(e.target.value)}
-                placeholder="e.g. Team Alpha"
-                className={inputClass}
-                autoFocus
-              />
-            </div>
+          <div ref={createFormRef} className="space-y-4 pt-2 border-t border-border">
+            <FormField
+              label="Team Name"
+              required
+              error={nameError}
+              labelClassName="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground"
+            >
+              {({ id, "aria-describedby": describedBy, "aria-invalid": invalid }) => (
+                <input
+                  id={id}
+                  type="text"
+                  value={newTeamName}
+                  onChange={(e) => {
+                    setNewTeamName(e.target.value);
+                    // The error persists until the field is valid again.
+                    setNameError((prev) => (prev && e.target.value.trim() ? null : prev));
+                  }}
+                  placeholder="e.g. Team Alpha"
+                  className={inputClass}
+                  autoFocus
+                  aria-describedby={describedBy}
+                  aria-invalid={invalid}
+                />
+              )}
+            </FormField>
 
             {/* Member selector */}
             <div className="space-y-2">
@@ -235,6 +258,7 @@ export function TeamFormationClient({
               <button
                 onClick={handleCreate}
                 disabled={creating || !newTeamName.trim()}
+                aria-busy={creating}
                 className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50"
               >
                 {creating ? (
@@ -245,6 +269,11 @@ export function TeamFormationClient({
                 Create Team
               </button>
             </div>
+            <AsyncStatus
+              state={createError ? "error" : "idle"}
+              error={createError}
+              errorClassName="text-xs font-semibold text-status-red"
+            />
           </div>
         )}
       </div>
