@@ -2,6 +2,7 @@
 
 import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
+import { StrictMode, type ComponentType, type ReactNode } from "react";
 import "@testing-library/jest-dom/vitest";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
@@ -10,6 +11,10 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
  * not implement the native Escape-key cancel path. This helper plays the
  * browser's Esc sequence for real: the dialog fires `cancel`, then closes,
  * which fires `close`.
+ *
+ * Note: because the Esc path here is stubbed (cancel event + close()), the
+ * native Esc → cancel → close → focus-restore sequence is exercised only
+ * manually — there is no Playwright spec covering ConfirmDialog's Esc path.
  */
 function pressEscape(dialog: HTMLDialogElement) {
   dialog.dispatchEvent(new Event("cancel", { bubbles: true, cancelable: true }));
@@ -32,7 +37,10 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-function renderDialog(overrides?: Partial<Parameters<typeof ConfirmDialog>[0]>) {
+function renderDialog(
+  overrides?: Partial<Parameters<typeof ConfirmDialog>[0]>,
+  wrapper?: ComponentType<{ children?: ReactNode }>,
+) {
   const ownConfirm = vi.fn();
   const ownClose = vi.fn();
   const props: Parameters<typeof ConfirmDialog>[0] = {
@@ -45,7 +53,7 @@ function renderDialog(overrides?: Partial<Parameters<typeof ConfirmDialog>[0]>) 
     onClose: ownClose,
     ...overrides,
   };
-  const utils = render(<ConfirmDialog {...props} />);
+  const utils = render(<ConfirmDialog {...props} />, { wrapper });
   const dialog = document.querySelector("dialog");
   if (!(dialog instanceof HTMLDialogElement)) throw new Error("dialog missing");
   return {
@@ -101,6 +109,22 @@ describe("ConfirmDialog", () => {
 
   it("restores focus to the triggering element after the Esc close", async () => {
     const { dialog } = renderDialog();
+
+    pressEscape(dialog);
+
+    await waitFor(() =>
+      expect(document.activeElement?.id).toBe("trigger"),
+    );
+  });
+
+  it("restores focus to the trigger under StrictMode double-invoked mount effects", async () => {
+    // reactStrictMode: true runs the mount effect setup → cleanup → setup.
+    // The second setup pass must not re-capture the in-dialog element focused
+    // by showModal() (the Cancel button) as the restore target — historically
+    // that made the close path focus unmounted content, killing focus on
+    // <body>. The trigger was focused once before the dialog opened, and it
+    // must still receive focus back on close.
+    const { dialog } = renderDialog(undefined, StrictMode);
 
     pressEscape(dialog);
 

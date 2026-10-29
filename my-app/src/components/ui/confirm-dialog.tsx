@@ -71,6 +71,9 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
+  // Set-once guard for the capture below: StrictMode double-invokes the mount
+  // effect, and the second pass must not overwrite the restore target.
+  const capturedRef = useRef(false)
   // Latest-value ref so the unmounting close listener never sees a stale prop.
   const onCloseRef = useRef(onClose)
   const [busy, setBusy] = useState(false)
@@ -82,8 +85,18 @@ export function ConfirmDialog({
   })
 
   useEffect(() => {
-    triggerRef.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null
+    // Capture the restore target ONCE per mount. Under reactStrictMode the
+    // mount effect runs setup → cleanup → setup; the second setup pass runs
+    // after showModal() has already moved focus onto an element inside the
+    // dialog (the Cancel button), so an unconditional re-capture would make
+    // that in-dialog element the restore target and the close/unmount
+    // restore would die on <body>. Reset on close so a reopen without a
+    // remount takes a fresh capture of the new trigger.
+    if (!capturedRef.current) {
+      capturedRef.current = true
+      triggerRef.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null
+    }
 
     const dialog = dialogRef.current
     if (!dialog) return
@@ -91,6 +104,8 @@ export function ConfirmDialog({
     const handleClosed = () => {
       const trigger = triggerRef.current
       if (trigger && trigger.isConnected) trigger.focus()
+      capturedRef.current = false
+      triggerRef.current = null
       onCloseRef.current()
     }
 

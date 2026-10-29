@@ -85,9 +85,15 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
     };
     if (nextErrors.title || nextErrors.description) {
       setFormErrors(nextErrors);
-      // rAF: the aria-invalid attributes are written after this state commit.
+      // Double rAF: React writes aria-invalid in the commit that follows this
+      // handler, and a single rAF callback can fire before that commit has
+      // landed in the DOM. The inner callback runs one full frame after the
+      // outer one, past both the commit and the paint, so
+      // focusFirstInvalidField reliably sees the [aria-invalid="true"] target.
       const form = e.currentTarget;
-      requestAnimationFrame(() => focusFirstInvalidField(form));
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => focusFirstInvalidField(form));
+      });
       return;
     }
 

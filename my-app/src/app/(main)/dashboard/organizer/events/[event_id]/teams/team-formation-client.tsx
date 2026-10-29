@@ -56,8 +56,14 @@ export function TeamFormationClient({
     const name = newTeamName.trim();
     if (!name) {
       setNameError("Team name is required.");
-      // rAF: the aria-invalid attribute lands in the DOM after this commit.
-      requestAnimationFrame(() => focusFirstInvalidField(createFormRef.current));
+      // Double rAF: React writes aria-invalid in the commit that follows this
+      // handler, and a single rAF callback can fire before that commit has
+      // landed in the DOM. The inner callback runs one full frame after the
+      // outer one, past both the commit and the paint, so
+      // focusFirstInvalidField reliably sees the [aria-invalid="true"] target.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => focusFirstInvalidField(createFormRef.current));
+      });
       return;
     }
 

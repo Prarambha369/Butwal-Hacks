@@ -132,8 +132,14 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
     const freshErrors = validateDraftFields(form);
     if (DRAFT_FIELDS.some((field) => freshErrors[field])) {
       setFieldErrors(freshErrors);
-      // rAF: aria-invalid lands in the DOM after this state commit.
-      requestAnimationFrame(() => focusFirstInvalidField(formEl));
+      // Double rAF: React writes aria-invalid in the commit that follows this
+      // handler, and a single rAF callback can fire before that commit has
+      // landed in the DOM. The inner callback runs one full frame after the
+      // outer one, past both the commit and the paint, so
+      // focusFirstInvalidField reliably sees the [aria-invalid="true"] target.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => focusFirstInvalidField(formEl));
+      });
       setSaving(false);
       return;
     }
@@ -188,7 +194,8 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
       }
       setDrafts((current) => current.filter((draft) => draft.id !== id));
       setForm((current) => (current.id === id ? EMPTY : current));
-      setMessage({ tone: "ok", text: "Draft deleted." });    } catch {
+      setMessage({ tone: "ok", text: "Draft deleted." });
+    } catch {
       setMessage({ tone: "error", text: "Network error. Try again." });
     } finally {
       setDeleting(null);

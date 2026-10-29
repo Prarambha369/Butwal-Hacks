@@ -1,11 +1,13 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Route loading skeleton for the /dashboard hub (hacker-facing).
- *
- * Mirrors `/dashboard/page.tsx`: a PageHeader (eyebrow / title / description),
- * the BH-ID identity card, a row of stat tiles, the onboarding steps list,
- * and the closing CTA card. Server component only — the pulse animates via
+ * Route loading skeleton — a generic dashboard shell. This boundary is the
+ * fallback for every /dashboard child route that lacks its own loading.tsx,
+ * so it must stay an uncommitted shell shape rather than mirror any single
+ * page. Its proportions follow `/dashboard/page.tsx` only as a neutral
+ * template: a PageHeader (eyebrow / title / description), the BH-ID
+ * identity card, a row of stat tiles, the onboarding steps list, and the
+ * closing CTA card. Server component only — the pulse animates via
  * `motion-safe:` utilities, so no client JS ships with it.
  */
 
