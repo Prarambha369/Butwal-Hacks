@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { GraduationCap, Users } from "lucide-react"
+import { ExternalLink, Github, Globe, Linkedin } from "lucide-react"
 import type { ExplorerMember } from "@/lib/members"
 import { cn } from "@/lib/utils"
 
@@ -24,109 +24,111 @@ export function MemberCard({
   member: ExplorerMember
   isHighlighted?: boolean
 }) {
-  const colorSet = roleColors[member.role] || ""
+  const isAvailable = member.openToMentor || member.role === "Mentor" || member.lookingForTeam
+  const githubUrl = member.githubUrl
+  const websiteUrl = member.websiteUrl
+  const linkedinUrl = member.linkedinUrl
 
   return (
-    <Link
-      href={`/p/${member.bhId}`}
-      className={cn(
-        // `block` matters: the first result is wrapped in a spanning <div>, so
-        // this anchor stops being a grid item and would otherwise fall back to
-        // inline layout (no card surface, no width, ring only on one edge).
-        "bh-card block h-full border p-5 transition-all duration-300 group relative overflow-hidden",
-        "hover:shadow-md hover:-translate-y-1",
-        isHighlighted ? "ring-2 ring-primary-red/30" : "border-border",
-      )}
+    <div className={cn(
+      "bh-card border border-border p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-1 relative overflow-hidden group",
+      isHighlighted && "ring-2 ring-primary-red/30",
+    )}
     >
-      {/* Subtle gradient overlay on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-red/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-      <div className="relative flex items-start gap-4">
-        {/* Avatar */}
-        <div className="relative shrink-0">
-          <div
-            className={cn(
-              "w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold transition-transform duration-300 group-hover:scale-105",
-              colorSet || "bg-surface-hover text-muted-foreground",
-            )}
-          >
-            {member.avatar}
+      {isAvailable && (
+        <div className="absolute top-0 right-0 flex items-center gap-1.5">
+          <div className="flex items-center gap-1 bg-status-green/10 text-status-green text-[9px] font-bold px-2 py-1 rounded-bl-xl border-b border-l border-status-green/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-status-green animate-pulse" />
+            AVAILABLE
           </div>
         </div>
+      )}
+
+      <div className="flex items-start gap-4">
+        {/* Avatar */}
+        <Link href={`/p/${member.bhId}`} className="relative w-14 h-14 shrink-0 rounded-full overflow-hidden ring-2 ring-primary-red/20">
+          {member.avatarUrl ? (
+            <img
+              src={member.avatarUrl}
+              alt={member.name}
+              className="object-cover w-full h-full"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-primary-red/10 text-primary-red">
+              {member.avatar}
+            </div>
+          )}
+        </Link>
 
         {/* Content */}
         <div className="min-w-0 flex-1 space-y-2">
-          {/* Name + Role */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-sm font-bold text-primary truncate group-hover:text-primary-red transition-colors">
-              {member.name}
-            </h3>
-            <span
-              className={cn(
-                "shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full border",
-                colorSet || "border-border text-muted-foreground",
-              )}
-            >
-              {member.role}
-            </span>
+          <div>
+            <Link href={`/p/${member.bhId}`}>
+              <h3 className="text-sm font-bold text-primary truncate group-hover:text-primary-red transition-colors">
+                {member.name}
+              </h3>
+            </Link>
+            <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+              <span className="text-primary/70">{member.bhId}</span>
+              <span>•</span>
+              <span>{member.skills.length} skill{member.skills.length !== 1 ? "s" : ""}</span>
+            </div>
           </div>
 
-          {/* Bio */}
           {member.bio && (
             <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
               {member.bio}
             </p>
           )}
 
-          {/* Meta row */}
-          <div className="flex items-center gap-3 text-[10px] font-mono text-muted-foreground">
-            <span>{member.bhId}</span>
-            {member.projects > 0 && (
-              <>
-                <span className="w-1 h-1 rounded-full bg-muted-foreground/20" />
-                <span>{member.projects} project{member.projects !== 1 ? "s" : ""}</span>
-              </>
+          <div className="flex items-center gap-1">
+            {githubUrl && (
+              <a
+                href={githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-surface-hover transition-colors"
+                title="github"
+              >
+                <Github className="w-4 h-4" />
+              </a>
+            )}
+            {linkedinUrl && (
+              <a
+                href={linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-surface-hover transition-colors"
+                title="linkedin"
+              >
+                <Linkedin className="w-4 h-4" />
+              </a>
+            )}
+            {websiteUrl && (
+              <a
+                href={websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-surface-hover transition-colors"
+                title="website"
+              >
+                <Globe className="w-4 h-4" />
+              </a>
             )}
           </div>
 
-          {/* Availability badges — same flags the AVAILABILITY filters read */}
-          {(member.openToMentor || member.lookingForTeam) && (
-            <div className="flex flex-wrap gap-1.5">
-              {member.openToMentor && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-status-green/10 text-status-green border border-status-green/20">
-                  <GraduationCap className="w-2.5 h-2.5" />
-                  Mentor
-                </span>
-              )}
-              {member.lookingForTeam && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-status-blue/10 text-status-blue border border-status-blue/20">
-                  <Users className="w-2.5 h-2.5" />
-                  Looking for team
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Skills */}
-          {member.skills.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {member.skills.slice(0, 4).map((skill) => (
-                <span
-                  key={skill}
-                  className="text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-surface-hover text-muted-foreground border border-border/50"
-                >
-                  {skill}
-                </span>
-              ))}
-              {member.skills.length > 4 && (
-                <span className="text-[9px] text-muted-foreground px-1.5 py-0.5">
-                  +{member.skills.length - 4}
-                </span>
-              )}
-            </div>
-          )}
+          <div className="flex items-center gap-2 pt-1">
+            <Link
+              href={`/p/${member.bhId}`}
+              className="text-[10px] font-bold text-primary-red hover:underline flex items-center gap-1"
+            >
+              View Profile
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+          </div>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }

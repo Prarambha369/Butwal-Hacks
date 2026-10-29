@@ -93,8 +93,8 @@ export default async function DashboardHubPage() {
 
   return (
     <DashboardInitialScreen email={email} emailVerified={emailVerified} currentRole={role}>
-    <div className="min-h-dvh bg-bg-base text-text-body pt-16 pb-20 px-4">
-      <div className="mx-auto max-w-5xl space-y-8">
+    <div className="min-h-dvh bg-background text-primary pt-20 pb-24 px-4">
+      <div className="mx-auto max-w-6xl space-y-8">
         <PageHeader
           eyebrow={t('dashboard.hub', locale)}
           title={t('dashboard.welcome_heading', locale)}
@@ -125,24 +125,26 @@ export default async function DashboardHubPage() {
         <ToolGuideSection />
 
         {/* ── Section 5: Quick Start CTA ── */}
-        <div className="bh-card p-6 md:p-8 text-center space-y-4">
-          <h2 className="text-xl font-bold text-primary">
-            {t('dashboard.ready_build', locale)}
-          </h2>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            {t('dashboard.ready_description', locale)}
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="rounded-xl border border-border bg-surface p-8 md:p-10 text-center space-y-5 shadow-sm hover:shadow-md transition-all">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-primary tracking-tight">
+              {t('dashboard.ready_build', locale)}
+            </h2>
+            <p className="text-base text-muted-foreground max-w-lg mx-auto leading-relaxed">
+              {t('dashboard.ready_description', locale)}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link
               href={`/dashboard/${role}`}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-bh-red-action text-white text-sm font-bold hover:bg-deep-red transition-all shadow-[--bh-glow-red-soft] hover:shadow-[--bh-glow-red] active:scale-[0.97]"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-bh-red-action text-white text-sm font-semibold hover:bg-deep-red transition-all shadow-sm hover:shadow-md"
             >
               {t('dashboard.go_to_role', locale).replace('{role}', role.charAt(0).toUpperCase() + role.slice(1))}
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/explore"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border bg-surface text-primary text-sm font-bold hover:bg-surface-hover transition-all active:scale-[0.97]"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border bg-surface text-primary text-sm font-semibold hover:bg-surface-hover transition-all"
             >
               {t('dashboard.explore_community', locale)}
             </Link>

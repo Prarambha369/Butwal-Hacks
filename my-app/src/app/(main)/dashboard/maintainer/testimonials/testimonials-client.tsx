@@ -10,6 +10,7 @@ import {
   addVipQuote,
   type ModeratedTestimonial,
 } from "@/lib/actions/testimonials";
+import { EmptyState } from "@/components/ui/empty-state";
 
 function initialsOf(name: string | null | undefined) {
   if (!name) return "?";
@@ -46,8 +47,15 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
-function VipForm({ onDone }: { onDone: () => void }) {
-  const [open, setOpen] = useState(false);
+function VipForm({
+  onDone,
+  open,
+  setOpen,
+}: {
+  onDone: () => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}) {
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [quote, setQuote] = useState("");
@@ -130,6 +138,7 @@ function VipForm({ onDone }: { onDone: () => void }) {
 
 export default function TestimonialsClient({ initialQueue }: { initialQueue: ModeratedTestimonial[] }) {
   const [queue, setQueue] = useState(initialQueue);
+  const [vipOpen, setVipOpen] = useState(false);
 
   async function refresh() {
     setQueue(await getTestimonialQueue());
@@ -156,14 +165,20 @@ export default function TestimonialsClient({ initialQueue }: { initialQueue: Mod
             Member submissions stay invisible until approved. VIP quotes publish instantly, featured.
           </p>
         </div>
-        <VipForm onDone={refresh} />
+        <VipForm onDone={refresh} open={vipOpen} setOpen={setVipOpen} />
       </div>
 
       <div className="space-y-3">
         {queue.length === 0 && (
-          <div className="bh-card p-10 text-center text-sm text-muted-foreground">
-            No testimonials yet — member submissions will appear here.
-          </div>
+          <EmptyState
+            icon={<Star className="w-12 h-12" />}
+            mascot="thinking-puzzled"
+            title="No testimonials yet"
+            description="Member submissions will appear here once hackers share their experience."
+            actions={[
+              { label: "Add VIP quote", onClick: () => setVipOpen(true), variant: "primary" },
+            ]}
+          />
         )}
         {queue.map((item) => (
           <article key={item.id} className="bh-card space-y-3 p-5">

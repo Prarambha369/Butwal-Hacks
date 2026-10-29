@@ -146,31 +146,40 @@ describe("GoogleCalendarSettings", () => {
     expect(screen.getByRole("button", { name: /sync now/i })).toBeDisabled();
   });
 
-  it("warns that events stay in the calendar when disconnecting", async () => {
-    // Typed with a parameter so the recorded call args are inspectable.
-    const confirmSpy = vi.fn((_message: string) => true);
-    vi.stubGlobal("confirm", confirmSpy);
-    mockFetch({
+  it("warns that events stay in the calendar when disconnecting, then disconnects on confirm", async () => {
+    const fn = mockFetch({
       "/status": { connected: true, googleEmail: "a@b.c" },
       "/disconnect": { success: true, message: "Google Calendar disconnected." },
     });
     render(<GoogleCalendarSettings />);
 
+    // The confirm dialog replaces the native prompt; the confirm button names
+    // the action and the entity.
     fireEvent.click(await screen.findByRole("button", { name: /disconnect/i }));
+    const agree = await screen.findByRole("button", { name: "Disconnect Google Calendar" });
 
-    await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
     // The prompt must be explicit that nothing is deleted on Google's side.
-    expect(confirmSpy.mock.calls[0][0]).toMatch(/stay there/i);
+    expect(screen.getByText(/stay there/i)).toBeInTheDocument();
+    // The network call waits for the confirmation.
+    expect(fn.mock.calls.filter((c) => String(c[0]).includes("/disconnect"))).toHaveLength(0);
+
+    fireEvent.click(agree);
+
+    await waitFor(() =>
+      expect(toastMock.success).toHaveBeenCalledWith("Google Calendar disconnected.")
+    );
   });
 
-  it("does not call disconnect when the user cancels the prompt", async () => {
-    vi.stubGlobal("confirm", vi.fn((_message: string) => false));
+  it("does not call disconnect when the user cancels the confirm dialog", async () => {
     const fn = mockFetch({ "/status": { connected: true, googleEmail: "a@b.c" } });
     render(<GoogleCalendarSettings />);
 
     fireEvent.click(await screen.findByRole("button", { name: /disconnect/i }));
+    expect(await screen.findByText(/stay there/i)).toBeInTheDocument();
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /disconnect/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    await waitFor(() => expect(screen.queryByText(/stay there/i)).toBeNull());
     expect(fn.mock.calls.filter((c) => String(c[0]).includes("/disconnect"))).toHaveLength(0);
   });
 

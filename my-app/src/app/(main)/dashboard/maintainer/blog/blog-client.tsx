@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, FileText } from "lucide-react";
 import {
   savePost,
   deletePost,
   type BlogRow,
 } from "@/lib/actions/blog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const emptyForm = {
   title: "", slug: "", excerpt: "", body: "", tags: "",
@@ -19,6 +21,7 @@ export function BlogClient({ initialPosts }: { initialPosts: BlogRow[] }) {
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<{ id: string; title: string } | null>(null);
 
   async function refresh() {
     const { getAllPosts } = await import("@/lib/actions/blog");
@@ -76,7 +79,6 @@ export function BlogClient({ initialPosts }: { initialPosts: BlogRow[] }) {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this post?")) return;
     setBusy(true);
     try {
       await deletePost(id);
@@ -119,14 +121,22 @@ export function BlogClient({ initialPosts }: { initialPosts: BlogRow[] }) {
               <button onClick={() => startEdit(p)} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Edit ${p.title}`}>
                 <Pencil className="w-4 h-4" />
               </button>
-              <button onClick={() => remove(p.id)} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Delete ${p.title}`}>
+              <button onClick={() => setPostToDelete({ id: p.id, title: p.title })} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Delete ${p.title}`}>
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
         ))}
         {posts.length === 0 && !editingId && (
-          <p className="text-sm text-muted-foreground">No posts in the database yet. The public blog shows the built-in posts.</p>
+          <EmptyState
+            icon={<FileText className="w-12 h-12" />}
+            mascot="welcome"
+            title="No posts yet"
+            description="The public blog shows the built-in posts until you publish your first one."
+            actions={[
+              { label: "New post", onClick: () => startAdd(), variant: "primary" },
+            ]}
+          />
         )}
       </div>
 
@@ -153,6 +163,18 @@ export function BlogClient({ initialPosts }: { initialPosts: BlogRow[] }) {
             </button>
           </div>
         </form>
+      )}
+
+      {postToDelete && (
+        <ConfirmDialog
+          title="Delete post"
+          entityName={postToDelete.title}
+          consequence="The post is deleted permanently and disappears from the public blog. This cannot be undone."
+          confirmLabel="Delete post"
+          irreversible
+          onConfirm={() => remove(postToDelete.id)}
+          onClose={() => setPostToDelete(null)}
+        />
       )}
     </div>
   );

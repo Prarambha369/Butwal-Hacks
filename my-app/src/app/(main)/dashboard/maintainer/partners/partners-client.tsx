@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, Handshake } from "lucide-react";
 import {
   savePartner,
   deletePartner,
   type Partner,
 } from "@/lib/actions/partners";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const emptyForm = { name: "", logo_url: "", href: "", sort_order: 0, is_active: true };
 
@@ -16,6 +18,7 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [partnerToRemove, setPartnerToRemove] = useState<Partner | null>(null);
 
   async function refresh() {
     const { getAllPartners } = await import("@/lib/actions/partners");
@@ -76,9 +79,15 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
       {error && <p className="text-sm text-primary-red" role="alert">{error}</p>}
 
       {partners.length === 0 && !editingId && (
-        <p className="text-sm text-muted-foreground">
-          No partners yet. The homepage wall stays hidden until you add one.
-        </p>
+        <EmptyState
+          icon={<Handshake className="w-12 h-12" />}
+          mascot="welcome"
+          title="No partners yet"
+          description="The homepage partner wall stays hidden until you add a partner."
+          actions={[
+            { label: "Add partner", onClick: () => startAdd(), variant: "primary" },
+          ]}
+        />
       )}
 
       <div className="grid gap-3">
@@ -106,7 +115,7 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
               <Pencil className="h-4 w-4" />
             </button>
             <button type="button"
-              onClick={() => { if (confirm(`Remove ${p.name} from the wall?`)) deletePartner(p.id).then(refresh).catch((e) => setError(e instanceof Error ? e.message : "Delete failed")); }}
+              onClick={() => setPartnerToRemove(p)}
               aria-label={`Delete ${p.name}`}
               className="rounded-lg border border-border p-2 text-muted-foreground hover:text-primary-red hover:bg-surface-hover">
               <Trash2 className="h-4 w-4" />
@@ -165,6 +174,21 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
             </button>
           </div>
         </form>
+      )}
+
+      {partnerToRemove && (
+        <ConfirmDialog
+          title="Remove partner from the wall?"
+          entityName={partnerToRemove.name}
+          consequence="The partner disappears from the public partner wall. You can add it back manually, preserving the rest of the wall."
+          confirmLabel="Remove partner"
+          onConfirm={() =>
+            deletePartner(partnerToRemove.id)
+              .then(refresh)
+              .catch((e) => setError(e instanceof Error ? e.message : "Delete failed"))
+          }
+          onClose={() => setPartnerToRemove(null)}
+        />
       )}
     </div>
   );

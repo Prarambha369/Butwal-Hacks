@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Briefcase, EyeOff, Eye, Trash2, Edit3, Clock, MapPin, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { toggleOpportunity, deleteOpportunity } from "@/lib/actions/sponsor-opportunities";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 
 type Opportunity = {
@@ -37,6 +39,7 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
   const [sortKey, setSortKey] = useState<SortKey>("created_at");
   const [filterType, setFilterType] = useState<string>("all");
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null);
 
   const filtered = opportunities
     .filter((o) => filterType === "all" || o.type === filterType)
@@ -57,8 +60,7 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
     setLoadingId(null);
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+  const handleDelete = async (id: string) => {
     setLoadingId(id);
     const result = await deleteOpportunity(id);
     if (result.success) {
@@ -71,21 +73,15 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
 
   if (opportunities.length === 0) {
     return (
-      <div className="bh-card p-12 text-center">
-        <div className="mx-auto w-14 h-14 rounded-full bg-surface/10 flex items-center justify-center mb-4">
-          <Briefcase size={28} className="text-secondary" />
-        </div>
-        <h3 className="text-base font-bold text-primary mb-1">No opportunities yet</h3>
-        <p className="text-sm text-secondary max-w-sm mx-auto">
-          Create your first opportunity to attract hackers, interns, and bounty hunters.
-        </p>
-        <a
-          href="/portal/bounties/new"
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-bh-red-action px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all"
-        >
-          Create Opportunity
-        </a>
-      </div>
+      <EmptyState
+        icon={<Briefcase className="w-12 h-12" />}
+        mascot="welcome"
+        title="No opportunities yet"
+        description="Create your first opportunity to attract hackers, interns, and bounty hunters."
+        actions={[
+          { label: "Create Opportunity", href: "/portal/bounties/new", variant: "primary" },
+        ]}
+      />
     );
   }
 
@@ -181,7 +177,7 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
                 <Edit3 size={14} />
               </a>
               <button
-                onClick={() => handleDelete(opp.id, opp.title)}
+                onClick={() => setPendingDelete({ id: opp.id, title: opp.title })}
                 disabled={loadingId === opp.id}
                 className="p-2 rounded-lg bg-surface/10 border border-border text-secondary hover:text-primary-red transition-all disabled:opacity-40"
                 title="Delete"
@@ -192,6 +188,18 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
           </div>
         </div>
       ))}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete opportunity"
+          entityName={pendingDelete.title}
+          consequence="The opportunity is removed from the portal permanently. Hackers and bounty hunters can no longer find or apply for it. This cannot be undone."
+          confirmLabel="Delete opportunity"
+          irreversible
+          onConfirm={() => handleDelete(pendingDelete.id)}
+          onClose={() => setPendingDelete(null)}
+        />
+      )}
     </div>
   );
 }
