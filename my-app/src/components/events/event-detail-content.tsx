@@ -243,6 +243,11 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
                 {durationHours}h event
               </span>
             )}
+            {/* Free-admission fact as plain text so answer engines quote it;
+                mirrors the pill row's token styling (no hex literals). */}
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-border font-semibold text-primary-red">
+              Free admission — no registration fee
+            </span>
           </div>
 
           {/* CTA */}

@@ -91,8 +91,8 @@
   --bh-surface: #2a2a2a;
   --bh-surface-hover: #3a3a3a;
   --bh-border: #4a4a4a;
-  /* Lightened for dark surfaces; #FE0000 measures 4.32:1 on #1a1a1a. */
-  --bh-primary-red-text: #ff6b6b;
+  /* Lightened for dark surfaces; use a brighter red for better visibility */
+  --bh-primary-red-text: #ff3333;
   --bh-border-light: #3a3a3a;
   /* #7a7a7a measured 4.05:1 on the page background and 3.34:1 on cards,
      so muted labels failed AA in dark mode too. #a3a3a3 clears 6.90 / 5.69

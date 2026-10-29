@@ -108,6 +108,10 @@ export default async function EventDetailPage({ params }: Props) {
           url: eventUrl,
           image: eventData.banner_url,
           locationName: eventData.location,
+          // DB events are free by default (no registration fee, PRODUCT.md), so
+          // the offer is priced explicitly rather than left for Google to infer.
+          price: "0",
+          priceCurrency: "NPR",
         })}
       />
       {/* The visible FAQ section on this page renders EVENT_FAQS, so the markup

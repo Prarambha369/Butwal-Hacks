@@ -62,6 +62,7 @@ const PUBLIC_ROUTES = [
   '/transparency',
   '/transparency?view=report',
   '/learn',
+  '/join',
   '/calendar',
   '/festivals',
   '/gallery',

@@ -45,6 +45,7 @@ const sections: SiteSection[] = [
     links: [
       { href: "/events", label: "All Events", description: "Upcoming and past events calendar" },
       { href: "/calendar", label: "Calendar", description: "Every event and festival on one calendar" },
+      { href: "/festivals", label: "Festivals", description: "Community festivals and cultural events" },
       { href: "/gallery", label: "Event Gallery", description: "Photos from hackathons and meetups" },
     ],
   },
@@ -86,6 +87,9 @@ const sections: SiteSection[] = [
     icon: <BookOpen className="h-5 w-5" />,
     links: [
       { href: "/learn", label: "Learn", description: "Guides, workshop resources, and docs" },
+      { href: "/guides", label: "Guides", description: "Step-by-step guides for getting started" },
+      { href: "/guides/how-to-join-a-hackathon-in-nepal", label: "How to Join a Hackathon", description: "Guide for joining your first hackathon in Nepal" },
+      { href: "/mentors", label: "Mentors", description: "Find experienced mentors in the community" },
       { href: "/docs/engineering/environment-setup", label: "Setup Guide", description: "Local dev environment setup" },
       { href: "/docs/components/section-heading", label: "Component Library", description: "UI component previews and usage" },
     ],

@@ -30,6 +30,7 @@ export default async function TransparencyPage({
   const { view, year: yearParam } = await searchParams;
   const showReport = view === "report";
   const year = parseInt(yearParam ?? "", 10) || new Date().getFullYear() - 1;
+  const lastUpdated = "2026-10-29";
 
   return (
     <main className="min-h-dvh bg-background text-primary">
@@ -45,6 +46,9 @@ export default async function TransparencyPage({
                 <h1 className="mt-2 text-4xl font-black leading-[1.05] tracking-tight text-primary sm:text-5xl">
                   Financial Transparency
                 </h1>
+                <p className="mt-1 text-xs font-mono text-muted-foreground">
+                  Last updated: {lastUpdated}
+                </p>
               </div>
               <div
                 className="inline-flex w-fit rounded-full border border-border bg-surface p-1"

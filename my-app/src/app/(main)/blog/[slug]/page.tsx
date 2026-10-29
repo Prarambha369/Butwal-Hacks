@@ -51,6 +51,13 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           excerpt: post.excerpt,
           url: `${SITE_URL}/blog/${slug}`,
           datePublished: post.publishedAt,
+          // dateModified only when the set_updated_at trigger actually moved
+          // the row past its publish date; otherwise the builder falls back to
+          // datePublished. Never present the publish date as a modification.
+          dateModified:
+            post.updatedAt && post.updatedAt.slice(0, 10) > post.publishedAt
+              ? post.updatedAt
+              : undefined,
           image: post.cover_image,
           keywords: post.tags,
         })}

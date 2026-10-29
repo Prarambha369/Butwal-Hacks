@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowRight, Calendar, MapPin } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { formatDualDate } from "@/lib/nepali-date"
 import { Ballu } from "@/components/mascot/ballu"
 import CountdownTimer from "./countdown-timer"
@@ -150,18 +150,20 @@ function EventCard({ event, filter }: { event: EventItem; filter: FilterMode }) 
             {event.title}
           </h2>
 
-          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground font-mono">
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-3 h-3" />
-              {formatDate(startDate)}
-            </span>
+          {/* Plain-text meta facts (free / place / date). AI answer engines
+              read these directly off the card, so each fact stays as real
+              text — no icon-only badge hides the word. */}
+          <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
+            <span>Free</span>
+            <span aria-hidden="true">·</span>
             {event.location && (
-              <span className="flex items-center gap-1.5">
-                <MapPin className="w-3 h-3" />
-                {event.location}
-              </span>
+              <>
+                <span>{event.location}</span>
+                <span aria-hidden="true">·</span>
+              </>
             )}
-          </div>
+            <time dateTime={event.start_date}>{formatDate(startDate)}</time>
+          </p>
 
           <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
             {event.description}

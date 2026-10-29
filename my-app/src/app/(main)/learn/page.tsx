@@ -31,6 +31,12 @@ const guides = [
     href: "/docs/components/section-heading",
     cta: "Open preview",
   },
+  {
+    title: "Join a Hackathon",
+    description: "First hackathon? How to pick an event, register, show up, and find a team — free, beginner-friendly.",
+    href: "/join",
+    cta: "How to join",
+  },
 ]
 
 const resourceCategories = [

@@ -37,7 +37,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/transparency`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/governance`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/learn`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/guides`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/guides/how-to-join-a-hackathon-in-nepal`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/contact`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/join`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/transparency?view=report`, lastModified: today, changeFrequency: 'yearly', priority: 0.7 },
 
     // ─── Tier 4: Reference & Legal (priority 0.5-0.6) ─────
@@ -140,7 +143,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Blog posts from DB (member + maintainer authored)
     const { data: dbPosts } = await supabase
       .from('blog_posts')
-      .select('slug, published_at')
+      .select('slug, published_at, updated_at, cover_image')
       .eq('is_published', true)
       .limit(500)
 
@@ -148,12 +151,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const url = `${siteUrl}/blog/${post.slug}`
       if (seenBlogUrls.has(url)) continue
       seenBlogUrls.add(url)
-      entries.push({
+      const entry: MetadataRoute.Sitemap[number] = {
         url,
-        lastModified: post.published_at ? new Date(post.published_at) : today,
+        // An edit after publish bumps updated_at (trigger, migration 137), so
+        // crawlers learn the real last change; otherwise publish date, as today.
+        lastModified: post.updated_at
+          ? new Date(post.updated_at)
+          : post.published_at
+            ? new Date(post.published_at)
+            : today,
         changeFrequency: 'monthly',
         priority: 0.7,
-      })
+      }
+      if ((post as any).cover_image) {
+        entry.images = [(post as any).cover_image]
+      }
+      entries.push(entry)
     }
 
     // Projects from DB

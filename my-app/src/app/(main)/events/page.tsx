@@ -14,8 +14,9 @@ import type { EventItem } from "@/components/events/events-filter"
 import { ArrowRight, CalendarDays, FlaskConical } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Events",
-  description: "Free hackathons, workshops, and meetups in Butwal and across Nepal. Come build something.",
+  title: "Upcoming Hackathons in Butwal, Nepal",
+  description:
+    "Looking for the next upcoming hackathon in Butwal? Butwal Hacks lists free hackathons for students in Nepal — beginner-friendly events across Lumbini Province with no registration fee.",
   path: "/events",
 })
 
@@ -54,7 +55,10 @@ export default async function EventsPage() {
           <div>
             <h1 className="text-5xl font-black tracking-tight text-primary sm:text-6xl">Events</h1>
             <p className="mt-2 text-muted-foreground max-w-2xl">
-              Explore our events and programs. Join us for workshops, hackathons, and community gatherings.
+              Butwal Hacks runs upcoming free student hackathons, workshops, and meetups in Butwal,
+              Lumbini Province, Nepal — each open to beginners with no registration fee. Every
+              published event, with its date, venue, and registration link, is listed below; open
+              one to see the full schedule and sign up.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               {isSignedIn ? (
@@ -79,6 +83,12 @@ export default async function EventsPage() {
                     className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
                   >
                     Join an Event <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    href="/join"
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all active:scale-95"
+                  >
+                    How to join <ArrowRight className="w-4 h-4" />
                   </Link>
                   <a
                     href="/api/events/ical"
