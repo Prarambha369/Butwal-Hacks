@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Category Standard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f9fafb; color: #111827; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .container { display: flex; height: 100vh; }
+    .sidebar { width: 240px; background: #ffffff; border-right: 1px solid #e5e7eb; padding: 24px; }
+    .logo { font-size: 16px; font-weight: 600; margin-bottom: 32px; }
+    .nav { display: flex; flex-direction: column; gap: 4px; }
+    .nav-item { padding: 8px 12px; font-size: 14px; color: #6b7280; border-radius: 6px; }
+    .nav-item.active { background: #eff6ff; color: #2563eb; }
+    .main { flex: 1; padding: 32px; }
+    .header { margin-bottom: 32px; }
+    .title { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; }
+    .card-label { font-size: 12px; color: #6b7280; margin-bottom: 8px; }
+    .card-value { font-size: 28px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo">Butwal Hacks</div>
+      <div class="nav">
+        <div class="nav-item active">Overview</div>
+        <div class="nav-item">Events</div>
+        <div class="nav-item">Teams</div>
+        <div class="nav-item">Projects</div>
+        <div class="nav-item">Credentials</div>
+      </div>
+    </div>
+    <div class="main">
+      <div class="header">
+        <div class="title">Dashboard</div>
+        <div class="subtitle">Welcome back</div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="card-label">Total Events</div>
+          <div class="card-value">12</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Active Hackers</div>
+          <div class="card-value">248</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Projects</div>
+          <div class="card-value">86</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Teams</div>
+          <div class="card-value">42</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

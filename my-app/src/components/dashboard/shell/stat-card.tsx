@@ -46,13 +46,13 @@ export function StatCard({
   const body = (
     <>
       <div className="flex items-start justify-between gap-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {label}
         </p>
         {Icon ? (
           <span
             className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
               TONES[tone],
             )}
             aria-hidden="true"
@@ -61,7 +61,7 @@ export function StatCard({
           </span>
         ) : null}
       </div>
-      <p className="mt-3 font-mono text-2xl font-bold leading-none text-primary tabular-nums">
+      <p className="mt-4 font-mono text-3xl font-bold leading-none text-primary tabular-nums">
         {value}
       </p>
       {trend ? <div className="mt-2 text-xs text-secondary">{trend}</div> : null}
@@ -70,8 +70,9 @@ export function StatCard({
   );
 
   const shell = cn(
-    "block rounded-xl border border-border bg-surface p-4",
-    href && "transition-colors hover:border-border-light hover:bg-surface-hover",
+    "block rounded-xl border border-border bg-surface p-5 transition-all duration-200",
+    href && "hover:shadow-md hover:border-border/80 hover:bg-surface-hover",
+    !href && "hover:shadow-sm hover:border-border/80",
     className,
   );
 

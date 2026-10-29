@@ -32,13 +32,13 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between",
+        "flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between pb-6 border-b border-border",
         className,
       )}
     >
-      <div className="min-w-0">
+      <div className="min-w-0 space-y-2">
         {eyebrow ? (
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-primary-red">
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary-red">
             {eyebrow}
           </p>
         ) : null}
@@ -47,15 +47,15 @@ export function PageHeader({
             overflow:hidden + white-space:nowrap -- so on a narrow screen the
             badge was clipped and the status it reports simply vanished. Long
             single-word titles still wrap rather than overflowing. */}
-        <h1 className="break-words text-2xl font-bold tracking-tight text-primary sm:text-3xl">
+        <h1 className="break-words text-3xl font-bold tracking-tight text-primary sm:text-4xl">
           {title}
         </h1>
         {description ? (
-          <p className="mt-1 max-w-2xl text-sm text-secondary">{description}</p>
+          <p className="max-w-2xl text-base text-muted-foreground leading-relaxed">{description}</p>
         ) : null}
       </div>
       {actions ? (
-        <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:pt-1">{actions}</div>
       ) : null}
     </div>
   );

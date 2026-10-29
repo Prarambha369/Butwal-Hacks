@@ -5,6 +5,7 @@ export interface ExplorerMember {
   name: string
   role: "Builder" | "Mentor" | "Organizer" | "Sponsor"
   avatar: string
+  avatarUrl?: string | null
   bio: string
   skills: string[]
   projects: number
@@ -13,6 +14,10 @@ export interface ExplorerMember {
   /** Opt-in flags from profiles (migration 031) — directory filter facets. */
   openToMentor: boolean
   lookingForTeam: boolean
+  socials?: Record<string, string> | null
+  githubUrl?: string | null
+  websiteUrl?: string | null
+  linkedinUrl?: string | null
 }
 
 // ─── Server-side Fetcher ──────────────────────────────────────────
@@ -50,6 +55,8 @@ interface ProfileRow {
   created_at: string
   looking_for_team?: boolean | null
   open_to_mentor?: boolean | null
+  avatar_url?: string | null
+  social_links?: Record<string, string> | null
 }
 
 export async function fetchExplorerMembers(
@@ -66,7 +73,9 @@ export async function fetchExplorerMembers(
       skills,
       created_at,
       open_to_mentor,
-      looking_for_team
+      looking_for_team,
+      avatar_url,
+      social_links
     `)
     .not("bh_id", "is", null)
     .limit(100);
@@ -109,11 +118,17 @@ export async function fetchExplorerMembers(
       .toUpperCase()
       .slice(0, 2);
 
+    const socials = p.social_links || {};
+    const githubUrl = (socials as any).github || (socials as any).github_url || (socials as any).GitHub || null;
+    const websiteUrl = (socials as any).website || (socials as any).website_url || (socials as any).link || (socials as any).Web || null;
+    const linkedinUrl = (socials as any).linkedin || (socials as any).linkedin_url || (socials as any).LinkedIn || null;
+
     return {
       bhId: p.bh_id || "",
       name,
       role: toDisplayRole(p.role),
       avatar: initials,
+      avatarUrl: p.avatar_url || null,
       bio: p.bio || "",
       skills: p.skills || [],
       projects: projectCounts.get(p.id) || 0,
@@ -121,6 +136,10 @@ export async function fetchExplorerMembers(
       joined: p.created_at ? p.created_at.slice(0, 7) : "",
       openToMentor: p.open_to_mentor === true,
       lookingForTeam: p.looking_for_team === true,
+      socials,
+      githubUrl,
+      websiteUrl,
+      linkedinUrl,
     };
   });
 }
