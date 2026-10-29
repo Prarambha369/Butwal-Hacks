@@ -7,6 +7,7 @@ import {
   deletePartner,
   type Partner,
 } from "@/lib/actions/partners";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const emptyForm = { name: "", logo_url: "", href: "", sort_order: 0, is_active: true };
 
@@ -16,6 +17,7 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [partnerToRemove, setPartnerToRemove] = useState<Partner | null>(null);
 
   async function refresh() {
     const { getAllPartners } = await import("@/lib/actions/partners");
@@ -106,7 +108,7 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
               <Pencil className="h-4 w-4" />
             </button>
             <button type="button"
-              onClick={() => { if (confirm(`Remove ${p.name} from the wall?`)) deletePartner(p.id).then(refresh).catch((e) => setError(e instanceof Error ? e.message : "Delete failed")); }}
+              onClick={() => setPartnerToRemove(p)}
               aria-label={`Delete ${p.name}`}
               className="rounded-lg border border-border p-2 text-muted-foreground hover:text-primary-red hover:bg-surface-hover">
               <Trash2 className="h-4 w-4" />
@@ -165,6 +167,21 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
             </button>
           </div>
         </form>
+      )}
+
+      {partnerToRemove && (
+        <ConfirmDialog
+          title="Remove partner from the wall?"
+          entityName={partnerToRemove.name}
+          consequence="The partner disappears from the public partner wall. You can add it back manually, preserving the rest of the wall."
+          confirmLabel="Remove partner"
+          onConfirm={() =>
+            deletePartner(partnerToRemove.id)
+              .then(refresh)
+              .catch((e) => setError(e instanceof Error ? e.message : "Delete failed"))
+          }
+          onClose={() => setPartnerToRemove(null)}
+        />
       )}
     </div>
   );

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Loader2, Plus, Trash2, FileText } from "lucide-react";
 import { normaliseTags, toProse } from "@/lib/blog-drafts";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 export interface DraftRow {
@@ -52,6 +53,7 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [draftToDelete, setDraftToDelete] = useState<DraftRow | null>(null);
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
 
   const isEditing = form.id !== null;
@@ -283,11 +285,7 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (window.confirm(`Delete "${draft.title}"? This action cannot be undone.`)) {
-                      void remove(draft.id);
-                    }
-                  }}
+                  onClick={() => setDraftToDelete(draft)}
                   disabled={deleting === draft.id}
                   className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-muted-foreground transition-colors hover:text-primary-red disabled:opacity-50"
                 >
@@ -303,6 +301,20 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
           </ul>
         )}
       </aside>
+
+      {draftToDelete && (
+        <ConfirmDialog
+          title="Delete draft"
+          entityName={draftToDelete.title}
+          consequence="The draft is permanently deleted, including its paragraphs, tags, and cover image. This action cannot be undone."
+          confirmLabel="Delete draft"
+          irreversible
+          onConfirm={() => {
+            void remove(draftToDelete.id);
+          }}
+          onClose={() => setDraftToDelete(null)}
+        />
+      )}
     </div>
   );
 }

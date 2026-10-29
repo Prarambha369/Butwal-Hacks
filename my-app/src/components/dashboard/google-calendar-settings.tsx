@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 /**
  * Google Calendar connection settings.
@@ -52,6 +53,7 @@ function formatWhen(iso: string | null | undefined): string {
 export default function GoogleCalendarSettings({ className }: { className?: string }) {
   const [state, setState] = useState<State>({ type: "loading" });
   const [busy, setBusy] = useState<"connect" | "sync" | "disconnect" | null>(null);
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -135,15 +137,12 @@ export default function GoogleCalendarSettings({ className }: { className?: stri
     }
   }, [load]);
 
-  const handleDisconnect = useCallback(async () => {
-    if (
-      !window.confirm(
-        "Disconnect Google Calendar? Events already added to your calendar will stay there — delete them from Google if you no longer want them."
-      )
-    ) {
-      return;
-    }
+  // Opens the confirm dialog; the disconnect itself runs from onConfirm.
+  const handleDisconnect = useCallback(() => {
+    setConfirmDisconnect(true);
+  }, []);
 
+  const performDisconnect = useCallback(async () => {
     setBusy("disconnect");
     try {
       const res = await fetch("/api/calendar/google/disconnect", { method: "POST" });
@@ -295,6 +294,16 @@ export default function GoogleCalendarSettings({ className }: { className?: stri
           <ExternalLink className="w-3.5 h-3.5" />
           Reconnect
         </button>
+      )}
+
+      {confirmDisconnect && (
+        <ConfirmDialog
+          title="Disconnect Google Calendar?"
+          consequence="Your calendar stops syncing: Butwal Hacks events are no longer added or updated there. Events already added to your calendar will stay there — delete them from Google if you no longer want them."
+          confirmLabel="Disconnect Google Calendar"
+          onConfirm={performDisconnect}
+          onClose={() => setConfirmDisconnect(false)}
+        />
       )}
     </div>
   );

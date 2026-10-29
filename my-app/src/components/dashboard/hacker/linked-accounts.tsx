@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 // Client-safe module only. Importing from @/lib/auth0-management here would
 // pull the Management API (and its secret lookups) into the browser bundle.
 import { getProviderDisplayName } from "@/lib/auth0-providers";
@@ -29,6 +30,12 @@ type LinkStatus =
   | { type: "linking"; provider: string }
   | { type: "error"; message: string }
   | { type: "success"; message: string };
+
+/**
+ * Account staged for disconnect. Held until the confirm dialog resolves, so
+ * the provider name and user id stay in scope for handleUnlink.
+ */
+type PendingUnlink = LinkedAccount | null;
 
 const PROVIDER_CONFIG: Record<string, { icon: React.ReactNode; color: string; bgClass: string }> = {
   github: {
@@ -70,6 +77,7 @@ function getProviderUi(provider: string) {
 export default function LinkedAccounts({ className }: LinkedAccountsProps) {
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingUnlink, setPendingUnlink] = useState<PendingUnlink>(null);
   const [status, setStatus] = useState<LinkStatus>({ type: "idle" });
   const [error, setError] = useState<string | null>(null);
 
@@ -128,14 +136,10 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
   };
 
   /**
-   * Unlink a connected account.
+   * Unlink a connected account. Called by the confirm dialog — the account is
+   * already confirmed disconnectable (remember: reconnect anytime).
    */
   const handleUnlink = async (account: LinkedAccount) => {
-    const displayName = getProviderDisplayName(account.provider);
-    if (!window.confirm(`Disconnect ${displayName} from your account? You can reconnect anytime.`)) {
-      return;
-    }
-
     setStatus({ type: "loading" });
     try {
       const res = await fetch("/api/auth/link/unlink", {
@@ -279,8 +283,8 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
                   </p>
                 </div>
                 <button
-                  onClick={() => handleUnlink(account)}
-                  disabled={status.type === "loading"}
+                  onClick={() => setPendingUnlink(account)}
+                  disabled={status.type === "loading" || status.type === "linking"}
                   className="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-status-red/10 text-muted-foreground hover:text-status-red transition-all disabled:opacity-40"
                   title={`Disconnect ${displayName}`}
                   aria-label={`Disconnect ${displayName}`}
@@ -376,6 +380,17 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
           affect your profile data.
         </p>
       </div>
+
+      {pendingUnlink && (
+        <ConfirmDialog
+          title="Disconnect account?"
+          entityName={getProviderDisplayName(pendingUnlink.provider)}
+          consequence="This removes the account from your sign-in options. You can reconnect it anytime."
+          confirmLabel={`Disconnect ${getProviderDisplayName(pendingUnlink.provider)}`}
+          onConfirm={() => handleUnlink(pendingUnlink)}
+          onClose={() => setPendingUnlink(null)}
+        />
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   deletePost,
   type BlogRow,
 } from "@/lib/actions/blog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const emptyForm = {
   title: "", slug: "", excerpt: "", body: "", tags: "",
@@ -19,6 +20,7 @@ export function BlogClient({ initialPosts }: { initialPosts: BlogRow[] }) {
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<{ id: string; title: string } | null>(null);
 
   async function refresh() {
     const { getAllPosts } = await import("@/lib/actions/blog");
@@ -76,7 +78,6 @@ export function BlogClient({ initialPosts }: { initialPosts: BlogRow[] }) {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this post?")) return;
     setBusy(true);
     try {
       await deletePost(id);
@@ -119,7 +120,7 @@ export function BlogClient({ initialPosts }: { initialPosts: BlogRow[] }) {
               <button onClick={() => startEdit(p)} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Edit ${p.title}`}>
                 <Pencil className="w-4 h-4" />
               </button>
-              <button onClick={() => remove(p.id)} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Delete ${p.title}`}>
+              <button onClick={() => setPostToDelete({ id: p.id, title: p.title })} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Delete ${p.title}`}>
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -153,6 +154,18 @@ export function BlogClient({ initialPosts }: { initialPosts: BlogRow[] }) {
             </button>
           </div>
         </form>
+      )}
+
+      {postToDelete && (
+        <ConfirmDialog
+          title="Delete post"
+          entityName={postToDelete.title}
+          consequence="The post is deleted permanently and disappears from the public blog. This cannot be undone."
+          confirmLabel="Delete post"
+          irreversible
+          onConfirm={() => remove(postToDelete.id)}
+          onClose={() => setPostToDelete(null)}
+        />
       )}
     </div>
   );
