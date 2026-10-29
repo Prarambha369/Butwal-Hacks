@@ -23,6 +23,8 @@ export interface ComingSoonProps {
   primary?: ComingSoonLink;
   secondary?: ComingSoonLink;
   className?: string;
+  /** Heading level for the title. Defaults to h1. */
+  headingLevel?: "h1" | "h2" | "h3";
 }
 
 /**
@@ -40,7 +42,9 @@ export function ComingSoon({
   primary,
   secondary,
   className,
+  headingLevel = "h1",
 }: ComingSoonProps) {
+  const HeadingTag = headingLevel;
   return (
     <div className={cn("mx-auto max-w-3xl", className)}>
       <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
@@ -49,9 +53,9 @@ export function ComingSoon({
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-primary-red">
             {eyebrow}
           </p>
-          <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-primary sm:text-5xl">
+          <HeadingTag className="text-4xl font-black leading-[1.05] tracking-tight text-primary sm:text-5xl">
             {title}
-          </h1>
+          </HeadingTag>
           <p className="mt-3 max-w-prose text-base leading-relaxed text-muted-foreground">
             {description}
           </p>

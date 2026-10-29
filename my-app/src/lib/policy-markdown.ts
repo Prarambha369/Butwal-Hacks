@@ -65,8 +65,23 @@ function isTableSeparator(line: string): boolean {
  */
 export function parsePolicyMarkdown(
   source: string,
-  resolveHref: (href: string) => string = (href) => href,
+  resolveHrefOrOptions: ((href: string) => string) | ((href: string) => string) & { extractVersion?: boolean } | { resolveHref?: (href: string) => string; extractVersion?: boolean } = (href) => href,
 ): ParsedPolicy {
+  let resolveHref: (href: string) => string = (href) => href;
+  let extractVersion = true;
+  if (typeof resolveHrefOrOptions === "function") {
+    resolveHref = resolveHrefOrOptions;
+    if ("extractVersion" in resolveHrefOrOptions && typeof (resolveHrefOrOptions as any).extractVersion === "boolean") {
+      extractVersion = (resolveHrefOrOptions as any).extractVersion;
+    }
+  } else if (resolveHrefOrOptions && typeof resolveHrefOrOptions === "object") {
+    if (typeof (resolveHrefOrOptions as any).resolveHref === "function") {
+      resolveHref = (resolveHrefOrOptions as any).resolveHref;
+    }
+    if (typeof (resolveHrefOrOptions as any).extractVersion === "boolean") {
+      extractVersion = (resolveHrefOrOptions as any).extractVersion;
+    }
+  }
   const lines = source.replace(/\r\n/g, "\n").split("\n");
   const blocks: PolicyBlock[] = [];
   let title: string | null = null;
@@ -95,14 +110,16 @@ export function parsePolicyMarkdown(
     // Policy version declaration — metadata, not content. The line may carry
     // markdown decoration (`**Policy version: X**`, `> Policy version: X`),
     // so strip it before matching.
-    const versionMatch = /^Policy version:\s*(.+)$/i.exec(
-      line.trim().replace(/^[>*#\s]+/, "").replace(/[*_`]+$/, "").trim(),
-    );
-    if (versionMatch) {
-      flushParagraph(paragraph);
-      version = versionMatch[1].trim();
-      index += 1;
-      continue;
+    if (extractVersion) {
+      const versionMatch = /^Policy version:\s*(.+)$/i.exec(
+        line.trim().replace(/^[>*#\s]+/, "").replace(/[*_`]+$/, "").trim(),
+      );
+      if (versionMatch) {
+        flushParagraph(paragraph);
+        version = versionMatch[1].trim();
+        index += 1;
+        continue;
+      }
     }
 
     const headingMatch = /^(#{1,3})\s+(.*)$/.exec(line);
@@ -148,7 +165,7 @@ export function parsePolicyMarkdown(
     // Table: a pipe row followed by a separator row.
     if (line.trim().startsWith("|") && isTableSeparator(lines[index + 1] ?? "")) {
       flushParagraph(paragraph);
-      const header = splitTableRow(line);
+      const header = splitTableRow(line).map((cell) => rewriteLinks(cell, resolveHref));
       index += 2;
       const rows: string[][] = [];
       while (index < lines.length && lines[index].trim().startsWith("|")) {

@@ -286,7 +286,11 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
                 </button>
                 <button
                   type="button"
-                  onClick={() => void remove(draft.id)}
+                  onClick={() => {
+                    if (window.confirm(`Delete "${draft.title}"? This action cannot be undone.`)) {
+                      void remove(draft.id);
+                    }
+                  }}
                   disabled={deleting === draft.id}
                   className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-muted-foreground transition-colors hover:text-primary-red disabled:opacity-50"
                 >

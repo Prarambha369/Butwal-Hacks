@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
-import SectionEyebrow from "@/components/section-eyebrow";
 
 interface Stats {
   total_hackers: number;
@@ -104,9 +103,6 @@ export default function LiveStatsCounter() {
       <section className="relative overflow-hidden py-16 md:py-20 bg-surface border-b border-border">
         <div aria-hidden="true" className="bh-bg-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_60%_80%_at_50%_50%,black,transparent)]" />
         <div className="relative mx-auto max-w-6xl px-4">
-          <div className="mb-10 text-center">
-            <SectionEyebrow text={t('home.stats.loading', locale)} />
-          </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
             <SkeletonStat />
             <SkeletonStat />
@@ -127,10 +123,6 @@ export default function LiveStatsCounter() {
     <section className="relative overflow-hidden py-16 md:py-20 bg-surface border-b border-border">
       <div aria-hidden="true" className="bh-bg-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_60%_80%_at_50%_50%,black,transparent)]" />
       <div className="relative mx-auto max-w-6xl px-4">
-        <div className="mb-10 text-center">
-          <SectionEyebrow text={t('home.stats.live', locale)} />
-        </div>
-
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
           {statItems.map(({ key, labelKey, oneKey, rule }) => {
             const value = stats?.[key as keyof Stats] ?? null;

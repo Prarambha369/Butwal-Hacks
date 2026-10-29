@@ -53,11 +53,8 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     const safeHistory = Array.isArray(history)
       ? history
           .slice(-MAX_HISTORY)
-          .filter((m) => m && typeof m === "object" && ["user", "assistant"].includes(m.role) && typeof m.content === "string")
+          .filter((m) => m && typeof m === "object" && m.role === "user" && typeof m.content === "string")
           .map((m) => {
-            if (m.role === "assistant") {
-              return { role: "assistant" as const, content: m.content.slice(0, MAX_MSG_LEN) };
-            }
             const screenedTurn = screenUserMessage(m.content);
             if (!screenedTurn.ok) return null;
             return {
@@ -65,7 +62,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
               content: screenedTurn.message.slice(0, MAX_MSG_LEN),
             };
           })
-          .filter((m): m is { role: "user" | "assistant"; content: string } => m !== null)
+          .filter((m): m is { role: "user"; content: string } => m !== null)
       : [];
 
     // ── Retrieve relevant context via vector search ───────────

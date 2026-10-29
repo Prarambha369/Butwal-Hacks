@@ -121,6 +121,7 @@ export default async function TransparencyPage({
               mascot="tablet"
               primary={{ label: "Open Collective ledger", href: OPEN_COLLECTIVE, external: true }}
               secondary={{ label: "Year in review", href: "/transparency?view=report" }}
+              headingLevel="h2"
             />
 
             <div className="mt-10 rounded-xl border border-border bg-surface p-6">

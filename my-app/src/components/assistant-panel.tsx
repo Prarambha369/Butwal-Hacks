@@ -39,7 +39,7 @@ interface Message {
  */
 function AssistantReply({ content }: { content: string }) {
   const promoted = content.replace(/^#{1,2}[ \t]/gm, "### ");
-  const { blocks } = parsePolicyMarkdown(promoted);
+  const { blocks } = parsePolicyMarkdown(promoted, { extractVersion: false });
 
   // A single plain paragraph renders bare so tight one-liners don't get
   // wrapped in an extra <p> (which would double up on the bubble padding).
@@ -261,7 +261,7 @@ export default function AssistantPanel({
             : "bg-surface border border-border text-primary hover:scale-110 hover:border-primary-red/50 outline-none focus-visible:ring-2 focus-visible:ring-bh-red-500/50 focus-visible:ring-offset-2"
         )}
       >
-        {isOpen ? <X size={22} /> : <Ballu emotion="ai-logo" size={36} priority popOnHover />}
+        {isOpen ? <X size={22} /> : <Bot size={22} />}
       </button>
 
       {/* Backdrop */}
@@ -336,7 +336,7 @@ export default function AssistantPanel({
                       "w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
                       msg.role === "assistant" ? "bg-primary-red/10 text-primary-red" : "bg-surface-hover text-muted-foreground"
                     )}>
-                      {msg.role === "assistant" ? <Ballu emotion={msg.mood ?? "ai-logo"} size={20} /> : <MessageSquare className="w-3.5 h-3.5" />}
+                      {msg.role === "assistant" ? <Bot className="w-3.5 h-3.5" /> : <MessageSquare className="w-3.5 h-3.5" />}
                     </div>
                     <div className={cn(
                       "max-w-[80%] px-3.5 py-2.5 rounded-lg text-sm leading-relaxed",

@@ -21,6 +21,13 @@ describe("parsePolicyMarkdown", () => {
     expect(parsed.blocks).toHaveLength(1);
   });
 
+  it("does not extract policy version as metadata when extractVersion is false", () => {
+    const parsed = parsePolicyMarkdown("Policy version: 2026-10-21", { extractVersion: false });
+    expect(parsed.version).toBeNull();
+    expect(parsed.blocks).toHaveLength(1);
+    expect(parsed.blocks[0]).toEqual({ kind: "paragraph", text: "Policy version: 2026-10-21" });
+  });
+
   it("keeps level 2 and level 3 headings with slugified ids", () => {
     const parsed = parsePolicyMarkdown("## Reporting something\n\n### Who handles it\n");
     expect(parsed.blocks[0]).toEqual({

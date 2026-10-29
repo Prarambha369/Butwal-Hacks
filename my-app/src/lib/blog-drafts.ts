@@ -33,9 +33,9 @@ const body = z
 
 const tags = z
   .array(z.string().trim().min(1).max(DRAFT_LIMITS.tagLength))
-  .max(DRAFT_LIMITS.tags)
-  .optional()
-  .default([]);
+  .max(DRAFT_LIMITS.tags);
+
+const tagsWithDefault = tags.optional().default([]);
 
 const coverImage = z
   .url()
@@ -44,11 +44,15 @@ const coverImage = z
   .nullable()
   .transform((value) => (value ? value : null));
 
+const coverImageNullable = z
+  .union([z.url().max(DRAFT_LIMITS.coverImage), z.null()])
+  .transform((value) => (value === null ? null : value));
+
 export const draftCreateSchema = z.object({
   title,
   excerpt: z.string().trim().max(DRAFT_LIMITS.excerpt).optional().default(""),
   body,
-  tags,
+  tags: tagsWithDefault,
   cover_image: coverImage,
 });
 
@@ -58,7 +62,7 @@ export const draftUpdateSchema = z.object({
   excerpt: z.string().trim().max(DRAFT_LIMITS.excerpt).optional(),
   body: body.optional(),
   tags: tags.optional(),
-  cover_image: coverImage.optional(),
+  cover_image: coverImageNullable.optional(),
 });
 
 export const draftDeleteSchema = z.object({

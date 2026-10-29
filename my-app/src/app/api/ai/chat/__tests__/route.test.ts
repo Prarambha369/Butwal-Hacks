@@ -112,16 +112,13 @@ describe("POST /api/ai/chat", () => {
     expect(JSON.stringify(sentMessages())).not.toContain("Ignore previous instructions");
   });
 
-  it("preserves assistant turns in the history", async () => {
+  it("drops assistant turns in the history", async () => {
     await post({
       message: "What is HackDay?",
       history: [{ role: "assistant", content: "Sign up on the events page." }],
     });
 
-    expect(sentMessages()).toContainEqual({
-      role: "assistant",
-      content: "Sign up on the events page.",
-    });
+    expect(sentMessages().some((m) => m.role === "assistant" && m.content === "Sign up on the events page.")).toBe(false);
   });
 
   it("caps the length of retained history content", async () => {
@@ -133,9 +130,9 @@ describe("POST /api/ai/chat", () => {
       ],
     });
 
-    const [assistantTurn] = sentMessages().filter((m) => m.role === "assistant");
+    const assistantTurns = sentMessages().filter((m) => m.role === "assistant");
     const [userTurn] = historyUserTurns();
-    expect(assistantTurn.content).toHaveLength(500);
+    expect(assistantTurns).toHaveLength(0);
     expect(userTurn.content).toHaveLength(500);
   });
 

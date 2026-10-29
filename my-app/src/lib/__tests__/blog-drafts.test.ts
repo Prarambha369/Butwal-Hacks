@@ -121,6 +121,17 @@ describe("draftUpdateSchema", () => {
     const parsed = draftUpdateSchema.parse({ id, is_published: true });
     expect(parsed).not.toHaveProperty("is_published");
   });
+
+  it("leaves omitted tags and cover_image absent from the parsed update", () => {
+    const parsed = draftUpdateSchema.parse({ id });
+    expect(Object.prototype.hasOwnProperty.call(parsed, "tags")).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(parsed, "cover_image")).toBe(false);
+  });
+
+  it("allows explicit null for cover_image on update", () => {
+    const parsed = draftUpdateSchema.parse({ id, cover_image: null });
+    expect(parsed.cover_image).toBeNull();
+  });
 });
 
 describe("draftDeleteSchema", () => {
