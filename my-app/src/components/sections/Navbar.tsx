@@ -87,7 +87,7 @@ function UserMenu({ name, email, picture, locale }: { name?: string; email?: str
         {picture ? (
           <Image src={picture} alt={name || "Profile"} width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
         ) : (
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-red text-sm font-bold text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-bh-red-action text-sm font-bold text-white">
             {initial}
           </span>
         )}
@@ -100,7 +100,7 @@ function UserMenu({ name, email, picture, locale }: { name?: string; email?: str
             {picture ? (
               <Image src={picture} alt="" width={36} height={36} className="h-9 w-9 rounded-full object-cover" />
             ) : (
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-red text-sm font-bold text-white">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-bh-red-action text-sm font-bold text-white">
                 {initial}
               </span>
             )}
@@ -178,7 +178,7 @@ export default function Navbar() {
                 className="h-10 w-10"
                 priority
               />
-              <span className="text-primary font-bold text-lg tracking-tight">
+              <span className="hidden min-[360px]:inline text-primary font-bold text-lg tracking-tight">
                 Butwal Hacks
               </span>
             </Link>
@@ -325,7 +325,7 @@ export default function Navbar() {
                 {user?.picture ? (
                   <Image src={user.picture} alt={user?.name || "Profile"} width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
                 ) : (
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-red text-base font-bold text-white">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-bh-red-action text-base font-bold text-white">
                     {(user?.name || user?.email || "?").charAt(0).toUpperCase()}
                   </span>
                 )}

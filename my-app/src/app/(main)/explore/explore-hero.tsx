@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { UsersRound, CodeXml, CalendarDays, FolderGit2 } from "lucide-react"
+import Link from "next/link"
+import { UsersRound, CodeXml, CalendarDays, FolderGit2, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // ─── Animated Counter ──────────────────────────────────────────────
@@ -11,7 +12,7 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
 
   useEffect(() => {
     if (value === 0) { setDisplay(0); return }
-    const duration = 1200
+    const duration = 900
     const steps = 24
     const increment = value / steps
     let current = 0
@@ -46,60 +47,74 @@ const statItems = [
   { key: "builders", icon: CodeXml, label: "Builders", one: "Builder", color: "text-status-blue", bg: "bg-status-blue/10" },
   { key: "projects", icon: FolderGit2, label: "Projects", one: "Project", color: "text-status-green", bg: "bg-status-green/10" },
   { key: "events", icon: CalendarDays, label: "Events", one: "Event", color: "text-status-yellow", bg: "bg-status-yellow/10" },
-]
+] as const
 
 // ─── Main Component ────────────────────────────────────────────────
 
 export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalEvents }: ExploreHeroProps) {
   const stats = { members: totalMembers, builders: totalBuilders, projects: totalProjects, events: totalEvents }
 
+  // A row of zeros is a worse first impression than no row at all. Only
+  // counts with something behind them are shown; the copy below carries the
+  // honest "we are early" signal instead.
+  const visible = statItems.filter(({ key }) => stats[key] > 0)
+  const isEarly = totalMembers < 10
+
   return (
-    <section className="relative overflow-hidden border-b border-border/20" aria-label="Explore Hero">
-      <div className="mx-auto max-w-6xl px-4 py-16 md:py-20">
-        {/* ── Eyebrow ── */}
-        <div className="flex justify-center mb-6">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/8 text-[10px] font-bold text-primary-red tracking-wider">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary-red animate-pulse" />
-            Live Directory
-          </span>
-        </div>
-
+    <section className="relative overflow-hidden border-b border-border" aria-label="Explore Hero">
+      <div className="mx-auto max-w-6xl px-4 pb-14 pt-16 md:pb-16 md:pt-20">
         {/* ── Headline ── */}
-        <div className="flex flex-col items-center text-center max-w-2xl mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-primary leading-[1.05]">
-            Discover the{" "}
-            <span className="text-primary-red relative">
-              Community
-              <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-primary-red/30 rounded-full" />
-            </span>
+        <div className="max-w-3xl">
+          <h1 className="text-4xl font-black leading-[1.02] tracking-tight text-primary md:text-6xl">
+            Find the people{" "}
+            <span className="text-primary-red">building here</span>
           </h1>
-          <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed max-w-lg">
-            Browse profiles, explore projects, and find your next collaborator in Butwal&apos;s tech community.
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+            Every profile is a real member of the Butwal Hacks community — students, mentors, and
+            organizers across Lumbini Province. Look someone up by name or BH-ID and start a thread.
           </p>
+          {/* One primary action. The mentor strip further down owns /mentors, and
+              the closing section owns the "already a member" path, so neither is
+              repeated here. */}
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <Link
+              href="/auth/login?screen_hint=signup"
+              className="bh-btn-primary text-sm"
+            >
+              Join the directory
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
         </div>
 
-        {/* ── Animated Stats Grid ── */}
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
-          {statItems.map(({ key, icon: Icon, label, one, color, bg }) => {
-            const value = stats[key as keyof typeof stats]
-            return (
-              <div
-                key={key}
-                className="bh-card rounded-xl p-4 text-center hover:-translate-y-0.5 transition-all duration-300 group"
-              >
-                <div className={cn("flex justify-center mb-2 p-1.5 rounded-lg mx-auto w-fit", bg, color)}>
-                  <Icon className="w-4 h-4" />
+        {/* ── Stats ── */}
+        {visible.length > 0 ? (
+          <div className="mt-12 flex flex-wrap gap-x-10 gap-y-6">
+            {visible.map(({ key, icon: Icon, label, one, color }) => {
+              const value = stats[key]
+              return (
+                <div key={key} className="flex items-center gap-3">
+                  <Icon className={cn("h-4 w-4", color)} aria-hidden="true" />
+                  <div>
+                    <p className="font-mono text-2xl font-black tabular-nums leading-none text-primary">
+                      <AnimatedCounter value={value} />
+                    </p>
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                      {value === 1 ? one : label}
+                    </p>
+                  </div>
                 </div>
-                <p className={cn("text-xl md:text-2xl font-black font-mono tabular-nums", color)}>
-                  <AnimatedCounter value={value} />
-                </p>
-                <p className="text-[10px] font-bold text-muted-foreground/60 mt-0.5 uppercase tracking-wider">
-                  {value === 1 ? one : label}
-                </p>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        ) : null}
+
+        {isEarly && (
+          <p className="mt-8 max-w-xl text-xs leading-relaxed text-muted-foreground">
+            The directory is small because it is new. Profiles appear here after a member joins and
+            completes onboarding — nothing is seeded or invented.
+          </p>
+        )}
       </div>
     </section>
   )

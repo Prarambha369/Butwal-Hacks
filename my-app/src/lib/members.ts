@@ -10,8 +10,6 @@ export interface ExplorerMember {
   projects: number
   events: number
   joined: string
-  /** Auth0 user ID for live presence matching. */
-  auth0_user_id?: string
   /** Opt-in flags from profiles (migration 031) — directory filter facets. */
   openToMentor: boolean
   lookingForTeam: boolean
@@ -50,7 +48,6 @@ interface ProfileRow {
   bio: string | null
   skills: string[] | null
   created_at: string
-  auth0_user_id?: string | null
   looking_for_team?: boolean | null
   open_to_mentor?: boolean | null
 }
@@ -68,7 +65,6 @@ export async function fetchExplorerMembers(
       bio,
       skills,
       created_at,
-      auth0_user_id,
       open_to_mentor,
       looking_for_team
     `)
@@ -123,7 +119,6 @@ export async function fetchExplorerMembers(
       projects: projectCounts.get(p.id) || 0,
       events: eventCounts.get(p.id) || 0,
       joined: p.created_at ? p.created_at.slice(0, 7) : "",
-      auth0_user_id: p.auth0_user_id || undefined,
       openToMentor: p.open_to_mentor === true,
       lookingForTeam: p.looking_for_team === true,
     };

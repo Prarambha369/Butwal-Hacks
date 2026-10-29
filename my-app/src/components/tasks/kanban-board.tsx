@@ -274,7 +274,7 @@ export default function KanbanBoard({
                               if (e.key === "Enter") handleCreateTask(col.key)
                             }}
                             placeholder={`Add task to ${col.label}...`}
-                            className="flex-1 text-xs bg-transparent border-none outline-none placeholder:text-muted-foreground/50 px-1 py-1"
+                            className="flex-1 text-xs bg-transparent border-none outline-none placeholder:text-muted-foreground px-1 py-1"
                           />
                           {(newTaskInputs[col.key] || "").trim() && (
                             <button

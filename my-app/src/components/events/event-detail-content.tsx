@@ -243,6 +243,11 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
                 {durationHours}h event
               </span>
             )}
+            {/* Free-admission fact as plain text so answer engines quote it;
+                mirrors the pill row's token styling (no hex literals). */}
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-border font-semibold text-primary-red">
+              Free admission — no registration fee
+            </span>
           </div>
 
           {/* CTA */}
@@ -281,7 +286,7 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
             {isPast && (
               <Link
                 href={`/events/${event.slug}/projects`}
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-bh-red-600 hover:bg-primary-red text-white font-bold text-sm transition-all group"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-bh-red-600 hover:bg-bh-red-action text-white font-bold text-sm transition-all group"
               >
                 <Code2 className="w-5 h-5" />
                 View Projects

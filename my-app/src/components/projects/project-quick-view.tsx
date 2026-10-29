@@ -130,7 +130,7 @@ export default function ProjectQuickView({ project, onClose }: ProjectQuickViewP
             <div className="grid grid-cols-2 gap-2">
               <Link
                 href={`/projects/${project.id}`}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-bh-red-500 text-white text-sm font-bold hover:bg-deep-red transition-all active:scale-[0.97]"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-bh-red-action text-white text-sm font-bold hover:bg-deep-red transition-all active:scale-[0.97]"
               >
                 <ArrowUpRight className="h-4 w-4" />
                 Full Details

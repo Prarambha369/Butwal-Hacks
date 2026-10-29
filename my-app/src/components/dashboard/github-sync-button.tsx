@@ -89,7 +89,7 @@ export default function GitHubSyncButton() {
       {message && (
         <p
           className={`text-xs ${
-            isError ? "text-primary-red/80" : isDone ? "text-status-green/80" : "text-muted-foreground/60"
+            isError ? "text-primary-red/80" : isDone ? "text-status-green/80" : "text-muted-foreground"
           }`}
         >
           {message}

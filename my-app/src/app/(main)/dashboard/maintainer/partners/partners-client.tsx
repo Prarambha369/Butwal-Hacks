@@ -156,7 +156,7 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
           </label>
           <div className="flex items-center gap-2">
             <button type="submit" disabled={busy}
-              className="inline-flex items-center gap-1 rounded-full bg-primary-red px-5 py-2 text-sm font-bold text-white hover:bg-deep-red disabled:opacity-50">
+              className="inline-flex items-center gap-1 rounded-full bg-bh-red-action px-5 py-2 text-sm font-bold text-white hover:bg-deep-red disabled:opacity-50">
               <Check className="h-4 w-4" /> {busy ? "Saving…" : "Save"}
             </button>
             <button type="button" onClick={() => setEditingId(null)}

@@ -4,7 +4,6 @@ import { createServiceClient } from '@/utils/supabase';
 import { logger } from '@/lib/logger';
 import { requireMaintainer } from '@/lib/actions/admin';
 import { revalidatePath } from 'next/cache';
-import { chapters as staticChapters, type Chapter as StaticChapter } from '@/lib/content';
 
 export interface ChapterRow {
   id: string;
@@ -27,28 +26,7 @@ export interface ChapterRow {
 const COLUMNS =
   'id, slug, name, school, lead_name, city, district, status, established, member_count, description, highlights, whatsapp, sort_order, is_active';
 
-/** Static fallback: the three chapters the hardcoded page carried. */
-function staticFallback(): ChapterRow[] {
-  return staticChapters.map((c: StaticChapter, i: number) => ({
-    id: `static-${c.slug}`,
-    slug: c.slug,
-    name: c.name,
-    school: c.school,
-    lead_name: c.leadName,
-    city: c.city,
-    district: c.district,
-    status: c.status,
-    established: c.established,
-    member_count: c.memberCount,
-    description: c.description,
-    highlights: c.highlights,
-    whatsapp: c.socialLinks.whatsapp,
-    sort_order: i,
-    is_active: true,
-  }));
-}
-
-/** Public list: active chapters, maintainer-ordered (static fallback). */
+/** Public list: active chapters, maintainer-ordered. Empty when unavailable. */
 export async function getActiveChapters(): Promise<ChapterRow[]> {
   const supabase = createServiceClient();
   const { data, error } = await supabase
@@ -58,17 +36,15 @@ export async function getActiveChapters(): Promise<ChapterRow[]> {
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true });
   if (error) {
-    // PGRST205 = table missing from schema cache (preview/dev DB behind
-    // on migrations). Fall back to the static list, never an empty page.
-    if ((error as { code?: string }).code === 'PGRST205') return staticFallback();
+    // The public page is a coming-soon state, so an unavailable table
+    // means no chapters to show — never a fabricated list.
     logger.error('Error fetching chapters:', error);
-    return staticFallback();
+    return [];
   }
-  const rows = (data ?? []) as ChapterRow[];
-  return rows.length > 0 ? rows : staticFallback();
+  return (data ?? []) as ChapterRow[];
 }
 
-/** Single chapter by slug (static fallback). */
+/** Single chapter by slug. Returns null when absent or unreadable. */
 export async function getChapterBySlug(slug: string): Promise<ChapterRow | null> {
   const supabase = createServiceClient();
   const { data, error } = await supabase
@@ -78,7 +54,7 @@ export async function getChapterBySlug(slug: string): Promise<ChapterRow | null>
     .eq('is_active', true)
     .single();
   if (error || !data) {
-    return staticFallback().find((c) => c.slug === slug) ?? null;
+    return null;
   }
   return data as ChapterRow;
 }
@@ -140,7 +116,7 @@ export async function saveChapter(input: {
     is_active: input.is_active ?? true,
   };
   const supabase = createServiceClient();
-  const { error } = input.id && !input.id.startsWith('static-')
+  const { error } = input.id
     ? await supabase.from('chapters').update(row).eq('id', input.id)
     : await supabase.from('chapters').insert(row);
   if (error) {

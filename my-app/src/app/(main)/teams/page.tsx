@@ -43,6 +43,9 @@ interface ShowcaseEvent {
  */
 export default async function TeamsPage() {
   const session = await auth0.getSession().catch(() => null);
+  const signedIn = Boolean(session?.user);
+  const createHref = signedIn ? "/teams/create" : "/auth/login?returnTo=/teams/create";
+  const matchHref = signedIn ? "/dashboard/hacker/team-matching" : "/auth/login?returnTo=/dashboard/hacker/team-matching";
   const supabase = createServiceClient();
 
   // Published events, newest first — the backbone of the showcase.
@@ -139,8 +142,8 @@ export default async function TeamsPage() {
             Who built what, with whom — organizer teams for every event.
           </p>
         </div>
-        <Link href="/teams/create" className={cn(buttonVariants({ variant: "default", size: "sm" }))}>
-          <Plus size={16} /> New Team
+        <Link href={createHref} className={cn(buttonVariants({ variant: "default", size: "sm" }))}>
+          <Plus size={16} /> {signedIn ? "New Team" : "Sign in to create"}
         </Link>
       </div>
 
@@ -153,8 +156,8 @@ export default async function TeamsPage() {
           title="No event teams yet"
           description="Teams appear here once organizers attach them to a published event. Create your own or find teammates."
           actions={[
-            { label: "Create a team", href: "/teams/create", variant: "primary" },
-            { label: "Find teammates", href: "/dashboard/hacker/team-matching", variant: "secondary" },
+            { label: signedIn ? "Create a team" : "Sign in to create a team", href: createHref, variant: "primary" },
+            { label: "Find teammates", href: matchHref, variant: "secondary" },
           ]}
           hint="Use AI Team Matching to find complementary teammates"
         />
@@ -179,7 +182,7 @@ export default async function TeamsPage() {
                 >
                   <Camera className="w-3.5 h-3.5" /> Event photos
                 </Link>
-                <span className="text-[10px] font-mono text-muted-foreground/60 uppercase">
+                <span className="text-[10px] font-mono text-muted-foreground uppercase">
                   {event.teams.length} team{event.teams.length === 1 ? "" : "s"}
                 </span>
               </div>

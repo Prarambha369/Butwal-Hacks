@@ -141,7 +141,7 @@ export default function TeamInviteList({ onUpdate }: TeamInviteListProps) {
               </button>
               <button 
                 onClick={() => handleRespond(invite.id, true)}
-                className="p-2 rounded-lg bg-bh-red-500 text-primary hover:bg-primary-red/90 transition-colors"
+                className="p-2 rounded-lg bg-bh-red-action text-white hover:bg-deep-red transition-colors"
                 title="Accept"
               >
                 <Check className="w-4 h-4" />

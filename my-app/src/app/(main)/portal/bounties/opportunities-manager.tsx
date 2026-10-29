@@ -81,7 +81,7 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
         </p>
         <a
           href="/portal/bounties/new"
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-bh-red-action px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all"
         >
           Create Opportunity
         </a>
@@ -139,7 +139,7 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
                   </span>
                 )}
                 {opp.is_remote && (
-                  <span className="text-[10px] text-secondary/60">Remote</span>
+                  <span className="text-[10px] text-secondary">Remote</span>
                 )}
               </div>
 
@@ -156,7 +156,7 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
                 </div>
               )}
 
-              <div className="flex items-center gap-4 text-[11px] text-secondary/60">
+              <div className="flex items-center gap-4 text-[11px] text-secondary">
                 <span className="flex items-center gap-1"><Clock size={11} /> {new Date(opp.created_at).toLocaleDateString()}</span>
                 {opp.location && <span className="flex items-center gap-1"><MapPin size={11} /> {opp.location}</span>}
                 {opp.compensation && <span className="flex items-center gap-1"><DollarSign size={11} /> {opp.compensation}</span>}

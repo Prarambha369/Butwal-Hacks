@@ -48,7 +48,7 @@ function ChartEmpty({ title, description }: { title?: string; description?: stri
         <h3 className="text-xs font-bold text-primary">{title ?? "Chart"}</h3>
       </div>
       <div className="h-[120px] flex flex-col items-center justify-center text-center">
-        <BarChart3 className="w-6 h-6 text-muted-foreground/30 mb-2" />
+        <BarChart3 className="w-6 h-6 text-muted-foreground mb-2" />
         <p className="text-xs text-muted-foreground">{description ?? "No data available yet."}</p>
       </div>
     </div>
@@ -65,7 +65,7 @@ export function APIUsageChart() {
         <h3 className="text-xs font-bold text-primary">API Usage</h3>
       </div>
       <div className="h-[120px] flex flex-col items-center justify-center text-center">
-        <BarChart3 className="w-6 h-6 text-muted-foreground/30 mb-2" />
+        <BarChart3 className="w-6 h-6 text-muted-foreground mb-2" />
         <p className="text-xs text-muted-foreground max-w-[180px]">
           Connect an API monitoring service to see request data here.
         </p>

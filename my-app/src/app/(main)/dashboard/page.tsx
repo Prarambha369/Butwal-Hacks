@@ -135,7 +135,7 @@ export default async function DashboardHubPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href={`/dashboard/${role}`}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary-red text-white text-sm font-bold hover:bg-deep-red transition-all shadow-[--bh-glow-red-soft] hover:shadow-[--bh-glow-red] active:scale-[0.97]"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-bh-red-action text-white text-sm font-bold hover:bg-deep-red transition-all shadow-[--bh-glow-red-soft] hover:shadow-[--bh-glow-red] active:scale-[0.97]"
             >
               {t('dashboard.go_to_role', locale).replace('{role}', role.charAt(0).toUpperCase() + role.slice(1))}
               <ArrowRight className="w-4 h-4" />

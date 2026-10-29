@@ -133,7 +133,7 @@ export default function WorkDashboardClient({
               className={cn(
                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150",
                 viewMode === "board"
-                  ? "bg-primary-red text-white shadow-sm"
+                  ? "bg-bh-red-action text-white shadow-sm"
                   : "text-muted-foreground hover:text-primary"
               )}
             >
@@ -145,7 +145,7 @@ export default function WorkDashboardClient({
               className={cn(
                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150",
                 viewMode === "table"
-                  ? "bg-primary-red text-white shadow-sm"
+                  ? "bg-bh-red-action text-white shadow-sm"
                   : "text-muted-foreground hover:text-primary"
               )}
             >

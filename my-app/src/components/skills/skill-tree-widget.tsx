@@ -68,7 +68,7 @@ export default function SkillTreeWidget() {
             Skill Trees
           </span>
         </div>
-        <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary-red/60 transition-colors" />
+        <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary-red/60 transition-colors" />
       </div>
 
       {/* Count row */}

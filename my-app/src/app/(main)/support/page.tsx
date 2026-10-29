@@ -68,9 +68,9 @@ export default async function SupportPage() {
             <div className="mt-7 flex flex-wrap gap-3">
               <a
                 href="mailto:hello@butwalhacks.com?subject=Sponsor%20Prospectus%20Request"
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                className="bh-btn-primary text-sm"
               >
-                <Mail className="h-4 w-4" />
+                <Mail className="h-4 w-4" aria-hidden="true" />
                 Request Prospectus
               </a>
               <Link
@@ -150,9 +150,14 @@ export default async function SupportPage() {
           <p className="mx-auto mt-2 max-w-3xl text-center text-sm text-secondary">
             Four partnership levels — from logo placement to main stage keynote.
           </p>
-          <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface">
+          <div
+            className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-red"
+            role="region"
+            aria-label="Partnership tiers comparison"
+            tabIndex={0}
+          >
             <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="border-b border-border bg-surface/50/50 text-secondary">
+              <thead className="border-b border-border bg-surface text-secondary">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Benefit</th>
                   <th className="px-4 py-3 font-semibold">Community</th>

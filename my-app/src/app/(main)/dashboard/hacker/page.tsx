@@ -129,7 +129,7 @@ export default async function HackerDashboardPage() {
                     </div>
                     <Link
                       href={`/dashboard/hacker/projects`}
-                      className="shrink-0 px-3 py-1.5 rounded-full bg-primary-red text-white text-[10px] font-bold hover:bg-deep-red transition-all"
+                      className="shrink-0 px-3 py-1.5 rounded-full bg-bh-red-action text-white text-[10px] font-bold hover:bg-deep-red transition-all"
                     >
                       Submit Project
                     </Link>
@@ -148,7 +148,7 @@ export default async function HackerDashboardPage() {
               </p>
               <Link
                 href="/events"
-                className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all"
+                className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all"
               >
                 Browse Events <ArrowRight className="w-3 h-3" />
               </Link>

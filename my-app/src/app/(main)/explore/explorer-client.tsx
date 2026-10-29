@@ -104,20 +104,20 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="search"
             placeholder="Search by name, BH-ID, skill, or bio..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Search members"
-            className="w-full h-11 pl-9 pr-9 rounded-xl bg-surface border border-border text-sm text-primary placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20 transition-all"
+            className="w-full h-11 pl-9 pr-9 rounded-xl bg-surface border border-border text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20 transition-all"
             autoComplete="off"
           />
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-primary transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
               aria-label="Clear search"
             >
               <X className="w-3.5 h-3.5" />
@@ -167,7 +167,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
             className={cn(
               "p-2.5 transition-all",
               viewMode === "grid"
-                ? "bg-primary-red text-white"
+                ? "bg-bh-red-action text-white"
                 : "bg-surface text-muted-foreground hover:text-primary hover:bg-surface-hover"
             )}
             aria-label="Grid view"
@@ -179,7 +179,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
             className={cn(
               "p-2.5 transition-all",
               viewMode === "list"
-                ? "bg-primary-red text-white"
+                ? "bg-bh-red-action text-white"
                 : "bg-surface text-muted-foreground hover:text-primary hover:bg-surface-hover"
             )}
             aria-label="List view"
@@ -219,7 +219,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
               )}
             >
               {cfg.label}
-              <span className={cn("ml-1.5 font-mono font-medium", role === r ? "opacity-70" : "text-muted-foreground/40")}>
+              <span className={cn("ml-1.5 font-mono font-medium", role === r ? "opacity-70" : "text-muted-foreground")}>
                 {r === "All" ? counts.all : counts[r]}
               </span>
             </button>
@@ -230,7 +230,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
         {hasActiveFilters && (
           <button
             onClick={clearAll}
-            className="px-3 py-1.5 rounded-full text-[11px] font-medium border border-border text-muted-foreground/60 hover:text-primary hover:bg-surface-hover transition-all"
+            className="px-3 py-1.5 rounded-full text-[11px] font-medium border border-border text-muted-foreground hover:text-primary hover:bg-surface-hover transition-all"
           >
             <X className="w-3 h-3 inline-block mr-1" />
             Clear
@@ -240,7 +240,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
 
       {/* ── Availability Filters (profiles flags from migration 031) ── */}
       <div className={cn(showFilters ? "flex" : "hidden", "sm:flex flex-wrap items-center gap-2")}>
-        <span className="text-[10px] font-bold text-muted-foreground/50 tracking-wider mr-1">AVAILABILITY</span>
+        <span className="text-[10px] font-bold text-muted-foreground tracking-wider mr-1">AVAILABILITY</span>
         {AVAILABILITY_FILTERS.map((f) => (
           <button
             key={f.key}
@@ -262,20 +262,20 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
 
       {/* ── Results Info Bar ── */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground/60 font-mono">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
           <div className="w-1.5 h-1.5 rounded-full bg-primary-red" />
           {results.length === 0
             ? "No members found"
             : `${results.length} member${results.length !== 1 ? "s" : ""} found`
           }
           {hasActiveFilters && (
-            <span className="text-muted-foreground/40">
+            <span className="text-muted-foreground">
               · filtered from {members.length} total
             </span>
           )}
         </div>
         {viewMode === "list" && results.length > 0 && (
-          <span className="text-[10px] text-muted-foreground/40 hidden sm:block">
+          <span className="text-[10px] text-muted-foreground hidden sm:block">
             <User className="w-3 h-3 inline-block mr-1" />
             List view
           </span>
@@ -308,7 +308,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
             <Users className="w-6 h-6 text-primary-red" />
           </div>
           <p className="text-lg font-bold text-primary">No one has joined yet — be the first</p>
-          <p className="text-sm text-muted-foreground/60 mt-1 max-w-xs mx-auto">
+          <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
             The directory fills up as members create their BH-IDs. Claim yours and you&apos;ll be at the top.
           </p>
           <Link
@@ -321,10 +321,10 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
       ) : (
         <div className="text-center py-20">
           <div className="w-16 h-16 rounded-2xl bg-surface-hover flex items-center justify-center mx-auto mb-4 ring-1 ring-border">
-            <Search className="w-6 h-6 text-muted-foreground/40" />
+            <Search className="w-6 h-6 text-muted-foreground" />
           </div>
           <p className="text-lg font-bold text-primary">No results found</p>
-          <p className="text-sm text-muted-foreground/60 mt-1 max-w-xs mx-auto">
+          <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
             {query
               ? `No members match "${query}"${role !== "All" ? ` with role "${role}"` : ""}`
               : [

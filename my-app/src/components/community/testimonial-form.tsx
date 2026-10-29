@@ -81,7 +81,7 @@ export default function TestimonialForm() {
             minLength={10}
             maxLength={2000}
             required
-            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-primary placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-red/40"
+            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/40"
           />
         </div>
         <div>
@@ -103,7 +103,7 @@ export default function TestimonialForm() {
                   className={`h-5 w-5 transition-colors ${
                     rating !== null && n <= rating
                       ? "fill-primary-red text-primary-red"
-                      : "text-muted-foreground/40"
+                      : "text-muted-foreground"
                   }`}
                 />
               </button>

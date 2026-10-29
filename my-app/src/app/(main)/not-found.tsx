@@ -12,13 +12,18 @@ export default function MainNotFound() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
       <div className="text-center space-y-6 max-w-md">
-        {/* Large 404 */}
-        <p className="text-[140px] font-black leading-none text-primary/5 select-none">
-          404
-        </p>
+        {/* Decorative watermark. Rendered as ::before content, not a text
+            node: a ghost numeral at 5% opacity can never clear WCAG's 3:1
+            large-text threshold (it is decoration, and 1.4.3 exempts pure
+            decoration), and putting it in a text node makes automated audits
+            flag it forever. The h1 below already announces "Page not found". */}
+        <p
+          aria-hidden="true"
+          className="text-[140px] font-black leading-none text-primary/5 select-none before:content-['404']"
+        />
 
         <div className="space-y-2 -mt-6">
-          <Ballu emotion="thinking-puzzled" size={120} />
+          <Ballu emotion="question" size={120} />
           <h1 className="text-2xl font-bold text-primary">
             Page not found
           </h1>
@@ -31,7 +36,7 @@ export default function MainNotFound() {
         <div className="flex items-center justify-center gap-3 pt-2">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-full bg-primary-red px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all"
+            className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all"
           >
             <Home className="h-4 w-4" />
             Home

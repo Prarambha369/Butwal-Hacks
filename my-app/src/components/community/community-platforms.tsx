@@ -54,7 +54,7 @@ export function CommunityPlatforms() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base font-bold text-primary">{link.name}</h3>
-                    <p className="mt-1 text-sm text-secondary/80 leading-relaxed">
+                    <p className="mt-1 text-sm text-secondary leading-relaxed">
                       {link.description}
                     </p>
                     {link.available ? (
@@ -68,7 +68,7 @@ export function CommunityPlatforms() {
                         <ArrowUpRight className="w-3 h-3" />
                       </a>
                     ) : (
-                      <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground/50">
+                      <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                         In Development
                       </span>
                     )}

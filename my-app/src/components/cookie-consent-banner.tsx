@@ -85,12 +85,12 @@ export default function CookieConsentBanner() {
 
           <div className="flex items-start gap-3 md:gap-4">
             <div className="hidden sm:flex w-10 h-10 rounded-xl bg-primary-red/10 items-center justify-center shrink-0">
-              <Ballu emotion="happy-excited" size={32} />
+              <Ballu emotion="cookies" size={32} />
             </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 md:mb-1.5">
-                <Ballu emotion="happy-excited" size={32} className="sm:hidden" />
+                <Ballu emotion="cookies" size={32} className="sm:hidden" />
                 <p className="text-sm font-bold text-primary">This site uses cookies</p>
               </div>
 
@@ -120,7 +120,7 @@ export default function CookieConsentBanner() {
               <div className="flex items-center gap-2 md:gap-3 mt-3 md:mt-4">
                 <button
                   onClick={handleAccept}
-                  className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-full bg-bh-red-500 px-5 py-2.5 md:py-2 text-xs font-bold text-white hover:bg-deep-red transition-all active:scale-95 min-h-[44px]"
+                  className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-full bg-bh-red-action px-5 py-2.5 md:py-2 text-xs font-bold text-white hover:bg-deep-red transition-all active:scale-95 min-h-[44px]"
                 >
                   Accept All
                 </button>

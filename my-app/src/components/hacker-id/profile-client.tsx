@@ -75,8 +75,6 @@ function normalizeProfile(row: PublicProfileRow): ProfileClientData {
     trust_markers: row.trust_markers ?? [],
     id: row.id,
     ai_summary: row.ai_summary ?? null,
-    // auth0_user_id deliberately NOT exposed on the public profile — the
-    // LiveDot presence dot stays offline for public viewers (privacy).
     is_owner: row.is_owner,
   };
 }
@@ -159,7 +157,7 @@ export default function ProfileClient({
                     {SKILL_ICONS[skill.icon] || <Award className="w-5 h-5" />}
                   </div>
                   <p className="text-xs font-semibold text-primary leading-tight">{skill.name}</p>
-                  <span className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+                  <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
                     {skill.treeName}
                   </span>
                 </div>
@@ -214,7 +212,7 @@ export default function ProfileClient({
             {data.ai_summary ? (
               <p className="text-sm leading-relaxed text-primary/80">{data.ai_summary}</p>
             ) : (
-              <p className="text-sm italic text-muted-foreground/60">
+              <p className="text-sm italic text-muted-foreground">
                 No AI summary yet. Generate one to give visitors a quick overview of your profile.
               </p>
             )}
@@ -284,10 +282,10 @@ function CopyEmbedCode({ bhId }: { bhId: string }) {
             <div className={`text-xs font-bold tracking-wider ${variant === key ? "text-primary-red" : "text-muted-foreground"}`}>
               {v.label}
             </div>
-            <div className="mt-0.5 text-[10px] leading-tight text-muted-foreground/60">
+            <div className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
               {v.desc}
             </div>
-            <div className="mt-1 font-mono text-[9px] text-muted-foreground/40">
+            <div className="mt-1 font-mono text-[9px] text-muted-foreground">
               {v.width}×{v.height}px
             </div>
           </button>
@@ -302,7 +300,7 @@ function CopyEmbedCode({ bhId }: { bhId: string }) {
       {/* Copy button */}
       <button
         onClick={copy}
-        className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-xs font-bold text-white transition-all hover:bg-deep-red active:scale-95"
+        className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-xs font-bold text-white transition-all hover:bg-deep-red active:scale-95"
       >
         {copied ? (
           <><Check className="h-3.5 w-3.5" /> Copied!</>
@@ -325,7 +323,7 @@ function GenerateSummaryForm({ profileId }: { profileId: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-deep-red active:scale-95 disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-4 py-2 text-xs font-bold text-white transition-all hover:bg-deep-red active:scale-95 disabled:opacity-50"
       >
         {isPending ? (
           <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating…</>

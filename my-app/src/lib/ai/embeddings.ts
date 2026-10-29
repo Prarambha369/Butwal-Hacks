@@ -1,27 +1,33 @@
 /**
- * AI Embedding Service — currently DISABLED (Groq-only mode).
+ * AI Embedding Service — Gemini-backed vector retrieval for MrBallu.
  *
- * The stack's only AI provider is Groq, which offers chat completions but
- * no embedding endpoint — so there is no way to generate vectors. The RAG
- * path (pgvector + match_knowledge) is preserved in schema and code for a
- * future provider, but every entry point below fails fast with a clear
- * message instead of calling a dead third party.
+ * Groq (the chat provider) has no embedding endpoint, so retrieval needed a
+ * second provider. Gemini's free tier covers embeddings with no card required,
+ * which is why it was chosen. Vectors are 768-dim to match
+ * `knowledge_embeddings.embedding VECTOR(768)`.
  *
- * Chat impact: none. The BH Bot checks isRagEnabled() and goes straight
- * to its base prompt. Previously this burned a 10s HF timeout per message.
- *
- * To re-enable RAG: plug an embedding provider into generateEmbedding()
- * (must return 384-dim vectors to match knowledge_embeddings) and flip
- * isRagEnabled() to true.
+ * Invariants worth keeping:
+ * - `isRagEnabled()` is a config check, not a hardcoded false. It flips to true
+ *   the moment a Gemini key exists, so environments without one keep the old
+ *   behaviour (no retrieval) instead of erroring on every message.
+ * - Every failure path is explicit. A retrieval error must never take the chat
+ *   route down — callers catch and fall through to a no-context answer, which
+ *   is why this module throws rather than returning an empty array (an empty
+ *   array reads as "the knowledge base genuinely has nothing", which is a
+ *   different, and misleading, signal).
  */
 
+import { embedText } from "./gemini-embeddings";
+import { createServiceClient } from "@/utils/supabase";
+import { sanitizeContextChunk } from "./chat-guardrails";
 
+/** Reported to callers when no Gemini key is configured. */
 export const RAG_DISABLED_MESSAGE =
-  "Vector search is disabled (Groq-only mode — no embedding provider configured)";
+  "Vector search is disabled (no Gemini embedding key configured — set GEMINI_API_KEY)";
 
-/** Feature flag: vector RAG is off until an embedding provider exists. */
+/** Feature flag: vector search is on iff an embedding key is present. */
 export function isRagEnabled(): boolean {
-  return false;
+  return Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
 }
 
 export interface SearchMatch {
@@ -43,43 +49,49 @@ export interface ContentItem {
   };
 }
 
-// ─── Embedding Generation ──────────────────────────────────────────
+// ─── Content Search ────────────────────────────────────────────────────
 
 /**
- * Disabled. Throws always — there is no embedding endpoint to call.
- * Kept (instead of deleted) so callers fail loudly, not silently.
- */
-export async function generateEmbedding(_text: string): Promise<number[]> {
-  throw new Error(RAG_DISABLED_MESSAGE);
-}
-
-// ─── Content Search ────────────────────────────────────────────────
-
-/**
- * Disabled. The chat route checks isRagEnabled() first and never calls this;
- * direct callers get a loud error instead of an empty result set.
+ * Retrieve the chunks most similar to a query.
+ *
+ * `threshold` floors the cosine similarity so an unrelated question returns
+ * nothing rather than a confidently-wrong nearest neighbour. Below ~0.35 a
+ * 768-dim text embedding is essentially noise, so the default is set there
+ * rather than at zero.
  */
 export async function searchContent(
-  _query: string,
-  _options?: {
-    limit?: number;
-    threshold?: number;
-  }
+  query: string,
+  options?: { limit?: number; threshold?: number },
 ): Promise<SearchMatch[]> {
-  throw new Error(RAG_DISABLED_MESSAGE);
-}
+  if (!isRagEnabled()) throw new Error(RAG_DISABLED_MESSAGE);
 
-// ─── Content Seeding ───────────────────────────────────────────────
+  const limit = Math.min(options?.limit ?? 4, 8);
+  const threshold = options?.threshold ?? 0.35;
 
-/**
- * Disabled. The seed script reports this message instead of burning
- * per-item timeouts against a removed provider.
- */
-export async function seedEmbeddings(_items: ContentItem[]): Promise<{
-  inserted: number;
-  updated: number;
-  skipped: number;
-  failed: number;
-}> {
-  throw new Error(`${RAG_DISABLED_MESSAGE}. Seeding skipped.`);
+  const queryEmbedding = await embedText(query);
+
+  const supabase = createServiceClient();
+  const { data, error } = await supabase.rpc("match_knowledge", {
+    query_embedding: queryEmbedding,
+    match_threshold: threshold,
+    match_count: limit,
+  });
+
+  if (error) {
+    throw new Error(`match_knowledge failed: ${error.message}`);
+  }
+
+  return (data ?? []).map((row: {
+    id: string;
+    content: string;
+    metadata: Record<string, unknown>;
+    similarity: number;
+  }) => ({
+    id: row.id,
+    // Sanitised here rather than at the call site: every consumer wants the
+    // same protection, and one that forgets is a prompt-injection hole.
+    content: sanitizeContextChunk(row.content),
+    metadata: row.metadata ?? {},
+    similarity: Number(row.similarity),
+  }));
 }

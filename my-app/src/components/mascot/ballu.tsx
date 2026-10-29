@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
  * `alt` only when the mascot carries meaning the surrounding copy does not.
  */
 
-/** The ten shipped poses, named after the state they express. */
+/** The shipped poses, named after the state they express. */
 export type BalluEmotion =
   | "calm-neutral"
   | "happy-excited"
@@ -32,7 +32,21 @@ export type BalluEmotion =
   | "error-calm"
   | "success"
   /** Mr. Ballu waving the "bh" flag — brand/rally moments. */
-  | "flag";
+  | "flag"
+  /** The logo treatment used by the AI assistant launcher. */
+  | "ai-logo"
+  | "waving"
+  | "pointing"
+  | "festive"
+  | "reading"
+  | "question"
+  | "tablet"
+  | "cookies"
+  | "arms-up"
+  | "celebrating-arms-up"
+  | "sitting"
+  | "standing"
+  | "confused-x";
 
 /** Source map — one entry per file in `/public/mascot/`. */
 export const BALLU_POSES: Record<BalluEmotion, string> = {
@@ -46,7 +60,20 @@ export const BALLU_POSES: Record<BalluEmotion, string> = {
   "think-loading": "/mascot/think-loading-v2.png",
   "error-calm": "/mascot/error-calm-v2.png",
   success: "/mascot/success-v2.png",
-  flag: "/mascot/flag-v2.png",
+  flag: "/mascot/flag-v3.png",
+  "ai-logo": "/mascot/ai-logo.png",
+  waving: "/mascot/waving.png",
+  pointing: "/mascot/pointing-right.png",
+  festive: "/mascot/festive-diya.png",
+  reading: "/mascot/reading-policy.png",
+  question: "/mascot/question.png",
+  tablet: "/mascot/tablet.png",
+  cookies: "/mascot/cookies.png",
+  "arms-up": "/mascot/arms-up.png",
+  "celebrating-arms-up": "/mascot/celebrating-arms-up.png",
+  sitting: "/mascot/sitting-calm.png",
+  standing: "/mascot/standing.png",
+  "confused-x": "/mascot/confused-x.png",
 };
 
 export interface BalluProps {

@@ -442,7 +442,7 @@ export default function TrustOverridePanel({ markers }: TrustOverridePanelProps)
               <button
                 onClick={handleRevoke}
                 disabled={revokeReason.trim().length < 5 || submitting}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-bh-red-500 text-white text-sm font-bold transition-all hover:bg-deep-red disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-bh-red-action text-white text-sm font-bold transition-all hover:bg-deep-red disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

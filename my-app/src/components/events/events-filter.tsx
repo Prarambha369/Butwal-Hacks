@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowRight, Calendar, MapPin } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { formatDualDate } from "@/lib/nepali-date"
 import { Ballu } from "@/components/mascot/ballu"
 import CountdownTimer from "./countdown-timer"
@@ -53,7 +53,7 @@ export default function EventsFilter({ events }: { events: EventItem[] }) {
           onClick={() => setFilter("upcoming")}
           className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
             filter === "upcoming"
-              ? "bg-bh-red-500 text-white"
+              ? "bg-bh-red-action text-white"
               : "text-muted-foreground hover:text-primary"
           }`}
         >
@@ -68,7 +68,7 @@ export default function EventsFilter({ events }: { events: EventItem[] }) {
           onClick={() => setFilter("past")}
           className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
             filter === "past"
-              ? "bg-bh-red-500 text-white"
+              ? "bg-bh-red-action text-white"
               : "text-muted-foreground hover:text-primary"
           }`}
         >
@@ -91,7 +91,7 @@ export default function EventsFilter({ events }: { events: EventItem[] }) {
       ) : (
         <div className="bh-card p-16 text-center space-y-4">
           <div className="flex justify-center">
-            <Ballu emotion="calm-neutral" size={64} />
+            <Ballu emotion="question" size={64} />
           </div>
           <p className="text-xl font-bold text-primary">No {filter} events</p>
           <p className="text-muted-foreground max-w-md mx-auto">
@@ -150,18 +150,20 @@ function EventCard({ event, filter }: { event: EventItem; filter: FilterMode }) 
             {event.title}
           </h2>
 
-          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground font-mono">
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-3 h-3" />
-              {formatDate(startDate)}
-            </span>
+          {/* Plain-text meta facts (free / place / date). AI answer engines
+              read these directly off the card, so each fact stays as real
+              text — no icon-only badge hides the word. */}
+          <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
+            <span>Free</span>
+            <span aria-hidden="true">·</span>
             {event.location && (
-              <span className="flex items-center gap-1.5">
-                <MapPin className="w-3 h-3" />
-                {event.location}
-              </span>
+              <>
+                <span>{event.location}</span>
+                <span aria-hidden="true">·</span>
+              </>
             )}
-          </div>
+            <time dateTime={event.start_date}>{formatDate(startDate)}</time>
+          </p>
 
           <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
             {event.description}

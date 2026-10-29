@@ -76,7 +76,7 @@ export default function EventRegisterButton({ eventId, eventSlug }: Props) {
             ? "bg-status-green/20 text-status-green border border-status-green/30 cursor-default"
             : state === "error"
               ? "bg-primary-red/10 text-primary-red border border-primary-red/30 hover:bg-primary-red/20"
-              : "bg-deep-red hover:bg-primary-red text-white ",
+              : "bg-deep-red hover:bg-bh-red-action text-white ",
         )}
       >
         {state === "loading" ? (
