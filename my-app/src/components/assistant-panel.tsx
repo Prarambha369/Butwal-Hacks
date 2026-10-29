@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Bot, X, Send, Loader2, Sparkles, CheckCircle2, MessageSquare } from "lucide-react";
+import { X, Send, Loader2, Sparkles, CheckCircle2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Ballu, type BalluEmotion } from "@/components/mascot/ballu";
 import { parsePolicyMarkdown } from "@/lib/policy-markdown";
@@ -261,7 +261,7 @@ export default function AssistantPanel({
             : "bg-surface border border-border text-primary hover:scale-110 hover:border-primary-red/50 outline-none focus-visible:ring-2 focus-visible:ring-bh-red-500/50 focus-visible:ring-offset-2"
         )}
       >
-        {isOpen ? <X size={22} /> : <Bot size={22} />}
+        {isOpen ? <X size={22} /> : <Ballu emotion="ai-logo" size={34} />}
       </button>
 
       {/* Backdrop */}
@@ -302,7 +302,7 @@ export default function AssistantPanel({
                   : "text-muted-foreground hover:text-primary"
               )}
             >
-              <Bot className="w-4 h-4" />
+              <Ballu emotion="ai-logo" size={18} />
               Chat
             </button>
             <button
@@ -336,7 +336,7 @@ export default function AssistantPanel({
                       "w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
                       msg.role === "assistant" ? "bg-primary-red/10 text-primary-red" : "bg-surface-hover text-muted-foreground"
                     )}>
-                      {msg.role === "assistant" ? <Bot className="w-3.5 h-3.5" /> : <MessageSquare className="w-3.5 h-3.5" />}
+                      {msg.role === "assistant" ? <Ballu emotion={msg.mood ?? "ai-logo"} size={18} /> : <MessageSquare className="w-3.5 h-3.5" />}
                     </div>
                     <div className={cn(
                       "max-w-[80%] px-3.5 py-2.5 rounded-lg text-sm leading-relaxed",
