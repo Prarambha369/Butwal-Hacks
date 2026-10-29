@@ -9,9 +9,9 @@ import { faqPageJsonLd } from "@/lib/schema";
 import { SITE_URL } from "@/lib/constants";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "How to Join a Hackathon in Nepal | Butwal Hacks",
+  title: "First Hackathon in Nepal — the Complete Beginner's Guide",
   description:
-    "Step-by-step guide to joining free hackathons in Nepal. Find events, register, form teams, and build your first project with Butwal Hacks in Butwal, Lumbini Province.",
+    "A complete beginner's walkthrough for your first hackathon in Nepal: what a free Butwal Hacks event looks like, how free registration and team matching work, what to bring, and what to expect on build day in Butwal, Lumbini Province.",
   path: "/guides/how-to-join-a-hackathon-in-nepal",
 });
 
@@ -53,7 +53,7 @@ export default function HowToJoinHackathonGuide() {
           ]}
         />
         <h1 className="text-4xl sm:text-5xl font-bold font-heading tracking-tight text-primary mt-4">
-          How to Join a Hackathon in Nepal
+          First Hackathon in Nepal: the Complete Beginner&apos;s Guide
         </h1>
         <p className="mt-2 text-xs font-mono text-muted-foreground">
           Last updated: 2026-10-29

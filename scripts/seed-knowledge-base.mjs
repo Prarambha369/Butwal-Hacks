@@ -32,14 +32,20 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
 
+// Embedding requests go through the shared client used by the API so model,
+// dimensions, retries, and timeouts live in one place. Node must be >= 22.18
+// (or >= 23.6) so its built-in TypeScript type stripping can import the .ts
+// module directly.
+import {
+  embedText,
+  GEMINI_EMBEDDING_MODEL,
+  EMBEDDING_DIMENSIONS,
+} from "../my-app/src/lib/ai/gemini-embeddings.ts";
+
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, "..");
 const POLICIES_DIR = join(REPO_ROOT, "policies");
 const KNOWLEDGE_DIR = join(REPO_ROOT, "knowledge");
-
-const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
-const GEMINI_MODEL = "models/gemini-embedding-001";
-const EMBEDDING_DIMS = 768;
 
 // Above this many characters a doc gets split; below it the whole doc is one
 // chunk. Chunks too small retrieve poorly, chunks too large dilute the
@@ -342,31 +348,6 @@ async function collectDb() {
 
 // ── Embedding ──────────────────────────────────────────────────────────
 
-async function embed(text) {
-  const res = await fetch(`${GEMINI_BASE}/${GEMINI_MODEL}:embedContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY },
-    body: JSON.stringify({
-      model: GEMINI_MODEL,
-      content: { parts: [{ text: text.slice(0, 8000) }] },
-      outputDimensionality: EMBEDDING_DIMS,
-    }),
-  });
-
-  if (!res.ok) {
-    const body = (await res.text()).slice(0, 300);
-    throw new Error(`Gemini ${res.status}: ${body}`);
-  }
-  const json = await res.json();
-  // `embedContent` returns a single embedding object; `batchEmbedContents`
-  // (which we do not use) is the one that returns an `embeddings` array.
-  const values = json.embedding?.values;
-  if (!Array.isArray(values) || values.length !== EMBEDDING_DIMS) {
-    throw new Error(`Gemini returned ${values?.length ?? 0} dims, expected ${EMBEDDING_DIMS}`);
-  }
-  return values;
-}
-
 /** pgvector literal: '[0.1,0.2,...]' — PostgREST passes it through as text. */
 function vectorLiteral(values) {
   return `[${values.map((v) => Number(v).toFixed(6)).join(",")}]`;
@@ -377,7 +358,7 @@ function vectorLiteral(values) {
 async function main() {
   console.log("\nMrBallu knowledge-base seeder");
   console.log(`  mode:  ${DRY_RUN ? "dry-run (no writes)" : "write"}${PRUNE ? " + prune" : ""}`);
-  console.log(`  model: ${GEMINI_MODEL} (${EMBEDDING_DIMS}-dim)\n`);
+  console.log(`  model: ${GEMINI_EMBEDDING_MODEL} (${EMBEDDING_DIMENSIONS}-dim)\n`);
 
   const items = [...collectDocs(), ...(await collectDb())];
   if (items.length === 0) {
@@ -426,7 +407,7 @@ async function main() {
     for (const [i, item] of fresh.entries()) {
       process.stdout.write(`  [${i + 1}/${fresh.length}] ${item.metadata.source} ... `);
       try {
-        const embedding = vectorLiteral(await embed(item.content));
+        const embedding = vectorLiteral(await embedText(item.content));
         const row = {
           content: item.content,
           content_hash: item.contentHash,

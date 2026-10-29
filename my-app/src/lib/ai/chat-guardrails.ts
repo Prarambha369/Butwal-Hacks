@@ -4,8 +4,7 @@
  * The assistant answers strictly from the Butwal Hacks knowledge base. These
  * helpers keep a hostile user from (a) smuggling instructions into the model
  * through their message or the retrieved context, (b) coaxing the model into
- * leaking private/internal data it was never grounded on, and (c) dressing up
- * invented answers as sourced facts.
+ * leaking private/internal data it was never grounded on.
  *
  * Design notes:
  * - Everything here is deterministic and dependency-free on purpose. Guardrails
@@ -176,15 +175,3 @@ export function sanitizeContextChunk(chunk: string): string {
     .trim();
 }
 
-/** Lightweight citation detector: a reply grounded in the KB names a source. */
-const SOURCE_MARKERS = /(?:according to|per the|see\b|read\b|source:|documented in|policy|chapter|event|program)/i;
-
-/**
- * Post-generation check. When we retrieved context but the reply never refers
- * to any of it, the model likely drifted off the grounded answer. We return a
- * flag rather than discarding the text — the route decides how to surface it.
- */
-export function isLikelyGrounded(reply: string, retrievedCount: number): boolean {
-  if (retrievedCount <= 0) return true; // nothing to ground against
-  return SOURCE_MARKERS.test(reply);
-}

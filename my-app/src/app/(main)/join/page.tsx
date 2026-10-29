@@ -9,7 +9,7 @@ export const dynamic = "force-static";
 export const metadata: Metadata = buildPageMetadata({
   title: "How to Join a Hackathon in Nepal",
   description:
-    "Joining your first hackathon in Nepal is simple: Butwal Hacks runs free student hackathons in Butwal, Lumbini Province. Pick an upcoming event on the events page, register on its event page, and show up — no registration fee and no coding experience required. Beginners are welcome at every event.",
+    "You can join a hackathon in Nepal in three steps: pick an upcoming free student hackathon in Butwal, register online, and show up. No registration fee and no coding experience required.",
   path: "/join",
 })
 

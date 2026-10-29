@@ -48,10 +48,6 @@ export function geminiApiKey(): string | null {
   return process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || null;
 }
 
-export function isEmbeddingConfigured(): boolean {
-  return geminiApiKey() !== null;
-}
-
 /** Backoff with jitter, mirroring groq-client so retry behaviour is consistent. */
 function backoffMs(attempt: number): number {
   const delay = BASE_DELAY_MS * Math.pow(2, attempt);
@@ -68,8 +64,9 @@ interface GeminiEmbeddingResponse {
 }
 
 /**
- * Embeds a single text. Batches are handled by `embedBatch`, which is the only
- * caller that matters in practice (the seed script).
+ * Embeds a single text chunk. Callers embed serially, one chunk at a time —
+ * the seed script loops over its chunks with this function and passes each
+ * result straight to the vector literal it writes to PostgREST.
  */
 export async function embedText(text: string, signal?: AbortSignal): Promise<number[]> {
   const key = geminiApiKey();
@@ -133,18 +130,3 @@ export async function embedText(text: string, signal?: AbortSignal): Promise<num
   throw new Error(`Gemini embedding failed after ${MAX_RETRIES} attempts: ${lastError}`);
 }
 
-/**
- * Embeds many texts, serially. Serial on purpose: the seed script is not
- * latency-sensitive, and staying well under Gemini's free-tier RPM avoids the
- * 429 churn that batching would cause.
- */
-export async function embedBatch(
-  texts: string[],
-  signal?: AbortSignal,
-): Promise<number[][]> {
-  const out: number[][] = [];
-  for (const text of texts) {
-    out.push(await embedText(text, signal));
-  }
-  return out;
-}

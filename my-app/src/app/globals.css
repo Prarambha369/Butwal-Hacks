@@ -91,8 +91,13 @@
   --bh-surface: #2a2a2a;
   --bh-surface-hover: #3a3a3a;
   --bh-border: #4a4a4a;
-  /* Lightened for dark surfaces; use a brighter red for better visibility */
-  --bh-primary-red-text: #ff3333;
+  /* Lightened for dark surfaces so AA clears everywhere red text renders:
+     #ff7c7c measures 6.98:1 on the page background (#1a1a1a), 5.76:1 on cards
+     (#2a2a2a), 5.56:1 on the red-tinted chip fill (primary-red/10 over
+     #2a2a2a), and 4.56:1 even on surface-hover — all AA-passing. The old
+     #ff3333 measured 3.95:1 on #2a2a2a and 3.81:1 on the /10 chip fill and
+     failed dark-mode AA for 10-12px red labels, links, and badges. */
+  --bh-primary-red-text: #ff7c7c;
   --bh-border-light: #3a3a3a;
   /* #7a7a7a measured 4.05:1 on the page background and 3.34:1 on cards,
      so muted labels failed AA in dark mode too. #a3a3a3 clears 6.90 / 5.69

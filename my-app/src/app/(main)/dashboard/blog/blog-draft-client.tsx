@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Check, Loader2, Plus, Trash2, FileText } from "lucide-react";
 import { normaliseTags, toProse } from "@/lib/blog-drafts";
 import { cn } from "@/lib/utils";
@@ -55,10 +55,7 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
 
   const isEditing = form.id !== null;
-  const wordCount = useMemo(
-    () => form.body.trim().split(/\s+/).filter(Boolean).length,
-    [form.body],
-  );
+  const wordCount = form.body.trim().split(/\s+/).filter(Boolean).length;
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
