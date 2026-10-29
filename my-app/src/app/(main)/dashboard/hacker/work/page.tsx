@@ -35,7 +35,7 @@ export default async function WorkPage() {
   const { data: memberships } = await db
     .from("team_members")
     .select("team_id, team:teams!inner(id, name)")
-    .eq("user_id", profile.id)
+    .eq("profile_id", profile.id)
 
   const teamIds = memberships?.map((m) => m.team_id) || []
 
@@ -54,12 +54,12 @@ export default async function WorkPage() {
   const teamMembers = firstWorkspace
     ? await db
         .from("team_members")
-        .select("user_id, profile:profiles!inner(id, full_name)")
+        .select("profile_id, profile:profiles!inner(id, full_name)")
         .eq("team_id", firstWorkspace.team_id)
     : { data: [] }
 
-  const members = ((teamMembers.data || []) as unknown as TeamMemberRaw[]).map((m) => ({
-    id: m.profile?.id || m.user_id,
+  const members = ((teamMembers.data || []) as unknown as Array<{ profile_id: string; profile: { id: string; full_name: string | null } | null }>).map((m) => ({
+    id: m.profile?.id || m.profile_id,
     name: m.profile?.full_name || "Unknown",
     initial: (m.profile?.full_name || "?").charAt(0).toUpperCase(),
   }))

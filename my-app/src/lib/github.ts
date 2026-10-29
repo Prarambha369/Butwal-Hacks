@@ -156,6 +156,38 @@ export function formatCount(n: number): string {
   return String(n);
 }
 
+export interface GitHubEvent {
+  id: string;
+  type: string;
+  repo: { name: string };
+  created_at: string;
+  payload?: any;
+}
+
+/**
+ * Fetch recent public GitHub events (commits, pushes) for a user.
+ * Uses GitHub's public events API - no auth required.
+ */
+export async function fetchGitHubUserActivity(username: string): Promise<GitHubEvent[]> {
+  try {
+    const res = await fetch(
+      `${GITHUB_API_BASE}/users/${encodeURIComponent(username)}/events/public?per_page=30`,
+      {
+        signal: AbortSignal.timeout(5_000),
+        headers: { Accept: "application/vnd.github.v3+json", "User-Agent": "ButwalHacks/1.0" },
+        next: { revalidate: 300 },
+      },
+    );
+
+    if (!res.ok) return [];
+    const events = await res.json();
+    return Array.isArray(events) ? events : [];
+  } catch (err) {
+    logger.warn("[github] fetchGitHubUserActivity error:", err);
+    return [];
+  }
+}
+
 /**
  * Fetch all available GitHub metadata for a repository URL.
  * Returns null if the URL is invalid or the repo is unreachable.

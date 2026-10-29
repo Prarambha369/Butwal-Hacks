@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saville Catalog Sleeve</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000000; color: #ffffff; font-family: 'JetBrains Mono', monospace; }
+    .container { display: flex; height: 100vh; }
+    .sidebar { width: 280px; border-right: 1px solid #333; padding: 24px; }
+    .logo { font-size: 12px; letter-spacing: 0.12em; margin-bottom: 32px; }
+    .fac { font-size: 10px; color: #666; margin-bottom: 8px; }
+    .nav { display: flex; flex-direction: column; gap: 8px; }
+    .nav-item { padding: 8px 0; font-size: 11px; color: #999; }
+    .nav-item.active { color: #ffffff; }
+    .main { flex: 1; padding: 32px; }
+    .header { margin-bottom: 32px; }
+    .fac-number { font-size: 10px; color: #666; margin-bottom: 8px; }
+    .title { font-size: 24px; letter-spacing: -0.02em; margin-bottom: 16px; }
+    .pulsar { display: flex; gap: 4px; height: 60px; align-items: flex-end; margin-bottom: 32px; }
+    .bar { width: 3px; background: #ffffff; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .card { border: 1px solid #333; padding: 16px; }
+    .card-fac { font-size: 9px; color: #666; margin-bottom: 8px; }
+    .card-title { font-size: 12px; margin-bottom: 8px; }
+    .strip { display: flex; gap: 2px; }
+    .strip-block { width: 12px; height: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="fac">FAC 001</div>
+      <div class="logo">BUTWAL HACKS</div>
+      <div class="nav">
+        <div class="nav-item active">OVERVIEW</div>
+        <div class="nav-item">EVENTS</div>
+        <div class="nav-item">TEAMS</div>
+        <div class="nav-item">PROJECTS</div>
+        <div class="nav-item">CREDENTIALS</div>
+      </div>
+    </div>
+    <div class="main">
+      <div class="header">
+        <div class="fac-number">FAC 001</div>
+        <div class="title">SYSTEM OVERVIEW</div>
+        <div class="pulsar">
+          <div class="bar" style="height: 20px;"></div>
+          <div class="bar" style="height: 40px;"></div>
+          <div class="bar" style="height: 60px;"></div>
+          <div class="bar" style="height: 30px;"></div>
+          <div class="bar" style="height: 50px;"></div>
+          <div class="bar" style="height: 25px;"></div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="card-fac">FAC 002</div>
+          <div class="card-title">EVENTS</div>
+          <div class="strip">
+            <div class="strip-block" style="background: #ff0000;"></div>
+            <div class="strip-block" style="background: #00ff00;"></div>
+            <div class="strip-block" style="background: #0000ff;"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-fac">FAC 003</div>
+          <div class="card-title">HACKERS</div>
+          <div class="strip">
+            <div class="strip-block" style="background: #ffff00;"></div>
+            <div class="strip-block" style="background: #ff00ff;"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-fac">FAC 004</div>
+          <div class="card-title">PROJECTS</div>
+          <div class="strip">
+            <div class="strip-block" style="background: #00ffff;"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-fac">FAC 005</div>
+          <div class="card-title">TEAMS</div>
+          <div class="strip">
+            <div class="strip-block" style="background: #ffffff;"></div>
+            <div class="strip-block" style="background: #808080;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
