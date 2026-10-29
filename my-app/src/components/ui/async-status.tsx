@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
  * Codified from what certificates/template-editor.tsx already got right:
  *
  * - The pending state is conveyed with `aria-busy` on the pending
- *   control/container (use `ariaBusy()` for the plain boolean).
+ *   control/container.
  * - ONE `role="status"` region for success and ONE `role="alert"` region
  *   for failure. Both are rendered from first paint with their text
  *   swapped in later: a live region inserted into the DOM together with
@@ -20,16 +20,6 @@ import { cn } from "@/lib/utils";
  */
 
 export type AsyncState = "idle" | "pending" | "success" | "error";
-
-/** The boolean for `aria-busy` on the control that is doing the work. */
-export function ariaBusy(state: AsyncState): boolean {
-  return state === "pending";
-}
-
-/** Narrow an `AsyncState` (or a derived ternary) to "is it working right now". */
-export function isPending(state: AsyncState): boolean {
-  return state === "pending";
-}
 
 interface AsyncStatusProps {
   state: AsyncState;
