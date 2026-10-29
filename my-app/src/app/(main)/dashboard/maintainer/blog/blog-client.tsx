@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, FileText } from "lucide-react";
 import {
   savePost,
   deletePost,
   type BlogRow,
 } from "@/lib/actions/blog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const emptyForm = {
   title: "", slug: "", excerpt: "", body: "", tags: "",
@@ -127,7 +128,15 @@ export function BlogClient({ initialPosts }: { initialPosts: BlogRow[] }) {
           </div>
         ))}
         {posts.length === 0 && !editingId && (
-          <p className="text-sm text-muted-foreground">No posts in the database yet. The public blog shows the built-in posts.</p>
+          <EmptyState
+            icon={<FileText className="w-12 h-12" />}
+            mascot="welcome"
+            title="No posts yet"
+            description="The public blog shows the built-in posts until you publish your first one."
+            actions={[
+              { label: "New post", onClick: () => startAdd(), variant: "primary" },
+            ]}
+          />
         )}
       </div>
 
