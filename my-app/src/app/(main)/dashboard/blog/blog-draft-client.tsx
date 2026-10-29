@@ -1,9 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Check, Loader2, Plus, Trash2, FileText } from "lucide-react";
-import { normaliseTags, toProse } from "@/lib/blog-drafts";
+import {
+  draftCreateSchema,
+  normaliseTags,
+  toProse,
+  type DraftCreateInput,
+} from "@/lib/blog-drafts";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { FormField, focusFirstInvalidField } from "@/components/ui/form-field";
+import { AsyncStatus } from "@/components/ui/async-status";
 import { cn } from "@/lib/utils";
 
 export interface DraftRow {
@@ -37,6 +44,41 @@ const EMPTY: FormState = {
   cover_image: "",
 };
 
+/** The draft fields this form flags errors on. */
+const DRAFT_FIELDS = ["title", "excerpt", "body", "tags", "cover_image"] as const;
+type DraftFieldKey = (typeof DRAFT_FIELDS)[number];
+type DraftFieldErrors = Partial<Record<DraftFieldKey, string>>;
+
+const DRAFT_LABEL =
+  "text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground";
+
+/** The `POST /api/blog/drafts` payload shape the server schema validates. */
+function toDraftInput(form: FormState): DraftCreateInput & { id?: string } {
+  return {
+    ...(form.id ? { id: form.id } : {}),
+    title: form.title.trim(),
+    excerpt: form.excerpt.trim(),
+    body: form.body.trim(),
+    tags: normaliseTags(form.tags),
+    cover_image: form.cover_image.trim() || null,
+  };
+}
+
+/**
+ * Field-level errors from the same schema the API validates with — no
+ * second copy of the rules to drift. Returns one first message per field.
+ */
+function validateDraftFields(form: FormState): DraftFieldErrors {
+  const parsed = draftCreateSchema.safeParse(toDraftInput(form));
+  if (parsed.success) return {};
+  const errors: DraftFieldErrors = {};
+  for (const issue of parsed.error.issues) {
+    const key = issue.path[0] as DraftFieldKey | undefined;
+    if (key && !errors[key]) errors[key] = issue.message;
+  }
+  return errors;
+}
+
 function toForm(draft: DraftRow): FormState {
   return {
     id: draft.id,
@@ -54,28 +96,51 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [draftToDelete, setDraftToDelete] = useState<DraftRow | null>(null);
-  const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    tone: "ok" | "error";
+    text: string;
+    /** Optional "what happens next" line shown with a success message. */
+    after?: string;
+  } | null>(null);
+  /** Field errors from the last failed submit; stay until each field is valid again. */
+  const [fieldErrors, setFieldErrors] = useState<DraftFieldErrors>({});
+  const formRef = useRef<HTMLFormElement>(null);
 
   const isEditing = form.id !== null;
   const wordCount = form.body.trim().split(/\s+/).filter(Boolean).length;
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((current) => ({ ...current, [key]: value }));
-    setMessage(null);
+    const updated = { ...form, [key]: value };
+    setForm(updated);
+    // Errors persist until the field is valid again: drop resolved ones,
+    // keep still-invalid ones (with the freshest message).
+    const nowValid = validateDraftFields(updated);
+    setFieldErrors((prev) => {
+      const next: DraftFieldErrors = {};
+      for (const field of DRAFT_FIELDS) {
+        if (prev[field] && nowValid[field]) next[field] = nowValid[field];
+      }
+      return next;
+    });
+    if (message) setMessage(null);
   }
 
-  async function save() {
+  async function save(formEl: HTMLFormElement | null) {
     setSaving(true);
     setMessage(null);
+    const draftInput = toDraftInput(form);
+    const freshErrors = validateDraftFields(form);
+    if (DRAFT_FIELDS.some((field) => freshErrors[field])) {
+      setFieldErrors(freshErrors);
+      // rAF: aria-invalid lands in the DOM after this state commit.
+      requestAnimationFrame(() => focusFirstInvalidField(formEl));
+      setSaving(false);
+      return;
+    }
+    setFieldErrors({});
+
     try {
-      const payload = {
-        ...(form.id ? { id: form.id } : {}),
-        title: form.title.trim(),
-        excerpt: form.excerpt.trim(),
-        body: form.body.trim(),
-        tags: normaliseTags(form.tags),
-        cover_image: form.cover_image.trim() || null,
-      };
+      const payload = draftInput;
 
       const response = await fetch("/api/blog/drafts", {
         method: form.id ? "PATCH" : "POST",
@@ -95,7 +160,11 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
         return [saved, ...rest];
       });
       setForm(toForm(saved));
-      setMessage({ tone: "ok", text: form.id ? "Draft updated." : "Draft saved." });
+      setMessage({
+        tone: "ok",
+        text: form.id ? "Draft updated." : "Draft saved.",
+        after: "It stays private here until a maintainer publishes it.",
+      });
     } catch {
       setMessage({ tone: "error", text: "Network error. Try again." });
     } finally {
@@ -119,8 +188,7 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
       }
       setDrafts((current) => current.filter((draft) => draft.id !== id));
       setForm((current) => (current.id === id ? EMPTY : current));
-      setMessage({ tone: "ok", text: "Draft deleted." });
-    } catch {
+      setMessage({ tone: "ok", text: "Draft deleted." });    } catch {
       setMessage({ tone: "error", text: "Network error. Try again." });
     } finally {
       setDeleting(null);
@@ -130,10 +198,11 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
       <form
+        ref={formRef}
         className="space-y-5 rounded-xl border border-border bg-surface p-6"
         onSubmit={(event) => {
           event.preventDefault();
-          void save();
+          void save(event.currentTarget);
         }}
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -142,7 +211,11 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
           </h2>
           <button
             type="button"
-            onClick={() => setForm(EMPTY)}
+            onClick={() => {
+              setForm(EMPTY);
+              setFieldErrors({});
+              setMessage(null);
+            }}
             className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-muted-foreground transition-colors hover:text-primary"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
@@ -150,78 +223,101 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
           </button>
         </div>
 
-        <label className="block">
-          <span className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
-            Title
-          </span>
-          <input
-            value={form.title}
-            onChange={(event) => update("title", event.target.value)}
-            maxLength={160}
-            placeholder="What did you build, learn, or notice?"
-            className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
-          />
-        </label>
+        <FormField label="Title" error={fieldErrors.title ?? null} labelClassName={DRAFT_LABEL}>
+          {({ id, "aria-describedby": describedBy, "aria-invalid": invalid }) => (
+            <input
+              id={id}
+              value={form.title}
+              onChange={(event) => update("title", event.target.value)}
+              maxLength={160}
+              placeholder="What did you build, learn, or notice?"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
+              aria-describedby={describedBy}
+              aria-invalid={invalid}
+            />
+          )}
+        </FormField>
 
-        <label className="block">
-          <span className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
-            Summary
-          </span>
-          <input
-            value={form.excerpt}
-            onChange={(event) => update("excerpt", event.target.value)}
-            maxLength={500}
-            placeholder="One sentence that appears in the blog list."
-            className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
-          />
-        </label>
+        <FormField label="Summary" error={fieldErrors.excerpt ?? null} labelClassName={DRAFT_LABEL}>
+          {({ id, "aria-describedby": describedBy, "aria-invalid": invalid }) => (
+            <input
+              id={id}
+              value={form.excerpt}
+              onChange={(event) => update("excerpt", event.target.value)}
+              maxLength={500}
+              placeholder="One sentence that appears in the blog list."
+              className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
+              aria-describedby={describedBy}
+              aria-invalid={invalid}
+            />
+          )}
+        </FormField>
 
-        <label className="block">
-          <span className="flex items-baseline justify-between text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
-            Body
-            <span className="font-mono text-[10px] normal-case tracking-normal">
-              {wordCount} words
+        <FormField
+          label={
+            <span className="flex items-baseline justify-between text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
+              Body
+              <span className="font-mono text-[10px] normal-case tracking-normal">
+                {wordCount} words
+              </span>
             </span>
-          </span>
-          <textarea
-            value={form.body}
-            onChange={(event) => update("body", event.target.value)}
-            rows={14}
-            placeholder="Write in plain prose. Leave a blank line between paragraphs."
-            className="mt-2 w-full resize-y rounded-lg border border-border bg-background px-3 py-2.5 font-mono text-sm leading-relaxed text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
-          />
-        </label>
+          }
+          error={fieldErrors.body ?? null}
+          labelClassName={DRAFT_LABEL}
+        >
+          {({ id, "aria-describedby": describedBy, "aria-invalid": invalid }) => (
+            <textarea
+              id={id}
+              value={form.body}
+              onChange={(event) => update("body", event.target.value)}
+              rows={14}
+              placeholder="Write in plain prose. Leave a blank line between paragraphs."
+              className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2.5 font-mono text-sm leading-relaxed text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
+              aria-describedby={describedBy}
+              aria-invalid={invalid}
+            />
+          )}
+        </FormField>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
-              Tags
-            </span>
-            <input
-              value={form.tags}
-              onChange={(event) => update("tags", event.target.value)}
-              placeholder="community, learning"
-              className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
-              Cover image URL
-            </span>
-            <input
-              value={form.cover_image}
-              onChange={(event) => update("cover_image", event.target.value)}
-              inputMode="url"
-              placeholder="https://…"
-              className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
-            />
-          </label>
+          <FormField label="Tags" error={fieldErrors.tags ?? null} labelClassName={DRAFT_LABEL}>
+            {({ id, "aria-describedby": describedBy, "aria-invalid": invalid }) => (
+              <input
+                id={id}
+                value={form.tags}
+                onChange={(event) => update("tags", event.target.value)}
+                placeholder="community, learning"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
+                aria-describedby={describedBy}
+                aria-invalid={invalid}
+              />
+            )}
+          </FormField>
+          <FormField
+            label="Cover image URL"
+            error={fieldErrors.cover_image ?? null}
+            labelClassName={DRAFT_LABEL}
+          >
+            {({ id, "aria-describedby": describedBy, "aria-invalid": invalid }) => (
+              <input
+                id={id}
+                value={form.cover_image}
+                onChange={(event) => update("cover_image", event.target.value)}
+                inputMode="url"
+                placeholder="https://…"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-primary outline-none placeholder:text-muted-foreground focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20"
+                aria-describedby={describedBy}
+                aria-invalid={invalid}
+              />
+            )}
+          </FormField>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="submit"
             disabled={saving}
+            aria-busy={saving}
             className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-deep-red disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? (
@@ -231,17 +327,34 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
             )}
             {isEditing ? "Save changes" : "Save draft"}
           </button>
-          {message && (
-            <p
-              role="status"
-              className={cn(
-                "text-xs font-semibold",
-                message.tone === "ok" ? "text-status-green" : "text-primary-red",
-              )}
-            >
-              {message.text}
-            </p>
-          )}
+          <AsyncStatus
+            state={
+              saving
+                ? "pending"
+                : !message
+                  ? "idle"
+                  : message.tone === "ok"
+                    ? "success"
+                    : "error"
+            }
+            success={
+              message?.tone === "ok" ? (
+                <span className="block sm:inline">
+                  <span className="font-semibold">{message.text}</span>
+                  {message.after && (
+                    <span className="ml-1 font-normal text-muted-foreground">{message.after}</span>
+                  )}
+                </span>
+              ) : null
+            }
+            successClassName="text-xs text-status-green"
+            error={
+              message?.tone === "error" ? (
+                <span className="font-semibold">{message.text}</span>
+              ) : null
+            }
+            errorClassName="text-xs font-semibold text-primary-red"
+          />
         </div>
       </form>
 
@@ -270,6 +383,7 @@ export function BlogDraftClient({ initialDrafts }: { initialDrafts: DraftRow[] }
                   onClick={() => {
                     setForm(toForm(draft));
                     setMessage(null);
+                    setFieldErrors({});
                   }}
                   className="flex w-full items-start gap-2 text-left"
                 >
