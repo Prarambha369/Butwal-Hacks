@@ -207,13 +207,7 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
                 key={mentor.bh_id}
                 className="bh-card border border-border p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-1 relative overflow-hidden group"
               >
-                {/* Mentor badge */}
-                <div className="absolute top-0 right-0 flex items-center gap-1.5">
-                  <div className="flex items-center gap-1 bg-status-green/10 text-status-green text-[9px] font-bold px-2 py-1 rounded-bl-xl border-b border-l border-status-green/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-status-green animate-pulse" />
-                    AVAILABLE
-                  </div>
-                </div>
+
 
                 <div className="flex items-start gap-4">
                   {/* Avatar */}

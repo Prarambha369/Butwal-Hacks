@@ -1,8 +1,6 @@
-import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 import { createServiceClient } from "@/utils/supabase";
 import type { Metadata } from "next"
-import Link from "next/link"
-import { Users, GraduationCap, ArrowRight } from "lucide-react"
+import { Users } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"
 import { fetchExplorerMembers, getExplorerStats } from "@/lib/members"
 import SafeJsonLd from "@/lib/json-ld"
@@ -28,14 +26,7 @@ export const metadata: Metadata = buildPageMetadata({
 export default async function ExplorePage() {
   const supabase = createServiceClient();
   // Independent reads run in parallel so one slow query never stalls the page.
-  const [explorerMembers, { count: mentorCount }] = await Promise.all([
-    fetchExplorerMembers(supabase),
-    supabase
-      .from("profiles")
-      .select("*", { count: "exact", head: true })
-      .eq("open_to_mentor", true)
-      .not("bh_id", "is", null),
-  ]);
+  const [explorerMembers] = await Promise.all([fetchExplorerMembers(supabase)]);
   const stats = getExplorerStats(explorerMembers);
 
   return (
@@ -86,33 +77,6 @@ export default async function ExplorePage() {
                 </p>
               </div>
             </noscript>
-          </div>
-        </section>
-
-        {/* ── MENTORS STRIP (links /mentors + onboarding path) ────── */}
-        <section aria-label="Mentors" className="border-y border-border bg-surface">
-          <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-4 py-8 sm:flex-row sm:items-center">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-status-green/10 text-status-green">
-                <GraduationCap className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="font-bold text-primary">
-                  {mentorCount ?? 0} mentor{(mentorCount ?? 0) === 1 ? "" : "s"} taking 1:1 calls
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Stuck on a bug or a career call? Book time. Developers volunteer office hours here.
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Link href="/mentors" className="bh-btn-primary text-sm">
-                Find a mentor <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <Link href={PROFILE_SETTINGS_PATH} className="bh-btn-secondary text-sm">
-                Become a mentor
-              </Link>
-            </div>
           </div>
         </section>
 

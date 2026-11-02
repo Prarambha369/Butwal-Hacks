@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Check, X, Star, Trash2, Plus } from "lucide-react";
 import {
   getTestimonialQueue,
@@ -10,6 +10,7 @@ import {
   addVipQuote,
   type ModeratedTestimonial,
 } from "@/lib/actions/testimonials";
+import { EmptyState } from "@/components/ui/empty-state";
 
 function initialsOf(name: string | null | undefined) {
   if (!name) return "?";
@@ -46,14 +47,30 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
-function VipForm({ onDone }: { onDone: () => void }) {
-  const [open, setOpen] = useState(false);
+function VipForm({
+  onDone,
+  open,
+  setOpen,
+  focusOnOpen = false,
+}: {
+  onDone: () => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  focusOnOpen?: boolean;
+}) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [quote, setQuote] = useState("");
   const [source, setSource] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const field = formRef.current?.querySelector<HTMLElement>('input, textarea, select');
+    if (focusOnOpen && field) field.focus();
+  }, [open, focusOnOpen]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -84,7 +101,7 @@ function VipForm({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <form onSubmit={save} className="bh-card space-y-4 p-6">
+    <form onSubmit={save} className="bh-card space-y-4 p-6" ref={formRef}>
       <h3 className="text-base font-bold text-primary">New VIP quote</h3>
       <p className="text-xs text-muted-foreground leading-relaxed">
         For words spoken by guests with no platform account (principals, speakers).
@@ -130,6 +147,7 @@ function VipForm({ onDone }: { onDone: () => void }) {
 
 export default function TestimonialsClient({ initialQueue }: { initialQueue: ModeratedTestimonial[] }) {
   const [queue, setQueue] = useState(initialQueue);
+  const [vipOpen, setVipOpen] = useState(false);
 
   async function refresh() {
     setQueue(await getTestimonialQueue());
@@ -156,14 +174,20 @@ export default function TestimonialsClient({ initialQueue }: { initialQueue: Mod
             Member submissions stay invisible until approved. VIP quotes publish instantly, featured.
           </p>
         </div>
-        <VipForm onDone={refresh} />
+        <VipForm onDone={refresh} open={vipOpen} setOpen={setVipOpen} />
       </div>
 
       <div className="space-y-3">
         {queue.length === 0 && (
-          <div className="bh-card p-10 text-center text-sm text-muted-foreground">
-            No testimonials yet — member submissions will appear here.
-          </div>
+          <EmptyState
+            icon={<Star className="w-12 h-12" />}
+            mascot="thinking-puzzled"
+            title="No testimonials yet"
+            description="Member submissions will appear here once hackers share their experience."
+            actions={[
+              { label: "Add VIP quote", onClick: () => setVipOpen(true), variant: "primary" },
+            ]}
+          />
         )}
         {queue.map((item) => (
           <article key={item.id} className="bh-card space-y-3 p-5">

@@ -34,8 +34,8 @@ onboardingChapterCount,
      * drawer someone else already closed. Omitted, the sidebar keeps managing
      * its own, which is what the portal layout still relies on.
      */
-    mobileOpen?: boolean
-    onNavigate?: () => void
+    mobileOpen?: boolean;
+    onNavigate?: () => void;
   }) {
     const [ownOpen, setOwnOpen] = useState(false)
     const externallyControlled = controlledOpen !== undefined

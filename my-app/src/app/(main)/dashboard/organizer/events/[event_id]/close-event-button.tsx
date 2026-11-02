@@ -4,15 +4,18 @@ import { useState } from "react";
 import { closeEvent } from "@/lib/actions/events";
 import { toast } from "sonner";
 import { RoseSpinner } from "@/components/ui/rose-loader";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export function CloseEventClientButton({ eventId }: { eventId: string }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
 
-  async function handleClose() {
-    if (!confirm("Are you sure you want to close this event? This will issue certificates to all attendees and stop new registrations.")) {
-      return;
-    }
+  // Opens the confirm dialog; the event only closes from onConfirm.
+  function handleClose() {
+    setConfirmClose(true);
+  }
 
+  async function performClose() {
     setIsLoading(true);
     try {
       const result = await closeEvent(eventId);
@@ -29,15 +32,28 @@ export function CloseEventClientButton({ eventId }: { eventId: string }) {
   }
 
   return (
-    <button
-      onClick={handleClose}
-      disabled={isLoading}
-      className="w-full rounded-lg bg-bh-red-action px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-deep-red disabled:opacity-50"
-    >
-      {isLoading ? (
-        <RoseSpinner size="sm" color="white" />
-      ) : null}
-      {isLoading ? "Closing Event..." : "Close & Issue Certificates"}
-    </button>
+    <>
+      <button
+        onClick={handleClose}
+        disabled={isLoading}
+        className="w-full rounded-lg bg-bh-red-action px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-deep-red disabled:opacity-50"
+      >
+        {isLoading ? (
+          <RoseSpinner size="sm" color="white" />
+        ) : null}
+        {isLoading ? "Closing Event..." : "Close & Issue Certificates"}
+      </button>
+
+      {confirmClose && (
+        <ConfirmDialog
+          title="Close event"
+          consequence="Closing is permanent: certificates are issued to all attendees and new registrations stop. This cannot be undone."
+          confirmLabel="Close event"
+          irreversible
+          onConfirm={() => performClose()}
+          onClose={() => setConfirmClose(false)}
+        />
+      )}
+    </>
   );
 }

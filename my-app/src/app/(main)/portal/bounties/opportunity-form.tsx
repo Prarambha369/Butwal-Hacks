@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { createOpportunity, updateOpportunity } from "@/lib/actions/sponsor-opportunities";
 import { cn } from "@/lib/utils";
 import { TagInput } from "@/components/ui/tag-input";
+import { FormField, focusFirstInvalidField } from "@/components/ui/form-field";
+import { AsyncStatus } from "@/components/ui/async-status";
 
 interface OpportunityFormProps {
   initialData?: {
@@ -50,6 +52,13 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
   const [isBounty, setIsBounty] = useState(initialData?.is_bounty || false);
   const [bountyAmount, setBountyAmount] = useState(initialData?.bounty_amount?.toString() || "");
   const [saving, setSaving] = useState(false);
+  /** Field errors from the last failed submit; persist until the field is valid again. */
+  const [formErrors, setFormErrors] = useState<{
+    title?: string;
+    description?: string;
+  }>({});
+  /** The save attempt itself failed (server action rejected). */
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // ponytail: sync is_bounty when type changes
   useEffect(() => {
@@ -58,12 +67,38 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
 
   // ponytail: addSkill/removeSkill now lives in shared TagInput component
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  /** Clear a field error only once the new value satisfies its rule. */
+  const validateField = (key: "title" | "description", value: string): string | undefined =>
+    key === "title"
+      ? value.trim()
+        ? undefined
+        : "Title is required."
+      : value.trim().length >= 10
+        ? undefined
+        : "Description must be at least 10 characters.";
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!title.trim()) { toast.error("Title is required"); return; }
-    if (description.trim().length < 10) { toast.error("Description must be at least 10 characters"); return; }
+    const nextErrors = {
+      title: validateField("title", title),
+      description: validateField("description", description),
+    };
+    if (nextErrors.title || nextErrors.description) {
+      setFormErrors(nextErrors);
+      // Double rAF: React writes aria-invalid in the commit that follows this
+      // handler, and a single rAF callback can fire before that commit has
+      // landed in the DOM. The inner callback runs one full frame after the
+      // outer one, past both the commit and the paint, so
+      // focusFirstInvalidField reliably sees the [aria-invalid="true"] target.
+      const form = e.currentTarget;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => focusFirstInvalidField(form));
+      });
+      return;
+    }
 
     setSaving(true);
+    setSubmitError(null);
     const payload = {
       title: title.trim(),
       description: description.trim(),
@@ -88,9 +123,11 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
         toast.success(isEditing ? "Opportunity updated!" : "Opportunity created!");
         router.push("/portal/bounties");
       } else {
+        setSubmitError(result.error || "Could not save the opportunity. Try again.");
         toast.error(result.error || "Failed to save");
       }
     } catch {
+      setSubmitError("Could not save the opportunity. Try again.");
       toast.error("Something went wrong");
     } finally {
       setSaving(false);
@@ -100,15 +137,30 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
   return (
     <form onSubmit={handleSubmit} className="bh-card p-6 space-y-6">
       {/* Title */}
-      <div>
-        <label className="text-xs font-bold uppercase tracking-wider text-secondary">Title <span className="text-primary-red">*</span></label>
-        <input
-          type="text" value={title} onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g., Full-Stack Developer Intern"
-          className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary focus:border-bh-red-500/50 focus:outline-none transition-all"
-          maxLength={200} required
-        />
-      </div>
+      <FormField
+        label="Title"
+        required
+        error={formErrors.title ?? null}
+      >
+        {({ id, "aria-describedby": describedBy, "aria-invalid": invalid }) => (
+          <input
+            id={id}
+            type="text"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setFormErrors((prev) =>
+                prev.title ? { ...prev, title: validateField("title", e.target.value) } : prev,
+              );
+            }}
+            placeholder="e.g., Full-Stack Developer Intern"
+            className="w-full rounded-xl bg-background/50 border border-border px-4 py-2.5 text-sm text-primary placeholder:text-secondary focus:border-bh-red-500/50 focus:outline-none transition-all"
+            maxLength={200}
+            aria-describedby={describedBy}
+            aria-invalid={invalid}
+          />
+        )}
+      </FormField>
 
       {/* Type + Bounty toggle */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -158,17 +210,35 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
       </div>
 
       {/* Description */}
-      <div>
-        <label className="text-xs font-bold uppercase tracking-wider text-secondary">Description <span className="text-primary-red">*</span></label>
-        <textarea
-          value={description} onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe the role, responsibilities, what you're looking for..."
-          rows={5}
-          className="mt-1.5 w-full rounded-xl bg-background/50 border border-border px-4 py-3 text-sm text-primary placeholder:text-secondary focus:border-bh-red-500/50 focus:outline-none transition-all resize-none"
-          maxLength={5000} required
-        />
-        <p className="mt-1 text-[10px] text-secondary text-right">{description.length}/5000</p>
-      </div>
+      <FormField
+        label="Description"
+        required
+        error={formErrors.description ?? null}
+        extra={
+          <p className="text-[10px] text-secondary text-right">{description.length}/5000</p>
+        }
+      >
+        {({ id, "aria-describedby": describedBy, "aria-invalid": invalid }) => (
+          <textarea
+            id={id}
+            value={description}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              setFormErrors((prev) =>
+                prev.description
+                  ? { ...prev, description: validateField("description", e.target.value) }
+                  : prev,
+              );
+            }}
+            placeholder="Describe the role, responsibilities, what you're looking for..."
+            rows={5}
+            className="w-full rounded-xl bg-background/50 border border-border px-4 py-3 text-sm text-primary placeholder:text-secondary focus:border-bh-red-500/50 focus:outline-none transition-all resize-none"
+            maxLength={5000}
+            aria-describedby={describedBy}
+            aria-invalid={invalid}
+          />
+        )}
+      </FormField>
 
       {/* Compensation + Location */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -220,6 +290,7 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
         <button
           type="submit"
           disabled={saving}
+          aria-busy={saving}
           className={`inline-flex items-center gap-2 rounded-full bg-bh-red-action px-8 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all ${saving ? 'bh-btn-disabled' : ''}`}
         >
           {saving ? (
@@ -235,6 +306,11 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
         >
           Cancel
         </button>
+        <AsyncStatus
+          state={saving ? "pending" : submitError ? "error" : "idle"}
+          error={submitError}
+          errorClassName="text-xs font-semibold text-status-red"
+        />
       </div>
     </form>
   );
