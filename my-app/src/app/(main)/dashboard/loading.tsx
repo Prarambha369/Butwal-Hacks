@@ -35,7 +35,11 @@ function StatTile({ valueWidth }: { valueWidth: string }) {
 
 export default function DashboardLoading() {
   return (
-    <div role="status" aria-busy="true" className="pt-16 pb-20 px-4">
+    <div aria-busy="true" className="pt-16 pb-20 px-4">
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        Loading the dashboard…
+      </div>
+
       <div className="mx-auto max-w-5xl space-y-8">
         {/* PageHeader: eyebrow, title, description */}
         <div className="space-y-2">

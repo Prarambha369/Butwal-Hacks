@@ -35,7 +35,11 @@ function StatTile({ valueWidth }: { valueWidth: string }) {
 
 export default function OrganizerDashboardLoading() {
   return (
-    <div role="status" aria-busy="true" className="space-y-8">
+    <div aria-busy="true" className="space-y-8">
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        Loading the organizer dashboard…
+      </div>
+
       {/* PageHeader + segmented view toggle */}
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
         <div className="space-y-2">

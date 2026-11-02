@@ -263,7 +263,7 @@ export function TeamFormationClient({
               </button>
               <button
                 onClick={handleCreate}
-                disabled={creating || !newTeamName.trim()}
+                disabled={creating}
                 aria-busy={creating}
                 className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all disabled:opacity-50"
               >

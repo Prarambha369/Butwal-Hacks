@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { ExternalLink, Github, Globe, Linkedin } from "lucide-react"
 import type { ExplorerMember } from "@/lib/members"
 import { cn } from "@/lib/utils"
@@ -48,11 +49,13 @@ export function MemberCard({
         {/* Avatar */}
         <Link href={`/p/${member.bhId}`} className="relative w-14 h-14 shrink-0 rounded-full overflow-hidden ring-2 ring-primary-red/20">
           {member.avatarUrl ? (
-            <img
+            <Image
               src={member.avatarUrl}
               alt={member.name}
               className="object-cover w-full h-full"
               loading="lazy"
+              width={512}
+              height={512}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-primary-red/10 text-primary-red">

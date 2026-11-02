@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Check, X, Star, Trash2, Plus } from "lucide-react";
 import {
   getTestimonialQueue,
@@ -51,17 +51,26 @@ function VipForm({
   onDone,
   open,
   setOpen,
+  focusOnOpen = false,
 }: {
   onDone: () => void;
   open: boolean;
   setOpen: (open: boolean) => void;
+  focusOnOpen?: boolean;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [quote, setQuote] = useState("");
   const [source, setSource] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const field = formRef.current?.querySelector<HTMLElement>('input, textarea, select');
+    if (focusOnOpen && field) field.focus();
+  }, [open, focusOnOpen]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -92,7 +101,7 @@ function VipForm({
   }
 
   return (
-    <form onSubmit={save} className="bh-card space-y-4 p-6">
+    <form onSubmit={save} className="bh-card space-y-4 p-6" ref={formRef}>
       <h3 className="text-base font-bold text-primary">New VIP quote</h3>
       <p className="text-xs text-muted-foreground leading-relaxed">
         For words spoken by guests with no platform account (principals, speakers).

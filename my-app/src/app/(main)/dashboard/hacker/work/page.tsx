@@ -5,7 +5,6 @@ import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase"
 import WorkDashboardClient from "./work-dashboard-client"
 import { buildPageMetadata } from "@/lib/seo"
-import type { TeamMemberRaw } from "@/lib/team-types";
 
 
 export const metadata = { ...buildPageMetadata({title: "My Work", description: "Your submitted work", path: "/dashboard/hacker/work", keywords: []}), robots: { index: false, follow: false } };

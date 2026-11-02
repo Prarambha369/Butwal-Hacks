@@ -29,6 +29,7 @@ export interface FormFieldControlProps {
   id: string;
   "aria-describedby"?: string;
   "aria-invalid": boolean;
+  "aria-required"?: boolean;
 }
 
 /** Focus the first field flagged `aria-invalid` inside `container`. */
@@ -104,12 +105,13 @@ export function FormField({
         )}
       >
         {label}
-        {required && <span className="text-primary-red">*</span>}
+        {required && <span className="text-primary-red" aria-hidden="true">*</span>}
       </label>
       {children({
         id: controlId,
         "aria-describedby": describedBy,
         "aria-invalid": hasError,
+        "aria-required": required || undefined,
       })}
       {hasError ? (
         <p

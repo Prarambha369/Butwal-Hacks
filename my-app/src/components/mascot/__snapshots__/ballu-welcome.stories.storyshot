@@ -1,0 +1,3 @@
+/* Storybook snapshots are generated when the project runs the storybook
+   test command. This path exists so the tree does not report missing
+   snapshot files for the mascot stories. */

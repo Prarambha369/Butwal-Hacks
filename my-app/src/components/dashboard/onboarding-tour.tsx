@@ -106,6 +106,7 @@ interface OnboardingTourProps {
 
 export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps) {
   const STEPS = STEP_SETS[role];
+  const [marker, setMarker] = useState(STEPS[0]);
   const [step, setStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -200,7 +201,11 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
       }
 
       setIsCheckingSupabase(false);
-      timerRef.current = setTimeout(() => setIsVisible(true), 800);
+      timerRef.current = setTimeout(() => {
+        setIsVisible(true);
+        const raf = requestAnimationFrame(updatePosition);
+        return () => cancelAnimationFrame(raf);
+      }, 800);
     };
 
     checkOnboardingStatus();
@@ -244,10 +249,12 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
     if (step > 0) setStep((s) => s - 1);
   }, [step]);
 
+  useEffect(() => {
+    setMarker(STEPS[step]);
+  }, [step]);
+
   if (!isMounted || isCheckingSupabase || !isVisible) return null;
-
-  const current = STEPS[step];
-
+  
   const tooltipLeft =
     targetRect && useAnchored ? targetRect.left + targetRect.width + 20 : null;
   const tooltipTop =
@@ -342,7 +349,7 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
 
           {/* Step content */}
           <div
-            key={step}
+            key={marker.title}
             className="transition-all duration-300 ease-out"
             style={{
               animation: "step-fade-in 0.3s ease-out",
@@ -350,7 +357,7 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
           >
             <div className="px-6 pt-8 pb-2">
               <div className="w-12 h-12 rounded-xl bg-primary-red/10 flex items-center justify-center text-primary-red">
-                {current.icon}
+                {marker.icon}
               </div>
             </div>
 
@@ -360,11 +367,11 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
                   Step {step + 1} of {STEPS.length}
                 </p>
                 <h3 className="text-lg font-bold text-primary leading-tight">
-                  {current.title}
+                  {marker.title}
                 </h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {current.description}
+                {marker.description}
               </p>
             </div>
           </div>
@@ -400,11 +407,11 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
               ) : (
                 <div className="flex items-center gap-2">
                   <Link
-                    href={current.href}
+                    href={marker.href}
                     onClick={handleDismiss}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all shadow-[var(--bh-glow-red-soft)] hover:shadow-[var(--bh-glow-red)]"
                   >
-                    {current.cta}
+                    {marker.cta}
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
