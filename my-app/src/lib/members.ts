@@ -118,10 +118,13 @@ export async function fetchExplorerMembers(
       .toUpperCase()
       .slice(0, 2);
 
-    const socials = p.social_links || {};
-    const githubUrl = (socials as any).github || (socials as any).github_url || (socials as any).GitHub || null;
-    const websiteUrl = (socials as any).website || (socials as any).website_url || (socials as any).link || (socials as any).Web || null;
-    const linkedinUrl = (socials as any).linkedin || (socials as any).linkedin_url || (socials as any).LinkedIn || null;
+    const socials = p.social_links ?? {};
+    const githubRaw = socials.github ?? socials.github_url ?? socials.GitHub;
+    const websiteRaw = socials.website ?? socials.website_url ?? socials.link ?? socials.Web;
+    const linkedinRaw = socials.linkedin ?? socials.linkedin_url ?? socials.LinkedIn;
+    const githubUrl = normalizeGitHubUrl(githubRaw);
+    const websiteUrl = normalizeUrl(websiteRaw);
+    const linkedinUrl = normalizeLinkedInUrl(linkedinRaw);
 
     return {
       bhId: p.bh_id || "",
@@ -142,6 +145,64 @@ export async function fetchExplorerMembers(
       linkedinUrl,
     };
   });
+}
+
+// ─── URL normalization helpers ──────────────────────────────────
+
+function normalizeUrl(value: string | undefined | null): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^mailto:/i.test(trimmed)) return trimmed;
+  if (/^tel:/i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+function normalizeGitHubUrl(value: string | undefined | null): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const url = new URL(trimmed);
+      if (url.hostname === 'github.com' || url.hostname.endsWith('.github.com')) {
+        return url.toString();
+      }
+    } catch {
+      // fall through to handle bare handles below
+    }
+  }
+  if (/^@[\w-]+$/i.test(trimmed)) {
+    return `https://github.com/${trimmed.slice(1)}`;
+  }
+  if (/^[\w-]+$/i.test(trimmed)) {
+    return `https://github.com/${trimmed}`;
+  }
+  return undefined;
+}
+
+function normalizeLinkedInUrl(value: string | undefined | null): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const url = new URL(trimmed);
+      if (url.hostname === 'linkedin.com' || url.hostname.endsWith('.linkedin.com')) {
+        return url.toString();
+      }
+    } catch {
+      // fall through
+    }
+  }
+  if (/^@[\w-]+$/i.test(trimmed)) {
+    return `https://linkedin.com/in/${trimmed.slice(1)}`;
+  }
+  if (/^[\w-]+(-[\w-]+)*$/i.test(trimmed)) {
+    return `https://linkedin.com/in/${trimmed}`;
+  }
+  return undefined;
 }
 
 // ─── Aggregated Stats (works on any ExplorerMember[]) ─────────────

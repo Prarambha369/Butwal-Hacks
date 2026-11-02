@@ -34,8 +34,14 @@ function StatTile({ valueWidth }: { valueWidth: string }) {
 }
 
 export default function MaintainerDashboardLoading() {
+  const liveId = "maintainer-loading";
+
   return (
-    <div role="status" aria-busy="true" className="space-y-8">
+    <div aria-busy="true" className="space-y-8">
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        <span id={liveId}>Loading the maintainer command center…</span>
+      </div>
+
       {/* PageHeader + health badge pill */}
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
         <div className="space-y-2">
@@ -53,6 +59,21 @@ export default function MaintainerDashboardLoading() {
         <StatTile valueWidth="w-14" />
         <StatTile valueWidth="w-16" />
         <StatTile valueWidth="w-12" />
+      </div>
+
+      {/* Chart placeholder for TrustMarkersChart (160px body) */}
+      <div className="bh-card p-5 space-y-3" aria-hidden="true">
+        <div className="flex items-center gap-2 mb-3">
+          <Bar className="h-8 w-8 rounded-lg shrink-0" />
+          <Bar className="h-4 w-32" />
+        </div>
+        <div className="flex h-40 items-end gap-1.5">
+          <Bar className="h-1/3 flex-1" />
+          <Bar className="h-2/3 flex-1" />
+          <Bar className="h-1/2 flex-1" />
+          <Bar className="h-3/4 flex-1" />
+          <Bar className="h-2/5 flex-1" />
+        </div>
       </div>
 
       {/* Main grid: platform analytics (3) | audit + controls (2) */}

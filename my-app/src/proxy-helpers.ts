@@ -16,7 +16,7 @@ export async function requireRole(
   pathname: string,
   allowedRoles: string[]
 ): Promise<NextResponse> {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     return NextResponse.next();
   }
   // Middleware must pass the request. The no-arg overload reads cookies via
@@ -105,7 +105,7 @@ export async function requireAnyAuth(
   request: NextRequest,
   pathname: string
 ): Promise<NextResponse> {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     return NextResponse.next();
   }
   // See requireRole: middleware needs the request-scoped overload.

@@ -161,7 +161,7 @@ export interface GitHubEvent {
   type: string;
   repo: { name: string };
   created_at: string;
-  payload?: any;
+  payload?: unknown;
 }
 
 /**

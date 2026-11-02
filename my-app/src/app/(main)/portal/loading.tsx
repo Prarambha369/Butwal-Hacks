@@ -35,7 +35,11 @@ function SummaryCard({ iconTile }: { iconTile: string }) {
 
 export default function PortalLoading() {
   return (
-    <div role="status" aria-busy="true" className="space-y-8">
+    <div aria-busy="true" className="space-y-8">
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        Loading the sponsor portal…
+      </div>
+
       {/* Heading + sponsor pill */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
