@@ -41,6 +41,15 @@ export default async function DashboardHubPage() {
     .eq("auth0_user_id", userId)
     .single();
 
+  // The root dashboard is a role hub: once a profile has a role it is a
+  // mistake to sell the whole hub to every role at once, so forward to the
+  // role-specific surface. Skipping the revalidatePath below so the role
+  // picker (which also targets /dashboard) does not re-render this page and
+  // loop the redirect.
+  if (profile?.role) {
+    redirect(`/dashboard/${profile.role}`);
+  }
+
   const profileId = profile?.id;
 
   // These five only need `profileId`, so they are independent of each other
