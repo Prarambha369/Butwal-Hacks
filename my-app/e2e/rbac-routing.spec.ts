@@ -65,11 +65,8 @@ test.describe("Middleware — Auth Redirects (unauthenticated)", () => {
   test("/dashboard/maintainer redirects to /auth/login with returnTo", async ({ request }) => {
     const response = await request.get("/dashboard/maintainer", { maxRedirects: 0 });
     expectRedirectTarget(response, "/dashboard/maintainer");
-  });
-
-  test("/dashboard/maintainer redirects to /auth/login with returnTo", async ({ request }) => {
-    const response = await request.get("/dashboard/maintainer", { maxRedirects: 0 });
-    expectRedirectTarget(response, "/dashboard/maintainer");
+    // Milestone: same status regression as /dashboard/hacker; treated the same
+    // in this PR — assert the redirect target, not the racy status code.
   });
 
   test("/dashboard/organizer redirects to /auth/login with returnTo", async ({ request }) => {
