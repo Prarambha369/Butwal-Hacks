@@ -13,7 +13,8 @@ import {
   FileDown,
   QrCode,
   ScanQrCode,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ChevronRight
 } from "lucide-react";
 import Link from "next/link";
 
@@ -60,6 +61,24 @@ export default async function EventDetailsPage({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
+          <nav aria-label="Breadcrumb" className="mb-1.5">
+            <ol className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <li>
+                <Link
+                  href="/dashboard/organizer/events"
+                  className="transition-colors hover:text-bh-red-action"
+                >
+                  Events
+                </Link>
+              </li>
+              <li aria-hidden="true">
+                <ChevronRight className="h-3 w-3 opacity-40" />
+              </li>
+              <li>
+                <span aria-current="page">{event.title}</span>
+              </li>
+            </ol>
+          </nav>
           <h1 className="text-3xl font-bold tracking-tight text-primary">{event.title}</h1>
           <p className="text-sm text-muted-foreground">Organizer Command Center</p>
         </div>

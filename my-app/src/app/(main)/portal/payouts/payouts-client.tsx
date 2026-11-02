@@ -3,6 +3,7 @@
 import React from "react";
 import { DollarSign, CheckCircle2, Clock, Ban, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Payout {
   id: string;
@@ -36,13 +37,15 @@ export default function PayoutsClient({ payouts }: { payouts: Payout[] }) {
       </div>
 
       {payouts.length === 0 ? (
-        <div className="bh-card p-12 text-center">
-          <DollarSign className="w-12 h-12 mx-auto text-secondary mb-4" />
-          <p className="text-secondary opacity-60">No payouts yet.</p>
-          <p className="text-xs text-secondary mt-2">
-            Payouts appear here when bounties are completed and processed.
-          </p>
-        </div>
+        <EmptyState
+          icon={<DollarSign className="w-12 h-12" />}
+          mascot="thinking-puzzled"
+          title="No payouts yet"
+          description="Payouts appear here when bounties are completed and processed."
+          actions={[
+            { label: "Manage opportunities", href: "/portal/bounties", variant: "primary" },
+          ]}
+        />
       ) : (
         <div className="bh-card overflow-hidden">
           <div className="overflow-x-auto">

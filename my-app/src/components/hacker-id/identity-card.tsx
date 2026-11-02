@@ -115,11 +115,12 @@ export default function IdentityCard({ profile }: IdentityCardProps) {
 
               {/* Unique ID Capsule */}
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-hover border border-border font-mono text-xs text-muted-foreground group/id">
-                <span className="opacity-50">ID:</span>
-                <span className="font-bold">{profile.uniqueId}</span>
+                <span className="opacity-50">BH ID:</span>
+                <span className="font-bold text-primary">{profile.uniqueId}</span>
                 <button 
                   onClick={copyId}
                   className="p-1 hover:text-primary-red transition-colors"
+                  aria-label="Copy profile link"
                 >
                   {copied ? <Check size={14} className="text-status-green" /> : <Copy size={14} />}
                 </button>

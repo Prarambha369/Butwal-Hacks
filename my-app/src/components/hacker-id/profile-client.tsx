@@ -12,6 +12,7 @@ import TrustMarkersList from '@/components/hacker-id/trust-markers-list';
 import { Sparkles, Loader2, Code, Copy, Check, Award, Code2, Palette, Globe, Cable, Cpu, Network, Link2, Rocket, Trophy, Layers } from 'lucide-react';
 import { generateProfileSummary } from '@/lib/actions/generate-profile-summary';
 import { useActionState } from 'react';
+import type { GitHubEvent } from '@/lib/github';
 
 const SKILL_ICONS: Record<string, React.ReactNode> = {
   react: <Code2 className="w-5 h-5" />,
@@ -94,11 +95,17 @@ export default function ProfileClient({
   projects,
   unlockedSkills = [],
   totalSkillCount = 0,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  githubActivity = [],
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  githubUsername = null,
 }: {
   profile: PublicProfileRow;
   projects: Project[];
   unlockedSkills?: UnlockedSkill[];
   totalSkillCount?: number;
+  githubActivity?: GitHubEvent[];
+  githubUsername?: string | null;
 }) {
   // Normalize the DB row (snake_case) into the display shape (camelCase)
   // once, so all child components get the fields they actually render.

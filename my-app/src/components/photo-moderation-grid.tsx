@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, X, Trash2, Star, Zap } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { displayPhotoUrl, isVideoUrl } from "@/lib/cloudinary-url";
 import {
   setPhotoStatus,
@@ -46,6 +47,7 @@ export function PhotoModerationGrid({
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   async function act(id: string, fn: () => Promise<unknown>) {
     setBusy(id);
@@ -140,11 +142,7 @@ export function PhotoModerationGrid({
                 )}
                 <button
                   type="button" disabled={busy === p.id}
-                  onClick={() => {
-                    if (confirm("Delete this photo permanently?")) {
-                      act(p.id, () => deletePhoto(p.id));
-                    }
-                  }}
+                  onClick={() => setPendingDeleteId(p.id)}
                   className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-bold text-primary-red hover:bg-surface-hover disabled:opacity-50"
                 >
                   <Trash2 className="h-3.5 w-3.5" /> Delete
@@ -154,6 +152,17 @@ export function PhotoModerationGrid({
           </div>
         ))}
       </div>
+
+      {pendingDeleteId !== null && (
+        <ConfirmDialog
+          title="Delete photo"
+          consequence="This permanently deletes the photo from the gallery and from storage, including any moderator decisions made on it. It cannot be recovered."
+          confirmLabel="Delete photo"
+          irreversible
+          onConfirm={() => act(pendingDeleteId, () => deletePhoto(pendingDeleteId))}
+          onClose={() => setPendingDeleteId(null)}
+        />
+      )}
     </div>
   );
 }

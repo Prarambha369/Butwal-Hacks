@@ -38,7 +38,20 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
   const [lookingForTeam, setLookingForTeam] = useState(false)
 
   const results = useMemo(
-    () => filterMembers(members, { role, query: debouncedQuery, sortBy, openToMentor, lookingForTeam }),
+    () => {
+      let res = filterMembers(members, { role, query: debouncedQuery, sortBy, openToMentor, lookingForTeam })
+      // Prioritize mentors/open-to-mentor in default view for better showcase
+      if (role === "All" && !debouncedQuery && sortBy === "activity" && !openToMentor && !lookingForTeam) {
+        res = [...res].sort((a, b) => {
+          if (a.openToMentor && !b.openToMentor) return -1
+          if (!a.openToMentor && b.openToMentor) return 1
+          if (a.role === "Mentor" && b.role !== "Mentor") return -1
+          if (a.role !== "Mentor" && b.role === "Mentor") return 1
+          return (b.projects + b.events) - (a.projects + a.events)
+        })
+      }
+      return res
+    },
     [members, role, debouncedQuery, sortBy, openToMentor, lookingForTeam],
   )
 
@@ -99,25 +112,25 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
   const isZeroMemberCommunity = members.length === 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* ── Search & Controls Bar ── */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col lg:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="search"
             placeholder="Search by name, BH-ID, skill, or bio..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Search members"
-            className="w-full h-11 pl-9 pr-9 rounded-xl bg-surface border border-border text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:border-primary-red/50 focus:ring-1 focus:ring-primary-red/20 transition-all"
+            className="w-full h-11 pl-10 pr-10 rounded-xl bg-surface border border-border text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:border-primary-red/50 focus:ring-2 focus:ring-primary-red/10 transition-all shadow-sm"
             autoComplete="off"
           />
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors p-0.5"
               aria-label="Clear search"
             >
               <X className="w-3.5 h-3.5" />
@@ -125,139 +138,148 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
           )}
         </div>
 
-        {/* Sort Dropdown */}
-        <div className="relative">
-          <button
-            onClick={(e) => { e.stopPropagation(); setSortOpen(!sortOpen) }}
-            className="h-11 px-3 rounded-xl bg-surface border border-border text-sm text-muted-foreground hover:text-primary hover:border-muted-foreground/30 transition-all flex items-center gap-2 min-w-[140px]"
-            aria-label="Sort members"
-            aria-expanded={sortOpen}
-          >
-            <ArrowUpDown className="w-3.5 h-3.5 shrink-0" />
-            <span className="flex-1 text-left text-xs font-medium truncate">
-              {SORT_OPTIONS.find((o) => o.value === sortBy)?.label}
-            </span>
-            <ChevronDown className={cn("w-3 h-3 transition-transform", sortOpen && "rotate-180")} />
-          </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Sort Dropdown */}
+          <div className="relative">
+            <button
+              onClick={(e) => { e.stopPropagation(); setSortOpen(!sortOpen) }}
+              className="h-11 px-3 rounded-xl bg-surface border border-border text-sm text-primary hover:border-primary-red/30 transition-all flex items-center gap-2 min-w-[150px] shadow-sm"
+              aria-label="Sort members"
+              aria-expanded={sortOpen}
+            >
+              <ArrowUpDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+              <span className="flex-1 text-left text-xs font-medium truncate">
+                {SORT_OPTIONS.find((o) => o.value === sortBy)?.label}
+              </span>
+              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform text-muted-foreground", sortOpen && "rotate-180")} />
+            </button>
 
-          {sortOpen && (
-            <div className="absolute top-full mt-1 right-0 min-w-[180px] z-20 p-1.5 rounded-xl bg-surface border border-border shadow-lg">
-              {SORT_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => { setSortBy(opt.value); setSortOpen(false) }}
-                  className={cn(
-                    "w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all",
-                    sortBy === opt.value
-                      ? "bg-primary-red/10 text-primary-red"
-                      : "text-muted-foreground hover:bg-surface-hover hover:text-primary"
-                  )}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* View Toggle */}
-        <div className="flex rounded-xl border border-border overflow-hidden shrink-0">
-          <button
-            onClick={() => setViewMode("grid")}
-            className={cn(
-              "p-2.5 transition-all",
-              viewMode === "grid"
-                ? "bg-bh-red-action text-white"
-                : "bg-surface text-muted-foreground hover:text-primary hover:bg-surface-hover"
+            {sortOpen && (
+              <div className="absolute top-full mt-2 right-0 min-w-[180px] z-30 p-1.5 rounded-xl bg-surface border border-border shadow-xl">
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { setSortBy(opt.value); setSortOpen(false) }}
+                    className={cn(
+                      "w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all",
+                      sortBy === opt.value
+                        ? "bg-primary-red/10 text-primary-red"
+                        : "text-muted-foreground hover:bg-surface-hover hover:text-primary"
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             )}
-            aria-label="Grid view"
-          >
-            <Grid3X3 className="w-4 h-4" />
-          </button>
+          </div>
+
+          {/* View Toggle */}
+          <div className="flex rounded-xl border border-border overflow-hidden shrink-0 shadow-sm">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "p-2.5 transition-all",
+                viewMode === "grid"
+                  ? "bg-primary-red text-white"
+                  : "bg-surface text-muted-foreground hover:text-primary hover:bg-surface-hover"
+              )}
+              aria-label="Grid view"
+            >
+              <Grid3X3 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={cn(
+                "p-2.5 transition-all",
+                viewMode === "list"
+                  ? "bg-primary-red text-white"
+                  : "bg-surface text-muted-foreground hover:text-primary hover:bg-surface-hover"
+              )}
+              aria-label="List view"
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Mobile Filter Toggle */}
           <button
-            onClick={() => setViewMode("list")}
-            className={cn(
-              "p-2.5 transition-all",
-              viewMode === "list"
-                ? "bg-bh-red-action text-white"
-                : "bg-surface text-muted-foreground hover:text-primary hover:bg-surface-hover"
-            )}
-            aria-label="List view"
+            onClick={() => setShowFilters(!showFilters)}
+            className="lg:hidden h-11 px-4 rounded-xl bg-surface border border-border text-primary hover:border-primary-red/30 transition-all flex items-center gap-2 shadow-sm"
+            aria-label="Toggle filters"
           >
-            <List className="w-4 h-4" />
+            <Filter className="w-4 h-4" />
+            <span className="text-sm font-medium">Filters</span>
+            {hasActiveFilters && (
+              <span className="w-2 h-2 rounded-full bg-primary-red" />
+            )}
           </button>
         </div>
-
-        {/* Mobile Filter Toggle */}
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="sm:hidden h-11 px-3 rounded-xl bg-surface border border-border text-muted-foreground hover:text-primary transition-all flex items-center gap-2"
-          aria-label="Toggle filters"
-        >
-          <Filter className="w-4 h-4" />
-          Filters
-          {hasActiveFilters && (
-            <span className="w-2 h-2 rounded-full bg-primary-red" />
-          )}
-        </button>
       </div>
 
-      {/* ── Role Filter Pills ── */}
-      <div className={cn(showFilters ? "flex" : "hidden", "sm:flex flex-wrap gap-2")} role="group" aria-label="Filter by role">
-        {roles.map((r) => {
-          const cfg = ROLE_CONFIG[r]
-          return (
+      {/* ── Filters Container ── */}
+      <div className={cn(
+        showFilters ? "flex" : "hidden",
+        "lg:flex flex-col gap-3 p-4 rounded-xl bg-surface/50 border border-border"
+      )}>
+        {/* Role Filter Pills */}
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by role">
+          <span className="text-[10px] font-bold text-muted-foreground tracking-wider uppercase mr-1">Role</span>
+          {roles.map((r) => {
+            const cfg = ROLE_CONFIG[r]
+            return (
+              <button
+                key={r}
+                onClick={() => { setRole(r); setShowFilters(false) }}
+                aria-pressed={role === r}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer",
+                  role === r
+                    ? cn(cfg.color, "shadow-sm")
+                    : "border-border text-muted-foreground hover:border-muted-foreground/40 hover:text-primary bg-surface"
+                )}
+              >
+                {cfg.label}
+                <span className={cn("ml-1.5 font-mono font-medium", role === r ? "opacity-70" : "text-muted-foreground/70")}>
+                  {r === "All" ? counts.all : counts[r]}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Availability Filters */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-bold text-muted-foreground tracking-wider uppercase mr-1">Availability</span>
+          {AVAILABILITY_FILTERS.map((f) => (
             <button
-              key={r}
-              onClick={() => { setRole(r); setShowFilters(false) }}
-              aria-pressed={role === r}
+              key={f.key}
+              onClick={f.toggle}
+              aria-pressed={f.active}
               className={cn(
-                "px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all cursor-pointer",
-                role === r
-                  ? cn(cfg.color, "shadow-sm")
-                  : "border-border text-muted-foreground hover:border-muted-foreground/30 hover:text-primary bg-surface"
+                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer",
+                f.active
+                  ? "bg-status-green/10 text-status-green border-status-green/30 shadow-sm"
+                  : "border-border text-muted-foreground hover:border-muted-foreground/40 hover:text-primary bg-surface"
               )}
             >
-              {cfg.label}
-              <span className={cn("ml-1.5 font-mono font-medium", role === r ? "opacity-70" : "text-muted-foreground")}>
-                {r === "All" ? counts.all : counts[r]}
-              </span>
+              <f.icon className="w-3.5 h-3.5" />
+              {f.label}
+              <span className="font-mono font-medium opacity-60">{f.count}</span>
             </button>
-          )
-        })}
+          ))}
 
-        {/* Clear button when filters are active */}
-        {hasActiveFilters && (
-          <button
-            onClick={clearAll}
-            className="px-3 py-1.5 rounded-full text-[11px] font-medium border border-border text-muted-foreground hover:text-primary hover:bg-surface-hover transition-all"
-          >
-            <X className="w-3 h-3 inline-block mr-1" />
-            Clear
-          </button>
-        )}
-      </div>
-
-      {/* ── Availability Filters (profiles flags from migration 031) ── */}
-      <div className={cn(showFilters ? "flex" : "hidden", "sm:flex flex-wrap items-center gap-2")}>
-        <span className="text-[10px] font-bold text-muted-foreground tracking-wider mr-1">AVAILABILITY</span>
-        {AVAILABILITY_FILTERS.map((f) => (
-          <button
-            key={f.key}
-            onClick={f.toggle}
-            aria-pressed={f.active}
-            className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all cursor-pointer",
-              f.active
-                ? "bg-status-green/10 text-status-green border-status-green/20 shadow-sm"
-                : "border-border text-muted-foreground hover:border-muted-foreground/30 hover:text-primary bg-surface"
-            )}
-          >
-            <f.icon className="w-3 h-3" />
-            {f.label}
-            <span className="font-mono font-medium opacity-60">{f.count}</span>
-          </button>
-        ))}
+          {/* Clear button when filters are active */}
+          {hasActiveFilters && (
+            <button
+              onClick={clearAll}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:text-primary-red hover:border-primary-red/30 hover:bg-primary-red/5 transition-all ml-auto"
+            >
+              <X className="w-3.5 h-3.5" />
+              Clear all
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Results Info Bar ── */}

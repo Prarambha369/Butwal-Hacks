@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, Handshake } from "lucide-react";
 import {
   savePartner,
   deletePartner,
   type Partner,
 } from "@/lib/actions/partners";
+import { CloudinaryUpload } from "@/components/cloudinary-upload";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 
-const emptyForm = { name: "", logo_url: "", href: "", sort_order: 0, is_active: true };
+const emptyForm = { name: "", logo_url: "", cloudinary_public_id: "", href: "", sort_order: 0, is_active: true };
 
 export function PartnersClient({ initialPartners }: { initialPartners: Partner[] }) {
   const [partners, setPartners] = useState(initialPartners);
@@ -16,6 +19,7 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [partnerToRemove, setPartnerToRemove] = useState<Partner | null>(null);
 
   async function refresh() {
     const { getAllPartners } = await import("@/lib/actions/partners");
@@ -37,6 +41,7 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
     setForm({
       name: p.name,
       logo_url: p.logo_url ?? "",
+      cloudinary_public_id: p.cloudinary_public_id ?? "",
       href: p.href ?? "",
       sort_order: p.sort_order,
       is_active: p.is_active,
@@ -53,6 +58,7 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
         id: editingId === "new" ? undefined : (editingId ?? undefined),
         name: form.name,
         logo_url: form.logo_url || null,
+        cloudinary_public_id: form.cloudinary_public_id || null,
         href: form.href || null,
         sort_order: Number(form.sort_order) || 0,
         is_active: form.is_active,
@@ -76,9 +82,15 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
       {error && <p className="text-sm text-primary-red" role="alert">{error}</p>}
 
       {partners.length === 0 && !editingId && (
-        <p className="text-sm text-muted-foreground">
-          No partners yet. The homepage wall stays hidden until you add one.
-        </p>
+        <EmptyState
+          icon={<Handshake className="w-12 h-12" />}
+          mascot="welcome"
+          title="No partners yet"
+          description="The homepage partner wall stays hidden until you add a partner."
+          actions={[
+            { label: "Add partner", onClick: () => startAdd(), variant: "primary" },
+          ]}
+        />
       )}
 
       <div className="grid gap-3">
@@ -106,7 +118,7 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
               <Pencil className="h-4 w-4" />
             </button>
             <button type="button"
-              onClick={() => { if (confirm(`Remove ${p.name} from the wall?`)) deletePartner(p.id).then(refresh).catch((e) => setError(e instanceof Error ? e.message : "Delete failed")); }}
+              onClick={() => setPartnerToRemove(p)}
               aria-label={`Delete ${p.name}`}
               className="rounded-lg border border-border p-2 text-muted-foreground hover:text-primary-red hover:bg-surface-hover">
               <Trash2 className="h-4 w-4" />
@@ -138,10 +150,18 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
                 className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary-red/40" />
             </label>
             <label className="space-y-1 text-sm sm:col-span-2">
-              <span className="font-bold text-primary">Logo URL (https, optional — initials show otherwise)</span>
-              <input value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })}
-                placeholder="https://…" inputMode="url"
-                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary-red/40" />
+              <span className="font-bold text-primary">Logo (upload for both light and dark mode)</span>
+              <CloudinaryUpload
+                label="Upload partner logo"
+                entityType="gallery_photo"
+                currentImage={form.cloudinary_public_id ? undefined : form.logo_url}
+                onUpload={(url) => setForm({ ...form, logo_url: url, cloudinary_public_id: "" })}
+                onUploadResult={(result) => setForm({ ...form, logo_url: result.url, cloudinary_public_id: result.publicId })}
+                onError={(message) => setError(message)}
+              />
+              {form.logo_url && !form.cloudinary_public_id && (
+                <p className="text-xs text-muted-foreground mt-1">Legacy https URL — re-upload through the widget to manage both modes from Cloudinary.</p>
+              )}
             </label>
             <label className="space-y-1 text-sm sm:col-span-2">
               <span className="font-bold text-primary">Link URL (https, optional)</span>
@@ -165,6 +185,21 @@ export function PartnersClient({ initialPartners }: { initialPartners: Partner[]
             </button>
           </div>
         </form>
+      )}
+
+      {partnerToRemove && (
+        <ConfirmDialog
+          title="Remove partner from the wall?"
+          entityName={partnerToRemove.name}
+          consequence="The partner disappears from the public partner wall. You can add it back manually, preserving the rest of the wall."
+          confirmLabel="Remove partner"
+          onConfirm={() =>
+            deletePartner(partnerToRemove.id)
+              .then(refresh)
+              .catch((e) => setError(e instanceof Error ? e.message : "Delete failed"))
+          }
+          onClose={() => setPartnerToRemove(null)}
+        />
       )}
     </div>
   );
