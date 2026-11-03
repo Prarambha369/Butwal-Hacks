@@ -51,14 +51,16 @@ function VipForm({
   onDone,
   open,
   setOpen,
-  focusOnOpen = false,
+  focusSignal = 0,
 }: {
   onDone: () => void;
   open: boolean;
   setOpen: (open: boolean) => void;
-  focusOnOpen?: boolean;
+  /** Bumped by the parent on every activation; see the effect below. */
+  focusSignal?: number;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const lastFocusSignal = useRef(focusSignal);
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [quote, setQuote] = useState("");
@@ -66,11 +68,20 @@ function VipForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // `open` only ever flips once, so a second click on "Add VIP quote" while
+  // the form is already open would not re-run this and a keyboard user would
+  // stay wherever they were, with no announcement that the form is where they
+  // already are. The parent bumps `focusSignal` on every activation, so each
+  // new value re-runs the focus.
   useEffect(() => {
     if (!open) return;
-    const field = formRef.current?.querySelector<HTMLElement>('input, textarea, select');
-    if (focusOnOpen && field) field.focus();
-  }, [open, focusOnOpen]);
+    if (lastFocusSignal.current === focusSignal) return;
+    lastFocusSignal.current = focusSignal;
+    const field = formRef.current?.querySelector<HTMLElement>(
+      "input, textarea, select",
+    );
+    field?.focus();
+  }, [open, focusSignal]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -148,6 +159,13 @@ function VipForm({
 export default function TestimonialsClient({ initialQueue }: { initialQueue: ModeratedTestimonial[] }) {
   const [queue, setQueue] = useState(initialQueue);
   const [vipOpen, setVipOpen] = useState(false);
+  // Separate from `vipOpen`: opening the form and asking it to take focus are
+  // different events, and the second one has to fire again on every click.
+  const [vipFocus, setVipFocus] = useState(0);
+  const openVipForm = () => {
+    setVipOpen(true);
+    setVipFocus((n) => n + 1);
+  };
 
   async function refresh() {
     setQueue(await getTestimonialQueue());
@@ -174,7 +192,7 @@ export default function TestimonialsClient({ initialQueue }: { initialQueue: Mod
             Member submissions stay invisible until approved. VIP quotes publish instantly, featured.
           </p>
         </div>
-        <VipForm onDone={refresh} open={vipOpen} setOpen={setVipOpen} />
+        <VipForm onDone={refresh} open={vipOpen} setOpen={setVipOpen} focusSignal={vipFocus} />
       </div>
 
       <div className="space-y-3">
@@ -185,7 +203,7 @@ export default function TestimonialsClient({ initialQueue }: { initialQueue: Mod
             title="No testimonials yet"
             description="Member submissions will appear here once hackers share their experience."
             actions={[
-              { label: "Add VIP quote", onClick: () => setVipOpen(true), variant: "primary" },
+              { label: "Add VIP quote", onClick: openVipForm, variant: "primary" },
             ]}
           />
         )}

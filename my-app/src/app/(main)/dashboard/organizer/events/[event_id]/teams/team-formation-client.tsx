@@ -185,7 +185,7 @@ export function TeamFormationClient({
               error={nameError}
               labelClassName="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground"
             >
-              {({ id, "aria-describedby": describedBy, "aria-invalid": invalid }) => (
+              {({ id, "aria-describedby": describedBy, "aria-invalid": invalid, "aria-required": required }) => (
                 <input
                   id={id}
                   type="text"
@@ -200,6 +200,7 @@ export function TeamFormationClient({
                   autoFocus
                   aria-describedby={describedBy}
                   aria-invalid={invalid}
+                  aria-required={required}
                 />
               )}
             </FormField>

@@ -142,7 +142,7 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
         required
         error={formErrors.title ?? null}
       >
-        {({ id, "aria-describedby": describedBy, "aria-invalid": invalid }) => (
+        {({ id, "aria-describedby": describedBy, "aria-invalid": invalid, "aria-required": required }) => (
           <input
             id={id}
             type="text"
@@ -158,6 +158,7 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
             maxLength={200}
             aria-describedby={describedBy}
             aria-invalid={invalid}
+            aria-required={required}
           />
         )}
       </FormField>
@@ -218,7 +219,7 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
           <p className="text-[10px] text-secondary text-right">{description.length}/5000</p>
         }
       >
-        {({ id, "aria-describedby": describedBy, "aria-invalid": invalid }) => (
+        {({ id, "aria-describedby": describedBy, "aria-invalid": invalid, "aria-required": required }) => (
           <textarea
             id={id}
             value={description}
@@ -236,6 +237,7 @@ export default function OpportunityForm({ initialData }: OpportunityFormProps) {
             maxLength={5000}
             aria-describedby={describedBy}
             aria-invalid={invalid}
+            aria-required={required}
           />
         )}
       </FormField>
