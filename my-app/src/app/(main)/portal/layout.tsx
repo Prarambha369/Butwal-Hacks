@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-
 const DashboardSidebar = NextDynamic(() => import("@/components/dashboard-sidebar"));
 import { portalRedirect } from "@/lib/dashboard-access";
 
