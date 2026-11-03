@@ -3,6 +3,7 @@ import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
 import { PORTAL_ROLES } from "@/lib/dashboard-access";
+import { isDevAuthBypassEnabled } from "@/lib/dev-auth-bypass";
 
 function isCalendarHost(hostname: string): boolean {
   return (
@@ -16,7 +17,10 @@ export async function requireRole(
   pathname: string,
   allowedRoles: string[]
 ): Promise<NextResponse> {
-  if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
+  // Opt-in only. A blanket `NODE_ENV !== "production"` check turned this gate
+  // off for `next dev`, which is what Playwright runs, so the RBAC specs
+  // stopped seeing redirects. See lib/dev-auth-bypass.ts.
+  if (isDevAuthBypassEnabled()) {
     return NextResponse.next();
   }
   // Middleware must pass the request. The no-arg overload reads cookies via
@@ -105,7 +109,8 @@ export async function requireAnyAuth(
   request: NextRequest,
   pathname: string
 ): Promise<NextResponse> {
-  if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
+  // See requireRole: opt-in only, never implied by NODE_ENV alone.
+  if (isDevAuthBypassEnabled()) {
     return NextResponse.next();
   }
   // See requireRole: middleware needs the request-scoped overload.

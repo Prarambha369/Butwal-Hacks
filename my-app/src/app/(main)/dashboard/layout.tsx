@@ -1,6 +1,7 @@
 import { auth0 } from "@/lib/auth0"
 import { redirect } from "next/navigation"
 import { createServiceClient } from "@/utils/supabase"
+import { DEV_USER_ID, isDevAuthBypassEnabled } from "@/lib/dev-auth-bypass"
 
 export const dynamic = "force-dynamic";
 
@@ -11,11 +12,17 @@ export default async function DashboardLayout({
 }) {
   const session = await auth0.getSession()
 
-  if (!session?.user && process.env.NODE_ENV === 'production') {
+  // Without a session this used to permit the request only outside production,
+  // while `dashboard/hacker/layout.tsx` resolved the same request to the
+  // identity `none`. The parent created a profile for `dev-user` and the child
+  // looked up a different one, so the role guard bounced development traffic
+  // back to /dashboard/hacker. Both layouts now share one identity and one
+  // gate, from lib/dev-auth-bypass.ts.
+  if (!session?.user && !isDevAuthBypassEnabled()) {
     redirect("/auth/login")
   }
 
-  const userId = session?.user?.sub || 'dev-user'
+  const userId = session?.user?.sub || DEV_USER_ID
   const userEmail = session?.user?.email || `${userId}@placeholder.butwalhacks.com`
 
   // Bootstrap role for new profiles; privileged roles must be assigned
