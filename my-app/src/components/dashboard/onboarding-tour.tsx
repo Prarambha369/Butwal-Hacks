@@ -257,9 +257,11 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
   
   const tooltipLeft =
     targetRect && useAnchored ? targetRect.left + targetRect.width + 20 : null;
+  // Minimum top offset prevents the card from being clipped at the viewport edge
+  const MIN_TOP_OFFSET = 120;
   const tooltipTop =
     targetRect && useAnchored
-      ? targetRect.top + targetRect.height / 2
+      ? Math.max(targetRect.top + targetRect.height / 2, MIN_TOP_OFFSET)
       : null;
 
   const tooltipOverflows =
