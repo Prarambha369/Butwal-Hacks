@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { UsersRound, CodeXml, CalendarDays, FolderGit2, ArrowRight } from "lucide-react"
+import { UsersRound, CodeXml, CalendarDays, FolderGit2, Building2, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // ─── Animated Counter ──────────────────────────────────────────────
@@ -38,6 +38,7 @@ interface ExploreHeroProps {
   totalBuilders: number
   totalProjects: number
   totalEvents: number
+  totalSponsors?: number
 }
 
 // ─── Stat Items ────────────────────────────────────────────────────
@@ -47,12 +48,13 @@ const statItems = [
   { key: "builders", icon: CodeXml, label: "Builders", one: "Builder", color: "text-status-blue", bg: "bg-status-blue/10" },
   { key: "projects", icon: FolderGit2, label: "Projects", one: "Project", color: "text-status-green", bg: "bg-status-green/10" },
   { key: "events", icon: CalendarDays, label: "Events", one: "Event", color: "text-status-yellow", bg: "bg-status-yellow/10" },
+  { key: "sponsors", icon: Building2, label: "Sponsors", one: "Sponsor", color: "text-status-teal", bg: "bg-status-teal/10" },
 ] as const
 
 // ─── Main Component ────────────────────────────────────────────────
 
-export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalEvents }: ExploreHeroProps) {
-  const stats = { members: totalMembers, builders: totalBuilders, projects: totalProjects, events: totalEvents }
+export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalEvents, totalSponsors }: ExploreHeroProps) {
+  const stats = { members: totalMembers, builders: totalBuilders, projects: totalProjects, events: totalEvents, sponsors: totalSponsors ?? 0 }
 
   // A row of zeros is a worse first impression than no row at all. Only
   // counts with something behind them are shown; the copy below carries the

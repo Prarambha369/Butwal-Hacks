@@ -20,7 +20,7 @@ Measured inventory of the authenticated segment: `my-app/src/app/(main)/dashboar
 | /dashboard/hacker/projects | hacker | dashboard/hacker/projects/page.tsx | server | noindex L9 | ancestor | yes (H:56) |
 | /dashboard/hacker/certificates | hacker | dashboard/hacker/certificates/page.tsx | server | noindex L8 | ancestor | yes (H:62) |
 | /dashboard/hacker/team-matching | hacker | dashboard/hacker/team-matching/page.tsx | server | index (generateMetadata L9) | ancestor | yes (H:74) |
-| /dashboard/hacker/api-keys | hacker | dashboard/hacker/api-keys/page.tsx | client L1 | none (L10) | ancestor | yes (H:80) |
+
 | /dashboard/hacker/skills | hacker | dashboard/hacker/skills/page.tsx | server | index L7-8 | ancestor | yes (H:86) |
 | /dashboard/hacker/chat | hacker | dashboard/hacker/chat/page.tsx | server | index L7-8 | ancestor | yes (H:92) |
 | /dashboard/hacker/teams | hacker | dashboard/hacker/teams/page.tsx | server | noindex L8 | ancestor | no (nav sends to `/teams`, H:68) |
@@ -39,7 +39,7 @@ Measured inventory of the authenticated segment: `my-app/src/app/(main)/dashboar
 | /dashboard/organizer/work | organizer | dashboard/organizer/work/page.tsx | server | noindex L9 | ancestor | yes (O:40) |
 | /dashboard/organizer/issue-marker | organizer | dashboard/organizer/issue-marker/page.tsx | server | noindex L10 | ancestor | yes (O:46) |
 | /dashboard/organizer/certificates/templates | organizer | dashboard/organizer/certificates/templates/page.tsx | server | noindex L17 | ancestor | yes (O:55) |
-| /dashboard/organizer/api-keys | organizer | dashboard/organizer/api-keys/page.tsx | server | noindex L11 | own | yes (O:61) |
+
 | /dashboard/maintainer | maintainer | dashboard/maintainer/page.tsx | server | noindex L22 | own | yes (M:37) |
 | /dashboard/maintainer/users | maintainer | dashboard/maintainer/users/page.tsx | server | noindex L6 | ancestor | yes (M:43) |
 | /dashboard/maintainer/system-check | maintainer | dashboard/maintainer/system-check/page.tsx | server | none | ancestor | yes (M:49) |
@@ -75,7 +75,7 @@ Counts: 51 pages, 49 server / 2 client; 32 `noindex`, 16 `index`, 3 `none` (19 o
 | Certificates | /dashboard/hacker/certificates | FileText | c | 61-66 |
 | Teams | **/teams (off-dashboard)** | Users | t | 67-72 |
 | AI Team Match | /dashboard/hacker/team-matching | UsersRound | m | 73-78 |
-| API Keys | /dashboard/hacker/api-keys | Key | k | 79-84 |
+
 | Skill Trees | /dashboard/hacker/skills | GitBranch | s | 85-90 |
 | Team Chat | /dashboard/hacker/chat | MessageSquare | x | 91-96 |
 
@@ -88,7 +88,7 @@ Counts: 51 pages, 49 server / 2 client; 32 `noindex`, 16 `index`, 3 `none` (19 o
 | Team Work | /dashboard/organizer/work | KanbanSquare | w | 39-44 |
 | Issue Marker | /dashboard/organizer/issue-marker | MapPin | i | 45-50 |
 | Certificate Templates | /dashboard/organizer/certificates/templates | LayoutTemplate | t | 51-59 |
-| API Keys | /dashboard/organizer/api-keys | KeyRound | k | 60-65 |
+
 
 ### 2c. `M` `maintainerLinks` (M:35-108) - 12 items
 
@@ -116,9 +116,7 @@ Counts: 51 pages, 49 server / 2 client; 32 `noindex`, 16 `index`, 3 `none` (19 o
 | Bounties | /portal/bounties | Briefcase | 28-32 |
 | Company Profile | /portal/sponsors/company | Building2 | 33-37 |
 
-### 2e. Duplication and type findings
-
-- Shared hrefs across the four arrays: **none**. Shared labels: `Overview` x3 (H:39, O:29, P:20); `API Keys` x2 (H:81, O:62).
+### 2e. Duplication and type findings  - Shared hrefs across the four arrays: **none**. Shared labels: `Overview` x3 (H:39, O:29, P:20).
 - Shortcut collisions across arrays: `c` (H:64 / M:39), `k` (H:82 / O:63 / M:51), `w` (H:52 / O:42 / M:81), `p` (H:58 / M:75), `t` (H:70 / O:57 / M:63), `s` (H:88 / M:69). These collide in practice because `roleRedirect` lets maintainer and organizer enter the hacker tree (H:138) and the palette listens globally (`src/hooks/use-dashboard-shortcuts.ts:18`).
 - Off-dashboard hrefs: `/teams` (H:68), `/api-docs` (M:97).
 - A fifth copy of the inventory lives in `src/components/dashboard/tool-guide-section.tsx:59-267` (7 hacker + 5 organizer + 7 maintainer + 4 portal hrefs), rendered by `dashboard/page.tsx:6`.
@@ -150,7 +148,7 @@ Notes: the hacker layout adds two count queries on every hacker route (H:149-158
 ## 4. Client/server split
 
 - `"use client"` files: **27** - 23 under `dashboard/`, 4 under `portal/` (`portal/sponsors/company/sponsor-company-form.tsx:1`, `portal/payouts/payouts-client.tsx:1`, `portal/bounties/opportunity-form.tsx:1`, `portal/bounties/opportunities-manager.tsx:1`). Of the 51 pages, **2 are client components**:
-  - `dashboard/hacker/api-keys/page.tsx` (L1): state + `useEffect` fetch to `/api/v1/api-keys` (L29-45); metadata disabled because of the directive (L10). Plausibly a server page: `dashboard/organizer/api-keys/page.tsx:15-32` is the server-side equivalent (fetch server-side, render `generate-key-form.tsx` and `api-key-list.tsx` as client children).
+  - (API keys page removed — was `dashboard/hacker/api-keys/page.tsx` and `dashboard/organizer/api-keys/page.tsx`.)
   - `dashboard/maintainer/dedicate-school/page.tsx` (L1): form state only plus the `dedicateSchool` server action (L32-58, `src/lib/actions/admin.ts:290`); no browser API. Plausibly a server page wrapping a client `<DedicateSchoolForm>` child; would also restore the metadata export it documents as disabled (L30).
 - The other 25 client files are already state-only children (`*-client.tsx`, `*-button.tsx`, `*-editor.tsx` patterns), which is the correct split.
 
@@ -175,7 +173,7 @@ Notes: the hacker layout adds two count queries on every hacker route (H:149-158
 | dashboard/organizer/layout.tsx:76 | session L73; `organizerRedirect` L99 |
 | dashboard/organizer/page.tsx:18 | session redirect L16; profile redirect L27 |
 | dashboard/organizer/work/page.tsx:19 | session redirect L15; profile redirect L28 |
-| dashboard/organizer/api-keys/page.tsx:21 | session redirect L19 |
+
 | dashboard/organizer/events/page.tsx:20 | session redirect L18 |
 | dashboard/organizer/certificates/templates/page.tsx:43 | session redirect L41; `EDITOR_ROLES` check L50 |
 | dashboard/organizer/events/[event_id]/page.tsx:37 | **none in file** - no `auth0` import; event fetched by id L39-47, no ownership check |

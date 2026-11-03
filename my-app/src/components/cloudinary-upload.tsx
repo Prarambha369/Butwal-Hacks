@@ -14,7 +14,8 @@ export type CloudinaryEntityType =
   | "project_cover"
   | "blog_cover"
   | "gallery_photo"
-  | "certificate";
+  | "certificate"
+  | "sponsor_logo";
 
 interface CloudinaryUploadProps {
   onUpload?: (url: string) => void;
@@ -420,7 +421,7 @@ export function CloudinaryUpload({
                 <span className="text-xs font-medium">{label}</span>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface/10 border border-border text-[10px] text-secondary font-mono">
                   <CropIcon className="w-3 h-3" />{" "}
-                  {entityType === "avatar" ? "1:1" : "16:9"} — crop after select
+                  {entityType === "avatar" || entityType === "sponsor_logo" ? "1:1" : "16:9"} — crop after select
                 </span>
               </button>
             )}
@@ -450,7 +451,7 @@ export function CloudinaryUpload({
           file={cropFile}
           onConfirm={handleCropConfirm}
           onCancel={handleCropCancel}
-          aspectRatio={entityType === "avatar" ? 1 : 16 / 9}
+          aspectRatio={entityType === "avatar" || entityType === "sponsor_logo" ? 1 : 16 / 9}
         />
       )}
     </div>

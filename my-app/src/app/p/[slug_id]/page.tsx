@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/seo";
 import { Metadata } from "next";
 import ProfileClient from "@/components/hacker-id/profile-client";
 import { getUserProjects } from "@/lib/actions/projects";
-import { getProfileUnlockedSkills } from "@/lib/actions/skill-trees";
+import { getProfileUnlockedSkills } from "@/lib/skill-trees";
 
 // ISR: cache profile for 60s, revalidate on next request if stale.
 // Gives static speed for recruiters browsing profiles while keeping

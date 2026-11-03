@@ -1,4 +1,5 @@
 import { Briefcase, ExternalLink, MapPin, DollarSign, Clock } from "lucide-react";
+import Image from "next/image";
 
 export interface OpportunityWithSponsor {
   id: string
@@ -115,8 +116,12 @@ export default function OpportunitySections({
                     {/* Company logo */}
                     {opp.sponsor_profiles?.company_logo_url && (
                       <div className="w-12 h-12 rounded-xl bg-surface/20 overflow-hidden flex-shrink-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={opp.sponsor_profiles.company_logo_url} alt={opp.sponsor_profiles.company_name || "Company logo"} className="w-full h-full object-cover" />
+                        <Image
+                          src={opp.sponsor_profiles.company_logo_url}
+                          alt={opp.sponsor_profiles.company_name || "Company logo"}
+                          fill
+                          className="object-cover"
+                        />
                       </div>
                     )}
                     <div className="min-w-0 flex-1 space-y-2">

@@ -2,10 +2,12 @@
 
 import React, { useState } from "react";
 import { Building2, Globe, MapPin, Hash, Save, AlertCircle } from "lucide-react";
+import Image from "next/image";
+import { CloudinaryUpload } from "@/components/cloudinary-upload";
 import { toast } from "sonner";
 import { upsertSponsorProfile } from "@/lib/actions/sponsor-profile";
 import { TagInput } from "@/components/ui/tag-input";
-import { getSocialLinkError, normalizeSocialUrl } from "@/lib/validation";
+import { getSocialLinkError } from "@/lib/validation";
 
 interface InitialData {
   companyName: string;
@@ -31,7 +33,6 @@ export default function SponsorCompanyForm({
   const [industries, setIndustries] = useState<string[]>(initialData.industries);
   const [saving, setSaving] = useState(false);
   const [websiteError, setWebsiteError] = useState<string | null>(null);
-  const [logoUrlError, setLogoUrlError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,10 +43,8 @@ export default function SponsorCompanyForm({
 
     // Validate URLs before submitting
     const websiteErr = companyWebsite.trim() ? getSocialLinkError('website', companyWebsite) : null;
-    const logoErr = companyLogoUrl.trim() ? normalizeSocialUrl(companyLogoUrl) === null ? 'Enter a valid logo URL (e.g., https://example.com/logo.png)' : null : null;
     setWebsiteError(websiteErr);
-    setLogoUrlError(logoErr);
-    if (websiteErr || logoErr) {
+    if (websiteErr) {
       toast.error("Please fix the URL errors before saving");
       return;
     }
@@ -79,8 +78,7 @@ export default function SponsorCompanyForm({
         <div className="flex items-center gap-4 p-4 rounded-xl bg-surface/10 border border-border">
           <div className="w-16 h-16 rounded-xl bg-surface/20 flex items-center justify-center overflow-hidden">
             {companyLogoUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={companyLogoUrl} alt="Logo" className="w-full h-full object-cover" />
+              <Image src={companyLogoUrl} alt="Logo" fill className="object-cover" />
             ) : (
               <Building2 size={24} className="text-secondary" />
             )}
@@ -132,29 +130,14 @@ export default function SponsorCompanyForm({
         )}
       </div>
 
-      {/* Logo URL */}
-      <div>
-        <label className="text-xs font-bold uppercase tracking-wider text-secondary flex items-center gap-2">
-          <Building2 size={14} /> Logo URL
-        </label>
-        <input
-          type="url"
-          value={companyLogoUrl}
-          onChange={(e) => {
-            setCompanyLogoUrl(e.target.value);
-            if (logoUrlError) setLogoUrlError(null);
-          }}
-          placeholder="https://res.cloudinary.com/.../logo.png"
-          className={`mt-1.5 w-full rounded-xl bg-surface/10 border px-4 py-2.5 text-sm text-primary placeholder:text-secondary focus:outline-none transition-all ${logoUrlError ? 'border-primary-red/50 focus:border-primary-red' : 'border-border focus:border-bh-red-500/50'}`}
-          maxLength={2048}
-        />
-        {logoUrlError && (
-          <p className="mt-1 text-xs text-primary-red flex items-center gap-1">
-            <AlertCircle size={12} />
-            {logoUrlError}
-          </p>
-        )}
-      </div>
+      {/* Logo upload */}
+      <CloudinaryUpload
+        label="Upload company logo"
+        entityType="sponsor_logo"
+        currentImage={companyLogoUrl ?? undefined}
+        onUpload={(url) => setCompanyLogoUrl(url)}
+        onError={(msg) => toast.error(msg)}
+      />
 
       {/* Description */}
       <div>

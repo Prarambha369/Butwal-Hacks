@@ -354,6 +354,87 @@ export async function closeEvent(eventId: string) {
   }
 }
 
+/**
+ * Change an event's banner after creation.
+ *
+ * Authorization is explicit: `createServiceClient()` bypasses RLS, so without
+ * the ownership check below this would be a public endpoint that can rewrite
+ * any event's banner. The caller must own the event or be a verified
+ * maintainer.
+ *
+ * An empty string clears the banner (removes it). A Cloudinary URL replaces
+ * it. Other values are rejected.
+ */
+export async function updateEventBanner(eventId: string, bannerUrl: string) {
+  try {
+    const supabase = createServiceClient()
+    const profileId = await resolveProfileId()
+
+    const { data: event } = await supabase
+      .from("events")
+      .select("organizer_id, banner_url")
+      .eq("id", eventId)
+      .single()
+
+    if (!event) {
+      return { success: false, error: "Event not found." }
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, email")
+      .eq("id", profileId)
+      .single()
+
+    const email = profile?.email ?? ""
+    const isMaintainer =
+      profile?.role === "maintainer" && email.toLowerCase().endsWith("@butwalhacks.com")
+
+    if (!isMaintainer && event.organizer_id !== profileId) {
+      logger.warn("[events] banner change refused: not the organizer", {
+        event_id: eventId,
+        actor: profileId,
+      })
+      return { success: false, error: "Only the event organizer can change its banner." }
+    }
+
+    // Only accept a Cloudinary URL or an explicit empty-string removal.
+    const trimmed = bannerUrl.trim()
+    if (trimmed !== "" && !trimmed.startsWith("https://res.cloudinary.com/")) {
+      return {
+        success: false,
+        error: "Banner uploads must come from the uploader below.",
+      }
+    }
+
+    if (trimmed === event.banner_url) {
+      return { success: true, unchanged: true }
+    }
+
+    const { error } = await supabase
+      .from("events")
+      .update({ banner_url: trimmed || null })
+      .eq("id", eventId)
+
+    if (error) throw error
+
+    revalidatePath("/dashboard/organizer/events")
+    revalidatePath(`/events/${eventId}`)
+
+    return {
+      success: true,
+      banner_url: trimmed || null,
+      removed: trimmed === "",
+    }
+  } catch (error) {
+    logger.error("Error updating event banner:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update banner",
+    }
+  }
+}
+
 export async function submitEventFeedback(eventId: string, rating: number, comment: string) {
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return { success: false, error: "Rating must be between 1 and 5" }

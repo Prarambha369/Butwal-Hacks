@@ -64,7 +64,6 @@ const statItems = [
   { key: "total_hackers", labelKey: "home.stats.members", oneKey: "home.stats.member_one", rule: "bg-primary-red" },
   { key: "total_events", labelKey: "home.stats.events", oneKey: "home.stats.event_one", rule: "bg-status-blue" },
   { key: "total_projects", labelKey: "home.stats.projects", oneKey: "home.stats.project_one", rule: "bg-status-green" },
-  { key: "total_trust_markers", labelKey: "home.stats.credentials", oneKey: "home.stats.credential_one", rule: "bg-status-yellow" },
 ] as const;
 
 export default function LiveStatsCounter() {

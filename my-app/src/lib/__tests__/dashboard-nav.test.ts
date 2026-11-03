@@ -18,10 +18,6 @@ const INLINE_HREFS = [
   "/dashboard/hacker/certificates",
   "/teams",
   "/dashboard/hacker/team-matching",
-  "/dashboard/hacker/api-keys",
-  "/dashboard/hacker/skills",
-  "/dashboard/hacker/connections",
-  "/dashboard/hacker/chat",
 ];
 
 // Hrefs of the four inline layout arrays this module replaces, in their order.
@@ -33,7 +29,6 @@ const EXPECTED: Record<string, string[]> = {
     "/dashboard/organizer/work",
     "/dashboard/organizer/issue-marker",
     "/dashboard/organizer/certificates/templates",
-    "/dashboard/organizer/api-keys",
   ],
   maintainerNav: [
     "/dashboard/maintainer",

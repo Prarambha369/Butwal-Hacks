@@ -25,11 +25,6 @@ export function MemberCard({
   member: ExplorerMember
   isHighlighted?: boolean
 }) {
-  // Availability is what the member opted into, nothing else. Treating the
-  // Mentor *role* as an opt-in showed AVAILABLE to mentors who never selected
-  // it, and the directory's own availability filters excluded them -- so the
-  // card advertised something the filter would then hide.
-  const isAvailable = member.openToMentor || member.lookingForTeam
   const githubUrl = member.githubUrl
   const websiteUrl = member.websiteUrl
   const linkedinUrl = member.linkedinUrl
@@ -40,15 +35,6 @@ export function MemberCard({
       isHighlighted && "ring-2 ring-primary-red/30",
     )}
     >
-      {isAvailable && (
-        <div className="absolute top-0 right-0 flex items-center gap-1.5">
-          <div className="flex items-center gap-1 bg-status-green/10 text-status-green text-[9px] font-bold px-2 py-1 rounded-bl-xl border-b border-l border-status-green/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-status-green animate-pulse" />
-            AVAILABLE
-          </div>
-        </div>
-      )}
-
       <div className="flex items-start gap-4">
         {/* Avatar */}
         <Link href={`/p/${member.bhId}`} className="relative w-14 h-14 shrink-0 rounded-full overflow-hidden ring-2 ring-primary-red/20">

@@ -245,6 +245,8 @@ export const SKILL_TREES: SkillTree[] = [
   },
 ];
 
+import { createServiceClient } from "@/utils/supabase";
+
 export type SkillStatus = "locked" | "available" | "in_progress" | "unlocked";
 
 export interface SkillWithStatus extends SkillNode {
@@ -266,3 +268,62 @@ export interface SkillTreeWithStatus extends Omit<SkillTree, "tiers"> {
  * Import this from any component that needs to render skill icons.
  */
 // SKILL_ICONS removed — UI components render icons directly.
+
+/**
+ * Fetch unlocked micro-credentials for a specific profile (for the public Hacker ID profile page).
+ * Returns the list of unlocked skills with their details and icons from SKILL_TREES.
+ */
+export async function getProfileUnlockedSkills(profileId: string) {
+  const supabase = createServiceClient();
+
+  const { data: unlocked } = await supabase
+    .from("profile_micro_credentials")
+    .select("credential_id, unlocked_at")
+    .eq("profile_id", profileId);
+
+  if (!unlocked || unlocked.length === 0) {
+    return { unlockedSkills: [], totalUnlocked: 0, totalSkills: SKILL_TREES.reduce((s, t) => s + t.tiers.reduce((st, ti) => st + ti.skills.length, 0), 0) };
+  }
+
+  const unlockedIds = new Set(unlocked.map((u) => u.credential_id));
+
+  const unlockedSkills: Array<{
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    treeName: string;
+    treeColor: string;
+    unlockedAt: string;
+  }> = [];
+
+  for (const tree of SKILL_TREES) {
+    for (const tier of tree.tiers) {
+      for (const skill of tier.skills) {
+        if (unlockedIds.has(skill.id)) {
+          const record = unlocked.find((u) => u.credential_id === skill.id);
+          unlockedSkills.push({
+            id: skill.id,
+            name: skill.name,
+            description: skill.description,
+            icon: skill.icon,
+            treeName: tree.name,
+            treeColor: tree.color,
+            unlockedAt: record?.unlocked_at ?? "",
+          });
+        }
+      }
+    }
+  }
+
+  const totalSkills = SKILL_TREES.reduce(
+    (s, t) => s + t.tiers.reduce((st, ti) => st + ti.skills.length, 0),
+    0
+  );
+
+  return {
+    unlockedSkills,
+    totalUnlocked: unlockedSkills.length,
+    totalSkills,
+  };
+}

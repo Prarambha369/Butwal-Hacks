@@ -202,6 +202,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
     }
 
+    // Sponsor profiles from DB (public sponsor pages)
+    const { data: sponsorProfiles } = await supabase
+      .from('sponsor_profiles')
+      .select('id, company_name, created_at')
+      .limit(500)
+
+    for (const sp of sponsorProfiles ?? []) {
+      entries.push({
+        url: `${siteUrl}/sponsor/${sp.id}`,
+        lastModified: sp.created_at ? new Date(sp.created_at) : today,
+        changeFrequency: 'monthly',
+        priority: 0.6,
+      })
+    }
+
     // Teams from DB
     const { data: teams } = await supabase
       .from('teams')

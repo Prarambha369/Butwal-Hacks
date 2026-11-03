@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowRight } from "lucide-react"
 import { formatDualDate } from "@/lib/nepali-date"
 import { Ballu } from "@/components/mascot/ballu"
@@ -111,73 +112,102 @@ function EventCard({ event, filter }: { event: EventItem; filter: FilterMode }) 
     setNow(Date.now())
   }, [])
   const startDate = new Date(event.start_date)
+  const endDate = new Date(event.end_date)
   const isLive =
     filter === "upcoming" &&
     now !== null &&
     startDate.getTime() <= now &&
-    new Date(event.end_date).getTime() >= now
+    endDate.getTime() >= now
 
   const formatDate = (d: Date) => formatDualDate(d)
+  const durationDays = Math.round(
+    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+  )
+
+  const hasBanner = Boolean(event.banner_url && event.banner_url.trim().length > 0)
 
   return (
-    <article className="group bh-card p-7 transition-all hover:border-primary-red/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary-red/5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-3 flex-1 min-w-0">
-          {/* Badge row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {isLive ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/10 text-primary-red text-[10px] font-bold border border-primary-red/20">
-                <span className="inline-flex rounded-full h-1.5 w-1.5 bg-bh-red-500" />
-                Live
-              </span>
-            ) : filter === "upcoming" ? (
-              <span className="px-3 py-1 rounded-full bg-primary-red/5 text-primary-red/70 text-[10px] font-bold border border-primary-red/10">
-                Upcoming
-              </span>
-            ) : (
-              <span className="px-3 py-1 rounded-full bg-surface-hover text-muted-foreground text-[10px] font-bold">
-                Completed
-              </span>
-            )}
-
-            {/* Countdown for upcoming */}
-            {filter === "upcoming" && !isLive && (
-              <CountdownTimer targetDate={event.start_date} />
-            )}
+    <article className="group relative overflow-hidden rounded-xl border border-border bg-surface transition-all hover:border-primary-red/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary-red/5">
+      {/* Banner strip — Devpost-style visual lead */}
+      {hasBanner ? (
+        <div className="relative overflow-hidden">
+          <Image
+            src={event.banner_url!}
+            alt={event.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority={false}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-background/10" />
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <h2 className="text-xl font-black leading-tight text-primary group-hover:text-primary-red transition-colors">
+              {event.title}
+            </h2>
           </div>
+        </div>
+      ) : (
+        <div className="h-48 bg-primary-red/5" />
+      )}
 
-          <h2 className="text-2xl font-bold text-primary group-hover:text-primary-red transition-colors">
-            {event.title}
-          </h2>
+      {/* Body */}
+      <div className="p-5 space-y-3">
+        {/* Badge + countdown row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {isLive ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-red/10 text-primary-red text-[10px] font-bold border border-primary-red/20">
+              <span className="inline-flex rounded-full h-1.5 w-1.5 bg-bh-red-500" />
+              Live
+            </span>
+          ) : filter === "upcoming" ? (
+            <span className="px-3 py-1 rounded-full bg-primary-red/5 text-primary-red/70 text-[10px] font-bold border border-primary-red/10">
+              Upcoming
+            </span>
+          ) : (
+            <span className="px-3 py-1 rounded-full bg-surface-hover text-muted-foreground text-[10px] font-bold">
+              Completed
+            </span>
+          )}
 
-          {/* Plain-text meta facts (free / place / date). AI answer engines
-              read these directly off the card, so each fact stays as real
-              text — no icon-only badge hides the word. */}
-          <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
-            <span>Free</span>
-            <span aria-hidden="true">·</span>
-            {event.location && (
-              <>
-                <span>{event.location}</span>
-                <span aria-hidden="true">·</span>
-              </>
-            )}
-            <time dateTime={event.start_date}>{formatDate(startDate)}</time>
-          </p>
+          {filter === "upcoming" && !isLive && (
+            <CountdownTimer targetDate={event.start_date} />
+          )}
 
-          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-            {event.description}
-          </p>
+          {durationDays > 0 && (
+            <span className="px-3 py-1 rounded-full bg-surface-hover text-muted-foreground text-[10px] font-bold">
+              {durationDays}d
+            </span>
+          )}
+        </div>
+
+        {/* Plain-text meta facts. Kept as real text so answer engines can quote
+            Free / location / date directly off the card. */}
+        <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
+          <span>Free</span>
+          <span aria-hidden="true">·</span>
+          {event.location && (
+            <>
+              <span>{event.location}</span>
+              <span aria-hidden="true">·</span>
+            </>
+          )}
+          <time dateTime={event.start_date}>{formatDate(startDate)}</time>
+        </p>
+
+        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+          {event.description}
+        </p>
+
+        <div className="mt-2 flex justify-start">
+          <Link
+            href={`/events/${event.slug}`}
+            className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2 text-sm font-bold text-white hover:bg-deep-red transition-all group/link"
+          >
+            View details
+            <ArrowRight className="w-4 h-4 transition-transform group-hover/link:translate-x-1" />
+          </Link>
         </div>
       </div>
-
-      <Link
-        href={`/events/${event.slug}`}
-        className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-primary-red hover:text-primary-red transition-colors group/link"
-      >
-        View details
-        <ArrowRight className="w-4 h-4 transition-transform group-hover/link:translate-x-1" />
-      </Link>
     </article>
   )
 }

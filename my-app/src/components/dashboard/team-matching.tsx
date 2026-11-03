@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Users, Search, Zap, RefreshCw, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import { Skeleton, FeedSkeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import type { TeamMatchResult } from "@/lib/actions/team-matching";
@@ -94,11 +95,11 @@ export default function TeamMatching() {
                   {/* Avatar */}
                   <div className="relative w-10 h-10 rounded-full overflow-hidden bg-surface/20 ring-2 ring-border/30 shrink-0">
                     {candidate.avatar_url ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
+                      <Image
                         src={candidate.avatar_url}
                         alt={candidate.full_name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-sm font-bold text-muted-foreground">

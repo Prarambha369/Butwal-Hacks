@@ -8,6 +8,7 @@ import { ExplorerClient } from "./explorer-client"
 import { ExploreCta } from "./explore-cta"
 import { ExploreHero } from "./explore-hero"
 import { CommunityPlatforms } from "@/components/community/community-platforms"
+import SponsorsSection from "@/components/sponsor/sponsors-section"
 import { TestimonialsSection } from "@/components/testimonials"
 import TestimonialForm from "@/components/community/testimonial-form"
 import ExcuseGenerator from "@/components/home/excuse-generator"
@@ -26,7 +27,12 @@ export const metadata: Metadata = buildPageMetadata({
 export default async function ExplorePage() {
   const supabase = createServiceClient();
   // Independent reads run in parallel so one slow query never stalls the page.
-  const [explorerMembers] = await Promise.all([fetchExplorerMembers(supabase)]);
+  const [explorerMembers, { count: sponsorProfileCount }] = await Promise.all([
+    fetchExplorerMembers(supabase),
+    supabase
+      .from("sponsor_profiles")
+      .select("id", { count: "exact", head: true }),
+  ]);
   const stats = getExplorerStats(explorerMembers);
 
   return (
@@ -51,6 +57,7 @@ export default async function ExplorePage() {
           totalBuilders={stats.byRole.Builder}
           totalProjects={stats.totalProjects}
           totalEvents={stats.totalEvents}
+          totalSponsors={sponsorProfileCount ?? 0}
         />
 
         {/* ── MEMBER DIRECTORY ────────────────────────────────────── */}
@@ -80,11 +87,12 @@ export default async function ExplorePage() {
           </div>
         </section>
 
-        {/* ── WHERE WE HANG OUT (migrated from /community) ──────────── */}
-        <CommunityPlatforms />
+        {/* ── WHERE WE HANG OUT (migrated from /community) ──────────── */}        <CommunityPlatforms />
 
-        {/* ── TESTIMONIALS (migrated from /community — sole surface) ── */}
-        <TestimonialsSection />
+        {/* ── SPONSORS ─────────────────────────────────────────── */}
+        <SponsorsSection />
+
+        {/* ── TESTIMONIALS (migrated from /community — sole surface) ── */}<TestimonialsSection />
         <div className="mx-auto max-w-6xl px-4 pb-4">
           <TestimonialForm />
         </div>

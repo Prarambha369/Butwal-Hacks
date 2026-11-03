@@ -101,11 +101,11 @@ Landing, blog, chapters, about, community, contact, cookie policy, events, explo
 
 #### Zone 4: hacker dashboard
 
-`/dashboard/hacker` with the XP bar, upcoming events, and activity feed. Plus `/work` for the Kanban board, `/api-keys`, `/projects`, and `/team-matching`.
+`/dashboard/hacker` with the XP bar, upcoming events, and activity feed. Plus `/work` for the Kanban board, `/projects`, and `/team-matching`.
 
 #### Zone 5: organizer dashboard
 
-`/dashboard/organizer` overview, `/events/[event_id]` detail with check-in, `/api-keys`, and `/issue-marker`.
+`/dashboard/organizer` overview, `/events/[event_id]` detail with check-in, and `/issue-marker`.
 
 #### Zone 6: maintainer dashboard
 
@@ -132,7 +132,7 @@ Landing, blog, chapters, about, community, contact, cookie policy, events, explo
 | `/api/events/register` | Event registration |
 | `/api/events/[eventId]/registrations` | Roster; organizer or maintainer only, carries PII, served `Cache-Control: private` |
 | `/api/v1/profile/[slugId]` | Profile data |
-| `/api/v1/api-keys`, `/api/v1/issue-marker` | API keys and trust marker issuance |
+| `/api/v1/issue-marker` | Trust marker issuance |
 | `/api/verify/[bhId]`, `/api/badges/*` | Credential verification and badge issuance |
 | `/api/webhooks/auth0` | User sync webhook |
 | `/api/webhooks/opencollective` | Signature-verified `expense.*` webhook |
