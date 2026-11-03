@@ -22,11 +22,27 @@ import {
   Code2,
   Users,
   Key,
+  KeyRound,
   UsersRound,
   FileText,
   KanbanSquare,
   GitBranch,
   MessageSquare,
+  CalendarDays,
+  MapPin,
+  LayoutTemplate,
+  Terminal,
+  ScrollText,
+  ShieldCheck,
+  Stethoscope,
+  Settings2,
+  BookOpen,
+  GraduationCap,
+  Image as ImageIcon,
+  Handshake,
+  Search,
+  Briefcase,
+  Building2,
 } from "lucide-react";
 
 export interface NavItem {
@@ -38,7 +54,7 @@ export interface NavItem {
 }
 
 // Icons use createElement because this is a .ts module, where JSX is not valid.
-export const hackerNav: readonly NavItem[] = [
+export const hackerNav: NavItem[] = [
   {
     href: "/dashboard/hacker",
     label: "Overview",
@@ -108,5 +124,176 @@ export const hackerNav: readonly NavItem[] = [
     shortcut: "x",
     icon: createElement(MessageSquare, { className: "w-4 h-4" }),
     section: "Collaboration",
+  },
+];
+
+export const organizerNav: NavItem[] = [
+  {
+    href: "/dashboard/organizer",
+    label: "Overview",
+    shortcut: "o",
+    icon: createElement(LayoutDashboard, { className: "w-4 h-4" }),
+    section: "Workspace",
+  },
+  {
+    href: "/dashboard/organizer/events",
+    label: "Events",
+    shortcut: "e",
+    icon: createElement(CalendarDays, { className: "w-4 h-4" }),
+    section: "Workspace",
+  },
+  {
+    href: "/dashboard/organizer/work",
+    label: "Team Work",
+    shortcut: "w",
+    icon: createElement(KanbanSquare, { className: "w-4 h-4" }),
+    section: "Workspace",
+  },
+  {
+    href: "/dashboard/organizer/issue-marker",
+    label: "Issue Marker",
+    shortcut: "i",
+    icon: createElement(MapPin, { className: "w-4 h-4" }),
+    section: "Tools",
+  },
+  {
+    // Was reachable only by typing the URL. It is a shipped feature -- the
+    // editor, roster import, bulk issue and domain send all live here -- so
+    // hiding it in the nav made it look unfinished to organizers. Comment
+    // carried over from the inline array this was extracted from.
+    href: "/dashboard/organizer/certificates/templates",
+    label: "Certificate Templates",
+    shortcut: "t",
+    icon: createElement(LayoutTemplate, { className: "w-4 h-4" }),
+    section: "Tools",
+  },
+  {
+    href: "/dashboard/organizer/api-keys",
+    label: "API Keys",
+    shortcut: "k",
+    icon: createElement(KeyRound, { className: "w-4 h-4" }),
+    section: "Credentials",
+  },
+];
+
+export const maintainerNav: NavItem[] = [
+  {
+    href: "/dashboard/maintainer",
+    label: "Command Center",
+    shortcut: "c",
+    icon: createElement(Terminal, { className: "w-4 h-4" }),
+    section: "Admin",
+  },
+  {
+    href: "/dashboard/maintainer/users",
+    label: "Users",
+    shortcut: "u",
+    icon: createElement(Users, { className: "w-4 h-4" }),
+    section: "Admin",
+  },
+  {
+    href: "/dashboard/maintainer/system-check",
+    label: "System Check",
+    shortcut: "k",
+    icon: createElement(Stethoscope, { className: "w-4 h-4" }),
+    section: "Admin",
+  },
+  {
+    href: "/dashboard/maintainer/audit-log",
+    label: "Audit Log",
+    shortcut: "a",
+    icon: createElement(ScrollText, { className: "w-4 h-4" }),
+    section: "Admin",
+  },
+  {
+    href: "/dashboard/maintainer/trust-override",
+    label: "Trust Override",
+    shortcut: "t",
+    icon: createElement(ShieldCheck, { className: "w-4 h-4" }),
+    section: "Admin",
+  },
+  {
+    href: "/dashboard/maintainer/site-config",
+    label: "Site Config",
+    shortcut: "s",
+    icon: createElement(Settings2, { className: "w-4 h-4" }),
+    section: "Admin",
+  },
+  {
+    href: "/dashboard/maintainer/photos",
+    label: "Photos",
+    shortcut: "p",
+    icon: createElement(ImageIcon, { className: "w-4 h-4" }),
+    section: "Content",
+  },
+  {
+    href: "/dashboard/maintainer/partners",
+    label: "Partners",
+    shortcut: "w",
+    icon: createElement(Handshake, { className: "w-4 h-4" }),
+    section: "Content",
+  },
+  {
+    href: "/dashboard/maintainer/chapters",
+    label: "Chapters",
+    shortcut: "h",
+    icon: createElement(GraduationCap, { className: "w-4 h-4" }),
+    section: "Content",
+  },
+  {
+    href: "/dashboard/maintainer/blog",
+    label: "Blog",
+    shortcut: "b",
+    icon: createElement(BookOpen, { className: "w-4 h-4" }),
+    section: "Content",
+  },
+  {
+    href: "/api-docs",
+    label: "API Docs",
+    shortcut: "d",
+    icon: createElement(BookOpen, { className: "w-4 h-4" }),
+    section: "Off-site",
+  },
+  {
+    href: "/dashboard/maintainer/dedicate-school",
+    label: "Dedicate School",
+    shortcut: "g",
+    icon: createElement(GraduationCap, { className: "w-4 h-4" }),
+    section: "Content",
+  },
+];
+
+// Sponsor shortcuts are inert today: the portal layout renders the sidebar but
+// not the palette, so no listener ever reads these. They exist so the one shape
+// stays total — every NavItem carries every field, and a future portal palette
+// can switch on without inventing letters under pressure.
+export const sponsorNav: NavItem[] = [
+  {
+    href: "/portal/sponsors",
+    label: "Overview",
+    shortcut: "o",
+    icon: createElement(LayoutDashboard, { className: "w-4 h-4" }),
+    section: "Overview",
+  },
+  {
+    href: "/portal/recruiters",
+    label: "Discover Hackers",
+    shortcut: "d",
+    icon: createElement(Search, { className: "w-4 h-4" }),
+    section: "Sourcing",
+  },
+  {
+    href: "/portal/bounties",
+    label: "Bounties",
+    shortcut: "b",
+    icon: createElement(Briefcase, { className: "w-4 h-4" }),
+    section: "Sourcing",
+  },
+  {
+    href: "/portal/sponsors/company",
+    label: "Company Profile",
+    shortcut: "c",
+    icon: createElement(Building2, { className: "w-4 h-4" }),
+    section: "Company",
   },
 ];
