@@ -45,7 +45,7 @@ export default async function HackerDashboardLayout({
   const db = createServiceClient();
   const { data: profile } = await db
     .from("profiles")
-    .select("id, role, slug_id, full_name, bio, socials, trust_markers")
+    .select("id, role, slug_id, full_name, bio, socials")
     .eq("auth0_user_id", userId)
     .single();
 
@@ -89,7 +89,7 @@ export default async function HackerDashboardLayout({
         full_name: profile.full_name,
         bio: profile.bio,
         socials: profile.socials as Record<string, string> | null,
-        trust_markers: profile.trust_markers as unknown[] | null,
+        trust_markers: null,
       }
     : null;
 
