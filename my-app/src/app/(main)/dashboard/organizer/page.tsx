@@ -6,7 +6,7 @@ import OrganizerDashboardClient from "./organizer-dashboard-client";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "Organizer Dashboard", description: "Organizer workspace", path: "/dashboard/organizer", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Organizer Dashboard", description: "Organizer workspace", path: "/dashboard/organizer", keywords: []}) };
 
 export const dynamic = "force-dynamic";
 

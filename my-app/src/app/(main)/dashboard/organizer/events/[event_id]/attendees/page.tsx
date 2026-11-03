@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 
 
 export async function generateMetadata() {
-  return { ...buildPageMetadata({title: "Attendees", description: "Event attendee list", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
+  return { ...buildPageMetadata({title: "Attendees", description: "Event attendee list", path: "/dashboard/organizer/events", keywords: []}) };
 }
 
 type Props = {

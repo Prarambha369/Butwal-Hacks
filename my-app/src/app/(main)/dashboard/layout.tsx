@@ -1,9 +1,19 @@
 import { auth0 } from "@/lib/auth0"
 import { redirect } from "next/navigation"
+import type { Metadata } from "next"
 import { createServiceClient } from "@/utils/supabase"
 import { DEV_USER_ID, isDevAuthBypassEnabled } from "@/lib/dev-auth-bypass"
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Noindex once for the whole /dashboard segment, instead of repeating
+ * `robots: { index: false, follow: false }` at the top of every page file.
+ * Child metadata merges with this, so titles and descriptions keep working;
+ * any page that sets its own robots still overrides it. None should.
+ */
+export const metadata: Metadata = {
+};
 
 export default async function DashboardLayout({
   children,

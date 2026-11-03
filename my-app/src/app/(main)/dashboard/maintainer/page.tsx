@@ -20,7 +20,7 @@ import type { SystemCheckResult } from "@/lib/health-checks";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "Maintainer Dashboard", description: "Maintainer workspace", path: "/dashboard/maintainer", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Maintainer Dashboard", description: "Maintainer workspace", path: "/dashboard/maintainer", keywords: []}) };
 
 export const dynamic = "force-dynamic";
 

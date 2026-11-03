@@ -14,7 +14,6 @@ export const metadata: Metadata = {
     path: "/dashboard/organizer/certificates/templates",
     keywords: [],
   }),
-  robots: { index: false, follow: false },
 };
 
 /**

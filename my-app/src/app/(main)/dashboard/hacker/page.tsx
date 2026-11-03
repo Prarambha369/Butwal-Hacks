@@ -19,7 +19,7 @@ import { buildPageMetadata } from "@/lib/seo";
 
 // ─── Main Page ─────────────────────────────────────────────────────
 
-export const metadata = { ...buildPageMetadata({title: "Hacker Dashboard", description: "Your hacker workspace", path: "/dashboard/hacker", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Hacker Dashboard", description: "Your hacker workspace", path: "/dashboard/hacker", keywords: []}) };
 
 export default async function HackerDashboardPage() {
   const session = await auth0.getSession();
