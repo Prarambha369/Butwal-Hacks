@@ -1,10 +1,10 @@
-import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 import { redirect } from "next/navigation";
 import NextDynamic from "next/dynamic";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
 import { roleRedirect } from "@/lib/role-gate";
 import { DEV_USER_ID } from "@/lib/dev-auth-bypass";
+import { hackerNav } from "@/lib/dashboard-nav";
 
 // ponytail: Command palette uses native dialog with no extra deps (no cmdk/kbar).
 // g+key shortcuts work via a simple useEffect keydown listener.
@@ -19,82 +19,6 @@ const DashboardShell = NextDynamic(() =>
 const DashboardBottomNav = NextDynamic(() => import("@/components/dashboard-bottom-nav").then((m) => ({ default: m.DashboardBottomNav })));
 
 export const dynamic = "force-dynamic";
-
-import {
-  LayoutDashboard,
-  User,
-  Code2,
-  Users,
-  Key,
-  UsersRound,
-  FileText,
-  KanbanSquare,
-  GitBranch,
-  MessageSquare,
-} from "lucide-react";
-
-const hackerLinks = [
-  {
-    href: "/dashboard/hacker",
-    label: "Overview",
-    shortcut: "h",
-    icon: <LayoutDashboard className="w-4 h-4" />,
-  },
-  {
-    href: PROFILE_SETTINGS_PATH,
-    label: "My Profile",
-    shortcut: "r",
-    icon: <User className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/hacker/work",
-    label: "Work",
-    shortcut: "w",
-    icon: <KanbanSquare className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/hacker/projects",
-    label: "Projects",
-    shortcut: "p",
-    icon: <Code2 className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/hacker/certificates",
-    label: "Certificates",
-    shortcut: "c",
-    icon: <FileText className="w-4 h-4" />,
-  },
-  {
-    href: "/teams",
-    label: "Teams",
-    shortcut: "t",
-    icon: <Users className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/hacker/team-matching",
-    label: "AI Team Match",
-    shortcut: "m",
-    icon: <UsersRound className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/hacker/api-keys",
-    label: "API Keys",
-    shortcut: "k",
-    icon: <Key className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/hacker/skills",
-    label: "Skill Trees",
-    shortcut: "s",
-    icon: <GitBranch className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/hacker/chat",
-    label: "Team Chat",
-    shortcut: "x",
-    icon: <MessageSquare className="w-4 h-4" />,
-  },
-];
 
 /**
  * Renders the authenticated hacker dashboard layout.
@@ -170,14 +94,14 @@ export default async function HackerDashboardLayout({
     : null;
 
   // Top 5 links for the mobile bottom nav
-  const topNavLinks = hackerLinks.slice(0, 5);
+  const topNavLinks = hackerNav.slice(0, 5);
 
   return (
-    <DashboardNavProvider links={hackerLinks}>
+    <DashboardNavProvider links={hackerNav}>
       <DashboardShell
         role="hacker"
         slugId={slugId}
-        links={hackerLinks}
+        links={hackerNav}
         onboardingProfile={onboardingProfile}
         onboardingChapterCount={chapterCount}
         onboardingProjectCount={projectCount}

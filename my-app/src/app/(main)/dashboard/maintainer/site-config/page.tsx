@@ -7,7 +7,7 @@ import { EDITABLE_KEYS } from "@/lib/site-content-keys";
 import SiteContentEditor from "./site-content-editor";
 
 
-export const metadata = { ...buildPageMetadata({title: "Site Config", description: "Edit displayed site copy", path: "/dashboard/maintainer/site-config", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Site Config", description: "Edit displayed site copy", path: "/dashboard/maintainer/site-config", keywords: []}) };
 
 export const dynamic = "force-dynamic";
 

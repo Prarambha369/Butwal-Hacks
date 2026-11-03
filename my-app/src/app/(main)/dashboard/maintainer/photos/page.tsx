@@ -2,7 +2,7 @@ import { getPendingPhotos } from "@/lib/actions/photos";
 import { MaintainerPhotosClient } from "./photos-client";
 import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata = { ...buildPageMetadata({ title: "Photos", description: "Review member photo uploads and pick homepage covers", path: "/dashboard/maintainer/photos", keywords: [] }), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({ title: "Photos", description: "Review member photo uploads and pick homepage covers", path: "/dashboard/maintainer/photos", keywords: [] }) };
 
 export const dynamic = "force-dynamic";
 

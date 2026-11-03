@@ -11,7 +11,7 @@ import GoogleCalendarSettings from '@/components/dashboard/google-calendar-setti
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "My Profile", description: "View and edit your profile", path: "/dashboard/hacker/profile", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "My Profile", description: "View and edit your profile", path: "/dashboard/hacker/profile", keywords: []}) };
 
 export default async function HackerProfileSettingsPage() {
   const session = await auth0.getSession();

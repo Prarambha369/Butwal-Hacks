@@ -8,7 +8,6 @@ export const metadata = {
     path: "/dashboard/profile",
     keywords: [],
   }),
-  robots: { index: false, follow: false },
 };
 
 /**

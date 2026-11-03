@@ -6,7 +6,7 @@ import { buildPageMetadata } from "@/lib/seo"
 import type { TeamMemberRaw } from "@/lib/team-types";
 
 
-export const metadata = { ...buildPageMetadata({title: "Organizer Work", description: "Organizer work area", path: "/dashboard/organizer/work", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Organizer Work", description: "Organizer work area", path: "/dashboard/organizer/work", keywords: []}) };
 
 export const dynamic = "force-dynamic"
 

@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 
 
 
-export const metadata = { ...buildPageMetadata({title: "Events", description: "Manage events", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Events", description: "Manage events", path: "/dashboard/organizer/events", keywords: []}) };
 
 export default async function OrganizerEventsPage() {
   const session = await auth0.getSession();

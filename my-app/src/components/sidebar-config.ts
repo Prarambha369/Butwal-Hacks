@@ -4,6 +4,8 @@ export interface NavLink {
   href: string
   label: string
   icon: React.ReactNode
+  /** Optional grouping label rendered by the sidebars (SidebarNav). */
+  section?: string
 }
 
 export type SlimProfile = {

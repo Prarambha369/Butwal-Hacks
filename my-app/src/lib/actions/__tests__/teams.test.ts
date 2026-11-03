@@ -322,10 +322,19 @@ describe("getUnassignedAttendees", () => {
 describe("getEventTeams", () => {
   beforeEach(() => vi.clearAllMocks());
 
+  /** Auth mocks for the read path: resolveProfileId then the ownership check. */
+  function mockOrganizerAuthorized(db: ReturnType<typeof buildMockDb>, callerId = "caller") {
+    setAuthenticated();
+    db.select.mockReturnValue(db);
+    db.single
+      .mockResolvedValueOnce({ data: { id: callerId }, error: null }) // resolveProfileId
+      .mockResolvedValueOnce({ data: { organizer_id: callerId }, error: null }); // ownership match
+  }
+
   it("returns empty array when no teams exist", async () => {
     const db = mockSupabase();
-    db.select.mockReturnValue(db);
-    db.eq.mockReturnValue(db);
+    // Authz first: caller profile, then the owning organizer.
+    mockOrganizerAuthorized(db);
     db.order.mockResolvedValue({ data: [], error: null });
 
     const { getEventTeams } = await import("../teams");
@@ -336,9 +345,9 @@ describe("getEventTeams", () => {
 
   it("returns teams with members", async () => {
     const db = mockSupabase();
-    // First query: get teams
-    db.select.mockReturnValue(db);
-    db.eq.mockReturnValue(db);
+    // Authz first: resolveProfileId then the owning organizer.
+    mockOrganizerAuthorized(db);
+    // Teams query
     db.order.mockResolvedValueOnce({
       data: [{ id: "team-1", name: "Team Alpha" }],
       error: null,
@@ -365,6 +374,19 @@ describe("getEventTeams", () => {
     expect(result[0].name).toBe("Team Alpha");
     expect(result[0].member_count).toBe(2);
     expect(result[0].members[0].full_name).toBe("Alice");
+  });
+
+  it("denies the roster to someone who is not the event organizer", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    db.select.mockReturnValue(db);
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller" }, error: null }) // resolveProfileId
+      .mockResolvedValueOnce({ data: { organizer_id: "someone-else" }, error: null }); // not the owner
+
+    const { getEventTeams } = await import("../teams");
+    // The maintainer fallback also denies, so the read never happens.
+    await expect(getEventTeams("event-1")).rejects.toThrow();
   });
 });
 

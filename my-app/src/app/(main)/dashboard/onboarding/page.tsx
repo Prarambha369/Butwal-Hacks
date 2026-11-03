@@ -8,7 +8,7 @@ import { Ballu } from "@/components/mascot/ballu";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "Onboarding", description: "Complete your onboarding", path: "/dashboard/onboarding", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Onboarding", description: "Complete your onboarding", path: "/dashboard/onboarding", keywords: []}) };
 
 export const dynamic = "force-dynamic";
 
