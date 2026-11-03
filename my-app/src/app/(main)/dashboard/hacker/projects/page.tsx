@@ -6,7 +6,7 @@ import ProjectsViewWrapper from "@/components/projects/projects-view-wrapper";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "My Projects", description: "Your submitted projects", path: "/dashboard/hacker/projects", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "My Projects", description: "Your submitted projects", path: "/dashboard/hacker/projects", keywords: []}) };
 
 export default async function HackerProjectsPage() {
   const session = await auth0.getSession();

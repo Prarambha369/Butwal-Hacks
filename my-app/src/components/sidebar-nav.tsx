@@ -1,48 +1,60 @@
 "use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { HelpCircle, ExternalLink } from "lucide-react"
-import { cn } from "@/lib/utils"
-import type { NavLink as NavLinkType, RoleStyle } from "@/components/sidebar-config"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { HelpCircle, ExternalLink } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { sectionGroups } from "@/lib/dashboard-nav";
+import type { NavLink as NavLinkType, RoleStyle } from "@/components/sidebar-config";
 
 interface SidebarNavProps {
-  links: NavLinkType[]
-  roleStyle: RoleStyle
-  onLinkClick?: () => void
+  links: NavLinkType[];
+  roleStyle: RoleStyle;
+  onLinkClick?: () => void;
 }
 
 export default function SidebarNav({ links, roleStyle, onLinkClick }: SidebarNavProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
+
+  const renderLink = (link: NavLinkType) => {
+    const isActive =
+      pathname === link.href ||
+      (link.href !== "/dashboard/hacker" &&
+        link.href !== "/dashboard/sponsor" &&
+        link.href !== "/dashboard/organizer" &&
+        link.href !== "/dashboard/maintainer" &&
+        pathname.startsWith(link.href));
+    return (
+      <Link
+        key={link.href}
+        href={link.href}
+        onClick={onLinkClick}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
+          isActive
+            ? cn(roleStyle.activeClass, "font-medium")
+            : "text-text-secondary hover:text-primary hover:bg-surface-hover"
+        )}
+      >
+        <span className="flex-shrink-0 w-4 h-4">{link.icon}</span>
+        {link.label}
+      </Link>
+    );
+  };
 
   return (
     <>
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-        {links.map((link) => {
-          const isActive =
-            pathname === link.href ||
-            (link.href !== "/dashboard/hacker" &&
-              link.href !== "/dashboard/sponsor" &&
-              link.href !== "/dashboard/organizer" &&
-              link.href !== "/dashboard/maintainer" &&
-              pathname.startsWith(link.href))
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={onLinkClick}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
-                isActive
-                  ? cn(roleStyle.activeClass, "font-medium")
-                  : "text-text-secondary hover:text-primary hover:bg-surface-hover"
-              )}
-            >
-              <span className="flex-shrink-0 w-4 h-4">{link.icon}</span>
-              {link.label}
-            </Link>
-          )
-        })}
+        {sectionGroups(links).map((group) => (
+          <div key={group.label ?? "ungrouped"} className="space-y-1">
+            {group.label && (
+              <p className="px-3 pt-3 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {group.label}
+              </p>
+            )}
+            {group.items.map(renderLink)}
+          </div>
+        ))}
       </nav>
 
       <div className="px-2 py-2 border-t border-border">
@@ -57,5 +69,5 @@ export default function SidebarNav({ links, roleStyle, onLinkClick }: SidebarNav
         </Link>
       </div>
     </>
-  )
+  );
 }

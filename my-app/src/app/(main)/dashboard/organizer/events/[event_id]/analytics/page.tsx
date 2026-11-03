@@ -5,7 +5,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 
 export async function generateMetadata() {
-  return { ...buildPageMetadata({title: "Event Analytics", description: "Event analytics dashboard", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
+  return { ...buildPageMetadata({title: "Event Analytics", description: "Event analytics dashboard", path: "/dashboard/organizer/events", keywords: []}) };
 }
 
 export default async function ProjectAnalyticsPage({ params }: { params: Promise<{ event_id: string }> }) {

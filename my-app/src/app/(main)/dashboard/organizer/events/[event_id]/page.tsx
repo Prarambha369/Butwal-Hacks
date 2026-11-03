@@ -25,7 +25,7 @@ import { buildPageMetadata } from "@/lib/seo"
 
 
 export async function generateMetadata() {
-  return { ...buildPageMetadata({title: "Event Details", description: "View event details", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
+  return { ...buildPageMetadata({title: "Event Details", description: "View event details", path: "/dashboard/organizer/events", keywords: []}) };
 }
 
 export default async function EventDetailsPage({

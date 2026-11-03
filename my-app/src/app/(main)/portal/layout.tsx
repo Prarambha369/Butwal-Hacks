@@ -1,41 +1,23 @@
 import { redirect } from "next/navigation";
 import NextDynamic from "next/dynamic";
+import type { Metadata } from "next";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
+import { sponsorNav } from "@/lib/dashboard-nav";
 
 export const dynamic = "force-dynamic";
 
-const DashboardSidebar = NextDynamic(() => import("@/components/dashboard-sidebar"));
-import {
-  LayoutDashboard,
-  Search,
-  Briefcase,
-  Building2,
-} from "lucide-react";
-import { portalRedirect } from "@/lib/dashboard-access";
+/**
+ * Noindex once for the whole /portal segment. These pages are
+ * authenticated-only and offer a crawler nothing; previously they declared no
+ * robots meta at all, so Next's default (`index: true`) applied.
+ */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
-const sponsorLinks = [
-  {
-    href: "/portal/sponsors",
-    label: "Overview",
-    icon: <LayoutDashboard className="w-4 h-4" />,
-  },
-  {
-    href: "/portal/recruiters",
-    label: "Discover Hackers",
-    icon: <Search className="w-4 h-4" />,
-  },
-  {
-    href: "/portal/bounties",
-    label: "Bounties",
-    icon: <Briefcase className="w-4 h-4" />,
-  },
-  {
-    href: "/portal/sponsors/company",
-    label: "Company Profile",
-    icon: <Building2 className="w-4 h-4" />,
-  },
-];
+const DashboardSidebar = NextDynamic(() => import("@/components/dashboard-sidebar"));
+import { portalRedirect } from "@/lib/dashboard-access";
 
 export default async function SponsorDashboardLayout({
   children,
@@ -72,7 +54,7 @@ export default async function SponsorDashboardLayout({
       <DashboardSidebar
         role="sponsor"
         slugId={slugId}
-        links={sponsorLinks}
+        links={sponsorNav}
       />
       <main className="flex-1 p-8 max-w-7xl mx-auto min-h-dvh flex flex-col">{children}</main>
     </div>

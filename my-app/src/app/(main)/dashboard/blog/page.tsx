@@ -11,7 +11,6 @@ export const metadata = {
     path: "/dashboard/blog",
     keywords: [],
   }),
-  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";

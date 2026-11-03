@@ -1,7 +1,6 @@
 import { createServiceClient } from "@/utils/supabase";
 import { notFound } from "next/navigation";
-import { ScanQrCode, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { ScanQrCode } from "lucide-react";
 import type { Metadata } from "next";
 import { QrScannerClient } from "./qr-scanner-client";
 
@@ -33,13 +32,6 @@ export default async function EventScanPage({
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="space-y-1">
-          <Link
-            href={`/dashboard/organizer/events/${event_id}`}
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-          >
-            <ArrowLeft className="w-3 h-3" />
-            Back to Event
-          </Link>
           <div className="flex items-center gap-3 mt-1">
             <div className="w-10 h-10 rounded-xl bg-primary-red/10 flex items-center justify-center">
               <ScanQrCode className="w-5 h-5 text-primary-red" />

@@ -3,7 +3,7 @@ import UsersClient from "./users-client";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "Users", description: "Manage users", path: "/dashboard/maintainer/users", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Users", description: "Manage users", path: "/dashboard/maintainer/users", keywords: []}) };
 
 export const dynamic = "force-dynamic";
 

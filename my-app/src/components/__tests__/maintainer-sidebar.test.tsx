@@ -109,3 +109,36 @@ describe("MaintainerSidebar active state", () => {
     expect(rail.className).not.toContain("w-56");
   });
 });
+
+describe("MaintainerSidebar section grouping", () => {
+  it("renders a heading per section label from the nav config, links intact", () => {
+    const sectioned = [
+      { href: "/dashboard/maintainer", label: "Command Center", icon: <span />, section: "Admin" },
+      { href: "/dashboard/maintainer/users", label: "Users", icon: <span />, section: "Admin" },
+      { href: "/dashboard/maintainer/blog", label: "Blog", icon: <span />, section: "Content" },
+      { href: "/api-docs", label: "API Docs", icon: <span />, section: "Off-site" },
+    ];
+    mockPathname.mockReturnValue(ROOT);
+    render(<MaintainerSidebar slugId="BH-1" links={sectioned} />);
+
+    expect(screen.getByText("Admin")).toBeInTheDocument();
+    expect(screen.getByText("Content")).toBeInTheDocument();
+    expect(screen.getByText("Off-site")).toBeInTheDocument();
+    // Every link still renders once, grouped in array order.
+    const hrefs = screen.getAllByRole("link").map((el) => el.getAttribute("href"));
+    expect(hrefs).toEqual([
+      "/dashboard/maintainer",
+      "/dashboard/maintainer/users",
+      "/dashboard/maintainer/blog",
+      "/api-docs",
+      "/docs/getting-started", // the always-present Help & Docs footer link
+    ]);
+  });
+
+  it("stays a flat list when no link carries a section", () => {
+    mockPathname.mockReturnValue(ROOT);
+    render(<MaintainerSidebar slugId="BH-1" links={links} />);
+    expect(screen.queryByText("Admin")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link")).toHaveLength(4);
+  });
+});

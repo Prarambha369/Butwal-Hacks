@@ -1,7 +1,6 @@
 import { createServiceClient } from "@/utils/supabase";
 import { notFound } from "next/navigation";
-import { QrCode, ArrowLeft, Users, Printer } from "lucide-react";
-import Link from "next/link";
+import { QrCode, Users, Printer } from "lucide-react";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -57,13 +56,6 @@ export default async function EventQrPage({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <Link
-              href={`/dashboard/organizer/events/${event_id}`}
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-            >
-              <ArrowLeft className="w-3 h-3" />
-              Back to Event
-            </Link>
             <div className="flex items-center gap-3 mt-1">
               <div className="w-10 h-10 rounded-xl bg-primary-red/10 flex items-center justify-center">
                 <QrCode className="w-5 h-5 text-primary-red" />

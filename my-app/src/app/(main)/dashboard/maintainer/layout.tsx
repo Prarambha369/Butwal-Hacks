@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import NextDynamic from "next/dynamic";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
+import { maintainerNav } from "@/lib/dashboard-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -18,94 +19,7 @@ const DashboardShell = NextDynamic(() =>
     default: m.DashboardShell,
   })),
 );
-import {
-  Terminal,
-  Users,
-  ScrollText,
-  ShieldCheck,
-  Stethoscope,
-  Settings2,
-  BookOpen,
-  GraduationCap,
-  Image as ImageIcon,
-  Handshake,
-} from "lucide-react";
 import { maintainerRedirect } from "@/lib/dashboard-access";
-
-const maintainerLinks = [
-  {
-    href: "/dashboard/maintainer",
-    label: "Command Center",
-    shortcut: "c",
-    icon: <Terminal className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/maintainer/users",
-    label: "Users",
-    shortcut: "u",
-    icon: <Users className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/maintainer/system-check",
-    label: "System Check",
-    shortcut: "k",
-    icon: <Stethoscope className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/maintainer/audit-log",
-    label: "Audit Log",
-    shortcut: "a",
-    icon: <ScrollText className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/maintainer/trust-override",
-    label: "Trust Override",
-    shortcut: "t",
-    icon: <ShieldCheck className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/maintainer/site-config",
-    label: "Site Config",
-    shortcut: "s",
-    icon: <Settings2 className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/maintainer/photos",
-    label: "Photos",
-    shortcut: "p",
-    icon: <ImageIcon className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/maintainer/partners",
-    label: "Partners",
-    shortcut: "w",
-    icon: <Handshake className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/maintainer/chapters",
-    label: "Chapters",
-    shortcut: "h",
-    icon: <GraduationCap className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/maintainer/blog",
-    label: "Blog",
-    shortcut: "b",
-    icon: <BookOpen className="w-4 h-4" />,
-  },
-  {
-    href: "/api-docs",
-    label: "API Docs",
-    shortcut: "d",
-    icon: <BookOpen className="w-4 h-4" />,
-  },
-  {
-    href: "/dashboard/maintainer/dedicate-school",
-    label: "Dedicate School",
-    shortcut: "g",
-    icon: <GraduationCap className="w-4 h-4" />,
-  },
-];
 
 export default async function MaintainerDashboardLayout({
   children,
@@ -141,15 +55,15 @@ export default async function MaintainerDashboardLayout({
   const slugId = profile?.slug_id ?? userId.slice(0, 8).toUpperCase();
 
   return (
-    <DashboardNavProvider links={maintainerLinks}>
+    <DashboardNavProvider links={maintainerNav}>
       <DashboardShell
         role="maintainer"
         slugId={slugId}
-        links={maintainerLinks}
+        links={maintainerNav}
         sidebar={({ open, onNavigate }) => (
           <MaintainerSidebar
             slugId={slugId}
-            links={maintainerLinks}
+            links={maintainerNav}
             mobileOpen={open}
             onNavigate={onNavigate}
           />

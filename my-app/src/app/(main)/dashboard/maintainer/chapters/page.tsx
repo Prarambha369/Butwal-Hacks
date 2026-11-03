@@ -2,7 +2,7 @@ import { getAllChapters } from "@/lib/actions/chapters";
 import { ChaptersClient } from "./chapters-client";
 import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata = { ...buildPageMetadata({ title: "Chapters", description: "Manage school chapters", path: "/dashboard/maintainer/chapters", keywords: [] }), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({ title: "Chapters", description: "Manage school chapters", path: "/dashboard/maintainer/chapters", keywords: [] }) };
 
 export const dynamic = "force-dynamic";
 

@@ -5,7 +5,7 @@ import { EventPhotosClient } from "./photos-client";
 import { buildPageMetadata } from "@/lib/seo";
 
 export async function generateMetadata() {
-  return { ...buildPageMetadata({ title: "Event Photos", description: "Manage event photos", path: "/dashboard/organizer/events", keywords: [] }), robots: { index: false, follow: false } };
+  return { ...buildPageMetadata({ title: "Event Photos", description: "Manage event photos", path: "/dashboard/organizer/events", keywords: [] }) };
 }
 
 export const dynamic = "force-dynamic";

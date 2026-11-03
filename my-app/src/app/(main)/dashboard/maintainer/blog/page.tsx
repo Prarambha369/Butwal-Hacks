@@ -2,7 +2,7 @@ import { getAllPosts } from "@/lib/actions/blog";
 import { BlogClient } from "./blog-client";
 import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata = { ...buildPageMetadata({ title: "Blog", description: "Write and publish posts", path: "/dashboard/maintainer/blog", keywords: [] }), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({ title: "Blog", description: "Write and publish posts", path: "/dashboard/maintainer/blog", keywords: [] }) };
 
 export const dynamic = "force-dynamic";
 

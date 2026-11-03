@@ -5,7 +5,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "Certificates", description: "Your earned certificates", path: "/dashboard/hacker/certificates", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Certificates", description: "Your earned certificates", path: "/dashboard/hacker/certificates", keywords: []}) };
 
 export const dynamic = "force-dynamic";
 

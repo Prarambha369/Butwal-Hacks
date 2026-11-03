@@ -7,7 +7,7 @@ import Link from "next/link";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "Sponsor Onboarding", description: "Set up your sponsor profile", path: "/dashboard/sponsor-onboarding", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Sponsor Onboarding", description: "Set up your sponsor profile", path: "/dashboard/sponsor-onboarding", keywords: []}) };
 
 export const dynamic = "force-dynamic";
 

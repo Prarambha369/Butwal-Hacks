@@ -2,7 +2,7 @@ import { getAllPartners } from "@/lib/actions/partners";
 import { PartnersClient } from "./partners-client";
 import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata = { ...buildPageMetadata({ title: "Partners", description: "Manage the homepage partner wall", path: "/dashboard/maintainer/partners", keywords: [] }), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({ title: "Partners", description: "Manage the homepage partner wall", path: "/dashboard/maintainer/partners", keywords: [] }) };
 
 export const dynamic = "force-dynamic";
 

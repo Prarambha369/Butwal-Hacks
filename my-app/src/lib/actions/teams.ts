@@ -138,8 +138,13 @@ export async function getUnassignedAttendees(eventId: string): Promise<TeamForma
 
 /**
  * Fetch all teams for an event with their members.
+ *
+ * Reads member names and BH-IDs with the service role, so it carries the same
+ * event-organizer (or maintainer) authorization as its write siblings —
+ * which it previously had none of: any eventId returned any event's roster.
  */
 export async function getEventTeams(eventId: string): Promise<EventTeam[]> {
+  await requireEventOrganizer(eventId);
   const supabase = createServiceClient();
 
   const { data: teams } = await supabase
