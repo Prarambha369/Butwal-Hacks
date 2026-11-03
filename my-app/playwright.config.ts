@@ -13,6 +13,11 @@ export default defineConfig({
   webServer: {
     command: "npm run dev",
     url: "http://localhost:3000",
+    // The RBAC and avatar specs assert real 307 redirects. Playwright runs
+    // `next dev`, where a developer's `.env.local` could otherwise set
+    // DEV_AUTH_BYPASS=true and hand the suite an open-access server. An empty
+    // string here overrides whatever the environment says.
+    env: { ...process.env, DEV_AUTH_BYPASS: "" },
     reuseExistingServer: true,
     timeout: 120000,
   },

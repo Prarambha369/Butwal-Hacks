@@ -4,6 +4,7 @@ import NextDynamic from "next/dynamic";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
 import { roleRedirect } from "@/lib/role-gate";
+import { DEV_USER_ID } from "@/lib/dev-auth-bypass";
 
 // ponytail: Command palette uses native dialog with no extra deps (no cmdk/kbar).
 // g+key shortcuts work via a simple useEffect keydown listener.
@@ -110,7 +111,12 @@ export default async function HackerDashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth0.getSession();
-  const userId = session?.user?.sub ?? "none";
+  // Must be the same identity `dashboard/layout.tsx` bootstraps. This used to
+  // be `none`, so in development the parent created a `dev-user` profile, this
+  // layout looked up `none`, got no row, and `roleRedirect(undefined, ...)`
+  // returned `/dashboard/hacker` -- the page we are already inside. Every
+  // reload looped.
+  const userId = session?.user?.sub ?? DEV_USER_ID;
 
   const db = createServiceClient();
   const { data: profile } = await db

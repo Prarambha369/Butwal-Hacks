@@ -136,6 +136,7 @@ Where each variable is set:
 |----------|----------|--------|
 | `UPSTASH_REDIS_REST_URL` | Runtime | Upstash console, REST API |
 | `UPSTASH_REDIS_REST_TOKEN` | Runtime | Upstash console, REST API |
+| `DEV_AUTH_BYPASS` | Optional | Local only. Set to `true` in `.env.local` to skip the Auth0 role gate while running `npm run dev`. Never set in Vercel. Playwright forces it off in `playwright.config.ts` so the E2E suite still asserts real 307 redirects. See `my-app/src/lib/dev-auth-bypass.ts` |
 
 #### Observability
 

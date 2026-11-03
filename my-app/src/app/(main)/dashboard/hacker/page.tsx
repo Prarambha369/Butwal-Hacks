@@ -2,9 +2,11 @@ import Link from "next/link";
 import { createServiceClient } from "@/utils/supabase";
 import { getUserProjects } from "@/lib/actions/projects";
 import { auth0 } from "@/lib/auth0";
+import { DEV_USER_ID, isDevAuthBypassEnabled } from "@/lib/dev-auth-bypass";
 import { formatDualDate } from "@/lib/nepali-date";
 import { PageHeader } from "@/components/dashboard/shell/page-header";
 import { StatCard, StatGrid } from "@/components/dashboard/shell/stat-card";
+import OnboardingTour from "@/components/dashboard/onboarding-tour";
 
 import {
   Trophy, Clock, ArrowRight,
@@ -22,9 +24,13 @@ export const metadata = { ...buildPageMetadata({title: "Hacker Dashboard", descr
 export default async function HackerDashboardPage() {
   const supabase = createServiceClient();
   const session = await auth0.getSession();
-  const userId = session?.user?.sub || (process.env.NODE_ENV !== 'production' ? 'dev-user' : undefined);
+  const userId = session?.user?.sub || (isDevAuthBypassEnabled() ? DEV_USER_ID : undefined);
 
-  if (!userId && process.env.NODE_ENV === 'production') {
+  // No identity means the profile lookup below would run against
+  // `auth0_user_id = undefined` and return nothing, rendering an empty
+  // dashboard. The proxy already redirects the normal cases to /auth/login;
+  // this is the belt-and-braces check for when it does not.
+  if (!userId) {
     return (
       <div className="bh-card p-12 text-center">
         <p className="text-lg font-bold text-primary">Sign in to view your dashboard</p>
@@ -167,7 +173,7 @@ export default async function HackerDashboardPage() {
 
   return (
     <>
-      {/* <OnboardingTour role="hacker" /> */}
+      <OnboardingTour role="hacker" />
       <div className="space-y-8 pb-20">
         <PageHeader
           eyebrow="Hacker"
