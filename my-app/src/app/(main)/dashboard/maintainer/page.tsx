@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/dashboard/shell/page-header";
 import { StatCard, StatGrid } from "@/components/dashboard/shell/stat-card";
 import { createServiceClient } from "@/utils/supabase";
+import { requireMaintainer } from "@/lib/actions/admin";
 import Link from "next/link";
 import {
   Users, ShieldCheck, MessageSquare,
@@ -24,6 +25,12 @@ export const metadata = { ...buildPageMetadata({title: "Maintainer Dashboard", d
 export const dynamic = "force-dynamic";
 
 export default async function MaintainerCommandCenter() {
+  // In-file authorization before the service role is touched. The M layout
+  // already gates this segment, but relying on another file's guard is exactly
+  // the pattern that left the event child pages readable across organizers;
+  // every createServiceClient() use gets a check directly above it.
+  await requireMaintainer();
+
   const supabase = createServiceClient();
 
   // ── Date bounds ──────────────────────────────────────────────────────

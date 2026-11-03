@@ -22,7 +22,6 @@ import { buildPageMetadata } from "@/lib/seo";
 export const metadata = { ...buildPageMetadata({title: "Hacker Dashboard", description: "Your hacker workspace", path: "/dashboard/hacker", keywords: []}), robots: { index: false, follow: false } };
 
 export default async function HackerDashboardPage() {
-  const supabase = createServiceClient();
   const session = await auth0.getSession();
   const userId = session?.user?.sub || (isDevAuthBypassEnabled() ? DEV_USER_ID : undefined);
 
@@ -37,6 +36,11 @@ export default async function HackerDashboardPage() {
       </div>
     );
   }
+
+  // Identity check above, service client below: every query these hands
+  // touch is scoped to that identity, so the client is never created for an
+  // unauthenticated render.
+  const supabase = createServiceClient();
 
   const { data: profile } = await supabase
     .from("profiles")
