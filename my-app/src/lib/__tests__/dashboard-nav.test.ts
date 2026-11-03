@@ -6,6 +6,7 @@ import {
   organizerNav,
   maintainerNav,
   sponsorNav,
+  sectionGroups,
 } from "@/lib/dashboard-nav";
 
 // Hrefs of the inline `hackerLinks` array in hacker/layout.tsx, in its order.
@@ -114,5 +115,28 @@ describe("hackerNav", () => {
   it("keeps the pre-extraction contract: 10 items in inline order", () => {
     expect(hackerNav).toHaveLength(10);
     expect(hackerNav.map((item) => item.href)).toEqual(INLINE_HREFS);
+  });
+});
+
+describe("sectionGroups", () => {
+  it("groups adjacent same-section runs in array order", () => {
+    const groups = sectionGroups(maintainerNav);
+    expect(groups.map((g) => g.label)).toEqual(maintainerNav.map((item) => item.section)
+      .filter((section, i, arr) => i === 0 || section !== arr[i - 1]));
+    // Round-trip: grouping loses no items and preserves the flat order.
+    expect(groups.flatMap((g) => g.items)).toEqual(maintainerNav);
+  });
+
+  it("renders a single unlabelled group when no link carries a section", () => {
+    const links = [
+      { href: "/a", label: "A", section: undefined },
+      { href: "/b", label: "B", section: undefined },
+    ];
+    expect(sectionGroups(links)).toEqual([{ label: null, items: links }]);
+  });
+
+  it("treats blank section labels as ungrouped", () => {
+    const links = [{ section: "  " }];
+    expect(sectionGroups(links)).toEqual([{ label: null, items: links }]);
   });
 });

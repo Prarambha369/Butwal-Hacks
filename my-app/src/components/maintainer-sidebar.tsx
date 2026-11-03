@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HelpCircle, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sectionGroups } from "@/lib/dashboard-nav";
 import { DashboardRoleSwitcher } from "@/components/dashboard/dashboard-role-switcher";
 
 interface NavLink {
   href: string;
   label: string;
   icon: React.ReactNode;
+  section?: string;
 }
 
 interface MaintainerSidebarProps {
@@ -50,9 +52,16 @@ export default function MaintainerSidebar({
         <DashboardRoleSwitcher currentRole="maintainer" slugId={slugId} />
       </div>
 
-      {/* Navigation */}
+      {/* Navigation, grouped by the section labels from dashboard-nav.ts */}
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-        {links.map((link) => {
+        {sectionGroups(links).map((group) => (
+          <div key={group.label ?? "ungrouped"} className="space-y-1">
+            {group.label && (
+              <p className="px-3 pt-3 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {group.label}
+              </p>
+            )}
+            {group.items.map((link) => {
           // Prefix match, so /dashboard/maintainer/users keeps Users lit while
           // nested routes are open. Except for the section root, which is a
           // prefix of every one of its own children -- without this,
@@ -81,6 +90,8 @@ export default function MaintainerSidebar({
             </Link>
           );
         })}
+          </div>
+        ))}
       </nav>
 
       {/* Help & docs */}

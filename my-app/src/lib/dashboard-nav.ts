@@ -53,6 +53,28 @@ export interface NavItem {
   section?: string;
 }
 
+/**
+ * Group links into rendered sections by their `section` label, preserving
+ * array order (each group is a run of adjacent items with the same label).
+ * Items without a `section` form a leading unlabelled run. Renders nothing
+ * extra when no link carries a section — the flat list stays the fallback.
+ */
+export function sectionGroups<T extends { section?: string }>(
+  links: readonly T[],
+): { label: string | null; items: T[] }[] {
+  const groups: { label: string | null; items: T[] }[] = [];
+  for (const link of links) {
+    const label = link.section?.trim() || null;
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) {
+      last.items.push(link);
+    } else {
+      groups.push({ label, items: [link] });
+    }
+  }
+  return groups;
+}
+
 // Icons use createElement because this is a .ts module, where JSX is not valid.
 export const hackerNav: NavItem[] = [
   {
