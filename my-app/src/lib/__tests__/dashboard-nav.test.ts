@@ -20,6 +20,7 @@ const INLINE_HREFS = [
   "/dashboard/hacker/team-matching",
   "/dashboard/hacker/api-keys",
   "/dashboard/hacker/skills",
+  "/dashboard/hacker/connections",
   "/dashboard/hacker/chat",
 ];
 
@@ -112,8 +113,7 @@ describe.each([
 });
 
 describe("hackerNav", () => {
-  it("keeps the pre-extraction contract: 10 items in inline order", () => {
-    expect(hackerNav).toHaveLength(10);
+  it("keeps the pre-extraction contract: items in inline order", () => {
     expect(hackerNav.map((item) => item.href)).toEqual(INLINE_HREFS);
   });
 });

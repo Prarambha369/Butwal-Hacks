@@ -141,6 +141,13 @@ export const hackerNav: NavItem[] = [
     section: "Credentials",
   },
   {
+    href: "/dashboard/hacker/connections",
+    label: "Account Connections",
+    shortcut: "a",
+    icon: createElement(Users, { className: "w-4 h-4" }),
+    section: "Credentials",
+  },
+  {
     href: "/dashboard/hacker/chat",
     label: "Team Chat",
     shortcut: "x",
