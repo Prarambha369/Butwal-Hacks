@@ -9,6 +9,10 @@ import { MemberCard } from "@/components/explorer/member-card"
 import { cn } from "@/lib/utils"
 
 const SORT_OPTIONS = [
+  // The showcase order: activity, with opt-in members and mentors floated to
+  // the top by the re-rank below. It is its own value so that picking
+  // "Most Active" can mean strictly activity instead of the showcase order.
+  { value: "featured", label: "Featured" },
   { value: "activity", label: "Most Active" },
   { value: "projects", label: "Projects (high)" },
   { value: "name", label: "Name (A-Z)" },
@@ -30,7 +34,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
   const [query, setQuery] = useState("")
   const debouncedQuery = useDebounce(query, 200)
   const [role, setRole] = useState<RoleFilter>("All")
-  const [sortBy, setSortBy] = useState<SortKey>("activity")
+  const [sortBy, setSortBy] = useState<SortKey>("featured")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showFilters, setShowFilters] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
@@ -40,8 +44,11 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
   const results = useMemo(
     () => {
       let res = filterMembers(members, { role, query: debouncedQuery, sortBy, openToMentor, lookingForTeam })
-      // Prioritize mentors/open-to-mentor in default view for better showcase
-      if (role === "All" && !debouncedQuery && sortBy === "activity" && !openToMentor && !lookingForTeam) {
+      // Showcase re-rank for the default view only. It used to run whenever
+      // `sortBy` was "activity", which is also the "Most Active" option, so a
+      // user who picked Most Active still got lower-activity opt-in members
+      // ahead of higher-activity ones.
+      if (role === "All" && !debouncedQuery && sortBy === "featured" && !openToMentor && !lookingForTeam) {
         res = [...res].sort((a, b) => {
           if (a.openToMentor && !b.openToMentor) return -1
           if (!a.openToMentor && b.openToMentor) return 1

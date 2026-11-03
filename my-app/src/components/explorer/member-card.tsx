@@ -25,7 +25,11 @@ export function MemberCard({
   member: ExplorerMember
   isHighlighted?: boolean
 }) {
-  const isAvailable = member.openToMentor || member.role === "Mentor" || member.lookingForTeam
+  // Availability is what the member opted into, nothing else. Treating the
+  // Mentor *role* as an opt-in showed AVAILABLE to mentors who never selected
+  // it, and the directory's own availability filters excluded them -- so the
+  // card advertised something the filter would then hide.
+  const isAvailable = member.openToMentor || member.lookingForTeam
   const githubUrl = member.githubUrl
   const websiteUrl = member.websiteUrl
   const linkedinUrl = member.linkedinUrl

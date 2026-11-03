@@ -233,7 +233,7 @@ export function getExplorerStats(members: ExplorerMember[]) {
 type ExplorerFilters = {
   role?: ExplorerMember["role"] | "All"
   query?: string
-  sortBy?: "activity" | "projects" | "name" | "joined"
+  sortBy?: "featured" | "activity" | "projects" | "name" | "joined"
   /** Opt-in availability facets (profiles columns from migration 031). */
   openToMentor?: boolean
   lookingForTeam?: boolean
@@ -275,6 +275,10 @@ export function filterMembers(
   if (filters.sortBy) {
     results.sort((a, b) => {
       switch (filters.sortBy) {
+        // The showcase order: activity first, then the client layer on top of
+        // it re-ranks opt-in members and mentors. Kept distinct from
+        // "activity" so choosing Most Active means strictly activity.
+        case "featured":
         case "activity":
           return (b.projects + b.events) - (a.projects + a.events);
         case "projects":
