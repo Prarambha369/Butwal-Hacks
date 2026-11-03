@@ -50,7 +50,7 @@ export default async function ProfilePage({ params }: Props) {
   const { data: profile, error } = await supabase
     .from("profiles")
     .select(`
-      id, full_name, bh_id, role, bio, avatar_url, social_links, ai_summary, github_username,
+      id, full_name, bh_id, role, bio, avatar_url, socials, ai_summary, github_username,
       trust_markers!trust_markers_profile_id_fkey (
         id, title, description, type, is_revoked, revocation_reason, created_at,
         events ( title, start_date ),

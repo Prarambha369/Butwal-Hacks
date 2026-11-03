@@ -33,7 +33,7 @@ describe("findTeammates", () => {
       data: {
         id: "my-prof-1",
         skills: ["React", "TypeScript", "Node.js"],
-        social_links: {},
+        socials: {},
         bh_id: "BH-24-001",
         bio: "Full-stack developer passionate about building apps",
       },
@@ -51,7 +51,7 @@ describe("findTeammates", () => {
           avatar_url: null,
           bio: "React developer building awesome apps",
           skills: ["React", "Python", "TypeScript"],
-          social_links: { github: "https://github.com/alice" },
+          socials: { github: "https://github.com/alice" },
         },
       ],
       error: null,
@@ -79,7 +79,7 @@ describe("findTeammates", () => {
     mockedCreateServiceClient.mockReturnValue(db);
 
     db.single.mockResolvedValueOnce({
-      data: { id: "my-prof-1", skills: [], social_links: {}, bh_id: "BH-24-001", bio: null },
+      data: { id: "my-prof-1", skills: [],          socials: {}, bh_id: "BH-24-001", bio: null },
       error: null,
     });
     db.limit.mockResolvedValue({ data: null, error: null });
@@ -98,7 +98,7 @@ describe("findTeammates", () => {
 
     db.single.mockResolvedValueOnce({
       data: {
-        id: "my-prof-1", skills: ["React"], social_links: {},
+        id: "my-prof-1", skills: ["React"],          socials: {},
         bh_id: "BH-24-001", bio: "Developer",
       },
       error: null,
@@ -106,8 +106,8 @@ describe("findTeammates", () => {
 
     db.limit.mockResolvedValue({
       data: [
-        { id: "other-1", full_name: "Low Match", bh_id: "B2", role: "hacker", avatar_url: null, bio: null, skills: [], social_links: {} },
-        { id: "other-2", full_name: "High Match", bh_id: "B3", role: "hacker", avatar_url: null, bio: "Developer creating apps", skills: ["React"], social_links: {} },
+        { id: "other-1", full_name: "Low Match", bh_id: "B2", role: "hacker", avatar_url: null, bio: null, skills: [], socials: {} },
+        { id: "other-2", full_name: "High Match", bh_id: "B3", role: "hacker", avatar_url: null, bio: "Developer creating apps", skills: ["React"], socials: {} },
       ],
       error: null,
     });

@@ -50,7 +50,7 @@ export type PublicProfileRow = {
   role?: string | null;
   bio?: string | null;
   avatar_url?: string | null;
-  social_links?: Record<string, string> | null;
+  socials?: Record<string, string> | null;
   ai_summary?: string | null;
   is_owner?: boolean;
   trust_markers?: unknown[] | null;
@@ -64,7 +64,7 @@ function normalizeProfile(row: PublicProfileRow): ProfileClientData {
     avatar: row.avatar_url ?? "",
     role: (row.role as ProfileClientData["role"]) ?? "hacker",
     bio: row.bio ?? "",
-    socials: row.social_links ?? {},
+    socials: row.socials ?? {},
     certificates: [],
     projects: [],
     events: [],

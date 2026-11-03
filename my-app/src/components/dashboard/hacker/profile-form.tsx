@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Save, Globe, Github, Linkedin, AlertCircle, Loader2, ZoomIn, GraduationCap, Calendar } from 'lucide-react';
 import Image from 'next/image';
-import { updateProfile } from '@/lib/actions/profile';
+import { updateProfile, fetchProviderSocials } from '@/lib/actions/profile';
 import { toast } from 'sonner';
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
 import CameraCapture from '@/components/camera-capture';
@@ -47,6 +47,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
   const [importingPicture, setImportingPicture] = useState(false);
   const [pictureError, setPictureError] = useState<string | null>(null);
+  const [socialFetchState, setSocialFetchState] = useState<Record<string, 'idle' | 'loading' | 'error'>>({ github: 'idle', linkedin: 'idle' });
 
   const bhId = initialProfile?.bh_id as string | undefined;
   const fullName = initialProfile?.full_name as string | undefined;
@@ -145,7 +146,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
     setIsSubmitting(true);
     try {
       // Only save non-avatar fields — avatar is already auto-saved
-      await updateProfile({
+      const kept = {
         full_name: formData.full_name,
         bio: formData.bio,
         avatar_url: undefined, // Don't touch avatar; already saved
@@ -155,14 +156,53 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
           github: formData.github,
           linkedin: formData.linkedin,
           website: formData.website,
-        }
+        },
+      };
+      await updateProfile(kept);
+
+      // Reflect what the server actually persisted, so an invalid URL the
+      // validator dropped is visible in the form immediately.
+      setFormData({
+        ...formData,
+        github: kept.socials?.github ?? '',
+        linkedin: kept.socials?.linkedin ?? '',
+        website: kept.socials?.website ?? '',
       });
-      toast.success("Profile updated successfully!");
+      toast.success("Profile updated successfully!")
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to update profile';
       toast.error(message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleImportSocial = async (provider: 'github' | 'linkedin') => {
+    setSocialFetchState(prev => ({ ...prev, [provider]: 'loading' }));
+    try {
+      const result = await fetchProviderSocials(provider);
+      if (!result.success) {
+        toast.error('Could not import that social URL.');
+        setSocialFetchState(prev => ({ ...prev, [provider]: 'error' }));
+        return;
+      }
+      const existingSocials = result.socials ?? {};
+      setFormData(prev => ({
+        ...prev,
+        github: existingSocials.github ?? prev.github,
+        linkedin: existingSocials.linkedin ?? prev.linkedin,
+        website: existingSocials.website ?? prev.website,
+      }));
+      toast.success(result.message);
+      setSocialFetchState(prev => ({ ...prev, [provider]: 'idle' }));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Could not import that social URL.';
+      toast.error(message);
+      setSocialFetchState(prev => ({ ...prev, [provider]: 'error' }));
+    } finally {
+      if (socialFetchState[provider] === 'loading') {
+        setSocialFetchState(prev => ({ ...prev, [provider]: 'idle' }));
+      }
     }
   };
 
@@ -213,9 +253,31 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
 
           {/*
             Auth0 returns a picture claim for GitHub, Google and LinkedIn
-            logins. It is copied into Cloudinary rather than hotlinked,
+            logins. It is copied into Cloudinary here on demand, not on login,
             because Google's URLs are signed and expire within hours.
           */}
+          {socialPicture && (
+            <button
+              type="button"
+              onClick={() => setSocialFetchState(prev => ({ ...prev, github: 'loading' }))}
+              disabled={socialFetchState.github === 'loading'}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface/5 hover:bg-surface/10 border border-border/40 text-left transition-colors disabled:opacity-50"
+            >
+              <Github className="w-4 h-4 text-secondary shrink-0" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-xs font-semibold text-secondary">
+                  {socialFetchState.github === 'loading' ? 'Importing GitHub URL...'
+                    : 'Import my GitHub URL'}
+                </span>
+                <span className="block text-[10px] text-muted-foreground">
+                  Filled automatically from your linked GitHub account
+                </span>
+              </span>
+              {socialFetchState.github === 'loading' && (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-secondary shrink-0" />
+              )}
+            </button>
+          )}
           {socialPicture && (
             <button
               type="button"
@@ -228,7 +290,9 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
                 <span className="block text-xs font-semibold text-secondary">
                   {importingPicture
                     ? 'Importing photo...'
-                    : `Use my ${socialProvider ? SOCIAL_PROVIDER_LABEL[socialProvider] : 'social'} photo`}
+                    : socialProvider
+                      ? `Use my ${SOCIAL_PROVIDER_LABEL[socialProvider]} photo (import on demand)`
+                      : 'Use your social photo'}
                 </span>
                 <span className="block text-[10px] text-muted-foreground">
                   Copied to our storage, so it keeps working after you log out
@@ -310,6 +374,15 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
             placeholder="https://github.com/username"
             className={cn(inputClass, showError('github') && inputErrorClass)}
           />
+          {socialFetchState.github !== 'loading' && (
+            <button
+              type="button"
+              onClick={() => handleImportSocial('github')}
+              className="mt-2 text-[10px] font-mono text-bh-red-500 hover:underline underline-offset-2"
+            >
+              Import my GitHub URL
+            </button>
+          )}
           {showError('github') && (
             <p className="flex items-center gap-1 text-[10px] text-primary-red font-medium">
               <AlertCircle size={10} />
@@ -329,6 +402,15 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
             placeholder="https://linkedin.com/in/username"
             className={cn(inputClass, showError('linkedin') && inputErrorClass)}
           />
+          {socialFetchState.linkedin !== 'loading' && (
+            <button
+              type="button"
+              onClick={() => handleImportSocial('linkedin')}
+              className="mt-2 text-[10px] font-mono text-bh-red-500 hover:underline underline-offset-2"
+            >
+              Import my LinkedIn URL
+            </button>
+          )}
           {showError('linkedin') && (
             <p className="flex items-center gap-1 text-[10px] text-primary-red font-medium">
               <AlertCircle size={10} />

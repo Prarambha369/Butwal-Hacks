@@ -12,7 +12,7 @@ export interface AnnualReportData {
     newProjects: number;
     newTeams: number;
     trustMarkersIssued: number;
-    microCredentialsAwarded: number;
+    trustMarkersAwarded: number;
     eventRegistrations: number;
   };
   financials: {
@@ -22,7 +22,7 @@ export interface AnnualReportData {
     currency: string;
     available: boolean;
   };
-  recentlyVerified: { bh_id: string; full_name: string; credential_name: string; unlocked_at: string }[];
+  recentlyVerified: { bh_id: string; full_name: string; marker_title: string; created_at: string }[];
   monthlySignups: { month: number; count: number }[];
   projectCategories: { category: string; count: number }[];
   techUsage: { tech: string; count: number }[];
@@ -60,27 +60,27 @@ export async function generateAnnualReport(year: number): Promise<AnnualReportDa
       supabase.from("projects").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate),
       supabase.from("teams").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate),
       supabase.from("trust_markers").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate),
-      supabase.from("profile_micro_credentials").select("*", { count: "exact", head: true }).gte("unlocked_at", startDate).lt("unlocked_at", endDate),
+      supabase.from("trust_markers").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate),
       supabase.from("event_registrations").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate),
       // Recently verified members (chronological record, not a ranking).
-      supabase.from("profile_micro_credentials")
-        .select("unlocked_at, profiles!profile_micro_credentials_profile_id_fkey ( bh_id, full_name ), micro_credentials!profile_micro_credentials_credential_id_fkey ( name )")
-        .gte("unlocked_at", startDate).lt("unlocked_at", endDate)
-        .order("unlocked_at", { ascending: false }).limit(10),
+      supabase.from("trust_markers")
+        .select("created_at, profiles!trust_markers_profile_id_fkey ( bh_id, full_name ), title")
+        .gte("created_at", startDate).lt("created_at", endDate)
+        .not("is_revoked", "is", true)
+        .order("created_at", { ascending: false }).limit(10),
     ]);
 
     const recentlyVerified = ((recentUnlocks ?? []) as Array<{
-      unlocked_at: string;
+      created_at: string;
       profiles: { bh_id: string; full_name: string } | Array<{ bh_id: string; full_name: string }> | null;
-      micro_credentials: { name: string } | Array<{ name: string }> | null;
+      title: string | null;
     }>).map((u) => {
       const prof = Array.isArray(u.profiles) ? u.profiles[0] : u.profiles;
-      const cred = Array.isArray(u.micro_credentials) ? u.micro_credentials[0] : u.micro_credentials;
       return {
         bh_id: prof?.bh_id ?? "",
         full_name: prof?.full_name ?? "Member",
-        credential_name: cred?.name ?? "Skill verified",
-        unlocked_at: u.unlocked_at,
+        marker_title: u.title ?? "Verified marker",
+        created_at: u.created_at,
       };
     }).filter((u) => u.bh_id);
 
@@ -128,16 +128,17 @@ export async function generateAnnualReport(year: number): Promise<AnnualReportDa
       .slice(0, 10)
       .map(([tech, count]) => ({ tech, count }));
 
-    // ── Skill Tree Unlocks (by month) ─────────────────────────────
-    const { data: credentialData } = await supabase
-      .from("profile_micro_credentials")
-      .select("unlocked_at")
-      .gte("unlocked_at", startDate).lt("unlocked_at", endDate);
+    // ── Trust Markers Issued (by month) ─────────────────────────
+    const { data: markerData } = await supabase
+      .from("trust_markers")
+      .select("created_at")
+      .gte("created_at", startDate).lt("created_at", endDate)
+      .not("is_revoked", "is", true);
 
     const skillTreeUnlocks = Array.from({ length: 12 }, (_, i) => {
       const month = i + 1;
-      const count = (credentialData ?? []).filter((c: { unlocked_at: string }) => {
-        const d = new Date(c.unlocked_at);
+      const count = (markerData ?? []).filter((m: { created_at: string }) => {
+        const d = new Date(m.created_at);
         return d.getMonth() + 1 === month;
       }).length;
       return { month, count };
@@ -187,7 +188,7 @@ export async function generateAnnualReport(year: number): Promise<AnnualReportDa
         newProjects: newProjects ?? 0,
         newTeams: newTeams ?? 0,
         trustMarkersIssued: newMarkers ?? 0,
-        microCredentialsAwarded: newCredentials ?? 0,
+        trustMarkersAwarded: newCredentials ?? 0,
         eventRegistrations: newRegistrations ?? 0,
       },
       financials,

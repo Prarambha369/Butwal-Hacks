@@ -15,6 +15,13 @@ import { describeSupabaseError } from "@/lib/supabase-error";
 import { logger } from "@/lib/logger";
 import type { GoogleTokens } from "./types";
 
+/**
+ * Single service-role client for this module. Every function in this file
+ * runs in a trusted server context, so one shared client is cheaper than a
+ * fresh connection per call and keeps the auth model in one place.
+ */
+const db = createServiceClient();
+
 export interface StoredConnection {
   auth0UserId: string;
   calendarId: string;
@@ -47,7 +54,6 @@ const RPC = "google_calendar_connections";
 
 async function decrypt(value: string | null): Promise<string | null> {
   if (!value) return null;
-  const db = createServiceClient();
   const { data, error } = await db.rpc("decrypt_google_token", { ciphertext: value });
   if (error) {
     const { diagnostic } = describeSupabaseError(error);
@@ -60,7 +66,6 @@ async function decrypt(value: string | null): Promise<string | null> {
 }
 
 async function encrypt(value: string): Promise<string | null> {
-  const db = createServiceClient();
   const { data, error } = await db.rpc("encrypt_google_token", { plaintext: value });
   if (error) {
     const { diagnostic } = describeSupabaseError(error);
@@ -73,7 +78,6 @@ async function encrypt(value: string): Promise<string | null> {
 export async function getConnection(
   auth0UserId: string
 ): Promise<StoredConnection | null> {
-  const db = createServiceClient();
   const { data, error } = await db
     .from(RPC)
     .select(
@@ -136,7 +140,6 @@ export async function upsertConnection(params: {
   const encAccess = await encrypt(params.accessToken);
   if (!encRefresh) return false;
 
-  const db = createServiceClient();
   const { error } = await db.from(RPC).upsert(
     {
       auth0_user_id: params.auth0UserId,
@@ -174,7 +177,6 @@ export async function updateAccessToken(
   const encAccess = await encrypt(accessToken);
   if (!encAccess) return;
 
-  const db = createServiceClient();
   const { error } = await db
     .from(RPC)
     .update({
@@ -194,7 +196,6 @@ export async function recordSyncResult(params: {
   googleEventIds: Record<string, { id: string; managedHash: string | null }>;
   error?: string | null;
 }): Promise<void> {
-  const db = createServiceClient();
   const { error } = await db
     .from(RPC)
     .update({
@@ -219,7 +220,6 @@ export async function appendSyncLog(rows: Array<{
 }>): Promise<void> {
   if (rows.length === 0) return;
 
-  const db = createServiceClient();
   const { error } = await db.from("google_calendar_sync_log").insert(
     rows.map((r) => ({
       auth0_user_id: r.auth0UserId,
@@ -238,7 +238,6 @@ export async function appendSyncLog(rows: Array<{
 
 /** Remove the connection and every trace of the synced events. */
 export async function deleteConnection(auth0UserId: string): Promise<boolean> {
-  const db = createServiceClient();
   const { error } = await db.from(RPC).delete().eq("auth0_user_id", auth0UserId);
 
   if (error) {

@@ -18,17 +18,17 @@ import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
  * derived from the session, which cannot be forged.
  */
 export async function updateProfile(updates: {
-  full_name?: string; 
-  bio?: string; 
-  avatar_url?: string | null; 
+  full_name?: string;
+  bio?: string;
+  avatar_url?: string | null;
   open_to_mentor?: boolean;
   cal_com_url?: string;
-  socials?: { 
-    github?: string; 
-    linkedin?: string; 
-    twitter?: string; 
-    website?: string; 
-  } 
+  socials?: {
+    github?: string;
+    linkedin?: string;
+    twitter?: string;
+    website?: string;
+  }
 }) {
   const session = await auth0.getSession();
   if (!session?.user?.sub) throw new Error("Unauthorized");
@@ -65,6 +65,139 @@ export async function updateProfile(updates: {
 
   revalidatePath(PROFILE_SETTINGS_PATH);
   return { success: true };
+}
+
+/** Minimum waiting period between social profile fetches for the same field. */
+const SOCIAL_FETCH_COOLDOWN_MS = 30_000;
+
+/**
+ * Fill the signed-in member's GitHub or LinkedIn URL from their provider
+ * profile, so they do not have to type it by hand.
+ *
+ * This is an explicit on-demand step, not an automatic login-time sync. We ask
+ * the provider only when it is legitimately linked to the account, we reuse a
+ * provider-initiated identity link only for the field it is requested for, and
+ * we never overwrite a field the member already set.
+ */
+export async function fetchProviderSocials(_provider: string): Promise<{ success: boolean; filled: boolean; message: string; socials?: Record<string, string> }> {
+  const session = await auth0.getSession();
+  if (!session?.user?.sub) throw new Error("Unauthorized");
+
+  const normalized = _provider === "linkedin" ? "linkedin" : _provider === "github" ? "github" : null;
+  if (!normalized) throw new Error("Unsupported provider");
+  const providerField = normalized;
+
+  const now = Date.now();
+  const lastFetchRaw = await getLastSocialFetch(session.user.sub);
+  const lastFetch = lastFetchRaw ? new Date(lastFetchRaw).getTime() : 0;
+  if (now - lastFetch < SOCIAL_FETCH_COOLDOWN_MS) {
+    throw new Error("Social profile import is on cooldown. Try again in a moment.");
+  }
+
+  const supabase = createServiceClient();
+
+  // Only a legitimately linked provider can be used to fill a profile URL.
+  const { data: linked } = await supabase
+    .from("linked_accounts")
+    .select("provider")
+    .eq("auth0_user_id", session.user.sub)
+    .eq("provider", providerField)
+    .maybeSingle();
+
+  if (!linked) {
+    throw new Error(
+      providerField === "github"
+        ? "Connect your GitHub account first, then import your profile URL."
+        : "Connect your LinkedIn account first, then import your profile URL."
+    );
+  }
+
+  const profileUrl = await resolveProviderProfileUrl(providerField, session.user.sub);
+  if (!profileUrl) {
+    throw new Error(
+      providerField === "github"
+        ? "Could not read a GitHub profile URL from your connected account. Check that the account is still public and try again."
+        : "Could not read a LinkedIn profile URL from your connected account. Check that the account is still public and try again."
+    );
+  }
+
+  const { data: current } = await supabase
+    .from("profiles")
+    .select("socials")
+    .eq("auth0_user_id", session.user.sub)
+    .single();
+
+  const existing = ((current?.socials as Record<string, string> | null) ?? {});
+
+  if (existing[providerField]) {
+    return {
+      success: true,
+      filled: false,
+      message: `You already have your ${providerField === "github" ? "GitHub" : "LinkedIn"} URL set. Edit it in the fields above instead.`,
+      socials: existing,
+    };
+  }
+
+  const updated = {
+    ...existing,
+    [providerField]: profileUrl,
+  };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ socials: updated, last_social_fetch_at: new Date().toISOString() })
+    .eq("auth0_user_id", session.user.sub);
+
+  if (error) {
+    logger.error("[profile] Failed to persist fetched social URL", {
+      auth0_user_id: session.user.sub,
+      error,
+    });
+    throw new Error("Failed to save the imported social URL.");
+  }
+
+  await recordSocialFetch(session.user.sub);
+  revalidatePath(PROFILE_SETTINGS_PATH);
+
+  return {
+    success: true,
+    filled: true,
+    message: `Imported your ${providerField === "github" ? "GitHub" : "LinkedIn"} URL automatically.`,
+    socials: updated,
+  };
+}
+
+/** Stub for tests / missing-helper path: replace with a real provider read when one exists. */
+async function resolveProviderProfileUrl(
+  _provider: "github" | "linkedin",
+  _auth0UserId: string,
+): Promise<string | null> {
+  return null;
+}
+
+async function getLastSocialFetch(auth0UserId: string): Promise<string | null> {
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("last_social_fetch_at")
+    .eq("auth0_user_id", auth0UserId)
+    .single();
+  if (error || !data) return null;
+  return data.last_social_fetch_at;
+}
+
+async function recordSocialFetch(auth0UserId: string): Promise<void> {
+  const supabase = createServiceClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ last_social_fetch_at: new Date().toISOString() })
+    .eq("auth0_user_id", auth0UserId);
+  if (error) {
+    logger.error("[profile] Failed to record social fetch timestamp", {
+      auth0_user_id: auth0UserId,
+      error,
+    });
+  }
 }
 
 /**

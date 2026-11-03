@@ -178,9 +178,9 @@ export default function TeamMatching() {
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
-                    {candidate.social_links?.github && (
+                    {candidate.socials?.github && (
                       <a
-                        href={candidate.social_links.github}
+                        href={candidate.socials.github}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-colors"
