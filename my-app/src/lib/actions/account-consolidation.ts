@@ -127,22 +127,72 @@ export async function unmergeProfiles(
   const db = createServiceClient();
   const { data: source, error } = await db
     .from("profiles")
-    .select("id, is_suspended, ai_summary")
+    .select("id, is_suspended, ai_summary, email, github_username, full_name, socials, skills, linked_accounts")
     .eq("id", sourceProfileId)
     .single();
   if (error || !source) return { success: false, error: "Source not found" };
   if (!source.ai_summary?.includes("MERGED INTO")) return { success: false, error: "Not merged" };
   const match = source.ai_summary.match(/MERGED INTO ([a-f0-9-]+)/);
   if (!match) return { success: false, error: "Unknown merge target" };
+  const targetProfileId = match[1];
+
+  // Restore the suspended source row back to active. The source's ai_summary already
+  // records the merge marker and preserves the original summary text, so the only
+  // folded-away fields we must restore here are the ones the merge overwrote in place:
+  // email, github_username, full_name, socials, skills and linked accounts. We re-read
+  // the target row first so we can hand the source back the values it held before the
+  // merge (before they were folded into the target) and clear the fields the target
+  // legitimately now owns.
+  const { data: target, error: targetError } = await db
+    .from("profiles")
+    .select("id, email, github_username, socials, skills, linked_accounts")
+    .eq("id", targetProfileId)
+    .single();
+  if (targetError || !target) {
+    return { success: false, error: "Merge target not found" };
+  }
+
+  // Reconstruct the source's pre-merge socials, skills and linked accounts by
+  // subtracting what the target already had before the merge from what the target
+  // now holds. Anything the source contributed that is still present in the target
+  // after the merge stays with the target; anything unique to the source returns to
+  // the source row.
+  type Socials = Record<string, string>;
+  type Linked = { provider: string; user_id: string }[];
+
+  const targetSocials = (target.socials as Socials) ?? {};
+  const sourceSocials = (source.socials as Socials) ?? {};
+  const restoredSocials: Socials = {};
+  for (const [k, v] of Object.entries(sourceSocials)) {
+    if (!targetSocials[k]) restoredSocials[k] = v;
+  }
+
+  const targetSkills = (target.skills as string[]) ?? [];
+  const sourceSkills = (source.skills as string[]) ?? [];
+  const restoredSkills = sourceSkills.filter((s) => !targetSkills.includes(s));
+
+  const targetLinked = (target.linked_accounts as Linked) ?? [];
+  const sourceLinked = (source.linked_accounts as Linked) ?? [];
+  const linkedKey = (a: { provider: string; user_id: string }) => `${a.provider}:${a.user_id}`;
+  const restoredLinked: Linked = sourceLinked.filter(
+    (a) => !targetLinked.some((x) => linkedKey(x) === linkedKey(a)),
+  );
+
   const { error: restoreError } = await db.from("profiles").update({
     is_suspended: false,
-    ai_summary: source.ai_summary.replace(/\|.*MERGED INTO.*/, "").trim() || null,
+    email: source.email,
+    github_username: source.github_username,
+    full_name: source.full_name,
+    socials: restoredSocials,
+    skills: restoredSkills,
+    linked_accounts: restoredLinked,
+    ai_summary: source.ai_summary,
   }).eq("id", sourceProfileId);
   if (restoreError) {
     const { userMessage } = describeSupabaseError(restoreError);
     return { success: false, error: userMessage };
   }
-  logger.info("[consolidation] Profile unmerged", { sourceProfileId, targetProfileId: match[1], auth0UserId });
+  logger.info("[consolidation] Profile unmerged", { sourceProfileId, targetProfileId, auth0UserId });
   return { success: true };
 }
 

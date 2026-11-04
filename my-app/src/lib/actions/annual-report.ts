@@ -59,8 +59,8 @@ export async function generateAnnualReport(year: number): Promise<AnnualReportDa
       supabase.from("events").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate),
       supabase.from("projects").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate),
       supabase.from("teams").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate),
-      supabase.from("trust_markers").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate),
-      supabase.from("trust_markers").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate),
+      supabase.from("trust_markers").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate).not("is_revoked", "is", true),
+      supabase.from("trust_markers").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate).not("is_revoked", "is", true),
       supabase.from("event_registrations").select("*", { count: "exact", head: true }).gte("created_at", startDate).lt("created_at", endDate),
       // Recently verified members (chronological record, not a ranking).
       supabase.from("trust_markers")
