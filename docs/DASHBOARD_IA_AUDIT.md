@@ -21,8 +21,6 @@ Measured inventory of the authenticated segment: `my-app/src/app/(main)/dashboar
 | /dashboard/hacker/certificates | hacker | dashboard/hacker/certificates/page.tsx | server | noindex L8 | ancestor | yes (H:62) |
 | /dashboard/hacker/team-matching | hacker | dashboard/hacker/team-matching/page.tsx | server | index (generateMetadata L9) | ancestor | yes (H:74) |
 
-| /dashboard/hacker/skills | hacker | dashboard/hacker/skills/page.tsx | server | index L7-8 | ancestor | yes (H:86) |
-| /dashboard/hacker/chat | hacker | dashboard/hacker/chat/page.tsx | server | index L7-8 | ancestor | yes (H:92) |
 | /dashboard/hacker/teams | hacker | dashboard/hacker/teams/page.tsx | server | noindex L8 | ancestor | no (nav sends to `/teams`, H:68) |
 | /dashboard/hacker/profile | hacker | dashboard/hacker/profile/page.tsx | server | noindex L14 | ancestor | no (nav sends to `/dashboard/profile`) |
 | /dashboard/organizer | organizer | dashboard/organizer/page.tsx | server | noindex L9 | own | yes (O:28) |
@@ -60,24 +58,23 @@ Measured inventory of the authenticated segment: `my-app/src/app/(main)/dashboar
 | /portal/bounties/[id]/edit | portal | portal/bounties/[id]/edit/page.tsx | server | index (generateMetadata L10-12) | ancestor | no (child) |
 | /portal/payouts | portal | portal/payouts/page.tsx | server | index L9 | ancestor | **no (absent from P array)** |
 
-Counts: 51 pages, 49 server / 2 client; 32 `noindex`, 16 `index`, 3 `none` (19 of 51 emit no noindex); 4 routes with their own `loading.tsx` (`/dashboard`, `/dashboard/organizer`, `/dashboard/organizer/api-keys`, `/dashboard/maintainer`), 47 inherited; 30 routes reachable from a nav array, 21 not. `...` rows expand to `dashboard/organizer/events/[event_id]/<child>/page.tsx`.
+Counts (re-verified 2026-11-05 after the dashboard feature removals): 48 pages, 47 server / 1 client (remaining client page: `dashboard/maintainer/dedicate-school/page.tsx`); `dashboard/layout.tsx` and `portal/layout.tsx` both export `robots: { index: false, follow: false }`, so all 48 pages are `noindex` unless a page overrides it (none do); 12 routes have their own `loading.tsx`; nav reachability not re-audited — the two removed entries are gone, and the `/dashboard/hacker/skills` and `/dashboard/hacker/chat` rows are absent from `src/lib/dashboard-nav.ts`. `...` rows expand to `dashboard/organizer/events/[event_id]/<child>/page.tsx`.
 
 ## 2. Nav duplication
 
-### 2a. `H` `hackerLinks` (H:36-97) - 10 items
+### 2a. `H` `hackerNav` - 7 items
+
+(The inline `hackerLinks` array was consolidated into `src/lib/dashboard-nav.ts`.)
 
 | label | href | icon | shortcut | lines |
 |---|---|---|---|---|
-| Overview | /dashboard/hacker | LayoutDashboard | h | 37-42 |
-| My Profile | /dashboard/profile (`src/lib/routes.ts:18`) | User | r | 43-48 |
-| Work | /dashboard/hacker/work | KanbanSquare | w | 49-54 |
-| Projects | /dashboard/hacker/projects | Code2 | p | 55-60 |
-| Certificates | /dashboard/hacker/certificates | FileText | c | 61-66 |
-| Teams | **/teams (off-dashboard)** | Users | t | 67-72 |
-| AI Team Match | /dashboard/hacker/team-matching | UsersRound | m | 73-78 |
-
-| Skill Trees | /dashboard/hacker/skills | GitBranch | s | 85-90 |
-| Team Chat | /dashboard/hacker/chat | MessageSquare | x | 91-96 |
+| Overview | /dashboard/hacker | LayoutDashboard | h | — |
+| My Profile | /dashboard/profile (`src/lib/routes.ts`) | User | r | — |
+| Work | /dashboard/hacker/work | KanbanSquare | w | — |
+| Projects | /dashboard/hacker/projects | Code2 | p | — |
+| Certificates | /dashboard/hacker/certificates | FileText | c | — |
+| Teams | **/teams (off-dashboard)** | Users | t | — |
+| AI Team Match | /dashboard/hacker/team-matching | UsersRound | m | — |
 
 ### 2b. `O` `organizerLinks` (O:26-66) - 6 items
 
@@ -209,11 +206,11 @@ Unit (`src/**/__tests__`) - what actually exists:
 | Layout guards (source-level) | `src/app/(main)/dashboard/__tests__/layout-guards.test.ts:56-83` | all 4 layouts call their predicate, no truthiness gate, `redirect(blocked)` present |
 | Predicate parity (source-level) | `src/lib/__tests__/access-parity.test.ts:43-174` | portal/maintainer/organizer layout delegation + middleware `PORTAL_ROLES` parity |
 | Predicates (behaviour) | `src/lib/__tests__/dashboard-access.test.ts`, `src/lib/__tests__/role-gate.test.ts` | `isMaintainer`, `maintainerRedirect`, `organizerRedirect`, `portalRedirect`, `roleRedirect` |
-| Route import smoke | `src/__tests__/smoke.test.ts:64-101,125` | 31 dashboard + all 7 portal routes export a default page; `loading.tsx` list has only 1 of our 5 (`smoke.test.ts:168` = `organizer/api-keys`) |
+| Route import smoke | `src/__tests__/smoke.test.ts` | dashboard + portal + public routes listed there export a default page; the `loading.tsx` list covers `/explore`, `/initiatives/[slug]` and the root only (no dashboard `loading.tsx`) |
 | Middleware role routing | `src/__tests__/proxy.test.ts:145-345,564-582` | `/dashboard`, `/dashboard/hacker`, `/dashboard/maintainer`, `/dashboard/organizer`, `/dashboard/maintainer/audit-log`, `/dashboard/organizer/events` |
 | Nav shell / palette | `src/components/dashboard/shell/__tests__/dashboard-shell.test.tsx`, `src/components/__tests__/dashboard-command-palette.test.tsx`, `src/components/__tests__/maintainer-sidebar.test.tsx`, `src/hooks/__tests__/use-dashboard-shortcuts.test.ts` | shell rendering, palette filter/nav, maintainer sidebar, `g+key` shortcuts |
 | Scan page | `dashboard/organizer/events/[event_id]/scan/__tests__/qr-scanner-client.test.tsx` | client scanner component only |
-| Page behaviours via actions | `src/lib/actions/__tests__/{admin,teams,certificates,events,projects,partners,testimonials,blog,issue-marker,role-selection,skill-trees,team-chat,team-matching,sponsor-opportunities}.test.ts` | the server actions behind maintainer/users, teams, certificates, events, projects, partners, testimonials, blog drafts, issue marker, role selection, skills, chat, team match, bounties |
+| Page behaviours via actions | `src/lib/actions/__tests__/{admin,teams,certificates,events,projects,partners,testimonials,blog,issue-marker,role-selection,team-matching,sponsor-opportunities,account-consolidation,profile}.test.ts` | the server actions behind maintainer/users, teams, certificates, events, projects, partners, testimonials, blog drafts, issue marker, role selection, team match, bounties, account merging, provider-social import |
 | Other | `src/lib/__tests__/system-diagnostics.test.ts`, `src/lib/__tests__/blog-drafts.test.ts`, `src/lib/certificates/__tests__/*` | system-check probes, blog drafts, certificate templates/render/export |
 
 E2E (`my-app/e2e/`, 6 specs):
@@ -226,7 +223,7 @@ E2E (`my-app/e2e/`, 6 specs):
 | `helpers.ts:44-56` | sign-in lands on `/dashboard/hacker` |
 | `smoke.spec.ts`, `task-flow.spec.ts` | no dashboard/portal routes |
 
-**Routes with no route-module test (11):** `/dashboard/blog`, `/dashboard/hacker/skills`, `/dashboard/hacker/chat`, `/dashboard/organizer/certificates/templates`, `.../events/[event_id]/certificates`, `.../photos`, `.../teams`, `.../scan`, `.../qr`, `/dashboard/maintainer/system-check`, `/dashboard/maintainer/testimonials`. Behaviour is still covered indirectly for blog (`src/lib/__tests__/blog-drafts.test.ts`), skills (`actions/__tests__/skill-trees.test.ts`), chat (`actions/__tests__/team-chat.test.ts`), templates (`lib/certificates/__tests__/*` + `actions/__tests__/certificates.test.ts:365`), event certificates (`certificates.test.ts:251,431`), teams (`teams.test.ts:322`), scan (`scan/__tests__/qr-scanner-client.test.tsx`) and system-check (`src/lib/__tests__/system-diagnostics.test.ts`); **`.../photos` and `.../qr` have no test at all**. No signed-in E2E exists for any maintainer, organizer-event, or portal route beyond `rbac-routing.spec.ts`'s unauthenticated redirects.
+**Routes with no route-module test (9):** `/dashboard/blog`, `/dashboard/organizer/certificates/templates`, `.../events/[event_id]/certificates`, `.../photos`, `.../teams`, `.../scan`, `.../qr`, `/dashboard/maintainer/system-check`, `/dashboard/maintainer/testimonials`. (`/dashboard/hacker/skills` and `/dashboard/hacker/chat` were removed entirely in this branch.) Behaviour is still covered indirectly for blog (`src/lib/__tests__/blog-drafts.test.ts`), account consolidation and provider-social import (`actions/__tests__/account-consolidation.test.ts`, `actions/__tests__/profile.test.ts`), templates (`lib/certificates/__tests__/*` + `actions/__tests__/certificates.test.ts:365`), event certificates (`certificates.test.ts:251,431`), teams (`teams.test.ts:322`), scan (`scan/__tests__/qr-scanner-client.test.tsx`) and system-check (`src/lib/__tests__/system-diagnostics.test.ts`); **`.../photos` and `.../qr` have no test at all**. No signed-in E2E exists for any maintainer, organizer-event, or portal route beyond `rbac-routing.spec.ts`'s unauthenticated redirects.
 
 ## 7. Top-3 IA proposals
 

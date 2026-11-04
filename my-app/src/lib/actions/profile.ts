@@ -5,6 +5,7 @@ import { createServiceClient } from "@/utils/supabase";
 import { revalidatePath } from "next/cache";
 import { sanitizeString, normalizeSocialUrl } from "@/lib/validation";
 import { auth0 } from "@/lib/auth0";
+import { getLinkedIdentities } from "@/lib/auth0-management";
 import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 
 /**
@@ -97,14 +98,35 @@ export async function fetchProviderSocials(_provider: string): Promise<{ success
   const supabase = createServiceClient();
 
   // Only a legitimately linked provider can be used to fill a profile URL.
-  const { data: linked } = await supabase
-    .from("linked_accounts")
-    .select("provider")
+  // There is no `linked_accounts` table; linked accounts live in the
+  // `profiles.linked_accounts` JSONB array, written by the Auth0 link
+  // callback. Read that column for the session's own profile.
+  const { data: profileRow, error: profileRowError } = await supabase
+    .from("profiles")
+    .select("linked_accounts")
     .eq("auth0_user_id", session.user.sub)
-    .eq("provider", providerField)
-    .maybeSingle();
+    .single();
 
-  if (!linked) {
+  if (profileRowError) {
+    logger.error("[profile] Failed to read linked accounts", {
+      auth0_user_id: session.user.sub,
+      error: profileRowError,
+    });
+    throw new Error("Failed to verify linked accounts. Please try again.");
+  }
+
+  const linkedAccounts: unknown[] = Array.isArray(profileRow?.linked_accounts)
+    ? (profileRow.linked_accounts as unknown[])
+    : [];
+
+  const isProviderLinked = linkedAccounts.some(
+    (entry): entry is { provider: unknown } =>
+      typeof entry === "object" &&
+      entry !== null &&
+      (entry as { provider: unknown }).provider === providerField
+  );
+
+  if (!isProviderLinked) {
     throw new Error(
       providerField === "github"
         ? "Connect your GitHub account first, then import your profile URL."
@@ -167,12 +189,41 @@ export async function fetchProviderSocials(_provider: string): Promise<{ success
   };
 }
 
-/** Stub for tests / missing-helper path: replace with a real provider read when one exists. */
-async function resolveProviderProfileUrl(
-  _provider: "github" | "linkedin",
-  _auth0UserId: string,
+/**
+ * Resolve the member's public profile URL for a linked provider via the
+ * Auth0 Management API. Mirrors the link-callback auto-population:
+ * github -> https://github.com/{nickname}; linkedin -> https://linkedin.com/in/{nickname}
+ * only when the nickname is not purely numeric (LinkedIn IDs are numeric).
+ * Returns null on any error or when there is no usable nickname.
+ */
+export async function resolveProviderProfileUrl(
+  provider: "github" | "linkedin",
+  auth0UserId: string,
 ): Promise<string | null> {
-  return null;
+  let linked: Awaited<ReturnType<typeof getLinkedIdentities>>;
+  try {
+    linked = await getLinkedIdentities(auth0UserId);
+  } catch (error: unknown) {
+    logger.error("[profile] Failed to fetch linked identities", {
+      auth0_user_id: auth0UserId,
+      error,
+    });
+    return null;
+  }
+
+  const identity = linked.find((id) => id.provider === provider);
+  const nickname = identity?.profileData?.nickname;
+  if (!nickname) return null;
+
+  if (provider === "github") {
+    return `https://github.com/${nickname}`;
+  }
+
+  // LinkedIn's numeric IDs cannot be used as vanity URL names.
+  if (/^\d+$/.test(nickname)) {
+    return null;
+  }
+  return `https://linkedin.com/in/${nickname}`;
 }
 
 async function getLastSocialFetch(auth0UserId: string): Promise<string | null> {

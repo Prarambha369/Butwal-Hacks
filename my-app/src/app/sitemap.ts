@@ -202,19 +202,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
     }
 
-    // Sponsor profiles from DB (public sponsor pages)
-    const { data: sponsorProfiles } = await supabase
-      .from('sponsor_profiles')
-      .select('id, company_name, created_at, updated_at')
-      .limit(500)
+    // Sponsor profiles from DB (public sponsor pages). Paginated with a
+    // bounded loop: a bare .limit(500) silently dropped every profile past
+    // the cap, so their /sponsor/{id} URLs never reached the sitemap. The
+    // loop stops on a short page, and the page cap bounds the total work so
+    // the sitemap can't hang.
+    const SPONSOR_PAGE_SIZE = 500;
+    const MAX_SPONSOR_PAGES = 10;
 
-    for (const sp of sponsorProfiles ?? []) {
-      entries.push({
-        url: `${siteUrl}/sponsor/${sp.id}`,
-        lastModified: sp.updated_at ? new Date(sp.updated_at) : (sp.created_at ? new Date(sp.created_at) : today),
-        changeFrequency: 'monthly',
-        priority: 0.6,
-      })
+    for (let page = 0; page < MAX_SPONSOR_PAGES; page++) {
+      const { data: sponsorProfiles } = await supabase
+        .from('sponsor_profiles')
+        .select('id, company_name, created_at, updated_at')
+        .order('id', { ascending: true })
+        .range(page * SPONSOR_PAGE_SIZE, (page + 1) * SPONSOR_PAGE_SIZE - 1)
+
+      for (const sp of sponsorProfiles ?? []) {
+        entries.push({
+          url: `${siteUrl}/sponsor/${sp.id}`,
+          lastModified: sp.updated_at ? new Date(sp.updated_at) : (sp.created_at ? new Date(sp.created_at) : today),
+          changeFrequency: 'monthly',
+          priority: 0.6,
+        })
+      }
+
+      if (!sponsorProfiles || sponsorProfiles.length < SPONSOR_PAGE_SIZE) break
     }
 
     // Teams from DB

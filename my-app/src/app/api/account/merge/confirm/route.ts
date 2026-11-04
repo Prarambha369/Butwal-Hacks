@@ -13,10 +13,16 @@
  */
 
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { logger } from "@/lib/logger";
 import { auth0 } from "@/lib/auth0";
 import { mergeProfiles } from "@/lib/actions/account-consolidation";
+
+const confirmSchema = z.object({
+  source_profile_id: z.string().uuid("source_profile_id must be a valid UUID"),
+  confirm: z.literal(true),
+});
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
@@ -28,34 +34,18 @@ export const POST = withRateLimit(async (request: Request) => {
 
     const auth0UserId = session.user.sub;
     const body = await request.json().catch(() => ({}));
-    const { source_profile_id, confirm } = body as {
-      source_profile_id?: string;
-      confirm?: boolean;
-    };
-
-    if (!source_profile_id) {
+    const parsed = confirmSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "source_profile_id is required" },
+        { error: parsed.error.issues[0]?.message ?? "Invalid request body" },
         { status: 400 }
       );
     }
+    const { source_profile_id } = parsed.data;
 
-    if (!confirm) {
-      return NextResponse.json(
-        { error: "Confirmation required. Set confirm=true to proceed." },
-        { status: 400 }
-      );
-    }
-
-    // Execute the merge
-    const result = await mergeProfiles(
-      // Target = current user's profile (we need to look it up)
-      // The mergeProfiles function looks up the target by auth0UserId
-      // So we pass a placeholder and let it resolve
-      "need-target-lookup",
-      source_profile_id,
-      auth0UserId
-    );
+    // Execute the merge; mergeProfiles resolves the target from auth0UserId
+    // and authorizes the source against the caller's merge candidates.
+    const result = await mergeProfiles(source_profile_id, auth0UserId);
 
     if (!result.success) {
       return NextResponse.json(

@@ -94,12 +94,15 @@ export function DashboardShell({
 
   return (
     <div className="flex min-h-dvh bg-background">
-      {/* Exactly one sidebar, in one container, both always mounted. The
-          container is the drawer when open and the rail column when closed.
-          Nothing is swapped: a swap unmounts, and this sidebar mounts
-          the role-widget set (role switcher, onboarding progress, org switcher),
-          so every open would re-run those widgets and the profiles query.
-          Two live sidebars -- the original version -- ran both on every open.
+      {/* Exactly one sidebar, in one container, both always mounted on the
+          default DashboardSidebar path. The container is the drawer when open
+          and the rail column when closed. Nothing is swapped: a swap unmounts,
+          and the default DashboardSidebar mounts the role-widget set
+          (role switcher, onboarding progress, org switcher), so every open
+          would re-run those widgets and the profiles query. Two live sidebars --
+          the original version -- ran both on every open. A `sidebar` override
+          may mount a different set of widgets; that opt-in does not inherit
+          this guarantee.
 
           This container is also the focus trap and the dialog. The sidebar
           inside it carries no positioning of its own, so it fills the drawer

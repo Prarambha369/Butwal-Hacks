@@ -1,33 +1,62 @@
 -- Migration: 140_drop_micro_credentials.sql
--- Purpose: Drop the micro_credentials / profile_micro_credentials tables.
+-- Purpose: Archive the micro_credentials / profile_micro_credentials tables
+--          (069 created them; Skill Trees removed in PR #58) via guarded
+--          archive-rename (NOT plain DROP).
 --
--- Context:
---   Migration 069 (069_add_micro_credentials.sql) created these two tables as the
---   data layer for the Skill Trees / micro-credentials feature (Phase 15).
+-- Why archive-rename, not DROP:
+--   A production scan showed mig 140 was NOT applied and these tables hold
+--   8 (micro_credentials) + 7 (profile_micro_credentials) rows — a plain
+--   DROP would irretrievably lose that data. This migration renames both
+--   tables to *_archive_140 instead of dropping them, preserving every row.
+--   Task statement: "production scan showed mig140 not applied and tables
+--   have 8+7 rows so plain DROP would lose data."
 --
---   That feature is being removed from the app in PR #58:
---     - Skill Trees dashboard page, API route, server actions, components, tests
---     - Credentials stat from homepage live-stats-counter
---     - Nav entries, audit routes, dead i18n keys
+-- Guard:
+--   The BEGIN block below refuses to run while either table is non-empty:
+--   counts are read inside DO $$ and if either count > 0 it raises an
+--   exception with both counts, aborting the transaction before any rename.
+--   When the guard passes (both empty), RENAME preserves the rows as an
+--   archive rather than deleting them — the guard makes the rename safe,
+--   the archive makes it recoverable.
 --
---   The trust-markers-on-profile feature that stays uses a different data path:
---     - src/lib/skill-trees.ts  (SKILL_TREES config + getProfileUnlockedSkills)
---     - profiles.total_trust_markers  (computed from trust_markers table)
---     - trust_markers table (migration 001, reconciled in 0103)
+-- Recovery (inverse rename):
+--   ALTER TABLE public.profile_micro_credentials_archive_140 RENAME TO profile_micro_credentials;
+--   ALTER TABLE public.micro_credentials_archive_140 RENAME TO micro_credentials;
 --
---   getProfileUnlockedSkills never reads micro_credentials; the only app code that
---   referenced these tables was the deleted src/lib/actions/skill-trees.ts.
+-- NOT VALID: inapplicable — this migration adds no new constraint, so there
+--   is nothing to mark NOT VALID. No rows are scanned, nothing is dropped.
 --
---   Safe to drop: no live query targets these tables, and seed.sql never inserted
---   any profile_micro_credentials rows.
+-- auth.jwt(): not needed — this is owner DDL (ALTER TABLE ... RENAME) run
+--   as the migration role, not per-row RLS. No SELECT policy or JWT claim
+--   lookup is required for DDL; AGENTS.md's auth.jwt() ->> 'sub' rule
+--   applies to new RLS policies, of which this migration defines none.
 --
---   RLS/grant migrations that referenced these tables (073, 116) use IF EXISTS
---   guards, so they become harmless no-ops once the tables are gone. No edit needed.
+-- RLS/grant migrations referencing these tables (073, 116) use IF EXISTS
+-- guards, so they become harmless no-ops after the rename. No edit needed.
 
 BEGIN;
 
--- Drop in dependency order (child table first)
-DROP TABLE IF EXISTS public.profile_micro_credentials;
-DROP TABLE IF EXISTS public.micro_credentials;
+-- Guard: refuse to archive if either table currently holds data. The counts
+-- are embedded in the exception message so an operator seeing the failure
+-- knows exactly how many rows must be migrated or cleared first.
+DO $$
+DECLARE
+  v_micro_count bigint;
+  v_profile_count bigint;
+BEGIN
+  SELECT count(*) INTO v_micro_count FROM public.micro_credentials;
+  SELECT count(*) INTO v_profile_count FROM public.profile_micro_credentials;
+
+  IF v_micro_count > 0 OR v_profile_count > 0 THEN
+    RAISE EXCEPTION
+      'Migration 140 guarded: refusing to archive-rename non-empty tables. '
+      'public.micro_credentials has % rows, public.profile_micro_credentials has % rows. '
+      'Migrate or clear the rows first, then re-run.',
+      v_micro_count, v_profile_count;
+  END IF;
+END $$;
+
+ALTER TABLE public.profile_micro_credentials RENAME TO profile_micro_credentials_archive_140;
+ALTER TABLE public.micro_credentials RENAME TO micro_credentials_archive_140;
 
 COMMIT;

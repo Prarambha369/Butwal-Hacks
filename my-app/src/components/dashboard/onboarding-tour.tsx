@@ -112,6 +112,7 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
   const [isMounted, setIsMounted] = useState(false);
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
   const [useAnchored, setUseAnchored] = useState(false);
+  const [cardHeight, setCardHeight] = useState(0);
   const [isCheckingSupabase, setIsCheckingSupabase] = useState(true);
   const mountedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -237,6 +238,18 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
 
   }, [step]);
 
+  // Measure the card so the anchored clamp keeps the whole card in view.
+  // Recomputed with each step because the card height can change per step.
+  useEffect(() => {
+    if (!isVisible) return;
+    const raf = requestAnimationFrame(() => {
+      if (cardRef.current) {
+        setCardHeight(cardRef.current.offsetHeight);
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [isVisible, step]);
+
   const handleNext = useCallback(() => {
     if (step < STEPS.length - 1) {
       setStep((s) => s + 1);
@@ -257,11 +270,16 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
   
   const tooltipLeft =
     targetRect && useAnchored ? targetRect.left + targetRect.width + 20 : null;
-  // Minimum top offset prevents the card from being clipped at the viewport edge
+  // Card-center clamp: translateY(-50%) centers the card on tooltipTop, so
+  // the minimum top must clear half the card height — otherwise the card
+  // clips above the viewport even though the anchor center is 120px down.
   const MIN_TOP_OFFSET = 120;
   const tooltipTop =
     targetRect && useAnchored
-      ? Math.max(targetRect.top + targetRect.height / 2, MIN_TOP_OFFSET)
+      ? Math.max(
+          targetRect.top + targetRect.height / 2,
+          MIN_TOP_OFFSET + cardHeight / 2,
+        )
       : null;
 
   const tooltipOverflows =

@@ -13,10 +13,16 @@
  */
 
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { createServiceClient } from "@/utils/supabase";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { logger } from "@/lib/logger";
 import { auth0 } from "@/lib/auth0";
+import { isMergeCandidate } from "@/lib/actions/account-consolidation";
+
+const initiateSchema = z.object({
+  source_profile_id: z.string().uuid("source_profile_id must be a valid UUID"),
+});
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
@@ -27,15 +33,17 @@ export const POST = withRateLimit(async (request: Request) => {
 
     const auth0UserId = session.user.sub;
     const body = await request.json().catch(() => ({}));
-    const { source_profile_id } = body as { source_profile_id?: string };
-
-    if (!source_profile_id) {
+    const parsed = initiateSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "source_profile_id is required" },
+        { error: parsed.error.issues[0]?.message ?? "Invalid request body" },
         { status: 400 }
       );
     }
+    const { source_profile_id } = parsed.data;
 
+    // Authorization: currentProfile is resolved from the authenticated
+    // identity — service-role DB is only touched after this check.
     const db = createServiceClient();
 
     // Get current user's profile
@@ -49,6 +57,22 @@ export const POST = withRateLimit(async (request: Request) => {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
+    if (source_profile_id === currentProfile.id) {
+      return NextResponse.json({ error: "Cannot merge a profile into itself" }, { status: 400 });
+    }
+
+    // IDOR guard (shared with mergeProfiles): only a candidate of the caller
+    // may have its profile data disclosed. 404 hides non-candidates.
+    const eligible = await isMergeCandidate(
+      currentProfile.id as string,
+      currentProfile.email as string | null,
+      currentProfile.github_username as string | null,
+      source_profile_id
+    );
+    if (!eligible) {
+      return NextResponse.json({ error: "Source profile is not eligible for merge" }, { status: 404 });
+    }
+
     // Get source profile
     const { data: sourceProfile, error: sourceError } = await db
       .from("profiles")
@@ -58,10 +82,6 @@ export const POST = withRateLimit(async (request: Request) => {
 
     if (sourceError || !sourceProfile) {
       return NextResponse.json({ error: "Source profile not found" }, { status: 404 });
-    }
-
-    if (source_profile_id === currentProfile.id) {
-      return NextResponse.json({ error: "Cannot merge a profile into itself" }, { status: 400 });
     }
 
     if (sourceProfile.is_suspended) {

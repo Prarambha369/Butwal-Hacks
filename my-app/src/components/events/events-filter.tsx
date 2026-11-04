@@ -130,7 +130,7 @@ function EventCard({ event, filter }: { event: EventItem; filter: FilterMode }) 
     <article className="group relative overflow-hidden rounded-xl border border-border bg-surface transition-all hover:border-primary-red/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary-red/5">
       {/* Banner strip — Devpost-style visual lead */}
       {hasBanner ? (
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden aspect-[16/9]">
           <Image
             src={event.banner_url!}
             alt={event.title}
@@ -147,7 +147,11 @@ function EventCard({ event, filter }: { event: EventItem; filter: FilterMode }) 
           </div>
         </div>
       ) : (
-        <div className="h-48 bg-primary-red/5" />
+        <div className="relative overflow-hidden aspect-[16/9] flex items-center justify-center bg-primary-red/5 p-4">
+          <h2 className="text-xl font-black leading-tight text-primary text-center group-hover:text-primary-red transition-colors">
+            {event.title}
+          </h2>
+        </div>
       )}
 
       {/* Body */}

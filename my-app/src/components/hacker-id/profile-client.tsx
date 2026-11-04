@@ -9,24 +9,10 @@ import PhotoGallery from '@/components/hacker-id/photo-gallery';
 import OwnerActionBar from '@/components/hacker-id/owner-action-bar';
 import TrustMarkersList from '@/components/hacker-id/trust-markers-list';
 
-import { Sparkles, Loader2, Code, Copy, Check, Award, Code2, Palette, Globe, Cable, Cpu, Network, Link2, Rocket, Trophy, Layers } from 'lucide-react';
+import { Sparkles, Loader2, Code, Copy, Check } from 'lucide-react';
 import { generateProfileSummary } from '@/lib/actions/generate-profile-summary';
 import { useActionState } from 'react';
 
-const SKILL_ICONS: Record<string, React.ReactNode> = {
-  react: <Code2 className="w-5 h-5" />,
-  python: <Code2 className="w-5 h-5" />,
-  palette: <Palette className="w-5 h-5" />,
-  globe: <Globe className="w-5 h-5" />,
-  cable: <Cable className="w-5 h-5" />,
-  cpu: <Cpu className="w-5 h-5" />,
-  network: <Network className="w-5 h-5" />,
-  link: <Link2 className="w-5 h-5" />,
-  rocket: <Rocket className="w-5 h-5" />,
-  trophy: <Trophy className="w-5 h-5" />,
-  zap: <Layers className="w-5 h-5" />,
-  layers: <Layers className="w-5 h-5" />,
-}
 import type { HackerProfile, Project } from '@/lib/supabase-types';
 
 // Extended to match both HackerProfile and additional runtime properties
@@ -79,26 +65,12 @@ function normalizeProfile(row: PublicProfileRow): ProfileClientData {
   };
 }
 
-interface UnlockedSkill {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  treeName: string;
-  treeColor: string;
-  unlockedAt: string;
-}
-
 export default function ProfileClient({
   profile,
   projects,
-  unlockedSkills = [],
-  totalSkillCount = 0,
 }: {
   profile: PublicProfileRow;
   projects: Project[];
-  unlockedSkills?: UnlockedSkill[];
-  totalSkillCount?: number;
 }) {
   // Normalize the DB row (snake_case) into the display shape (camelCase)
   // once, so all child components get the fields they actually render.
@@ -137,35 +109,6 @@ export default function ProfileClient({
         {/* Trust Markers — verified achievements with GlassBadge */}
         <TrustMarkersList markers={data.trust_markers as import('@/lib/supabase-types').TrustMarker[]} />
 
-        {/* Skill Trees — unlocked micro-credentials */}
-        {unlockedSkills.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Award className="h-4 w-4 text-primary-red" />
-              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                Skill Trees ({unlockedSkills.length}/{totalSkillCount})
-              </h2>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {unlockedSkills.map((skill) => (
-                <div
-                  key={skill.id}
-                  title={`${skill.description} - ${skill.treeName}`}
-                  className="bh-card p-3 flex flex-col items-center gap-2 text-center group hover:shadow-lg transition-all duration-200"
-                >
-                  <div className="w-10 h-10 rounded-full bg-primary-red/10 flex items-center justify-center text-primary-red group-hover:scale-110 transition-transform">
-                    {SKILL_ICONS[skill.icon] || <Award className="w-5 h-5" />}
-                  </div>
-                  <p className="text-xs font-semibold text-primary leading-tight">{skill.name}</p>
-                  <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-                    {skill.treeName}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-        
         {/* Pass isProfileView={true} to trigger the compact ContributionCard layout */}
         <ProjectShowcase projects={projects} isProfileView={true} />
         

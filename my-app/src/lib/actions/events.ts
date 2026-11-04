@@ -372,7 +372,7 @@ export async function updateEventBanner(eventId: string, bannerUrl: string) {
 
     const { data: event } = await supabase
       .from("events")
-      .select("organizer_id, banner_url")
+      .select("organizer_id, banner_url, slug")
       .eq("id", eventId)
       .single()
 
@@ -419,7 +419,11 @@ export async function updateEventBanner(eventId: string, bannerUrl: string) {
     if (error) throw error
 
     revalidatePath("/dashboard/organizer/events")
-    revalidatePath(`/events/${eventId}`)
+    revalidatePath("/events")
+    // The public detail route is /events/[slug] (statically prerendered), not /events/[id].
+    if (event.slug) {
+      revalidatePath(`/events/${event.slug}`)
+    }
 
     return {
       success: true,

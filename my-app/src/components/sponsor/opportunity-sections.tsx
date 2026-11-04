@@ -115,7 +115,7 @@ export default function OpportunitySections({
                   <div className="flex items-start justify-between gap-4">
                     {/* Company logo */}
                     {opp.sponsor_profiles?.company_logo_url && (
-                      <div className="w-12 h-12 rounded-xl bg-surface/20 overflow-hidden flex-shrink-0">
+                      <div className="relative w-12 h-12 rounded-xl bg-surface/20 overflow-hidden flex-shrink-0">
                         <Image
                           src={opp.sponsor_profiles.company_logo_url}
                           alt={opp.sponsor_profiles.company_name || "Company logo"}

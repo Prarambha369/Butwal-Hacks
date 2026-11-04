@@ -173,7 +173,7 @@ export default function ImageCropDialog({ file, onConfirm, onCancel, aspectRatio
         {/* Image preview area */}
         <div
           ref={containerRefCallback}
-          className="relative w-full overflow-hidden bg-black/40 select-none aspect-video max-h-[50vh] min-h-[240px]"
+          className={`relative w-full overflow-hidden bg-black/40 select-none max-h-[50vh] min-h-[240px] ${ASPECT === 1 ? "aspect-square" : "aspect-video"}`}
         >
           {src && (
             <img

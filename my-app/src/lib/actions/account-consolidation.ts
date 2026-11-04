@@ -7,7 +7,6 @@ import { logger } from "@/lib/logger";
 export interface MergeCandidate {
   profile_id: string;
   email: string | null;
-  auth0_user_id: string;
   slug_id: string;
   role: string;
   full_name: string | null;
@@ -23,47 +22,99 @@ export async function findMergeCandidates(
   currentGithub: string | null
 ): Promise<MergeCandidate[]> {
   const db = createServiceClient();
-  const { data: profiles } = await db
-    .from("profiles")
-    .select("id, email, auth0_user_id, slug_id, role, full_name, github_username, linked_accounts, created_at")
-    .or(currentEmail ? `email.equals.${currentEmail},github_username.equals.${currentGithub}` : `github_username.equals.${currentGithub}`)
-    .neq("id", currentProfileId)
-    .order("created_at", { ascending: true });
+  const select = "id, email, slug_id, role, full_name, github_username, linked_accounts, created_at";
 
-  if (!profiles) return [];
-  return profiles.map((p) => {
+  // Run one eq query per non-null identifier (PostgREST has no .equals operator;
+  // a raw .or() string would break if values contain filter grammar characters).
+  const rows: Array<Record<string, unknown> & { id: string }> = [];
+  const seen = new Set<string>();
+
+  const runQuery = async (filter: { column: string; value: string }) => {
+    const { data, error } = await db
+      .from("profiles")
+      .select(select)
+      .eq(filter.column, filter.value)
+      .eq("is_suspended", false)
+      .neq("id", currentProfileId)
+      .order("created_at", { ascending: true });
+    if (error) {
+      const { userMessage } = describeSupabaseError(error);
+      logger.error("[consolidation] candidate query error", { userMessage });
+      return;
+    }
+    for (const p of data ?? []) {
+      const row = p as Record<string, unknown> & { id: string };
+      if (seen.has(row.id)) continue;
+      seen.add(row.id);
+      rows.push(row);
+    }
+  };
+
+  const filters: Array<{ column: string; value: string }> = [];
+  if (currentEmail) filters.push({ column: "email", value: currentEmail });
+  if (currentGithub) filters.push({ column: "github_username", value: currentGithub });
+  for (const f of filters) await runQuery(f);
+
+  rows.sort((a, b) =>
+    String((a.created_at as string | null) ?? "").localeCompare(
+      String((b.created_at as string | null) ?? "")
+    )
+  );
+
+  return rows.map((p) => {
     const linked = (p.linked_accounts as { provider: string; user_id: string; email: string | null; name: string | null; linked_at: string }[]) ?? [];
     let matchReason: MergeCandidate["match_reason"] = "manual";
     if (p.email === currentEmail && currentEmail) matchReason = "same-email";
     else if (p.github_username === currentGithub && currentGithub) matchReason = "same-github";
     return {
       profile_id: p.id,
-      email: p.email,
-      auth0_user_id: p.auth0_user_id,
-      slug_id: p.slug_id,
-      role: p.role,
-      full_name: p.full_name,
-      github_username: p.github_username,
+      email: p.email as string | null,
+      slug_id: p.slug_id as string,
+      role: p.role as string,
+      full_name: p.full_name as string | null,
+      github_username: p.github_username as string | null,
       linked_accounts: linked,
-      created_at: p.created_at,
+      created_at: p.created_at as string,
       match_reason: matchReason,
     };
   });
 }
 
-export async function mergeProfiles(
+/**
+ * Single authorization source of truth for merge eligibility.
+ *
+ * A source profile is mergeable only if it appears in the caller's
+ * findMergeCandidates result — i.e. it shares a verified email or GitHub
+ * username with the target and is not suspended. Both mergeProfiles and the
+ * initiate route MUST use this helper so preview disclosure and merge
+ * execution cannot drift apart (IDOR guard).
+ */
+export async function isMergeCandidate(
   targetProfileId: string,
+  targetEmail: string | null,
+  targetGithub: string | null,
+  sourceProfileId: string
+): Promise<boolean> {
+  if (sourceProfileId === targetProfileId) return false;
+  const candidates = await findMergeCandidates(targetProfileId, targetEmail, targetGithub);
+  return candidates.some((c) => c.profile_id === sourceProfileId);
+}
+
+export async function mergeProfiles(
   sourceProfileId: string,
   auth0UserId: string
 ): Promise<{ success: boolean; error?: string; mergedProfileId?: string }> {
   const db = createServiceClient();
+
+  // Resolve the target from the authenticated identity (never a client-supplied id).
   const { data: target, error: targetError } = await db
     .from("profiles")
     .select("id, auth0_user_id, email, github_username, socials, skills, linked_accounts, ai_summary")
-    .eq("id", targetProfileId)
     .eq("auth0_user_id", auth0UserId)
     .single();
   if (targetError || !target) return { success: false, error: "Target profile not found" };
+  const targetProfileId = target.id as string;
+
   if (targetProfileId === sourceProfileId) return { success: false, error: "Cannot merge into itself" };
 
   const { data: source, error: sourceError } = await db
@@ -73,6 +124,15 @@ export async function mergeProfiles(
     .single();
   if (sourceError || !source) return { success: false, error: "Source profile not found" };
   if (source.is_suspended) return { success: false, error: "Source already merged" };
+
+  // IDOR guard: only a candidate of this target may be merged into it.
+  const eligible = await isMergeCandidate(
+    targetProfileId,
+    target.email as string | null,
+    target.github_username as string | null,
+    sourceProfileId
+  );
+  if (!eligible) return { success: false, error: "Source profile is not eligible for merge" };
 
   const targetSocials = (target.socials as Record<string, string>) ?? {};
   const sourceSocials = (source.socials as Record<string, string>) ?? {};
@@ -107,7 +167,14 @@ export async function mergeProfiles(
     is_suspended: true,
     ai_summary: source.ai_summary ? `MERGED INTO ${targetProfileId} on ${new Date().toISOString()}. Original: ${source.ai_summary}` : `MERGED INTO ${targetProfileId} on ${new Date().toISOString()}`,
   }).eq("id", sourceProfileId);
-  if (markError) logger.error("[consolidation] source mark error", { error: markError });
+  if (markError) {
+    // Partial apply: target has combined data but source is still active.
+    // Do not report success — surface the failure so the user can retry.
+    // ponytail: full atomicity needs a single RPC/transaction (migration) — minimal fix here.
+    const { userMessage } = describeSupabaseError(markError);
+    logger.error("[consolidation] source mark error", { userMessage });
+    return { success: false, error: "Merge was only partially applied. Please retry." };
+  }
 
   logger.info("[consolidation] Profile merged", { targetProfileId, sourceProfileId, auth0UserId });
   return { success: true, mergedProfileId: targetProfileId };
@@ -127,66 +194,36 @@ export async function unmergeProfiles(
   const db = createServiceClient();
   const { data: source, error } = await db
     .from("profiles")
-    .select("id, is_suspended, ai_summary, email, github_username, full_name, socials, skills, linked_accounts")
+    .select("id, is_suspended, ai_summary")
     .eq("id", sourceProfileId)
     .single();
   if (error || !source) return { success: false, error: "Source not found" };
-  if (!source.ai_summary?.includes("MERGED INTO")) return { success: false, error: "Not merged" };
-  const match = source.ai_summary.match(/MERGED INTO ([a-f0-9-]+)/);
+  const summary = source.ai_summary as string | null;
+  if (!summary?.includes("MERGED INTO")) return { success: false, error: "Not merged" };
+  const match = summary.match(/MERGED INTO ([a-f0-9-]+)/);
   if (!match) return { success: false, error: "Unknown merge target" };
   const targetProfileId = match[1];
 
-  // Restore the suspended source row back to active. The source's ai_summary already
-  // records the merge marker and preserves the original summary text, so the only
-  // folded-away fields we must restore here are the ones the merge overwrote in place:
-  // email, github_username, full_name, socials, skills and linked accounts. We re-read
-  // the target row first so we can hand the source back the values it held before the
-  // merge (before they were folded into the target) and clear the fields the target
-  // legitimately now owns.
+  // Owner check: the caller must own the target this source was merged into.
   const { data: target, error: targetError } = await db
     .from("profiles")
-    .select("id, email, github_username, socials, skills, linked_accounts")
+    .select("id")
     .eq("id", targetProfileId)
+    .eq("auth0_user_id", auth0UserId)
     .single();
   if (targetError || !target) {
     return { success: false, error: "Merge target not found" };
   }
 
-  // Reconstruct the source's pre-merge socials, skills and linked accounts by
-  // subtracting what the target already had before the merge from what the target
-  // now holds. Anything the source contributed that is still present in the target
-  // after the merge stays with the target; anything unique to the source returns to
-  // the source row.
-  type Socials = Record<string, string>;
-  type Linked = { provider: string; user_id: string }[];
-
-  const targetSocials = (target.socials as Socials) ?? {};
-  const sourceSocials = (source.socials as Socials) ?? {};
-  const restoredSocials: Socials = {};
-  for (const [k, v] of Object.entries(sourceSocials)) {
-    if (!targetSocials[k]) restoredSocials[k] = v;
-  }
-
-  const targetSkills = (target.skills as string[]) ?? [];
-  const sourceSkills = (source.skills as string[]) ?? [];
-  const restoredSkills = sourceSkills.filter((s) => !targetSkills.includes(s));
-
-  const targetLinked = (target.linked_accounts as Linked) ?? [];
-  const sourceLinked = (source.linked_accounts as Linked) ?? [];
-  const linkedKey = (a: { provider: string; user_id: string }) => `${a.provider}:${a.user_id}`;
-  const restoredLinked: Linked = sourceLinked.filter(
-    (a) => !targetLinked.some((x) => linkedKey(x) === linkedKey(a)),
-  );
+  // mergeProfiles never mutates the source row's email/skills/socials/linked —
+  // those still hold their originals. Restore only the suspended flag and the
+  // original ai_summary (strip the MERGED INTO marker; keep the stored Original:).
+  const originalMatch = summary.match(/Original: ([\s\S]+)/);
+  const restoredSummary = originalMatch ? originalMatch[1].trim() : null;
 
   const { error: restoreError } = await db.from("profiles").update({
     is_suspended: false,
-    email: source.email,
-    github_username: source.github_username,
-    full_name: source.full_name,
-    socials: restoredSocials,
-    skills: restoredSkills,
-    linked_accounts: restoredLinked,
-    ai_summary: source.ai_summary,
+    ai_summary: restoredSummary,
   }).eq("id", sourceProfileId);
   if (restoreError) {
     const { userMessage } = describeSupabaseError(restoreError);

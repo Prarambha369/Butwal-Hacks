@@ -106,7 +106,6 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
           <StatCard icon={<Code2 className="w-4 h-4" />} label="Projects" value={summary.newProjects} sub={`${communityMetrics.totalProjects} total built`} />
           <StatCard icon={<Award className="w-4 h-4" />} label="Trust Markers" value={summary.trustMarkersIssued} sub="Verified achievements" />
           <StatCard icon={<ShieldCheck className="w-4 h-4" />} label="Teams" value={summary.newTeams} sub="Collaborations formed" />
-          <StatCard icon={<ShieldCheck className="w-4 h-4" />} label="Trust Markers" value={summary.trustMarkersAwarded} sub="Verified achievements" />
           <StatCard icon={<DollarSign className="w-4 h-4" />} label="Budget" value={financials.available ? formatCurrency(financials.received, financials.currency) : "—"} sub="Total received" />
         </div>
       </section>
@@ -243,12 +242,12 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
         </section>
       )}
 
-      {/* ── Skill Tree Unlocks ────────────────────────────────────── */}
+      {/* ── Trust Markers ────────────────────────────────────── */}
       {maxSkillUnlocks > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-5">
             <GitBranch className="w-4 h-4 text-primary-red" />
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Skill Tree Unlocks</h2>
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Trust Markers</h2>
           </div>
           <div className="bh-card p-6">
             <BarChart

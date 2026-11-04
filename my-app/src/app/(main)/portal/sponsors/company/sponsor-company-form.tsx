@@ -76,7 +76,7 @@ export default function SponsorCompanyForm({
       {/* Logo preview */}
       {companyLogoUrl && (
         <div className="flex items-center gap-4 p-4 rounded-xl bg-surface/10 border border-border">
-          <div className="w-16 h-16 rounded-xl bg-surface/20 flex items-center justify-center overflow-hidden">
+          <div className="relative w-16 h-16 rounded-xl bg-surface/20 flex items-center justify-center overflow-hidden">
             {companyLogoUrl ? (
               <Image src={companyLogoUrl} alt="Logo" fill className="object-cover" />
             ) : (

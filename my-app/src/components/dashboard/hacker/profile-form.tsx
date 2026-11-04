@@ -159,15 +159,6 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
         },
       };
       await updateProfile(kept);
-
-      // Reflect what the server actually persisted, so an invalid URL the
-      // validator dropped is visible in the form immediately.
-      setFormData({
-        ...formData,
-        github: kept.socials?.github ?? '',
-        linkedin: kept.socials?.linkedin ?? '',
-        website: kept.socials?.website ?? '',
-      });
       toast.success("Profile updated successfully!")
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to update profile';
@@ -259,9 +250,9 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
           {socialPicture && (
             <button
               type="button"
-              onClick={() => setSocialFetchState(prev => ({ ...prev, github: 'loading' }))}
+              onClick={() => handleImportSocial('github')}
               disabled={socialFetchState.github === 'loading'}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface/5 hover:bg-surface/10 border border-border/40 text-left transition-colors disabled:opacity-50"
+              className="bh-btn-ghost w-full !justify-start text-left disabled:opacity-50"
             >
               <Github className="w-4 h-4 text-secondary shrink-0" />
               <span className="flex-1 min-w-0">
@@ -283,7 +274,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
               type="button"
               onClick={handleUseSocialPicture}
               disabled={importingPicture || avatarSaving}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface/5 hover:bg-surface/10 border border-border/40 text-left transition-colors disabled:opacity-50"
+              className="bh-btn-ghost w-full !justify-start text-left disabled:opacity-50"
             >
               <ProviderIcon className="w-4 h-4 text-secondary shrink-0" />
               <span className="flex-1 min-w-0">
@@ -378,7 +369,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
             <button
               type="button"
               onClick={() => handleImportSocial('github')}
-              className="mt-2 text-[10px] font-mono text-bh-red-500 hover:underline underline-offset-2"
+              className="bh-btn-ghost mt-2 !px-3 !py-2 text-[10px] font-mono"
             >
               Import my GitHub URL
             </button>
@@ -406,7 +397,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
             <button
               type="button"
               onClick={() => handleImportSocial('linkedin')}
-              className="mt-2 text-[10px] font-mono text-bh-red-500 hover:underline underline-offset-2"
+              className="bh-btn-ghost mt-2 !px-3 !py-2 text-[10px] font-mono"
             >
               Import my LinkedIn URL
             </button>
@@ -502,7 +493,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
         <button
           type="submit"
           disabled={isSubmitting || (touched.size > 0 && hasErrors)}
-          className={cn("inline-flex items-center gap-2 rounded-full bg-bh-red-action px-6 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95", (isSubmitting || (touched.size > 0 && hasErrors)) && "bh-btn-disabled")}
+          className={cn("bh-btn-ink text-sm", (isSubmitting || (touched.size > 0 && hasErrors)) && "bh-btn-disabled")}
         >
           {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <><Save size={16} /> Save Changes</>}
         </button>

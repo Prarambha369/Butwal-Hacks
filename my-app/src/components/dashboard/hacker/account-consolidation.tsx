@@ -17,7 +17,6 @@ import {
 interface MergeCandidate {
   profile_id: string;
   email: string | null;
-  auth0_user_id: string;
   slug_id: string;
   role: string;
   full_name: string | null;
@@ -64,6 +63,7 @@ export function AccountConsolidation() {
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [candidatesLoaded, setCandidatesLoaded] = useState(false);
 
   // Load merge candidates on mount
   useEffect(() => {
@@ -79,6 +79,8 @@ export function AccountConsolidation() {
       setCandidates(data.candidates || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setCandidatesLoaded(true);
     }
   }
 
@@ -125,6 +127,10 @@ export function AccountConsolidation() {
         throw new Error(data.error || "Merge failed");
       }
       setStatus("success");
+      // Clear the stale preview so the UI reflects the merge immediately.
+      setPreview(null);
+      setSelectedSource(null);
+      setError(null);
       // Refresh candidates after merge
       setTimeout(loadCandidates, 2000);
     } catch (err) {
@@ -173,14 +179,38 @@ export function AccountConsolidation() {
         </div>
       )}
 
-      {/* Error message */}
-      {status === "error" && error && (
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-red-50 border border-red-200">
+      {/* Error message (load, preview or merge) */}
+      {error && status !== "success" && (
+        <div role="alert" className="flex items-start gap-3 p-4 rounded-lg bg-red-50 border border-red-200">
           <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-red-800">Merge failed</p>
+            <p className="font-semibold text-red-800">
+              {status === "error" ? "Merge failed" : "Something went wrong"}
+            </p>
             <p className="text-sm text-red-700 mt-1">{error}</p>
           </div>
+        </div>
+      )}
+
+      {/* Loading skeleton (three cards) */}
+      {!candidatesLoaded && (
+        <div data-testid="candidate-skeletons" className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              data-testid="candidate-skeleton"
+              className="bh-card p-4 border border-border animate-pulse"
+            >
+              <div className="flex items-start gap-4">
+                <div className="rounded-lg bg-surface w-9 h-9 shrink-0" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 w-32 rounded bg-surface" />
+                  <div className="h-3 w-48 rounded bg-surface" />
+                  <div className="h-3 w-40 rounded bg-surface" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -279,8 +309,8 @@ export function AccountConsolidation() {
         </div>
       )}
 
-      {/* No candidates */}
-      {candidates.length === 0 && status !== "success" && (
+      {/* No candidates (shown only after the first load resolves) */}
+      {candidatesLoaded && candidates.length === 0 && status !== "success" && (
         <div className="bh-card p-6 text-center">
           <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
           <p className="text-muted-foreground">
