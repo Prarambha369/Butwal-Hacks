@@ -318,10 +318,17 @@ for (const viewport of viewports) {
       return { overflowX: doc.scrollWidth - vw, overflowing };
     });
 
-    let axe = [];
-    try {
+    // A route can hand the browser to another origin — `/sign-in` redirects to
+    // the Auth0-hosted login — so axe would be running against a page this
+    // audit does not own, and the handoff destroys the context mid-run. That
+    // page-view is skipped, not failed: reporting an axe crash on someone
+    // else's login form says nothing about our UI.
+    const onOurOrigin = () => {
+      try { return new URL(page.url()).origin === new URL(BASE).origin; } catch { return false; }
+    };
+    const runAxe = async () => {
       await page.addScriptTag({ path: require.resolve('axe-core/axe.min.js') });
-      axe = await page.evaluate(async () => {
+      return page.evaluate(async () => {
         const r = await window.axe.run(document, {
           runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'],
         });
@@ -337,8 +344,25 @@ for (const viewport of viewports) {
             })),
           }));
       });
-    } catch (err) {
-      axe = [{ id: 'axe-error', impact: 'critical', count: 1, nodes: [{ target: '', summary: err.message }] }];
+    };
+    let axe = [];
+    let external = !onOurOrigin();
+    if (!external) {
+      try {
+        axe = await runAxe();
+      } catch (err) {
+        await page.waitForLoadState('load', { timeout: 5000 }).catch(() => {});
+        await page.waitForTimeout(500);
+        if (!onOurOrigin()) {
+          external = true;
+        } else {
+          try {
+            axe = await runAxe();
+          } catch (retryErr) {
+            axe = [{ id: 'axe-error', impact: 'critical', count: 1, nodes: [{ target: '', summary: retryErr.message }] }];
+          }
+        }
+      }
     }
 
     const slug = route.replace(/^\//, '').replace(/[^a-z0-9]+/gi, '_') || 'home';
@@ -351,6 +375,7 @@ for (const viewport of viewports) {
       status,
       landed,
       bounced,
+      external,
       ...metrics,
       pageErrors: pageErrors.slice(0, 5),
       axe,
@@ -369,6 +394,7 @@ fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(report, null, 2))
 // ── Verdict ────────────────────────────────────────────────────────────────
 const failures = [];
 for (const r of report) {
+  if (r.external) continue;
   const issues = [];
   if (r.axe.length) issues.push(`axe ${r.axe.map((a) => `${a.id}:${a.count}`).join(', ')}`);
   if (r.overflowX > 1) issues.push(`overflow ${r.overflowX}px`);
@@ -382,6 +408,11 @@ for (const r of report) {
   for (const o of r.overflowing) console.log(`       overflow: ${o}`);
   for (const e of r.pageErrors) console.log(`       error:    ${e.slice(0, 220)}`);
   for (const a of r.axe) for (const n of a.nodes) console.log(`       ${a.id}: ${n.target} :: ${n.summary.slice(0, 180)}`);
+}
+
+const handedOff = [...new Set(report.filter((r) => r.external).map((r) => `${r.route} -> ${r.landed}`))].sort();
+if (handedOff.length) {
+  console.log(`\nhanded off to another origin, not audited: ${handedOff.join(', ')}`);
 }
 
 const bounced = [...new Set(report.filter((r) => r.bounced).map((r) => `${r.route} -> ${r.landed}`))].sort();
