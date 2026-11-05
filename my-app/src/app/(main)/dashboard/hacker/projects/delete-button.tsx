@@ -80,7 +80,7 @@ export default function DeleteProjectButton({ projectId }: { projectId: string }
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex-1 py-3 rounded-full bg-bh-red-600 hover:bg-primary-red text-primary font-bold transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                className="flex-1 py-3 rounded-full bg-bh-red-action hover:bg-deep-red text-white font-bold transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
               >
                 {deleting ? (
                   <Loader2 size={16} className="animate-spin" />

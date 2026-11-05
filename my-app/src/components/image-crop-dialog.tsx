@@ -292,7 +292,7 @@ export default function ImageCropDialog({ file, onConfirm, onCancel, aspectRatio
             <button
               type="button"
               onClick={handleConfirm}
-              className="px-4 py-2 rounded-xl bg-bh-red-600 hover:bg-primary-red text-primary font-bold transition-all text-sm flex items-center gap-1"
+              className="px-4 py-2 rounded-xl bg-bh-red-action hover:bg-deep-red text-white font-bold transition-all text-sm flex items-center gap-1"
             >
               <Check className="w-4 h-4" /> Apply &amp; Upload
             </button>

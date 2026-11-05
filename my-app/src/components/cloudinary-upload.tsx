@@ -331,7 +331,7 @@ export function CloudinaryUpload({
             <button
               type="button"
               onClick={handleRetry}
-              className="px-2.5 py-1 rounded-lg bg-bh-red-600 hover:bg-primary-red text-primary text-[10px] font-bold transition-all inline-flex items-center gap-1"
+              className="px-2.5 py-1 rounded-lg bg-bh-red-action hover:bg-deep-red text-white text-[10px] font-bold transition-all inline-flex items-center gap-1"
             >
               <RefreshCw className="w-3 h-3" /> Retry
             </button>
@@ -395,7 +395,7 @@ export function CloudinaryUpload({
                   <button
                     type="button"
                     onClick={handleRetry}
-                    className="px-3 py-1.5 rounded-lg bg-bh-red-600 hover:bg-primary-red text-primary text-xs font-bold transition-all flex items-center gap-1"
+                    className="px-3 py-1.5 rounded-lg bg-bh-red-action hover:bg-deep-red text-white text-xs font-bold transition-all flex items-center gap-1"
                   >
                     <RefreshCw className="w-3 h-3" /> Retry
                   </button>

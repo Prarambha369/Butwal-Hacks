@@ -136,7 +136,7 @@ export default function ProjectSubmissionForm() {
     <div className="w-full max-w-2xl mx-auto">
       <div className="bh-card p-8 shadow-2xl animate-[fadeInUp_0.4s_ease-out]">
         <div className="flex items-center gap-3 mb-8">
-          <div className="p-3 rounded-lg bg-bh-red-600 text-primary">
+          <div className="p-3 rounded-lg bg-bh-red-action text-white">
             <Code2 className="w-6 h-6" />
           </div>
           <div>
@@ -345,7 +345,7 @@ export default function ProjectSubmissionForm() {
           <button 
             disabled={isSubmitting}
             type="submit" 
-            className={`w-full py-4 bg-bh-red-600 hover:bg-primary-red text-primary rounded-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-red/20 ${isSubmitting ? 'bh-btn-disabled' : ''}`}
+            className={`w-full py-4 bg-bh-red-action hover:bg-deep-red text-white rounded-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-red/20 ${isSubmitting ? 'bh-btn-disabled' : ''}`}
           >
             {isSubmitting ? (
               <RoseSpinner size="sm" />
