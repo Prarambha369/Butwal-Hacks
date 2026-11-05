@@ -232,6 +232,34 @@ if (routes.length === 0) {
 const report = [];
 let done = 0;
 
+/**
+ * Measure a page, tolerating a client-side navigation mid-measurement.
+ *
+ * Dashboards redirect while hydrating, so a `page.evaluate` that starts after
+ * `load` can find its execution context destroyed underneath it. Without this
+ * the exception escaped and killed the run at whichever route navigated first,
+ * losing the verdict for every remaining page-view. Retry once against the
+ * settled document; only a second failure is recorded, and then as a page
+ * error so it still fails the gate rather than being silently skipped.
+ */
+async function measure(page, fn, pageErrors) {
+  try {
+    return await page.evaluate(fn);
+  } catch (err) {
+    pageErrors.push(`evaluate: ${err.message.split('\n')[0]}`);
+    await page.waitForLoadState('load', { timeout: 5000 }).catch(() => {});
+    await page.waitForTimeout(500);
+    try {
+      const value = await page.evaluate(fn);
+      pageErrors.pop();
+      return value;
+    } catch (retryErr) {
+      pageErrors[pageErrors.length - 1] = `evaluate: ${retryErr.message.split('\n')[0]}`;
+      return { overflowX: 0, overflowing: [] };
+    }
+  }
+}
+
 for (const viewport of viewports) {
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
@@ -260,7 +288,7 @@ for (const viewport of viewports) {
       pageErrors.push(`navigation: ${err.message.split('\n')[0]}`);
     }
 
-    const metrics = await page.evaluate(() => {
+    const metrics = await measure(page, () => {
       const vw = window.innerWidth;
       const doc = document.documentElement;
       const visible = (el) => {
