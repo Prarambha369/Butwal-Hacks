@@ -371,9 +371,7 @@ describe("fetchProviderSocials", () => {
     });
 
     const { fetchProviderSocials } = await import("../profile");
-    await expect(fetchProviderSocials("github")).rejects.toThrow(
-      "Connect your GitHub account first"
-    );
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Connect your GitHub account first") });
 
     const eqCalls = db.eq.mock.calls;
     const auth0Query = eqCalls.find((c) => c[0] === "auth0_user_id");
@@ -388,9 +386,7 @@ describe("fetchProviderSocials", () => {
     });
 
     const { fetchProviderSocials } = await import("../profile");
-    await expect(fetchProviderSocials("github")).rejects.toThrow(
-      "Connect your GitHub account first"
-    );
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Connect your GitHub account first") });
   });
 
   it("handles missing linked_accounts (null) as not linked", async () => {
@@ -401,9 +397,7 @@ describe("fetchProviderSocials", () => {
     });
 
     const { fetchProviderSocials } = await import("../profile");
-    await expect(fetchProviderSocials("github")).rejects.toThrow(
-      "Connect your GitHub account first"
-    );
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Connect your GitHub account first") });
   });
 
   it("does not silently discard a linked_accounts read error", async () => {
@@ -415,9 +409,7 @@ describe("fetchProviderSocials", () => {
     });
 
     const { fetchProviderSocials } = await import("../profile");
-    await expect(fetchProviderSocials("github")).rejects.toThrow(
-      "Failed to verify linked accounts"
-    );
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Failed to verify linked accounts") });
   });
 
   it("does not overwrite an existing GitHub URL", async () => {
@@ -449,7 +441,7 @@ describe("fetchProviderSocials", () => {
     });
 
     const { fetchProviderSocials } = await import("../profile");
-    await expect(fetchProviderSocials("github")).rejects.toThrow("cooldown");
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("cooldown") });
   });
 
   it("resolves LinkedIn URL via vanity nickname", async () => {
@@ -486,9 +478,7 @@ describe("fetchProviderSocials", () => {
     });
 
     const { fetchProviderSocials } = await import("../profile");
-    await expect(fetchProviderSocials("linkedin")).rejects.toThrow(
-      "Could not read a LinkedIn profile URL"
-    );
+    await expect(fetchProviderSocials("linkedin")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Could not read a LinkedIn profile URL") });
   });
 
   it("returns null when the provider profile has no nickname", async () => {
@@ -505,9 +495,7 @@ describe("fetchProviderSocials", () => {
     });
 
     const { fetchProviderSocials } = await import("../profile");
-    await expect(fetchProviderSocials("github")).rejects.toThrow(
-      "Could not read a GitHub profile URL"
-    );
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Could not read a GitHub profile URL") });
   });
 
   it("returns null on Auth0 Management API error", async () => {
@@ -524,9 +512,7 @@ describe("fetchProviderSocials", () => {
     mockedGetLinkedIdentities.mockRejectedValue(new Error("Auth0 down"));
 
     const { fetchProviderSocials } = await import("../profile");
-    await expect(fetchProviderSocials("github")).rejects.toThrow(
-      "Could not read a GitHub profile URL"
-    );
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Could not read a GitHub profile URL") });
   });
 
   it("returns null when no linked identity matches the provider", async () => {
@@ -537,9 +523,7 @@ describe("fetchProviderSocials", () => {
     });
 
     const { fetchProviderSocials } = await import("../profile");
-    await expect(fetchProviderSocials("github")).rejects.toThrow(
-      "Could not read a GitHub profile URL"
-    );
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Could not read a GitHub profile URL") });
   });
 })
 

@@ -42,10 +42,17 @@ export default function ImageCropDialog({ file, onConfirm, onCancel, aspectRatio
   // Compute the crop-box dimensions in the container
   const [boxPx, setBoxPx] = useState({ w: 480, h: 270 });
   const containerRefCallback = useCallback((el: HTMLDivElement | null) => {
-    // store in a ref-like way so the effect below can read the latest value
+    containerRef.current = el;
     if (el) {
-      const maxW = Math.min(el.clientWidth - 48, 640);
-      setBoxPx({ w: maxW, h: maxW / ASPECT });
+      // Fit the crop box inside both the container width and its height
+      // (the preview is capped at 50vh, so width alone can overflow it).
+      const containerW = el.clientWidth > 0 ? el.clientWidth : window.innerWidth;
+      const containerH =
+        el.clientHeight > 0 ? el.clientHeight : window.innerHeight * 0.5;
+      const maxW = Math.min(containerW - 48, 640);
+      const maxH = Math.max(120, containerH - 32);
+      const w = Math.min(maxW, maxH * ASPECT);
+      setBoxPx({ w, h: w / ASPECT });
     }
   }, []);
 

@@ -173,17 +173,14 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
     try {
       const result = await fetchProviderSocials(provider);
       if (!result.success) {
-        toast.error('Could not import that social URL.');
+        toast.error(result.message);
         setSocialFetchState(prev => ({ ...prev, [provider]: 'error' }));
         return;
       }
-      const existingSocials = result.socials ?? {};
-      setFormData(prev => ({
-        ...prev,
-        github: existingSocials.github ?? prev.github,
-        linkedin: existingSocials.linkedin ?? prev.linkedin,
-        website: existingSocials.website ?? prev.website,
-      }));
+      if (result.filled) {
+        const existingSocials = result.socials ?? {};
+        setFormData(prev => ({ ...prev, [provider]: existingSocials[provider] ?? prev[provider] }));
+      }
       toast.success(result.message);
       setSocialFetchState(prev => ({ ...prev, [provider]: 'idle' }));
     } catch (error: unknown) {
@@ -247,7 +244,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
             logins. It is copied into Cloudinary here on demand, not on login,
             because Google's URLs are signed and expire within hours.
           */}
-          {socialPicture && (
+          {socialPicture && socialProvider === 'github' && (
             <button
               type="button"
               onClick={() => handleImportSocial('github')}

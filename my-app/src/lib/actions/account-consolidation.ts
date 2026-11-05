@@ -16,6 +16,12 @@ export interface MergeCandidate {
   match_reason: "same-email" | "same-github" | "manual";
 }
 
+/**
+ * Find other profiles that may belong to the same owner as the current one
+ * by matching on email or GitHub username; rows already excluded by
+ * is_suspended are ignored. Callers must still gate merge eligibility
+ * through isMergeCandidate rather than trusting this list directly.
+ */
 export async function findMergeCandidates(
   currentProfileId: string,
   currentEmail: string | null,
@@ -100,6 +106,12 @@ export async function isMergeCandidate(
   return candidates.some((c) => c.profile_id === sourceProfileId);
 }
 
+/**
+ * Merge a source profile into the target resolved from auth0UserId, combining
+ * socials, skills, and linked accounts. The source must be a current merge
+ * candidate; a successful merge marks the source suspended so it stops
+ * appearing in the owner's active profile surfaces.
+ */
 export async function mergeProfiles(
   sourceProfileId: string,
   auth0UserId: string
@@ -187,6 +199,10 @@ function mergeAiSummary(targetSummary: string | null, sourceName: string | null)
   return parts.length > 0 ? parts.join(" | ") : null;
 }
 
+/**
+ * Undo a previous merge: re-activate the source profile and restore its
+ * original summary, after verifying the caller still owns the merge target.
+ */
 export async function unmergeProfiles(
   sourceProfileId: string,
   auth0UserId: string
@@ -233,6 +249,10 @@ export async function unmergeProfiles(
   return { success: true };
 }
 
+/**
+ * List the profiles that were merged into the given profile, reconstructed
+ * from the suspension marker left on each merged source row.
+ */
 export async function getMergeHistory(profileId: string): Promise<{ merged_from: { profile_id: string; merged_at: string; email: string | null }[] }> {
   const db = createServiceClient();
   const { data: sources, error } = await db

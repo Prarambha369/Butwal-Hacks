@@ -72,6 +72,7 @@ export function AccountConsolidation() {
   }, [user]);
 
   async function loadCandidates() {
+    setError(null);
     try {
       const res = await fetch("/api/account/merge/candidates");
       if (!res.ok) throw new Error("Failed to load candidates");
@@ -85,6 +86,7 @@ export function AccountConsolidation() {
   }
 
   async function loadPreview(sourceId: string) {
+    setError(null);
     setLoading(true);
     try {
       const res = await fetch("/api/account/merge/initiate", {

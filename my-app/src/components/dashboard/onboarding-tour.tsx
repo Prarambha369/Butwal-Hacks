@@ -274,13 +274,19 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
   // the minimum top must clear half the card height — otherwise the card
   // clips above the viewport even though the anchor center is 120px down.
   const MIN_TOP_OFFSET = 120;
+  const tooltipMinTop = MIN_TOP_OFFSET + cardHeight / 2;
+  const tooltipMaxTop = Math.max(
+    tooltipMinTop,
+    window.innerHeight - 16 - cardHeight / 2,
+  );
   const tooltipTop =
     targetRect && useAnchored
-      ? Math.max(
-          targetRect.top + targetRect.height / 2,
-          MIN_TOP_OFFSET + cardHeight / 2,
+      ? Math.min(
+          Math.max(targetRect.top + targetRect.height / 2, tooltipMinTop),
+          tooltipMaxTop,
         )
       : null;
+  const isCardOversized = cardHeight > window.innerHeight - 32;
 
   const tooltipOverflows =
     tooltipLeft !== null && tooltipLeft + 360 > window.innerWidth;
@@ -339,7 +345,7 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
           role="dialog"
           aria-modal="true"
           aria-label="Onboarding tour"
-          className="relative bh-card overflow-hidden w-[90vw] max-w-sm"
+          className={`relative bh-card overflow-hidden w-[90vw] max-w-sm flex flex-col ${isCardOversized ? "max-h-[calc(100vh-32px)]" : ""}`}
           style={
             isAnchored
               ? { transform: "translateY(-50%)" }
@@ -370,7 +376,7 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
           {/* Step content */}
           <div
             key={marker.title}
-            className="transition-all duration-300 ease-out"
+            className={`transition-all duration-300 ease-out ${isCardOversized ? "overflow-y-auto" : ""}`}
             style={{
               animation: "step-fade-in 0.3s ease-out",
             }}

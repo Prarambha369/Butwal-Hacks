@@ -92,7 +92,7 @@ export async function fetchProviderSocials(_provider: string): Promise<{ success
   const lastFetchRaw = await getLastSocialFetch(session.user.sub);
   const lastFetch = lastFetchRaw ? new Date(lastFetchRaw).getTime() : 0;
   if (now - lastFetch < SOCIAL_FETCH_COOLDOWN_MS) {
-    throw new Error("Social profile import is on cooldown. Try again in a moment.");
+    return { success: false, filled: false, message: "Social profile import is on cooldown. Try again in a moment." };
   }
 
   const supabase = createServiceClient();
@@ -112,7 +112,7 @@ export async function fetchProviderSocials(_provider: string): Promise<{ success
       auth0_user_id: session.user.sub,
       error: profileRowError,
     });
-    throw new Error("Failed to verify linked accounts. Please try again.");
+    return { success: false, filled: false, message: "Failed to verify linked accounts. Please try again." };
   }
 
   const linkedAccounts: unknown[] = Array.isArray(profileRow?.linked_accounts)
@@ -127,20 +127,26 @@ export async function fetchProviderSocials(_provider: string): Promise<{ success
   );
 
   if (!isProviderLinked) {
-    throw new Error(
-      providerField === "github"
-        ? "Connect your GitHub account first, then import your profile URL."
-        : "Connect your LinkedIn account first, then import your profile URL."
-    );
+    return {
+      success: false,
+      filled: false,
+      message:
+        providerField === "github"
+          ? "Connect your GitHub account first, then import your profile URL."
+          : "Connect your LinkedIn account first, then import your profile URL.",
+    };
   }
 
   const profileUrl = await resolveProviderProfileUrl(providerField, session.user.sub);
   if (!profileUrl) {
-    throw new Error(
-      providerField === "github"
-        ? "Could not read a GitHub profile URL from your connected account. Check that the account is still public and try again."
-        : "Could not read a LinkedIn profile URL from your connected account. Check that the account is still public and try again."
-    );
+    return {
+      success: false,
+      filled: false,
+      message:
+        providerField === "github"
+          ? "Could not read a GitHub profile URL from your connected account. Check that the account is still public and try again."
+          : "Could not read a LinkedIn profile URL from your connected account. Check that the account is still public and try again.",
+    };
   }
 
   const { data: current } = await supabase
@@ -175,7 +181,7 @@ export async function fetchProviderSocials(_provider: string): Promise<{ success
       auth0_user_id: session.user.sub,
       error,
     });
-    throw new Error("Failed to save the imported social URL.");
+    return { success: false, filled: false, message: "Failed to save the imported social URL." };
   }
 
   await recordSocialFetch(session.user.sub);
