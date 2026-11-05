@@ -106,7 +106,7 @@ Butwal-Hacks/
 | `src/lib/supabase-error.ts` | Maps PostgREST codes to distinct messages |
 | `src/lib/logger.ts` | Forwards `error` level to Sentry with an `errorId` |
 | `src/lib/i18n.ts` | English and Nepali strings |
-| `src/app/globals.css` | All 58 `--bh-*` design tokens and the `bh-*` utilities |
+| `src/app/globals.css` | All 35 `--bh-*` design tokens and the `bh-*` utilities |
 
 ### Access control
 
@@ -193,8 +193,8 @@ refactor: extract rate limiter into lib/
 - [ ] New mutation routes use `withRateLimit()`
 - [ ] New inputs validated with Zod before any database access
 - [ ] Every `createServiceClient()` call has an authorization check above it
-- [ ] New env vars added to `my-app/.env.example` and to the secrets table in [MAINTAINERS.md](MAINTAINERS.md)
-- [ ] Any new personal data collection updated in [policies/PRIVACY_POLICY.md](policies/PRIVACY_POLICY.md) in the same PR, including whether the data leaves Nepal
+- [ ] New env vars added to `my-app/.env.example` (names, formats and purpose — never values) in the same PR
+- [ ] Any new personal data collection updated in the privacy page (`/legal/privacy`) in the same PR, including whether the data leaves Nepal
 - [ ] New migrations are numbered sequentially and additive
 - [ ] New UI uses design tokens, not literals — see [DESIGN.md](DESIGN.md)
 - [ ] No secrets in the diff
@@ -204,7 +204,7 @@ refactor: extract rate limiter into lib/
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | Redirect loop after login | Auth0 Post-Login Action disabled, so the profile is never created | Enable the Action; it syncs the user to Supabase |
-| 500 on any protected route | Middleware auth failing — check `src/proxy.ts` and `AUTH0_SECRET` | See [MAINTAINERS.md](MAINTAINERS.md) on-call runbook |
+| 500 on any protected route | Middleware auth failing — check `src/proxy.ts` and `AUTH0_SECRET` | See [MAINTAINERS.md](MAINTAINERS.md#if-something-breaks-in-production) |
 | `NEXT_PUBLIC_SUPABASE_*` wrong only in production | Manual Vercel env drifted from the Supabase-managed value | Delete the manual entries and use the Supabase integration |
 | Deploy fails at the migration step | `SUPABASE_DB_URL` is a transaction-pooler URL (port 6543) and cannot run DDL | Use a direct or session-pooler connection string |
 | Rate limiting appears disabled | Redis unreachable and the limiter fails open | Check `UPSTASH_REDIS_REST_URL` and quota |
@@ -212,12 +212,11 @@ refactor: extract rate limiter into lib/
 
 ## See also
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) — the human-facing contributor guide
+- [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) — the human-facing contributor guide
 - [DESIGN.md](DESIGN.md) — visual system reference
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — architecture, ADRs, and engineering detail
-- [MAINTAINERS.md](MAINTAINERS.md) — deploy, CI, secrets, rollback
-- [SECURITY.md](SECURITY.md) — vulnerability reporting
+- [MAINTAINERS.md](MAINTAINERS.md) — deploy, rollback, environment variables, incident notes
+- [.github/SECURITY.md](.github/SECURITY.md) — vulnerability reporting
 - [PRODUCT.md](PRODUCT.md) — product identity and direction
-- [docs/SECURITY_REMEDIATION_REPORT.md](docs/SECURITY_REMEDIATION_REPORT.md) — the P0 and P1 authorization defects already fixed
-- [docs/SEO_AEO_GEO_AUDIT.md](docs/SEO_AEO_GEO_AUDIT.md) — search and AI-answer visibility audit
-- [policies/README.md](policies/README.md) — terms, privacy, guardian consent, and the open compliance gaps
+- [docs/reports/2026-10-security-remediation.md](docs/reports/2026-10-security-remediation.md) — the P0 and P1 authorization defects, sanitized
+- [docs/reports/](docs/reports/) — dated historical reports (SEO audit, IA audit, monitoring playbook)

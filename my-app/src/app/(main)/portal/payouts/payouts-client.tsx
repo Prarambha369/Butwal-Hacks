@@ -31,7 +31,7 @@ export default function PayoutsClient({ payouts }: { payouts: Payout[] }) {
     <div className="space-y-8">
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">Sponsor Payouts</h1>
-        <p className="text-secondary opacity-60">
+        <p className="text-secondary">
           Track and manage bounty payouts to hackers.
         </p>
       </div>

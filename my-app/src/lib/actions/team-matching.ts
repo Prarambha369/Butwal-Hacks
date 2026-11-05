@@ -18,7 +18,7 @@ interface TeammateCandidate {
   avatar_url: string | null;
   bio: string | null;
   skills: string[];
-  social_links: Record<string, string>;
+  socials: Record<string, string>;
   matchScore: number;
   matchReasons: string[];
   commonEvents: string[];
@@ -42,7 +42,7 @@ export async function findTeammates(): Promise<TeamMatchResult> {
   // Get current user's profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, skills, social_links, bh_id, bio")
+    .select("id, skills, socials, bh_id, bio")
     .eq("auth0_user_id", session.user.sub)
     .single();
 
@@ -55,7 +55,7 @@ export async function findTeammates(): Promise<TeamMatchResult> {
   const { data: others } = await supabase
     .from("profiles")
     .select(`
-      id, full_name, bh_id, role, avatar_url, bio, skills, social_links
+      id, full_name, bh_id, role, avatar_url, bio, skills, socials
     `)
     .neq("id", myId)
     .eq("is_claimed", true)
@@ -140,7 +140,7 @@ export async function findTeammates(): Promise<TeamMatchResult> {
       avatar_url: other.avatar_url,
       bio: other.bio,
       skills: otherSkills,
-      social_links: (other.social_links ?? {}) as Record<string, string>,
+      socials: other.socials ?? {},
       matchScore: Math.round(Math.min(score, 100)),
       matchReasons: reasons,
       commonEvents,

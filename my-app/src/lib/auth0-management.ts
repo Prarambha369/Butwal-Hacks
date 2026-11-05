@@ -70,14 +70,21 @@ function resolveAuth0Config() {
     );
   }
 
-  const audience = (
+  // The configured value is the Management API *audience*, which Auth0 treats
+  // as an opaque string: `https://<tenant>/api/v2/`, trailing slash included.
+  // Requesting a token for the slash-stripped form fails with
+  // 403 access_denied "Service not enabled within domain", and this function
+  // used to strip it, so every link/unlink/resend-verification call was dead.
+  // Verified against the live tenant: `.../api/v2` -> 403, `.../api/v2/` -> 200.
+  // Keep the slash for the token request; strip it only to build API paths so
+  // they cannot end up as `//users`.
+  const apiBase = (
     process.env.AUTH0_MANAGEMENT_API_AUDIENCE ?? `https://${domain}/api/v2/`
   ).replace(/\/+$/, "");
+  const audience = `${apiBase}/`;
 
   // The token endpoint lives on the *tenant* host, not behind /api/v2.
-  const tokenBase = new URL(audience).origin;
-  // All Management API v2 endpoints hang off the audience path.
-  const apiBase = audience;
+  const tokenBase = new URL(apiBase).origin;
 
   return { domain, audience, tokenBase, apiBase };
 }

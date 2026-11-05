@@ -84,21 +84,21 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           <Link
             href={`/orgs/${slug}/dashboard`}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-primary/60 hover:text-primary/90 hover:bg-surface/10 transition-all"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-primary hover:bg-surface/10 transition-all"
           >
             <LayoutDashboard className="w-4 h-4" />
             Dashboard
           </Link>
           <Link
             href={`/orgs/${slug}/events`}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-primary/60 hover:text-primary/90 hover:bg-surface/10 transition-all"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-primary hover:bg-surface/10 transition-all"
           >
             <CalendarDays className="w-4 h-4" />
             Events
           </Link>
           <Link
             href={`/orgs/${slug}/members`}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-primary/60 hover:text-primary/90 hover:bg-surface/10 transition-all"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-primary hover:bg-surface/10 transition-all"
           >
             <Users className="w-4 h-4" />
             Members

@@ -190,4 +190,4 @@ Motion must respect `prefers-reduced-motion`.
 - [PRODUCT.md](PRODUCT.md) — mission, users, and product direction
 - [AGENTS.md](AGENTS.md) — build, verify, and contribution rules
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — engineering reference
-- [docs/SEO_AEO_GEO_AUDIT.md](docs/SEO_AEO_GEO_AUDIT.md) — search and AI-answer visibility audit
+- [docs/SEO_AEO_GEO_AUDIT.md](docs/reports/2026-10-seo-aeo-geo-audit.md) — search and AI-answer visibility audit

@@ -5,7 +5,6 @@ import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { OrgSwitcher } from "@/components/org-switcher"
 import OnboardingProgressWidget from "@/components/dashboard/onboarding-progress-widget"
-import SkillTreeWidget from "@/components/skills/skill-tree-widget"
 import SidebarNav from "@/components/sidebar-nav"
 import { DashboardRoleSwitcher } from "@/components/dashboard/dashboard-role-switcher"
 import { roleConfig, type DashboardSidebarProps } from "@/components/sidebar-config"
@@ -60,8 +59,6 @@ onboardingChapterCount,
           projectCount={onboardingProjectCount}
         />
       )}
-
-      <SkillTreeWidget />
 
       <SidebarNav links={links} roleStyle={config} onLinkClick={closeMobile} />
 

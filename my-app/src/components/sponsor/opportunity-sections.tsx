@@ -1,4 +1,5 @@
 import { Briefcase, ExternalLink, MapPin, DollarSign, Clock } from "lucide-react";
+import Image from "next/image";
 
 export interface OpportunityWithSponsor {
   id: string
@@ -114,9 +115,13 @@ export default function OpportunitySections({
                   <div className="flex items-start justify-between gap-4">
                     {/* Company logo */}
                     {opp.sponsor_profiles?.company_logo_url && (
-                      <div className="w-12 h-12 rounded-xl bg-surface/20 overflow-hidden flex-shrink-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={opp.sponsor_profiles.company_logo_url} alt={opp.sponsor_profiles.company_name || "Company logo"} className="w-full h-full object-cover" />
+                      <div className="relative w-12 h-12 rounded-xl bg-surface/20 overflow-hidden flex-shrink-0">
+                        <Image
+                          src={opp.sponsor_profiles.company_logo_url}
+                          alt={opp.sponsor_profiles.company_name || "Company logo"}
+                          fill
+                          className="object-cover"
+                        />
                       </div>
                     )}
                     <div className="min-w-0 flex-1 space-y-2">
@@ -137,7 +142,7 @@ export default function OpportunitySections({
                       )}
                       <div className="flex items-center gap-4 text-[11px] text-secondary">
                         {opp.sponsor_profiles?.company_name && (
-                          <span className="font-medium text-primary/60">{opp.sponsor_profiles.company_name}</span>
+                          <span className="font-medium text-muted-foreground">{opp.sponsor_profiles.company_name}</span>
                         )}
                         {opp.location && <span className="flex items-center gap-1"><MapPin size={11} />{opp.location}</span>}
                         {opp.compensation && <span className="flex items-center gap-1"><DollarSign size={11} />{opp.compensation}</span>}

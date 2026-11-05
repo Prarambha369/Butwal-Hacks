@@ -67,7 +67,6 @@ const routes = [
   // Hacker Dashboard Pages
   { name: "/dashboard/hacker", path: "@/app/(main)/dashboard/hacker/page" },
   { name: "/dashboard/hacker/work", path: "@/app/(main)/dashboard/hacker/work/page", dynamic: "force-dynamic" },
-  { name: "/dashboard/hacker/api-keys", path: "@/app/(main)/dashboard/hacker/api-keys/page" },
   { name: "/dashboard/hacker/certificates", path: "@/app/(main)/dashboard/hacker/certificates/page" },
   { name: "/dashboard/hacker/projects", path: "@/app/(main)/dashboard/hacker/projects/page" },
   { name: "/dashboard/hacker/teams", path: "@/app/(main)/dashboard/hacker/teams/page" },
@@ -82,7 +81,6 @@ const routes = [
   { name: "/dashboard/organizer/events/[event_id]", path: "@/app/(main)/dashboard/organizer/events/[event_id]/page" },
   { name: "/dashboard/organizer/events/[event_id]/attendees", path: "@/app/(main)/dashboard/organizer/events/[event_id]/attendees/page" },
   { name: "/dashboard/organizer/events/[event_id]/analytics", path: "@/app/(main)/dashboard/organizer/events/[event_id]/analytics/page" },
-  { name: "/dashboard/organizer/api-keys", path: "@/app/(main)/dashboard/organizer/api-keys/page" },
   { name: "/dashboard/organizer/issue-marker", path: "@/app/(main)/dashboard/organizer/issue-marker/page" },
   { name: "/dashboard/organizer/work", path: "@/app/(main)/dashboard/organizer/work/page" },
 
@@ -165,7 +163,6 @@ describe.each(routes)("$name", ({ name: _name, path, hasGenMeta, dynamic, revali
 // Loading state exports — all loading.tsx files
 const loadingFiles = [
   { name: "explore page", path: "@/app/(main)/explore/loading" },
-  { name: "dashboard/organizer/api-keys", path: "@/app/(main)/dashboard/organizer/api-keys/loading" },
   { name: "initiatives/[slug]", path: "@/app/(main)/initiatives/[slug]/loading" },
   { name: "root (app router)", path: "@/app/loading" },
 ];
@@ -228,7 +225,6 @@ const apiRoutes = [
   { name: "GET/POST /api/workspaces", path: "@/app/api/workspaces/route", method: "GET", returns201: true, createMethod: "POST" },
   { name: "GET /api/verify/[bhId]", path: "@/app/api/verify/[bhId]/route", method: "GET" },
   { name: "GET /api/verify/[bhId]/embed", path: "@/app/api/verify/[bhId]/embed/route", method: "GET" },
-  { name: "GET/POST /api/v1/api-keys", path: "@/app/api/v1/api-keys/route", method: "GET" },
   { name: "POST /api/v1/issue-marker", path: "@/app/api/v1/issue-marker/route", method: "POST" },
   { name: "GET /api/v1/profile/[slugId]", path: "@/app/api/v1/profile/[slugId]/route", method: "GET" },
   { name: "GET /api/health", path: "@/app/api/health/route", method: "GET" },

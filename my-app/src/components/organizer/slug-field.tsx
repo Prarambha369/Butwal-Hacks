@@ -59,7 +59,7 @@ export function SlugField({
         </p>
       ) : (
         <p id="slug-field-hint" className="text-xs text-muted-foreground break-all">
-          <span className="opacity-60">Public URL:</span>{" "}
+          <span className="text-muted-foreground">Public URL:</span>{" "}
           <span className="font-mono text-foreground">{preview}</span>
         </p>
       )}

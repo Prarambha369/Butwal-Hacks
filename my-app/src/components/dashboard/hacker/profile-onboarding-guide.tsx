@@ -185,8 +185,7 @@ export default function ProfileOnboardingGuide({
             <div
               key={step.id}
               className={cn(
-                "flex items-center gap-3 px-4 md:px-5 py-3 transition-all",
-                isComplete && "opacity-50"
+                "flex items-center gap-3 px-4 md:px-5 py-3 transition-all"
               )}
             >
               {/* Status icon */}
@@ -211,7 +210,7 @@ export default function ProfileOnboardingGuide({
                   <span
                     className={cn(
                       "text-xs font-bold",
-                      isComplete ? "text-primary/60" : "text-primary"
+                      isComplete ? "text-muted-foreground" : "text-primary"
                     )}
                   >
                     {step.label}
@@ -225,7 +224,7 @@ export default function ProfileOnboardingGuide({
                 <p
                   className={cn(
                     "text-[10px] leading-relaxed mt-0.5",
-                    isComplete ? "text-primary/30" : "text-muted-foreground"
+                    "text-muted-foreground"
                   )}
                 >
                   {step.description}

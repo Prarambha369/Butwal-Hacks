@@ -101,11 +101,11 @@ Landing, blog, chapters, about, community, contact, cookie policy, events, explo
 
 #### Zone 4: hacker dashboard
 
-`/dashboard/hacker` with the XP bar, upcoming events, and activity feed. Plus `/work` for the Kanban board, `/api-keys`, `/projects`, and `/team-matching`.
+`/dashboard/hacker` with the XP bar, upcoming events, and activity feed. Plus `/work` for the Kanban board, `/projects`, and `/team-matching`.
 
 #### Zone 5: organizer dashboard
 
-`/dashboard/organizer` overview, `/events/[event_id]` detail with check-in, `/api-keys`, and `/issue-marker`.
+`/dashboard/organizer` overview, `/events/[event_id]` detail with check-in, and `/issue-marker`.
 
 #### Zone 6: maintainer dashboard
 
@@ -132,7 +132,7 @@ Landing, blog, chapters, about, community, contact, cookie policy, events, explo
 | `/api/events/register` | Event registration |
 | `/api/events/[eventId]/registrations` | Roster; organizer or maintainer only, carries PII, served `Cache-Control: private` |
 | `/api/v1/profile/[slugId]` | Profile data |
-| `/api/v1/api-keys`, `/api/v1/issue-marker` | API keys and trust marker issuance |
+| `/api/v1/issue-marker` | Trust marker issuance |
 | `/api/verify/[bhId]`, `/api/badges/*` | Credential verification and badge issuance |
 | `/api/webhooks/auth0` | User sync webhook |
 | `/api/webhooks/opencollective` | Signature-verified `expense.*` webhook |
@@ -207,4 +207,4 @@ Audited against the tree. Four items previously listed as backlog had already sh
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — ADRs and engineering reference
 - [AGENTS.md](AGENTS.md) — conventions and verification gates
 - [README.md](README.md) — project overview
-- [docs/SEO_AEO_GEO_AUDIT.md](docs/SEO_AEO_GEO_AUDIT.md) — the audit behind several fixes on this page
+- [docs/SEO_AEO_GEO_AUDIT.md](docs/reports/2026-10-seo-aeo-geo-audit.md) — the audit behind several fixes on this page

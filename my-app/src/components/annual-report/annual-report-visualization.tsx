@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   TrendingUp,
   DollarSign,
-  Sparkles,
   Trophy,
   Layers,
   GitBranch,
@@ -107,7 +106,6 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
           <StatCard icon={<Code2 className="w-4 h-4" />} label="Projects" value={summary.newProjects} sub={`${communityMetrics.totalProjects} total built`} />
           <StatCard icon={<Award className="w-4 h-4" />} label="Trust Markers" value={summary.trustMarkersIssued} sub="Verified achievements" />
           <StatCard icon={<ShieldCheck className="w-4 h-4" />} label="Teams" value={summary.newTeams} sub="Collaborations formed" />
-          <StatCard icon={<Sparkles className="w-4 h-4" />} label="Credentials" value={summary.microCredentialsAwarded} sub="Skill verifications" />
           <StatCard icon={<DollarSign className="w-4 h-4" />} label="Budget" value={financials.available ? formatCurrency(financials.received, financials.currency) : "—"} sub="Total received" />
         </div>
       </section>
@@ -244,12 +242,12 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
         </section>
       )}
 
-      {/* ── Skill Tree Unlocks ────────────────────────────────────── */}
+      {/* ── Trust Markers ────────────────────────────────────── */}
       {maxSkillUnlocks > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-5">
             <GitBranch className="w-4 h-4 text-primary-red" />
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Skill Tree Unlocks</h2>
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Trust Markers</h2>
           </div>
           <div className="bh-card p-6">
             <BarChart
@@ -261,7 +259,7 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
             />
             <div className="mt-4 text-center">
               <p className="text-xs text-muted-foreground">
-                <span className="font-bold text-primary">{summary.microCredentialsAwarded}</span> total credentials unlocked this year
+                <span className="font-bold text-primary">{summary.trustMarkersAwarded}</span> total trust markers issued this year
               </p>
             </div>
           </div>
@@ -278,7 +276,7 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
           <div className="bh-card overflow-hidden">
             {recentlyVerified.map((entry, i) => (
               <div
-                key={`${entry.bh_id}-${entry.unlocked_at}-${i}`}
+                key={`${entry.bh_id}-${entry.created_at}-${i}`}
                 className={cn(
                   "flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-hover/50",
                   i < recentlyVerified.length - 1 ? "border-b border-border" : "",
@@ -287,13 +285,11 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
                 <div className="flex-1 min-w-0">
                   <Link href={`/p/${entry.bh_id}`} className="text-sm font-bold text-primary hover:text-primary-red transition-colors truncate block">
                     {entry.full_name}
-                  </Link>
-                  <span className="text-[10px] font-mono text-muted-foreground">{entry.bh_id} · {entry.credential_name}</span>
+                  </Link>                  <span className="text-[10px] font-mono text-muted-foreground">{entry.bh_id} · {entry.marker_title}</span>
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-xs text-muted-foreground">
-                    {new Date(entry.unlocked_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                  </p>
+                    {new Date(entry.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
                 </div>
               </div>
             ))}

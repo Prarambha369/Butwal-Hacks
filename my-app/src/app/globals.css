@@ -48,8 +48,11 @@
   --bh-text-primary: #1F1F1F;
 
   /* 🎨 Status colors — darkened for 4.5:1 on white and tinted chips.
-     Vivid status hues are kept for dark mode below. */
-  --bh-status-green: #15803D;
+     Vivid status hues are kept for dark mode below.
+     #15803D measured 4.38:1 on the /10 chip tint (#e8f2ec) and failed AA for
+     the 9-12px status labels; #166534 measures 6.23:1 there and 7.13:1 on
+     white, reads the same, and clears the borderline status pills. */
+  --bh-status-green: #166534;
   /* #2563EB measured 4.49:1 on its own 10% tint — a hair under AA for the
      9-10px chips that use it. #1D4ED8 measures 5.82:1 and reads the same. */
   --bh-status-blue: #1D4ED8;

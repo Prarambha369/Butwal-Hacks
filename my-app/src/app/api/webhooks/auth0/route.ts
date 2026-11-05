@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
+import { verifyWebhookSignature } from "@/lib/webhook-signature"
 
 const AUTH0_WEBHOOK_SECRET = process.env.AUTH0_WEBHOOK_SECRET ?? "";
 
@@ -57,30 +58,57 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       return new NextResponse("Payload too large", { status: 413 })
     }
 
-    // ── Webhook secret verification (fail-closed) ─────────────────
+    // ── Webhook authentication (fail-closed) ───────────────────────
     if (!AUTH0_WEBHOOK_SECRET) {
       logger.error("[auth0-webhook] AUTH0_WEBHOOK_SECRET not configured - rejecting all requests");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const headerSecret = req.headers.get("x-webhook-secret") ?? ""
-    // SECURITY: constant-time comparison prevents timing attacks on webhook secret
-    const expectedBuf = Buffer.from(AUTH0_WEBHOOK_SECRET, "utf8")
-    const receivedBuf = Buffer.from(headerSecret, "utf8")
-    if (
-      !headerSecret ||
-      expectedBuf.length !== receivedBuf.length ||
-      !crypto.timingSafeEqual(expectedBuf, receivedBuf)
-    ) {
-      logger.warn("[auth0-webhook] Rejected request - invalid or missing webhook secret")
-      return NextResponse.json({ error: "Invalid webhook secret" }, { status: 401 })
+
+    // The body is read once and HMAC-covered — HMAC must be computed over the
+    // exact bytes the caller signed, not a reserialised parse.
+    const rawBody = await req.text()
+    if (Buffer.byteLength(rawBody, "utf8") > 1_048_576) {
+      return new NextResponse("Payload too large", { status: 413 })
     }
 
-    const { sub, email, name, auth0_roles } = await req.json() as {
-      sub?: string
-      email?: string
-      name?: string
-      auth0_roles?: string[]
+    const headerSignature = req.headers.get("x-webhook-signature")
+    const headerTimestamp = req.headers.get("x-webhook-timestamp")
+    const hmacOk = verifyWebhookSignature({
+      rawBody,
+      signature: headerSignature,
+      timestamp: headerTimestamp,
+      secret: AUTH0_WEBHOOK_SECRET,
+    });
+
+    if (!hmacOk) {
+      // ── Legacy shared-secret path (deprecated) ───────────────────
+      // The Auth0 Action now signs the request; this branch exists so a
+      // deployment window where the Action is HMAC but the route is not
+      // (or vice versa) never breaks profile sync. Remove it once the HMAC
+      // action is confirmed deployed and every environment redeployed.
+      const headerSecret = req.headers.get("x-webhook-secret") ?? ""
+      // SECURITY: constant-time comparison prevents timing attacks on webhook secret
+      const expectedBuf = Buffer.from(AUTH0_WEBHOOK_SECRET, "utf8")
+      const receivedBuf = Buffer.from(headerSecret, "utf8")
+      if (
+        !headerSecret ||
+        expectedBuf.length !== receivedBuf.length ||
+        !crypto.timingSafeEqual(expectedBuf, receivedBuf)
+      ) {
+        logger.warn("[auth0-webhook] Rejected request - invalid or missing webhook authentication")
+        return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 })
+      }
+      logger.warn("[auth0-webhook] Accepted legacy static x-webhook-secret (deprecated; use HMAC)")
     }
+
+    // ── Parse the (now trusted) raw body ────────────────────────────
+    let parsedBody: { sub?: string; email?: string; name?: string; auth0_roles?: string[] };
+    try {
+      parsedBody = JSON.parse(rawBody) as typeof parsedBody;
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+    const { sub, email, name, auth0_roles } = parsedBody
 
     if (!sub || !email) {
       return NextResponse.json({ error: "sub and email are required" }, { status: 400 })

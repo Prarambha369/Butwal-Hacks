@@ -62,4 +62,4 @@ node .github/actions/ai-review/review.mjs
 
 - [MAINTAINERS.md](../../../MAINTAINERS.md) — the CI pipeline this action belongs to
 - [AGENTS.md](../../../AGENTS.md) — the conventions the review enforces
-- [SECURITY.md](../../../SECURITY.md) — the defense layers being checked
+- [SECURITY.md](../../SECURITY.md) — the defense layers being checked

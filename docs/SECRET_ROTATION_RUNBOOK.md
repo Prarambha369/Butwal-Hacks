@@ -174,7 +174,7 @@ A repeat of this failure is now identifiable from the toast text alone.
 ## See also
 
 - [MAINTAINERS.md](../MAINTAINERS.md) — where each secret is configured
-- [SECURITY.md](../SECURITY.md) — the defense layers this rotation protects
+- [SECURITY.md](../.github/SECURITY.md) — the defense layers this rotation protects
 - [docs/ARCHITECTURE.md](ARCHITECTURE.md) — the trust boundaries involved
 - [AGENTS.md](../AGENTS.md) — the authorization rule a service-role query must follow
 

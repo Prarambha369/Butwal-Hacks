@@ -52,7 +52,7 @@ export const POST = withRateLimit(async (request: Request) => {
 
     // Parse and validate optional metadata fields
     const metadataSchema = z.object({
-      entity_type: z.enum(["avatar", "event_banner", "project_cover", "blog_cover", "gallery_photo", "gallery_video"]).optional(),
+      entity_type: z.enum(["avatar", "event_banner", "project_cover", "blog_cover", "gallery_photo", "gallery_video", "sponsor_logo"]).optional(),
       bh_id: z.string().max(20).optional(),
       event_slug: z.string().max(200).optional(),
       project_id: z.string().uuid().optional(),

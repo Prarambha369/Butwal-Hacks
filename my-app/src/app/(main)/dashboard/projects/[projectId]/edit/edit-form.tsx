@@ -226,7 +226,7 @@ export default function EditProjectForm({ project }: { project: ProjectData }) {
             <button 
               disabled={isSubmitting}
               type="submit" 
-              className="flex-1 py-4 bg-bh-red-600 hover:bg-primary-red text-primary rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-red/20 disabled:opacity-50"
+              className="flex-1 py-4 bg-bh-red-action hover:bg-deep-red text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-red/20 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <RoseSpinner size="sm" />

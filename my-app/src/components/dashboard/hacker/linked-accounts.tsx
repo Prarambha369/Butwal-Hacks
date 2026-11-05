@@ -208,7 +208,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
     status.type === "success" ? "success" : status.type === "error" ? "error" : "idle";
 
   const availableProviders = [
-    { id: "github", name: "GitHub", description: "Connect your GitHub account for automatic repo syncing and contribution tracking." },
+    { id: "github", name: "GitHub", description: "Sign in with GitHub and, if your profile URL is empty, auto-fill it from your account name." },
     { id: "linkedin", name: "LinkedIn", description: "Display your LinkedIn profile and professional experience." },
     { id: "google-oauth2", name: "Google", description: "Use your Google account for quick sign-in." },
   ] as const;
@@ -245,7 +245,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
         <div>
           <h3 className="font-bold text-sm text-primary">Linked Accounts</h3>
           <p className="text-[10px] text-muted-foreground font-mono">
-            Connect accounts via Auth0 for single sign-on
+            Sign in with any connected account. Linking writes your linked-account list and, for GitHub/LinkedIn, optionally fills your profile URL.
           </p>
         </div>
       </div>
@@ -373,7 +373,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
           </div>
           <p className="text-sm font-bold text-primary">No accounts linked</p>
           <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-            Connect your GitHub, LinkedIn, or Google account for single sign-on and automatic profile syncing.
+            Connect your GitHub, LinkedIn, or Google account so you can sign in with it. GitHub and LinkedIn profile URLs are filled in automatically if your profile is missing them.
           </p>
         </div>
       )}

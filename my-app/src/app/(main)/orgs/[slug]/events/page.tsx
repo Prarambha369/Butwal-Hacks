@@ -93,7 +93,7 @@ export default async function OrgEventsPage({ params }: PageProps) {
       ) : (
         <div className="bh-card p-12 text-center">
           <CalendarDays className="w-12 h-12 text-primary/20 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-primary/60 mb-2">No events yet</h3>
+          <h3 className="text-lg font-bold text-muted-foreground mb-2">No events yet</h3>
           <p className="text-sm text-primary/40">{isAdmin ? "Create your first chapter event to get started." : "Events will appear here when the chapter admin creates them."}</p>
         </div>
       )}

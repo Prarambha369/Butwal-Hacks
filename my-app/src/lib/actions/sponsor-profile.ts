@@ -15,6 +15,11 @@ interface SponsorProfileData {
   industries?: string[];
 }
 
+/**
+ * Read the signed-in sponsor's own company profile, or null when there is
+ * none or the caller is not signed in. Best-effort: any failure returns null
+ * rather than surfacing an error to the caller.
+ */
 export async function getSponsorProfile() {
   try {
     const supabase = createServiceClient();
@@ -38,6 +43,12 @@ export async function getSponsorProfile() {
   }
 }
 
+/**
+ * Create or update the signed-in sponsor's own company profile, revalidating
+ * the public sponsor surface and sitemap so the saved details are visible
+ * without a deploy. Throws / returns an error result when the caller is not
+ * a sponsor or the save fails.
+ */
 export async function upsertSponsorProfile(data: SponsorProfileData) {
   try {
     const supabase = createServiceClient();
@@ -73,6 +84,8 @@ export async function upsertSponsorProfile(data: SponsorProfileData) {
     if (error) throw error;
 
     revalidatePath("/portal/sponsors/company");
+    revalidatePath("/sponsor");
+    revalidatePath("/sitemap.xml");
     return { success: true, message: "Company profile saved!" };
   } catch (error) {
     logger.error("[sponsor-profile] Error upserting:", error);

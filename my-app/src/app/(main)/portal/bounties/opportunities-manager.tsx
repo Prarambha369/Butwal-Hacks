@@ -120,7 +120,7 @@ export default function OpportunitiesManager({ opportunities }: { opportunities:
           key={opp.id}
           className={cn(
             "bh-card border p-5 transition-all",
-            opp.is_active ? "border-border" : "border-border/30 opacity-60"
+            opp.is_active ? "border-border" : "border-border/20 text-muted-foreground"
           )}
         >
           <div className="flex items-start justify-between gap-4">

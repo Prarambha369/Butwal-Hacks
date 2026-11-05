@@ -14,7 +14,7 @@ export interface ExplorerMember {
   /** Opt-in flags from profiles (migration 031) — directory filter facets. */
   openToMentor: boolean
   lookingForTeam: boolean
-  socials?: Record<string, string> | null
+  socials?: Record<string, string>
   githubUrl?: string | null
   websiteUrl?: string | null
   linkedinUrl?: string | null
@@ -56,7 +56,7 @@ interface ProfileRow {
   looking_for_team?: boolean | null
   open_to_mentor?: boolean | null
   avatar_url?: string | null
-  social_links?: Record<string, string> | null
+  socials?: Record<string, string> | null
 }
 
 export async function fetchExplorerMembers(
@@ -75,7 +75,7 @@ export async function fetchExplorerMembers(
       open_to_mentor,
       looking_for_team,
       avatar_url,
-      social_links
+      socials
     `)
     .not("bh_id", "is", null)
     .limit(100);
@@ -118,10 +118,10 @@ export async function fetchExplorerMembers(
       .toUpperCase()
       .slice(0, 2);
 
-    const socials = p.social_links ?? {};
-    const githubRaw = socials.github ?? socials.github_url ?? socials.GitHub;
-    const websiteRaw = socials.website ?? socials.website_url ?? socials.link ?? socials.Web;
-    const linkedinRaw = socials.linkedin ?? socials.linkedin_url ?? socials.LinkedIn;
+    const socials = p.socials ?? {};
+    const githubRaw = socials.github;
+    const websiteRaw = socials.website;
+    const linkedinRaw = socials.linkedin;
     const githubUrl = normalizeGitHubUrl(githubRaw);
     const websiteUrl = normalizeUrl(websiteRaw);
     const linkedinUrl = normalizeLinkedInUrl(linkedinRaw);
@@ -139,7 +139,7 @@ export async function fetchExplorerMembers(
       joined: p.created_at ? p.created_at.slice(0, 7) : "",
       openToMentor: p.open_to_mentor === true,
       lookingForTeam: p.looking_for_team === true,
-      socials,
+      socials: Object.keys(socials).length > 0 ? socials : undefined,
       githubUrl,
       websiteUrl,
       linkedinUrl,

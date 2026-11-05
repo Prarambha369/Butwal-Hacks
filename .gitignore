@@ -118,5 +118,9 @@ my-app/.npmrc
 .upload-staging/
 upload-all-photos.sh
 upload-photos.js
+# Per-developer AI/agent tooling, never shared
+.opencode/
+agent/
+skills-lock.json
 # Agent tooling config (contains MCP credentials; per-developer, not shared).
 opencode.json

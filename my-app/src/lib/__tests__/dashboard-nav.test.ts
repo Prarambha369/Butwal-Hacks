@@ -18,9 +18,6 @@ const INLINE_HREFS = [
   "/dashboard/hacker/certificates",
   "/teams",
   "/dashboard/hacker/team-matching",
-  "/dashboard/hacker/api-keys",
-  "/dashboard/hacker/skills",
-  "/dashboard/hacker/chat",
 ];
 
 // Hrefs of the four inline layout arrays this module replaces, in their order.
@@ -32,7 +29,6 @@ const EXPECTED: Record<string, string[]> = {
     "/dashboard/organizer/work",
     "/dashboard/organizer/issue-marker",
     "/dashboard/organizer/certificates/templates",
-    "/dashboard/organizer/api-keys",
   ],
   maintainerNav: [
     "/dashboard/maintainer",
@@ -112,8 +108,7 @@ describe.each([
 });
 
 describe("hackerNav", () => {
-  it("keeps the pre-extraction contract: 10 items in inline order", () => {
-    expect(hackerNav).toHaveLength(10);
+  it("keeps the pre-extraction contract: items in inline order", () => {
     expect(hackerNav.map((item) => item.href)).toEqual(INLINE_HREFS);
   });
 });
