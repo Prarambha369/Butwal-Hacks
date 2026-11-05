@@ -329,14 +329,16 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
         className="fixed z-50 animate-in fade-in zoom-in-95 duration-300"
         style={
           isAnchored
-            ? ({
+            ? {
                 top: tooltipTop!,
                 left: tooltipOverflows ? "auto" : tooltipLeft!,
                 right: tooltipOverflows ? 16 : "auto",
-              } as React.CSSProperties)
+                transform: "translateY(-50%)",
+              }
             : {
                 top: "50%",
                 left: "50%",
+                transform: "translate(-50%, -50%)",
               }
         }
       >
@@ -346,11 +348,6 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
           aria-modal="true"
           aria-label="Onboarding tour"
           className={`relative bh-card overflow-hidden w-[90vw] max-w-sm flex flex-col ${isCardOversized ? "max-h-[calc(100vh-32px)]" : ""}`}
-          style={
-            isAnchored
-              ? { transform: "translateY(-50%)" }
-              : { transform: "translate(-50%, -50%)" }
-          }
         >
           {/* Arrow pointer */}
           {isAnchored && !tooltipOverflows && (

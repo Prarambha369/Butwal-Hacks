@@ -59,7 +59,7 @@ export default async function AchievementsPage() {
             <div 
               key={ach.id} 
               className={`bh-card p-6 transition-all duration-500 ${
-                ach.unlocked ? 'border-bh-red-500/30 bg-primary-red/5' : 'opacity-60 grayscale'
+                ach.unlocked ? 'border-bh-red-500/30 bg-primary-red/5' : 'grayscale text-muted-foreground'
               }`}
             >
               <div className="flex items-start justify-between mb-6">

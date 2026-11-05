@@ -142,7 +142,7 @@ export default function OpportunitySections({
                       )}
                       <div className="flex items-center gap-4 text-[11px] text-secondary">
                         {opp.sponsor_profiles?.company_name && (
-                          <span className="font-medium text-primary/60">{opp.sponsor_profiles.company_name}</span>
+                          <span className="font-medium text-muted-foreground">{opp.sponsor_profiles.company_name}</span>
                         )}
                         {opp.location && <span className="flex items-center gap-1"><MapPin size={11} />{opp.location}</span>}
                         {opp.compensation && <span className="flex items-center gap-1"><DollarSign size={11} />{opp.compensation}</span>}

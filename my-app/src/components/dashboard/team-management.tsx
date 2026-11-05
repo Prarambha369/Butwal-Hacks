@@ -185,7 +185,7 @@ export default function TeamManagement() {
       {error && (
         <div className="flex items-center gap-2 p-3 rounded-lg bg-primary-red/10 border border-primary-red/30 text-primary-red text-sm">
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto text-primary-red/60 hover:text-primary-red text-xs">Dismiss</button>
+          <button onClick={() => setError(null)} className="ml-auto text-primary-red hover:text-deep-red text-xs">Dismiss</button>
         </div>
       )}
       <TeamInviteList onUpdate={refresh} />

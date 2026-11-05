@@ -300,8 +300,9 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className={labelClass}>Full Name</label>
+          <label htmlFor="profile-full-name" className={labelClass}>Full Name</label>
           <input
+            id="profile-full-name"
             type="text"
             value={formData.full_name}
             onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
@@ -309,12 +310,15 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
           />
         </div>
         <div className="space-y-2">
-          <label className={labelClass}>BH-ID</label>
+          <label htmlFor="profile-bhid" className={labelClass}>BH-ID</label>
           <input
+            id="profile-bhid"
             type="text"
             value={(initialProfile?.bh_id as string) || ''}
             readOnly
-            className="w-full bg-background/50 border border-border/30 rounded-lg px-4 py-3 opacity-50 cursor-not-allowed"
+            aria-readonly="true"
+            aria-label="BH-ID (read-only, cannot be changed)"
+            className="w-full bg-surface-hover border border-border/30 rounded-lg px-4 py-3 text-muted-foreground cursor-not-allowed"
           />
         </div>
       </div>
@@ -322,7 +326,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
       {/* Bio with character counter */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className={labelClass}>Bio</label>
+          <label htmlFor="profile-bio" className={labelClass}>Bio</label>
           <span className={cn(
             "text-[10px] font-mono transition-colors",
             bioCharsLeft < 0 ? "text-primary-red font-bold" : bioCharsLeft < 50 ? "text-status-yellow" : "text-muted-foreground"
@@ -331,6 +335,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
           </span>
         </div>
         <textarea
+          id="profile-bio"
           value={formData.bio}
           onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
           onBlur={() => setTouched(prev => new Set(prev).add('bio'))}
@@ -351,10 +356,11 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className={cn(labelClass, "flex items-center gap-2")}>
+          <label htmlFor="profile-github" className={cn(labelClass, "flex items-center gap-2")}>
             <Github size={14} /> GitHub URL
           </label>
           <input
+            id="profile-github"
             type="text"
             value={formData.github}
             onChange={(e) => setFormData({ ...formData, github: e.target.value })}
@@ -379,10 +385,11 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
           )}
         </div>
         <div className="space-y-2">
-          <label className={cn(labelClass, "flex items-center gap-2")}>
+          <label htmlFor="profile-linkedin" className={cn(labelClass, "flex items-center gap-2")}>
             <Linkedin size={14} /> LinkedIn URL
           </label>
           <input
+            id="profile-linkedin"
             type="text"
             value={formData.linkedin}
             onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
@@ -410,10 +417,11 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className={cn(labelClass, "flex items-center gap-2")}>
+          <label htmlFor="profile-website" className={cn(labelClass, "flex items-center gap-2")}>
             <Globe size={14} /> Portfolio Website
           </label>
           <input
+            id="profile-website"
             type="text"
             value={formData.website}
             onChange={(e) => setFormData({ ...formData, website: e.target.value })}
@@ -468,10 +476,11 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
 
           {formData.open_to_mentor && (
             <div className="space-y-2 pl-13">
-              <label className={cn(labelClass, "flex items-center gap-2")}>
+              <label htmlFor="profile-calcom" className={cn(labelClass, "flex items-center gap-2")}>
                 <Calendar size={14} /> Cal.com Booking Link
               </label>
               <input
+                id="profile-calcom"
                 type="text"
                 value={formData.cal_com_url}
                 onChange={(e) => setFormData({ ...formData, cal_com_url: e.target.value })}

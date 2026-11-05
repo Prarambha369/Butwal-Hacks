@@ -83,7 +83,7 @@ export default async function OrgMembersPage({ params }: PageProps) {
                   {profile.bh_id && <p className="text-xs font-mono text-primary/40">{profile.bh_id}</p>}
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <div className="flex items-center gap-1 text-[10px] text-primary/30">
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                     <CalendarDays className="w-3 h-3" /> Joined {new Date(member.joined_at).toLocaleDateString()}
                   </div>
                 </div>
@@ -94,7 +94,7 @@ export default async function OrgMembersPage({ params }: PageProps) {
       ) : (
         <div className="bh-card p-12 text-center">
           <Users className="w-12 h-12 text-primary/20 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-primary/60 mb-2">No members yet</h3>
+          <h3 className="text-lg font-bold text-muted-foreground mb-2">No members yet</h3>
           <p className="text-sm text-primary/40">Members will appear here once they join the chapter.</p>
         </div>
       )}

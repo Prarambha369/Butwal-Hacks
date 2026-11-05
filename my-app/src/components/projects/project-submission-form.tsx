@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Send, Github, ExternalLink, Code2, Image as ImageIcon, Calendar, Tags, Sparkles, Loader2 } from 'lucide-react';
+import { Send, Github, ExternalLink, Code2, Image as ImageIcon, Calendar, Tags, Sparkles, Loader2, AlignLeft } from 'lucide-react';
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { submitProject } from '@/lib/actions/projects';
 import { toast } from 'sonner';
@@ -217,7 +217,11 @@ export default function ProjectSubmissionForm() {
                 {generatingPitch ? 'Generating...' : 'Generate with AI'}
               </button>
             </div>
-            <textarea 
+            <label htmlFor="project-description" className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
+              <AlignLeft className="w-3 h-3" /> Description
+            </label>
+            <textarea
+              id="project-description"
               {...register('description')}
               rows={4}
               className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
@@ -228,10 +232,11 @@ export default function ProjectSubmissionForm() {
 
           {/* Category selector */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
+            <label htmlFor="project-category" className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
               <Tags className="w-3 h-3" /> Category
             </label>
             <select
+              id="project-category"
               {...register('category')}
               className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
             >
@@ -268,10 +273,11 @@ export default function ProjectSubmissionForm() {
           {/* Event selector — show only if user has registered events */}
           {events.length > 0 && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
+              <label htmlFor="project-event" className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
                 <Calendar className="w-3 h-3" /> Event (optional)
               </label>
               <select
+                id="project-event"
                 {...register('eventId')}
                 className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-[#FE0000] focus:outline-none outline-none transition-all"
               >
