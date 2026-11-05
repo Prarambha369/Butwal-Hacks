@@ -35,7 +35,7 @@ The disclosure process for security issues in the Butwal Hacks platform, plus a 
 
 ### Defense layers
 
-![Seven defense layers a request passes through, grouped into a request gate, an authorization gate, and a storage gate. The rate-limit layer fails open when Redis is unreachable, so storage is reached without throttling rather than the request being rejected.](docs/images/defense-layers.png)
+![Seven defense layers a request passes through, grouped into a request gate, an authorization gate, and a storage gate. The rate-limit layer fails open when Redis is unreachable, so storage is reached without throttling rather than the request being rejected.](../docs/images/defense-layers.png)
 
 | Layer | Control |
 |-------|---------|
@@ -71,14 +71,14 @@ The limiter fails open when Redis is unreachable, so an Upstash outage degrades 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | `npm audit` reports a high-severity advisory | A direct or transitive dependency is affected | Update the dependency; do not suppress the advisory |
-| Secrets audit fails on a PR | A credential-shaped string is in the diff | Remove it and rotate the credential; see [docs/SECRET_ROTATION_RUNBOOK.md](docs/SECRET_ROTATION_RUNBOOK.md) |
-| A route accepts unauthenticated writes | A `createServiceClient()` call has no authorization check above it | Add the check. See [AGENTS.md](AGENTS.md) |
+| Secrets audit fails on a PR | A credential-shaped string is in the diff | Remove it and rotate the credential; see [docs/SECRET_ROTATION_RUNBOOK.md](../docs/SECRET_ROTATION_RUNBOOK.md) |
+| A route accepts unauthenticated writes | A `createServiceClient()` call has no authorization check above it | Add the check. See [AGENTS.md](../AGENTS.md) |
 | Rate limiting seems inactive | Redis is unreachable and the limiter failed open | Check `UPSTASH_REDIS_REST_URL` and quota |
 
 ## See also
 
-- [AGENTS.md](AGENTS.md) — access-control rules every change must follow
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — threat model and security architecture
-- [MAINTAINERS.md](MAINTAINERS.md) — secrets inventory and on-call runbook
-- [docs/SECRET_ROTATION_RUNBOOK.md](docs/SECRET_ROTATION_RUNBOOK.md) — rotating exposed credentials
-- [docs/SECURITY_REMEDIATION_REPORT.md](docs/SECURITY_REMEDIATION_REPORT.md) — the P0 and P1 defects that were fixed, and how each was proven
+- [AGENTS.md](../AGENTS.md) — access-control rules every change must follow
+- [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) — threat model and security architecture
+- [MAINTAINERS.md](../MAINTAINERS.md) — secrets inventory and on-call runbook
+- [docs/SECRET_ROTATION_RUNBOOK.md](../docs/SECRET_ROTATION_RUNBOOK.md) — rotating exposed credentials
+- [docs/SECURITY_REMEDIATION_REPORT.md](../docs/reports/2026-10-security-remediation.md) — the P0 and P1 defects that were fixed, and how each was proven

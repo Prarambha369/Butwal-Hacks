@@ -7,7 +7,7 @@
 
 > **Historical counts.** The test totals in this report are a point-in-time record of the
 > session described below, not the current suite. For live numbers see the
-> [README](../README.md#by-the-numbers).
+> [README](../../README.md#by-the-numbers).
 
 ---
 

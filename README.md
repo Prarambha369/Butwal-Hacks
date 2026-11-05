@@ -47,13 +47,13 @@ This repository serves several different audiences. Jump to the one that matches
 
 | If you are | Start here | Then read |
 |------------|-----------|-----------|
-| A **new contributor** | [Quick start](#quick-start) below | [CONTRIBUTING.md](CONTRIBUTING.md) for the PR workflow, [AGENTS.md](AGENTS.md) for conventions |
+| A **new contributor** | [Quick start](#quick-start) below | [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) for the PR workflow, [AGENTS.md](AGENTS.md) for conventions |
 | A **returning contributor** | [Verification](#verification) | [AGENTS.md](AGENTS.md#reference) for access control, API routes, and database rules |
-| A **maintainer** | [MAINTAINERS.md](MAINTAINERS.md) | Secrets inventory, deploy and rollback runbook, on-call |
+| A **maintainer** | [MAINTAINERS.md](MAINTAINERS.md) | Deploy and rollback runbook, environment variables |
 | Looking for **product context** | [PRODUCT.md](PRODUCT.md) | Mission, the nine route zones, roles, roadmap |
-| A **designer or frontend dev** | [DESIGN.md](DESIGN.md) | The 58 `--bh-*` tokens and `bh-*` utility classes |
-| **Reporting a vulnerability** | [SECURITY.md](SECURITY.md) | Private disclosure, never a public issue |
-| **Looking for the legal terms** | [policies/README.md](policies/README.md) | Terms of service, privacy, guardian consent, safeguarding, event rules |
+| A **designer or frontend dev** | [DESIGN.md](DESIGN.md) | The `--bh-*` tokens and `bh-*` utility classes |
+| **Reporting a vulnerability** | [.github/SECURITY.md](.github/SECURITY.md) | Private disclosure, never a public issue |
+| **Looking for the legal terms** | `/legal/terms` and `/legal/privacy` | Terms of service, privacy, safeguarding, event rules |
 | A **sponsor or partner** | [PRODUCT.md](PRODUCT.md#product-identity) | How sponsorship and bounties work via Open Collective |
 
 New to the codebase? Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) once. It explains the decisions that are expensive to reverse.
@@ -97,7 +97,7 @@ To generate a signing secret:
 openssl rand -hex 32    # AUTH0_SECRET
 ```
 
-The **16 required variables** are:
+The **16 required variables** are listed in [my-app/.env.example](my-app/.env.example); the full set including the optional and CI-only ones is documented there too. In production, values live in Vercel and GitHub repository secrets and never in the repo itself.
 
 | Group | Variables |
 |-------|-----------|
@@ -107,7 +107,7 @@ The **16 required variables** are:
 
 **One setup step is easy to miss.** The Auth0 Post-Login Action must be enabled. It syncs each new user into the Supabase `profiles` table. Without it, every new user loops after login because no profile row is ever created.
 
-Where each variable is set in production is documented in the [MAINTAINERS.md secrets inventory](MAINTAINERS.md#secrets-inventory).
+Values live in Vercel and GitHub repository secrets in production; see [MAINTAINERS.md](MAINTAINERS.md#environment-variables) for the operational picture and [docs/SECRET_ROTATION_RUNBOOK.md](docs/SECRET_ROTATION_RUNBOOK.md) for rotating a credential.
 
 ## Architecture
 
@@ -128,9 +128,10 @@ npm run typecheck
 npm run lint
 npm run test
 npm run build
+npm run audit:ui   # after `npm run build && npm run start`
 ```
 
-All four must pass before a PR is opened. See [AGENTS.md](AGENTS.md) for the full gate definitions.
+All five must pass before a PR is opened. See [AGENTS.md](AGENTS.md) for the full gate definitions. `audit:ui` loads 30 public routes at 390/768/1440px in light and dark.
 
 ## Reference
 
@@ -158,67 +159,51 @@ Counts as of the commit that last touched this table.
 
 | Measure | Count |
 |---------|-------|
-| API route files | 59 |
-| API handlers | 66 |
-| Pages and layouts | 109 |
-| React components | 161 |
-| Files in `src/lib` | 159 |
-| Database migrations | 98 |
-| Unit and integration test files | 114 |
+| API route files | 60 |
+| API handlers | 70 |
+| Pages and layouts | 112 |
+| React components | 168 |
+| Files in `src/lib` | 171 |
+| Database migrations | 101 |
+| Unit and integration test files | 117 |
 | End-to-end specs | 6 |
-| Tests | 1687 |
+| Tests | 1767 |
 | Roles | 5 |
-| Design tokens | 58 |
+| Design tokens | 35 |
 
 ### Repository layout
 
 ```text
 Butwal-Hacks/
-  my-app/                 # Next.js application
-    src/
-      app/                # App Router pages and API routes
-      components/         # React components
-      hooks/              # Custom hooks
-      lib/                # Business logic, server actions, types
-      utils/supabase/     # Supabase client factories
-      proxy.ts            # Auth and subdomain routing
-    e2e/                  # Playwright E2E tests
-  supabase/migrations/    # 98 SQL migrations, sequentially numbered
-  scripts/                # Operational scripts
-  docs/                   # Architecture, runbooks, audit, and diagrams
-  .github/                # Workflows, issue templates, PR template
-  vercel.json             # Deployment config and cron schedules
+  my-app/         # Next.js app (app/, components/, lib/, e2e/)
+  supabase/       # 101 SQL migrations, sequentially numbered
+  scripts/        # Operational scripts
+  docs/           # Architecture, runbooks, audits in reports/, diagrams
+  .github/        # Workflows, issue templates, PR template, CONTRIBUTING, SECURITY, CoC
+  vercel.json     # Deploy config and cron schedules
 ```
+
+Full map: [AGENTS.md → Repository layout](AGENTS.md#repository-layout).
 
 ## Troubleshooting
 
-| Symptom | Fix |
-|---------|-----|
-| `npm install` fails on Node 18 | Upgrade to Node 20 or newer; `engines` enforces it |
-| Port 3000 already in use | `PORT=3001 npm run dev` |
-| Auth0 redirect loop on login | Enable the Post-Login Action; it syncs the profile to Supabase |
-| Empty dashboard after signing in | The webhook at `/api/webhooks/auth0` did not fire; check `AUTH0_WEBHOOK_SECRET` |
-| Supabase queries return 401 in production only | A manual Vercel env drifted from the integration; see [MAINTAINERS.md](MAINTAINERS.md) |
-| Deploy fails at the migration step | `SUPABASE_DB_URL` is a transaction-pooler URL and cannot run DDL; use a direct connection string |
-| Rate limiting appears disabled | Redis is unreachable and the limiter fails open; check `UPSTASH_REDIS_REST_URL` and quota |
-| Colors wrong in dark mode | A literal hex bypassed a design token; see [DESIGN.md](DESIGN.md) |
-| Pre-commit hook does not run | `git config core.hooksPath .husky/` was never set |
+The common failures (Auth0 redirect loop, Supabase env drift, migration pooler, Redis fail-open, dark-mode token bypass) and their fixes are documented once, in [AGENTS.md → Troubleshooting](AGENTS.md#troubleshooting). Deploy-specific checks live in [MAINTAINERS.md → If something breaks](MAINTAINERS.md#if-something-breaks-in-production).
 
 ## See also
 
 | Document | Covers |
 |----------|--------|
 | [AGENTS.md](AGENTS.md) | Setup, verification gates, conventions, access control |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contributor workflow and local development |
+| [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) | Contributor workflow and local development |
 | [PRODUCT.md](PRODUCT.md) | Mission, users, route zones, roadmap |
 | [DESIGN.md](DESIGN.md) | Colors, typography, utility classes, accessibility |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | ADRs, security model, testing, error handling |
-| [MAINTAINERS.md](MAINTAINERS.md) | Secrets, deploy, CI, rollback, on-call |
-| [SECURITY.md](SECURITY.md) | Vulnerability reporting |
-| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community standards |
-| [policies/](policies/README.md) | Terms, privacy, guardian consent, safeguarding, legal-entity registration, and our open compliance gaps |
+| [MAINTAINERS.md](MAINTAINERS.md) | Deploy, CI, rollback, environment variables |
+| [.github/SECURITY.md](.github/SECURITY.md) | Vulnerability reporting |
+| [.github/CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md) | Community standards |
+| [`/legal/terms` and `/legal/privacy`](https://butwalhacks.com) | Terms of service and privacy, served by the app |
 | [docs/SECRET_ROTATION_RUNBOOK.md](docs/SECRET_ROTATION_RUNBOOK.md) | Rotating an exposed credential, end to end |
-| [docs/SEO_AEO_GEO_AUDIT.md](docs/SEO_AEO_GEO_AUDIT.md) | Search and AI-answer visibility audit |
+| [docs/reports/2026-10-seo-aeo-geo-audit.md](docs/reports/2026-10-seo-aeo-geo-audit.md) | Historical: search and AI-answer visibility audit |
 | [my-app/.env.example](my-app/.env.example) | Every environment variable, annotated |
 | [my-app/public/llms.txt](my-app/public/llms.txt) | Machine-readable site summary for AI crawlers |
 

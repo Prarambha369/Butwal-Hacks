@@ -1,6 +1,6 @@
 # Contributing to Butwal Hacks
 
-> How to get a working environment and get a change merged. Read alongside [AGENTS.md](AGENTS.md), which holds the technical conventions.
+> How to get a working environment and get a change merged. Read alongside [AGENTS.md](../AGENTS.md), which holds the technical conventions.
 
 ## What this is
 
@@ -62,11 +62,11 @@ All four must pass. If you cannot run one locally, say so in the PR rather than 
 | Change | Edit |
 |--------|------|
 | Setup steps, contribution workflow | This file |
-| Conventions, gates, access control | [AGENTS.md](AGENTS.md) |
-| Mission, users, roadmap, route zones | [PRODUCT.md](PRODUCT.md) |
-| Tokens, typography, UI rules | [DESIGN.md](DESIGN.md) |
-| ADRs, security model, testing strategy | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| Secrets, deploy, rollback, on-call | [MAINTAINERS.md](MAINTAINERS.md) |
+| Conventions, gates, access control | [AGENTS.md](../AGENTS.md) |
+| Mission, users, roadmap, route zones | [PRODUCT.md](../PRODUCT.md) |
+| Tokens, typography, UI rules | [DESIGN.md](../DESIGN.md) |
+| ADRs, security model, testing strategy | [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) |
+| Secrets, deploy, rollback, on-call | [MAINTAINERS.md](../MAINTAINERS.md) |
 
 ### Architecture in one diagram
 
@@ -116,7 +116,7 @@ This setup is for local development only. Production uses hosted Supabase and Up
 |------|--------|
 | Types | Strict mode. No `any` in new code; use `unknown` with a type guard. If an `any` is unavoidable, leave a `// ponytail:` comment explaining why |
 | Components | Server components by default. Add `"use client"` only for hooks, state, or browser APIs |
-| Colors | Design tokens only, never literals. See [DESIGN.md](DESIGN.md) |
+| Colors | Design tokens only, never literals. See [DESIGN.md](../DESIGN.md) |
 | Unused params | Prefix with `_` |
 | Commits | Conventional Commits |
 
@@ -159,11 +159,11 @@ For security vulnerabilities, do not open a public issue. See [SECURITY.md](SECU
 
 ## See also
 
-- [AGENTS.md](AGENTS.md) — technical conventions and verification gates
-- [MAINTAINERS.md](MAINTAINERS.md) — operational procedures
+- [AGENTS.md](../AGENTS.md) — technical conventions and verification gates
+- [MAINTAINERS.md](../MAINTAINERS.md) — operational procedures
 - [SECURITY.md](SECURITY.md) — vulnerability reporting
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — community standards
-- [README.md](README.md) — project overview
+- [README.md](../README.md) — project overview
 
 ## License
 

@@ -4,7 +4,7 @@
 **Audience:** Core maintainers and any volunteer running the weekly visibility check
 **Purpose:** Manual weekly tracking of AI visibility for [Butwal Hacks](https://www.butwalhacks.com) — free student hackathons in Butwal, Lumbini Province, Nepal — across Google AI Overviews, ChatGPT Search, and Perplexity.
 
-This is a process doc, not a technical audit. For what is already shipped (sitemap, JSON-LD, `llms.txt`, robots directives for AI crawlers), see [SEO_AEO_GEO_AUDIT.md](SEO_AEO_GEO_AUDIT.md). For product identity and positioning, see [PRODUCT.md](../PRODUCT.md). This doc does not repeat either.
+This is a process doc, not a technical audit. For what is already shipped (sitemap, JSON-LD, `llms.txt`, robots directives for AI crawlers), see [SEO_AEO_GEO_AUDIT.md](2026-10-seo-aeo-geo-audit.md). For product identity and positioning, see [PRODUCT.md](../../PRODUCT.md). This doc does not repeat either.
 
 ---
 
@@ -86,5 +86,5 @@ The next action is **not** adding more markup, and **not** creating a new page. 
 
 ## 6. Links
 
-- [SEO_AEO_GEO_AUDIT.md](SEO_AEO_GEO_AUDIT.md) — what the site already ships and the code-level state
-- [PRODUCT.md](../PRODUCT.md) — what Butwal Hacks is and who it serves
+- [SEO_AEO_GEO_AUDIT.md](2026-10-seo-aeo-geo-audit.md) — what the site already ships and the code-level state
+- [PRODUCT.md](../../PRODUCT.md) — what Butwal Hacks is and who it serves

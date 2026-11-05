@@ -207,4 +207,4 @@ Audited against the tree. Four items previously listed as backlog had already sh
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — ADRs and engineering reference
 - [AGENTS.md](AGENTS.md) — conventions and verification gates
 - [README.md](README.md) — project overview
-- [docs/SEO_AEO_GEO_AUDIT.md](docs/SEO_AEO_GEO_AUDIT.md) — the audit behind several fixes on this page
+- [docs/SEO_AEO_GEO_AUDIT.md](docs/reports/2026-10-seo-aeo-geo-audit.md) — the audit behind several fixes on this page

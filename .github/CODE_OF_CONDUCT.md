@@ -88,10 +88,8 @@ For answers to common questions, see the [Contributor Covenant FAQ](https://www.
 
 ## See also
 
-- [policies/README.md](policies/README.md) — the full policy set, and its draft status
-- [policies/SAFEGUARDING_POLICY.md](policies/SAFEGUARDING_POLICY.md) — commitments to participants under 18
-- [policies/HACKATHON_RULES.md](policies/HACKATHON_RULES.md) — event rules and disqualification
-- [policies/TERMS_OF_SERVICE.md](policies/TERMS_OF_SERVICE.md) — the contract of use
+- [Terms of service](https://butwalhacks.com/legal/terms) and [privacy policy](https://butwalhacks.com/legal/privacy) — the published legal set
+- [Governance](https://butwalhacks.com/governance) — where event rules and enforcement structures are being written; nothing is ratified yet
 - [SECURITY.md](SECURITY.md) — reporting a vulnerability
 - [CONTRIBUTING.md](CONTRIBUTING.md) — how to contribute
-- [README.md](README.md) — project overview
+- [README.md](../README.md) — project overview
