@@ -179,6 +179,42 @@ describe("POST /api/ai/chat", () => {
     });
   });
 
+  it("answers \"who are you\" from a fixed string, with no retrieval or inference", async () => {
+    const { res, json } = await post({ message: "yo who r u" });
+
+    expect(res.status).toBe(200);
+    expect(json.reply).toContain("MrBallu");
+    expect(mockedSearchContent).not.toHaveBeenCalled();
+    expect(mockedCallGroq).not.toHaveBeenCalled();
+  });
+
+  it("answers greetings, thanks, goodbyes and capability questions without inference", async () => {
+    const cases = [
+      { message: "hello there", expected: "MrBallu" },
+      { message: "thanks!", expected: "Anytime" },
+      { message: "bye", expected: "See you" },
+      { message: "what can you do?", expected: "I can help" },
+      { message: "how are you?", expected: "MrBallu" },
+      { message: "who is MrBallu", expected: "MrBallu" },
+    ];
+
+    for (const { message, expected } of cases) {
+      mockedCallGroq.mockClear();
+      const { json } = await post({ message });
+      expect(json.reply, message).toContain(expected);
+      expect(mockedCallGroq, message).not.toHaveBeenCalled();
+    }
+  });
+
+  it("still retrieves when a question only opens with a greeting or 'you'", async () => {
+    for (const message of ["hi, when is the next hackathon?", "who are you collaborating with for HackDay?"]) {
+      mockedSearchContent.mockClear();
+      const { json } = await post({ message });
+      expect(json.reply, message).toBe("Twice a year.");
+      expect(mockedSearchContent, message).toHaveBeenCalled();
+    }
+  });
+
   it("refuses deterministically when retrieval matches nothing", async () => {
     mockedSearchContent.mockResolvedValue([]);
 

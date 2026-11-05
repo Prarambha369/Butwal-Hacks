@@ -6,6 +6,59 @@ import { callGroq, GROQ_TEXT_MODEL } from "@/lib/ai/groq-client";
 import { screenUserMessage, sanitizeContextChunk } from "@/lib/ai/chat-guardrails";
 
 /**
+ * Conversational turns — greetings, "who are you", thanks, goodbyes, "what can
+ * you do".
+ *
+ * None of these ask anything about Butwal Hacks, so retrieval cannot answer
+ * them: vector search finds nothing above the threshold, and the no-context
+ * refusal turns "yo who r u" into "I couldn't find anything about that".
+ * Answering them from fixed strings keeps the no-hallucination rule intact
+ * (none of these replies assert a fact about the organisation — only the bot's
+ * own identity) and costs no inference.
+ *
+ * Patterns are anchored to the whole message on purpose: "hi, when is the next
+ * hackathon?" and "who are you collaborating with for HackDay?" are real
+ * questions and must still go through retrieval.
+ */
+type SmallTalkIntent = "identity" | "capability" | "greeting" | "thanks" | "farewell";
+
+const SMALL_TALK_REPLIES: Record<SmallTalkIntent, string> = {
+  identity:
+    "I'm MrBallu, the AI assistant for Butwal Hacks. I answer questions about our events, chapters, programs, and how to get involved. What would you like to know?",
+  capability:
+    "I can help with anything public about Butwal Hacks — our events, chapters, programs, sponsorship, and how to join. Ask away.",
+  greeting: "Hey! I'm MrBallu, the Butwal Hacks assistant. What can I help you with today?",
+  thanks: "Anytime! If you want to know more about our events or programs, just ask.",
+  farewell: "See you! Upcoming events are listed on butwalhacks.com.",
+};
+
+const SMALL_TALK_PATTERNS: readonly (readonly [SmallTalkIntent, RegExp])[] = [
+  ["identity", /\b(who|what)\s+(are|r)\s+(you|u)\b[\s!.,?]*$/],
+  ["identity", /\bwhat('s| is)\s+your\s+name\b[\s!.,?]*$/],
+  ["identity", /\bare\s+you\s+(a\s+|an\s+|really\s+a\s+)?(bot|robot|human|ai|person|real)\b[\s!.,?]*$/],
+  ["identity", /\bwhat('s| is)\s+mr\s*ballu\b[\s!.,?]*$/],
+  ["identity", /\bwho('s| is)\s+mr\s*ballu\b[\s!.,?]*$/],
+  ["greeting", /^how\s+(are|r)\s+(you|u)(\s+doing)?(\s+today)?[\s!.,?]*$/],
+  ["identity", /\bwho\s+(made|built|created|owns|runs)\s+(you|mrballu)\b[\s!.,?]*$/],
+  ["identity", /^introduce\s+yourself\b[\s!.,?]*$/],
+  ["identity", /\btell\s+me\s+about\s+(yourself|mrballu)\b[\s!.,?]*$/],
+  ["capability", /^(what|how)\s+(can|do|does)\s+(you|this\s+bot)\s+(do|help|work)(\s+(me|us|here))?[\s!.,?]*$/],
+  ["capability", /^what\s+(do|can)\s+you\s+know[\s!.,?]*$/],
+  ["capability", /^help[\s!.,?]*$/],
+  ["greeting", /^(hi+|hey+|hello+|yo|sup|hola|namaste|greetings|howdy|good\s+(morning|afternoon|evening))(\s+there)?[\s!.,?]*$/],
+  ["thanks", /^(thanks|thank\s+you|thx|ty|dhanyabad|dhanyawad)\b/],
+  ["farewell", /^(bye+|goodbye|see\s+(you|ya)|cya|later|good\s+night)\b[\s!.,?]*$/],
+];
+
+function smallTalkReply(message: string): { intent: SmallTalkIntent; reply: string } | null {
+  const text = message.toLowerCase();
+  for (const [intent, pattern] of SMALL_TALK_PATTERNS) {
+    if (pattern.test(text)) return { intent, reply: SMALL_TALK_REPLIES[intent] };
+  }
+  return null;
+}
+
+/**
  * POST /api/ai/chat
  *
  * MrBallu — a retrieval-grounded chatbot for Butwal Hacks.
@@ -64,6 +117,18 @@ export const POST = withRateLimit(async (req: NextRequest) => {
           })
           .filter((m): m is { role: "user"; content: string } => m !== null)
       : [];
+
+    // ── Conversational turns need no retrieval ─────────────────
+    // A greeting or "who are you" scores below the retrieval threshold, so it
+    // would otherwise land in the no-context refusal below. Handled after
+    // screening and before any embedding or model call: no cost, no guessing.
+    const smallTalk = smallTalkReply(screened.message);
+    if (smallTalk) {
+      logger.info("[bh-bot] Conversational turn answered without retrieval", {
+        intent: smallTalk.intent,
+      });
+      return NextResponse.json({ reply: smallTalk.reply });
+    }
 
     // ── Retrieve relevant context via vector search ───────────
     // The bot carries NO built-in facts. Everything it knows about Butwal Hacks
