@@ -242,7 +242,7 @@ let done = 0;
  * settled document; only a second failure is recorded, and then as a page
  * error so it still fails the gate rather than being silently skipped.
  */
-async function measure(page, fn, pageErrors) {
+async function measure(page, pageErrors, fn) {
   try {
     return await page.evaluate(fn);
   } catch (err) {
@@ -288,7 +288,7 @@ for (const viewport of viewports) {
       pageErrors.push(`navigation: ${err.message.split('\n')[0]}`);
     }
 
-    const metrics = await measure(page, () => {
+    const metrics = await measure(page, pageErrors, () => {
       const vw = window.innerWidth;
       const doc = document.documentElement;
       const visible = (el) => {
