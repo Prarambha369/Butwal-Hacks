@@ -179,31 +179,41 @@ describe("POST /api/ai/chat", () => {
     });
   });
 
-  it("answers \"who are you\" from a fixed string, with no retrieval or inference", async () => {
+  it("answers \"who are you\" with the model from the identity-only prompt, without retrieval", async () => {
+    mockedCallGroq.mockResolvedValue({ content: "I'm MrBallu, the Butwal Hacks assistant.", model: "m" });
+
     const { res, json } = await post({ message: "yo who r u" });
 
     expect(res.status).toBe(200);
     expect(json.reply).toContain("MrBallu");
     expect(mockedSearchContent).not.toHaveBeenCalled();
-    expect(mockedCallGroq).not.toHaveBeenCalled();
+    expect(mockedCallGroq).toHaveBeenCalledTimes(1);
+
+    const [system] = sentMessages();
+    expect(system.role).toBe("system");
+    expect(system.content).toContain("no retrieved information");
+    expect(system.content).not.toContain("<context>");
   });
 
-  it("answers greetings, thanks, goodbyes and capability questions without inference", async () => {
-    const cases = [
-      { message: "hello there", expected: "MrBallu" },
-      { message: "thanks!", expected: "Anytime" },
-      { message: "bye", expected: "See you" },
-      { message: "what can you do?", expected: "I can help" },
-      { message: "how are you?", expected: "MrBallu" },
-      { message: "who is MrBallu", expected: "MrBallu" },
-    ];
-
-    for (const { message, expected } of cases) {
+  it("routes greetings and thanks to the model without retrieval", async () => {
+    for (const message of ["hello there", "thanks!", "how are you?", "who is MrBallu"]) {
+      mockedSearchContent.mockClear();
       mockedCallGroq.mockClear();
-      const { json } = await post({ message });
-      expect(json.reply, message).toContain(expected);
-      expect(mockedCallGroq, message).not.toHaveBeenCalled();
+      await post({ message });
+      expect(mockedSearchContent, message).not.toHaveBeenCalled();
+      expect(mockedCallGroq, message).toHaveBeenCalledTimes(1);
     }
+  });
+
+  it("answers an off-topic question conversationally instead of refusing", async () => {
+    mockedSearchContent.mockResolvedValue([]);
+
+    const { res, json } = await post({ message: "What is the moon made of?" });
+
+    expect(res.status).toBe(200);
+    expect(json.reply).toBeTruthy();
+    expect(mockedSearchContent).not.toHaveBeenCalled();
+    expect(mockedCallGroq).toHaveBeenCalledTimes(1);
   });
 
   it("still retrieves when a question only opens with a greeting or 'you'", async () => {
@@ -215,10 +225,10 @@ describe("POST /api/ai/chat", () => {
     }
   });
 
-  it("refuses deterministically when retrieval matches nothing", async () => {
+  it("refuses deterministically when a question about the organisation matches nothing", async () => {
     mockedSearchContent.mockResolvedValue([]);
 
-    const { res, json } = await post({ message: "What is the moon made of?" });
+    const { res, json } = await post({ message: "Is there a chapter in Biratnagar?" });
 
     expect(res.status).toBe(200);
     expect(json.reply).toContain("couldn't find anything");
