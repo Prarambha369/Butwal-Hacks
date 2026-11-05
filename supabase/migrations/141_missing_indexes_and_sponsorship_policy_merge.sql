@@ -77,6 +77,8 @@ CREATE INDEX IF NOT EXISTS event_sponsorships_verified_by_idx
 
 DROP POLICY IF EXISTS "Sponsors can view own event sponsorships" ON public.event_sponsorships;
 DROP POLICY IF EXISTS "Verified sponsorships are readable" ON public.event_sponsorships;
+-- Idempotent re-runs: drop the merged policy before recreating it.
+DROP POLICY IF EXISTS "Sponsors can view own or verified event sponsorships" ON public.event_sponsorships;
 
 CREATE POLICY "Sponsors can view own or verified event sponsorships" ON public.event_sponsorships
   FOR SELECT

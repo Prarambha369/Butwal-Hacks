@@ -11,7 +11,7 @@
 import { NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { auth0 } from "@/lib/auth0";
-import { findMergeCandidates } from "@/lib/actions/account-consolidation";
+import { findMergeCandidates, githubAccountId } from "@/lib/actions/account-consolidation";
 
 export const GET = withRateLimit(async () => {
   try {
@@ -27,7 +27,7 @@ export const GET = withRateLimit(async () => {
 
     const { data: currentProfile } = await db
       .from("profiles")
-      .select("id, email, github_username")
+      .select("id, email, github_username, linked_accounts")
       .eq("auth0_user_id", auth0UserId)
       .single();
 
@@ -41,7 +41,7 @@ export const GET = withRateLimit(async () => {
     const candidates = await findMergeCandidates(
       currentProfile.id,
       currentProfile.email,
-      currentProfile.github_username
+      githubAccountId(currentProfile.linked_accounts)
     );
 
     return NextResponse.json({ candidates });

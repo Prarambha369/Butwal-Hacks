@@ -17,37 +17,46 @@ export interface MergeCandidate {
 }
 
 /**
- * Find other profiles that may belong to the same owner as the current one
- * by matching on email or GitHub username; rows already excluded by
- * is_suspended are ignored. Callers must still gate merge eligibility
- * through isMergeCandidate rather than trusting this list directly.
+ * Stable GitHub identity for a profile: the Auth0 identity `user_id` stored in
+ * `profiles.linked_accounts`, which for the GitHub connection is the numeric
+ * GitHub account id (see `subjectToUserId`). GitHub logins are mutable and
+ * reusable after a rename, so `github_username` alone is a heuristic, never
+ * proof of identity.
+ */
+export function githubAccountId(linkedAccounts: unknown): string | null {
+  if (!Array.isArray(linkedAccounts)) return null;
+  for (const entry of linkedAccounts) {
+    if (!entry || typeof entry !== "object") continue;
+    const { provider, user_id } = entry as { provider?: unknown; user_id?: unknown };
+    if (provider === "github" && typeof user_id === "string" && user_id.trim().length > 0) {
+      return user_id.trim();
+    }
+  }
+  return null;
+}
+
+/**
+ * Find other profiles that may belong to the same owner as the current one.
+ *
+ * Matching identifiers are the verified email and the stable GitHub account
+ * id; the mutable `github_username` is only carried for display. Rows that are
+ * already suspended (merged) are excluded. Callers must still gate merge
+ * eligibility through isMergeCandidate rather than trusting this list directly.
  */
 export async function findMergeCandidates(
   currentProfileId: string,
   currentEmail: string | null,
-  currentGithub: string | null
+  currentGithubAccount: string | null
 ): Promise<MergeCandidate[]> {
   const db = createServiceClient();
   const select = "id, email, slug_id, role, full_name, github_username, linked_accounts, created_at";
 
-  // Run one eq query per non-null identifier (PostgREST has no .equals operator;
+  // Run one query per non-null identifier (PostgREST has no .equals operator;
   // a raw .or() string would break if values contain filter grammar characters).
   const rows: Array<Record<string, unknown> & { id: string }> = [];
   const seen = new Set<string>();
 
-  const runQuery = async (filter: { column: string; value: string }) => {
-    const { data, error } = await db
-      .from("profiles")
-      .select(select)
-      .eq(filter.column, filter.value)
-      .eq("is_suspended", false)
-      .neq("id", currentProfileId)
-      .order("created_at", { ascending: true });
-    if (error) {
-      const { userMessage } = describeSupabaseError(error);
-      logger.error("[consolidation] candidate query error", { userMessage });
-      return;
-    }
+  const collect = (data: unknown[] | null) => {
     for (const p of data ?? []) {
       const row = p as Record<string, unknown> & { id: string };
       if (seen.has(row.id)) continue;
@@ -56,10 +65,37 @@ export async function findMergeCandidates(
     }
   };
 
-  const filters: Array<{ column: string; value: string }> = [];
-  if (currentEmail) filters.push({ column: "email", value: currentEmail });
-  if (currentGithub) filters.push({ column: "github_username", value: currentGithub });
-  for (const f of filters) await runQuery(f);
+  const baseQuery = () =>
+    db
+      .from("profiles")
+      .select(select)
+      .eq("is_suspended", false)
+      .neq("id", currentProfileId)
+      .order("created_at", { ascending: true });
+
+  if (currentEmail) {
+    const { data, error } = await baseQuery().eq("email", currentEmail);
+    if (error) {
+      const { userMessage } = describeSupabaseError(error);
+      logger.error("[consolidation] candidate email query error", { userMessage });
+    } else {
+      collect(data);
+    }
+  }
+
+  // Match the stable GitHub account id held in linked_accounts; jsonb
+  // containment keeps this a single indexed query against the GIN index.
+  if (currentGithubAccount) {
+    const { data, error } = await baseQuery().contains("linked_accounts", [
+      { provider: "github", user_id: currentGithubAccount },
+    ]);
+    if (error) {
+      const { userMessage } = describeSupabaseError(error);
+      logger.error("[consolidation] candidate github query error", { userMessage });
+    } else {
+      collect(data);
+    }
+  }
 
   rows.sort((a, b) =>
     String((a.created_at as string | null) ?? "").localeCompare(
@@ -70,8 +106,10 @@ export async function findMergeCandidates(
   return rows.map((p) => {
     const linked = (p.linked_accounts as { provider: string; user_id: string; email: string | null; name: string | null; linked_at: string }[]) ?? [];
     let matchReason: MergeCandidate["match_reason"] = "manual";
-    if (p.email === currentEmail && currentEmail) matchReason = "same-email";
-    else if (p.github_username === currentGithub && currentGithub) matchReason = "same-github";
+    if (currentEmail && p.email === currentEmail) matchReason = "same-email";
+    else if (currentGithubAccount && githubAccountId(p.linked_accounts) === currentGithubAccount) {
+      matchReason = "same-github";
+    }
     return {
       profile_id: p.id,
       email: p.email as string | null,
@@ -90,19 +128,20 @@ export async function findMergeCandidates(
  * Single authorization source of truth for merge eligibility.
  *
  * A source profile is mergeable only if it appears in the caller's
- * findMergeCandidates result — i.e. it shares a verified email or GitHub
- * username with the target and is not suspended. Both mergeProfiles and the
+ * findMergeCandidates result — i.e. it shares a verified email or the stable
+ * GitHub account id with the target and is not suspended. A matching
+ * `github_username` alone is not sufficient. Both mergeProfiles and the
  * initiate route MUST use this helper so preview disclosure and merge
  * execution cannot drift apart (IDOR guard).
  */
 export async function isMergeCandidate(
   targetProfileId: string,
   targetEmail: string | null,
-  targetGithub: string | null,
+  targetGithubAccount: string | null,
   sourceProfileId: string
 ): Promise<boolean> {
   if (sourceProfileId === targetProfileId) return false;
-  const candidates = await findMergeCandidates(targetProfileId, targetEmail, targetGithub);
+  const candidates = await findMergeCandidates(targetProfileId, targetEmail, targetGithubAccount);
   return candidates.some((c) => c.profile_id === sourceProfileId);
 }
 
@@ -141,7 +180,7 @@ export async function mergeProfiles(
   const eligible = await isMergeCandidate(
     targetProfileId,
     target.email as string | null,
-    target.github_username as string | null,
+    githubAccountId(target.linked_accounts),
     sourceProfileId
   );
   if (!eligible) return { success: false, error: "Source profile is not eligible for merge" };

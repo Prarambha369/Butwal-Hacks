@@ -21,9 +21,9 @@
 --   ALTER TABLE public.micro_credentials_archive_140 RENAME TO micro_credentials;
 --
 -- Idempotency:
---   This file runs once (migration ledger). If it is re-run the RENAME fails
---   because the archive names already exist — that is intentional, so a
---   half-applied state surfaces instead of being silently skipped.
+--   Safe to run more than once: each rename is guarded by to_regclass() and
+--   is skipped if the archive already exists, so deploys that re-apply this
+--   file (e.g. manual prod application followed by `db push`) do not fail.
 --
 -- NOT VALID: inapplicable — this migration adds no new constraint, so there
 --   is nothing to mark NOT VALID.
@@ -38,14 +38,21 @@
 
 BEGIN;
 
--- Archive both tables by renaming them. Data, PKs, FKs, indexes, RLS
--- policies and grants all follow the rename, so the rows stay intact and
--- recoverable. The child table is renamed first to keep the FK's referenced
--- parent name stable for the duration of the statement.
-ALTER TABLE public.profile_micro_credentials
-  RENAME TO profile_micro_credentials_archive_140;
+-- Idempotent: `db push` re-runs this file on environments where it was
+-- applied manually before landing; guard every rename.
+DO $$
+BEGIN
+  IF to_regclass('public.profile_micro_credentials') IS NOT NULL
+     AND to_regclass('public.profile_micro_credentials_archive_140') IS NULL THEN
+    ALTER TABLE public.profile_micro_credentials
+      RENAME TO profile_micro_credentials_archive_140;
+  END IF;
 
-ALTER TABLE public.micro_credentials
-  RENAME TO micro_credentials_archive_140;
+  IF to_regclass('public.micro_credentials') IS NOT NULL
+     AND to_regclass('public.micro_credentials_archive_140') IS NULL THEN
+    ALTER TABLE public.micro_credentials
+      RENAME TO micro_credentials_archive_140;
+  END IF;
+END $$;
 
 COMMIT;

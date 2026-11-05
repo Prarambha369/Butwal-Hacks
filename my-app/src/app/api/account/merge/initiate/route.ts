@@ -18,7 +18,7 @@ import { createServiceClient } from "@/utils/supabase";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { logger } from "@/lib/logger";
 import { auth0 } from "@/lib/auth0";
-import { isMergeCandidate } from "@/lib/actions/account-consolidation";
+import { githubAccountId, isMergeCandidate } from "@/lib/actions/account-consolidation";
 
 const initiateSchema = z.object({
   source_profile_id: z.string().uuid("source_profile_id must be a valid UUID"),
@@ -66,7 +66,7 @@ export const POST = withRateLimit(async (request: Request) => {
     const eligible = await isMergeCandidate(
       currentProfile.id as string,
       currentProfile.email as string | null,
-      currentProfile.github_username as string | null,
+      githubAccountId(currentProfile.linked_accounts),
       source_profile_id
     );
     if (!eligible) {
