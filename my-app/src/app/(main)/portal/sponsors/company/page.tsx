@@ -1,7 +1,9 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 import { getSponsorProfile } from "@/lib/actions/sponsor-profile";
+import Link from "next/link";
 import SponsorCompanyForm from "./sponsor-company-form";
+import { ArrowRight, Globe } from "lucide-react";
 import { buildPageMetadata } from "@/lib/seo"
 
 
@@ -44,6 +46,31 @@ export default async function SponsorCompanyPage() {
       </div>
 
       <SponsorCompanyForm initialData={initialData} hasExistingProfile={!!sponsorProfile} />
+
+      {/* Public profile preview link */}
+      {sponsorProfile && (
+        <div className="bh-card p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Globe className="w-4 h-4 text-status-blue" />
+            <h3 className="text-sm font-bold text-primary">Preview your public sponsor page</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            This is what hackers and visitors see when they open your sponsor profile.
+          </p>
+          <Link
+            href={`/sponsor/${sponsorProfile.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 w-full justify-center rounded-full bg-status-blue/10 hover:bg-status-blue/20 text-status-blue text-sm font-bold transition-all"
+          >
+            Open sponsor page
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+          <p className="text-[10px] text-muted-foreground text-center">
+            Share this page to let people learn about your organization.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

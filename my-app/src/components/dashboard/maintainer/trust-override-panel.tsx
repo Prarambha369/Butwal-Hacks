@@ -265,7 +265,7 @@ export default function TrustOverridePanel({ markers }: TrustOverridePanelProps)
                         <UserCheck className="w-3 h-3" />
                         {marker.holder_name}
                         {marker.holder_bh_id && (
-                          <span className="font-mono opacity-60">
+                          <span className="font-mono">
                             · {marker.holder_bh_id}
                           </span>
                         )}

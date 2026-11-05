@@ -61,7 +61,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
               <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                 <p className="text-primary font-bold text-sm">{photo.event}</p>
-                <p className="text-primary/60 text-[10px] font-mono">{photo.date}</p>
+                <p className="text-muted-foreground text-[10px] font-mono">{photo.date}</p>
               </div>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                 <div className="flex justify-between items-end">
                   <div>
                     <h4 className="text-xl font-bold">{selectedPhoto.event}</h4>
-                    <p className="text-primary/60 font-mono text-sm">{selectedPhoto.date}</p>
+                    <p className="text-muted-foreground font-mono text-sm">{selectedPhoto.date}</p>
                   </div>
                   <div className="px-3 py-1 rounded-full bg-surface-hover border border-border text-[10px] font-black uppercase tracking-widest">
                     Hacker ID Memory

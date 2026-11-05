@@ -7,6 +7,7 @@ import { buildPageMetadata } from "@/lib/seo"
 import { SponsorForm } from "./sponsor-form"
 import { getPublicOpportunities } from "@/lib/actions/sponsor-opportunities"
 import OpportunitySections, { type OpportunityWithSponsor } from "@/components/sponsor/opportunity-sections"
+import SponsorsSection from "@/components/sponsor/sponsors-section"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Sponsor Prospectus",    description:
@@ -230,6 +231,7 @@ export default async function SupportPage() {
 
       <OpportunitySections bounties={bounties} jobs={jobs} />
 
+      <SponsorsSection />
 
     </main>
   )

@@ -20,6 +20,12 @@ import {
 } from "./tokens";
 import type { BhEvent, GoogleEventRef, SyncPlan } from "./types";
 
+/**
+ * Single service-role client for this module, shared across all functions.
+ * Every function here runs in a trusted server context.
+ */
+const db = createServiceClient();
+
 interface SyncOutcome {
   ok: boolean;
   counts: SyncPlan["counts"];
@@ -33,7 +39,6 @@ interface SyncOutcome {
 const TOKEN_EXPIRY_SKEW_MS = 60_000;
 
 async function loadPublishedEvents(): Promise<BhEvent[]> {
-  const db = createServiceClient();
   // Same published set as the homepage calendar and the iCal feed: publishing
   // an event is the single switch that makes it appear everywhere.
   const { data, error } = await db

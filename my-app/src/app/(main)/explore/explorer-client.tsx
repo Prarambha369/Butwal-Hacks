@@ -272,7 +272,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
             >
               <f.icon className="w-3.5 h-3.5" />
               {f.label}
-              <span className="font-mono font-medium opacity-60">{f.count}</span>
+              <span className="font-mono font-medium text-muted-foreground">{f.count}</span>
             </button>
           ))}
 

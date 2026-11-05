@@ -179,10 +179,56 @@ describe("POST /api/ai/chat", () => {
     });
   });
 
-  it("refuses deterministically when retrieval matches nothing", async () => {
+  it("answers \"who are you\" with the model from the identity-only prompt, without retrieval", async () => {
+    mockedCallGroq.mockResolvedValue({ content: "I'm MrBallu, the Butwal Hacks assistant.", model: "m" });
+
+    const { res, json } = await post({ message: "yo who r u" });
+
+    expect(res.status).toBe(200);
+    expect(json.reply).toContain("MrBallu");
+    expect(mockedSearchContent).not.toHaveBeenCalled();
+    expect(mockedCallGroq).toHaveBeenCalledTimes(1);
+
+    const [system] = sentMessages();
+    expect(system.role).toBe("system");
+    expect(system.content).toContain("no retrieved information");
+    expect(system.content).not.toContain("<context>");
+  });
+
+  it("routes greetings and thanks to the model without retrieval", async () => {
+    for (const message of ["hello there", "thanks!", "how are you?", "who is MrBallu"]) {
+      mockedSearchContent.mockClear();
+      mockedCallGroq.mockClear();
+      await post({ message });
+      expect(mockedSearchContent, message).not.toHaveBeenCalled();
+      expect(mockedCallGroq, message).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it("answers an off-topic question conversationally instead of refusing", async () => {
     mockedSearchContent.mockResolvedValue([]);
 
     const { res, json } = await post({ message: "What is the moon made of?" });
+
+    expect(res.status).toBe(200);
+    expect(json.reply).toBeTruthy();
+    expect(mockedSearchContent).not.toHaveBeenCalled();
+    expect(mockedCallGroq).toHaveBeenCalledTimes(1);
+  });
+
+  it("still retrieves when a question only opens with a greeting or 'you'", async () => {
+    for (const message of ["hi, when is the next hackathon?", "who are you collaborating with for HackDay?"]) {
+      mockedSearchContent.mockClear();
+      const { json } = await post({ message });
+      expect(json.reply, message).toBe("Twice a year.");
+      expect(mockedSearchContent, message).toHaveBeenCalled();
+    }
+  });
+
+  it("refuses deterministically when a question about the organisation matches nothing", async () => {
+    mockedSearchContent.mockResolvedValue([]);
+
+    const { res, json } = await post({ message: "Is there a chapter in Biratnagar?" });
 
     expect(res.status).toBe(200);
     expect(json.reply).toContain("couldn't find anything");

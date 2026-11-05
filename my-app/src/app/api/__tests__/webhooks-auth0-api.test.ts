@@ -1,5 +1,7 @@
+import crypto from "crypto"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { NextRequest } from "next/server"
+
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -49,6 +51,15 @@ function mockRequest(body: unknown, headers?: Record<string, string>): NextReque
   }) as unknown as NextRequest
 }
 
+/** Like mockRequest but with a raw body so an HMAC can cover the exact bytes. */
+function mockRaw(body: string, headers?: Record<string, string>): NextRequest {
+  return new Request("http://localhost:3000", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...headers },
+    body,
+  }) as unknown as NextRequest
+}
+
 const TEST_SECRET = "test-webhook-secret-123"
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -67,7 +78,7 @@ describe("POST /api/webhooks/auth0", () => {
 
     expect(res.status).toBe(401)
     const body = await res.json()
-    expect(body.error).toBe("Invalid webhook secret")
+    expect(body.error).toBe("Invalid webhook signature")
   })
 
   it("returns 401 when webhook secret header is wrong", async () => {
@@ -78,7 +89,38 @@ describe("POST /api/webhooks/auth0", () => {
 
     expect(res.status).toBe(401)
     const body = await res.json()
-    expect(body.error).toBe("Invalid webhook secret")
+    expect(body.error).toBe("Invalid webhook signature")
+  })
+
+  it("accepts a request authenticated with an HMAC signature", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({ data: { id: "profile-uuid", role: "hacker" }, error: null })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const raw = JSON.stringify({ sub: "auth0|123", email: "test@test.com", name: "Test User", auth0_roles: ["Hacker"] })
+    const ts = String(Math.floor(Date.now() / 1000))
+    const signature = crypto.createHmac("sha256", TEST_SECRET).update(`${ts}.${raw}`).digest("hex")
+
+    const { POST } = await import("../webhooks/auth0/route")
+    const res = await POST(mockRaw(raw, { "x-webhook-timestamp": ts, "x-webhook-signature": signature }))
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    const updateArg = db.update.mock.calls[0][0]
+    expect(updateArg.email).toBe("test@test.com")
+  })
+
+  it("rejects an HMAC signature over a tampered body", async () => {
+    const raw = JSON.stringify({ sub: "auth0|123", email: "test@test.com" })
+    const tampered = raw.replace("123", "other")
+    const ts = String(Math.floor(Date.now() / 1000))
+    const signature = crypto.createHmac("sha256", TEST_SECRET).update(`${ts}.${raw}`).digest("hex")
+
+    const { POST } = await import("../webhooks/auth0/route")
+    const res = await POST(mockRaw(tampered, { "x-webhook-timestamp": ts, "x-webhook-signature": signature }))
+
+    expect(res.status).toBe(401)
   })
 
   it("returns 400 when sub and email are missing", async () => {

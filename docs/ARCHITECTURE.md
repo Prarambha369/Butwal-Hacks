@@ -262,6 +262,6 @@ Return a structured `{ success: boolean; error?: string }`. Do not throw.
 | [PRODUCT.md](../PRODUCT.md) | Mission, users, route zones, roadmap |
 | [DESIGN.md](../DESIGN.md) | Colors, typography, utility classes |
 | [AGENTS.md](../AGENTS.md) | Setup, gates, conventions, access control |
-| [SECURITY.md](../SECURITY.md) | Vulnerability reporting |
+| [SECURITY.md](../.github/SECURITY.md) | Vulnerability reporting |
 | [MAINTAINERS.md](../MAINTAINERS.md) | Secrets, deploy, CI, rollback |
 | `my-app/.env.example` | Every environment variable |

@@ -258,8 +258,7 @@ export function OnboardingSteps({
             <div
               key={step.id}
               className={cn(
-                "transition-all",
-                isComplete && !isCurrent && "opacity-60"
+                "transition-all"
               )}
             >
               {/* Main step row */}
@@ -289,7 +288,7 @@ export function OnboardingSteps({
                     <span
                       className={cn(
                         "text-sm font-bold",
-                        isComplete ? "text-primary/60" : "text-primary"
+                        isComplete ? "text-muted-foreground" : "text-primary"
                       )}
                     >
                       {step.title}
@@ -308,7 +307,8 @@ export function OnboardingSteps({
                   <p
                     className={cn(
                       "text-xs leading-relaxed",
-                      isComplete ? "text-primary/30" : "text-muted-foreground"
+                      "text-[11px] leading-relaxed mt-0.5",
+                      "text-muted-foreground"
                     )}
                   >
                     {step.description}

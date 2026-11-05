@@ -38,6 +38,11 @@ const KNOWN_CODES: Record<string, string> = {
   PGRST205:
     "This feature is being set up. Please try again in a few minutes.",
 
+  // PGRST303 JWT issued at future -- the token's `iat` is ahead of the
+  // PostgREST clock (observed in production on the homepage; transient clock
+  // skew). Retrying with a freshly minted token normally clears it.
+  PGRST303: "Your session is out of date. Please sign in again.",
+
   // 42P01 undefined_table / 42703 undefined_column
   "42P01": "This feature is being set up. Please try again in a few minutes.",
   "42703": "This feature is being set up. Please try again in a few minutes.",

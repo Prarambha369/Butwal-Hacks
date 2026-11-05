@@ -21,13 +21,9 @@ import {
   User,
   Code2,
   Users,
-  Key,
-  KeyRound,
   UsersRound,
   FileText,
   KanbanSquare,
-  GitBranch,
-  MessageSquare,
   CalendarDays,
   MapPin,
   LayoutTemplate,
@@ -126,27 +122,6 @@ export const hackerNav: NavItem[] = [
     icon: createElement(UsersRound, { className: "w-4 h-4" }),
     section: "Collaboration",
   },
-  {
-    href: "/dashboard/hacker/api-keys",
-    label: "API Keys",
-    shortcut: "k",
-    icon: createElement(Key, { className: "w-4 h-4" }),
-    section: "Credentials",
-  },
-  {
-    href: "/dashboard/hacker/skills",
-    label: "Skill Trees",
-    shortcut: "s",
-    icon: createElement(GitBranch, { className: "w-4 h-4" }),
-    section: "Credentials",
-  },
-  {
-    href: "/dashboard/hacker/chat",
-    label: "Team Chat",
-    shortcut: "x",
-    icon: createElement(MessageSquare, { className: "w-4 h-4" }),
-    section: "Collaboration",
-  },
 ];
 
 export const organizerNav: NavItem[] = [
@@ -188,13 +163,6 @@ export const organizerNav: NavItem[] = [
     shortcut: "t",
     icon: createElement(LayoutTemplate, { className: "w-4 h-4" }),
     section: "Tools",
-  },
-  {
-    href: "/dashboard/organizer/api-keys",
-    label: "API Keys",
-    shortcut: "k",
-    icon: createElement(KeyRound, { className: "w-4 h-4" }),
-    section: "Credentials",
   },
 ];
 

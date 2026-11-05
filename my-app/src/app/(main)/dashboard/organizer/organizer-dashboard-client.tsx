@@ -396,12 +396,7 @@ function FirstEventGate() {
             >
               Team Work Board
             </Link>
-            <Link
-              href="/dashboard/organizer/api-keys"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary-red transition-colors"
-            >
-              API Keys
-            </Link>
+
           </div>
         </div>
 
