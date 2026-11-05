@@ -123,6 +123,22 @@ export async function requireAnyAuth(
   return NextResponse.next();
 }
 
+/**
+ * Proxy-level redirect for /sign-in → /auth/login.
+ * Handles this at the edge (HTTP redirect) so the sign-in page never renders
+ * a <meta http-equiv="refresh"> fallback, which fails axe's meta-refresh rule.
+ * Mirrors the logic in app/(auth)/sign-in/page.tsx.
+ */
+export function redirectSignIn(request: NextRequest): NextResponse {
+  const mode = request.nextUrl.searchParams.get("mode");
+  const returnTo = request.nextUrl.searchParams.get("returnTo");
+  const qs = new URLSearchParams();
+  if (mode === "signup") qs.set("screen_hint", "signup");
+  qs.set("returnTo", returnTo || "/dashboard/onboarding");
+  const url = new URL(`/auth/login?${qs.toString()}`, request.url);
+  return NextResponse.redirect(url);
+}
+
 export function redirectToDomain(request: NextRequest, target: "main" | "app"): NextResponse {
   const { pathname, search, protocol } = request.nextUrl;
 
@@ -138,6 +154,10 @@ export function redirectToDomain(request: NextRequest, target: "main" | "app"): 
 export async function handleLocalDev(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get("host")?.split(":")[0] ?? "";
+
+  if (pathname === "/sign-in") {
+    return redirectSignIn(request);
+  }
 
   if (pathname.startsWith("/auth/")) {
     return await runAuthMiddleware(request);

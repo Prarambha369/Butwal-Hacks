@@ -494,6 +494,59 @@ describe("proxy (main handler)", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// /sign-in edge redirect (avoids meta-refresh in rendered page)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("/sign-in proxy redirect", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  async function runProxy(url: string) {
+    const { default: proxy } = await import("@/proxy");
+    return proxy(new NextRequest(url));
+  }
+
+  it("redirects /sign-in to /auth/login with default returnTo in local dev", async () => {
+    const response = await runProxy("http://localhost:3000/sign-in");
+    expect(response.status).toBe(307);
+    const location = response.headers.get("location")!;
+    const url = new URL(location);
+    expect(url.pathname).toBe("/auth/login");
+    expect(url.searchParams.get("returnTo")).toBe("/dashboard/onboarding");
+    expect(url.searchParams.get("screen_hint")).toBeNull();
+  });
+
+  it("maps mode=signup to screen_hint=signup", async () => {
+    const response = await runProxy("http://localhost:3000/sign-in?mode=signup");
+    const location = response.headers.get("location")!;
+    const url = new URL(location);
+    expect(url.pathname).toBe("/auth/login");
+    expect(url.searchParams.get("screen_hint")).toBe("signup");
+    expect(url.searchParams.get("returnTo")).toBe("/dashboard/onboarding");
+  });
+
+  it("preserves an explicit returnTo", async () => {
+    const response = await runProxy("http://localhost:3000/sign-in?returnTo=/events/foo");
+    const location = response.headers.get("location")!;
+    const url = new URL(location);
+    expect(url.searchParams.get("returnTo")).toBe("/events/foo");
+  });
+
+  it("redirects /sign-in on the marketing host without rendering a page", async () => {
+    const response = await runProxy("https://butwalhacks.com/sign-in");
+    expect(response.status).toBe(307);
+    expect(new URL(response.headers.get("location")!).pathname).toBe("/auth/login");
+  });
+
+  it("redirects /sign-in on the app host", async () => {
+    const response = await runProxy("https://app.butwalhacks.com/sign-in?mode=signup&returnTo=/dashboard");
+    const url = new URL(response.headers.get("location")!);
+    expect(url.pathname).toBe("/auth/login");
+    expect(url.searchParams.get("screen_hint")).toBe("signup");
+    expect(url.searchParams.get("returnTo")).toBe("/dashboard");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // proxy — production host routing and chapter-subdomain rewrite
 // ═══════════════════════════════════════════════════════════════════════════════
 //
