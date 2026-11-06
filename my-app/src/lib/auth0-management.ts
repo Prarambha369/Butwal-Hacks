@@ -237,8 +237,36 @@ export async function linkIdentity(
     error: errorText.slice(0, 300),
   });
 
-  if (res.status === 400 && /already (linked|exists)/i.test(errorText)) {
-    throw new Auth0UserError("That account is already connected to a profile.");
+  // Auth0's 4xx body carries the real reason ("already linked", "invalid id
+  // token", ...). The generic-appended status alone produced a retry loop:
+  // the user got "please try again", retried, and failed identically forever,
+  // because a second sign-in can't fix an Auth0-side rejection. Pull the
+  // reason out and hand the human-understandable part to the user.
+  const auth0Detail = (() => {
+    try {
+      const parsed = JSON.parse(errorText) as {
+        error?: string;
+        message?: string;
+        description?: string;
+      };
+      const text = parsed.description ?? parsed.message ?? parsed.error ?? null;
+      // Bodies are untrusted upstream data rendered in a toast: cap the
+      // length and drop anything that looks like a credential blob.
+      if (typeof text !== "string" || text.length > 160) return null;
+      if (/[A-Za-z0-9+/=_-]{40,}/.test(text)) return null;
+      return text.trim();
+    } catch {
+      return null;
+    }
+  })();
+
+  if (res.status === 400) {
+    if (/already (linked|exists)/i.test(errorText)) {
+      throw new Auth0UserError("That account is already connected to a profile.");
+    }
+    if (auth0Detail) {
+      throw new Auth0UserError(`Auth0 couldn't connect that account: ${auth0Detail}`);
+    }
   }
   if (res.status === 409) {
     throw new Auth0UserError("That account is already connected to a different profile.");
