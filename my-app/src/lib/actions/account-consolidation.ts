@@ -4,6 +4,7 @@ import { createServiceClient } from "@/utils/supabase";
 import { describeSupabaseError } from "@/lib/supabase-error";
 import { logger } from "@/lib/logger";
 import { identitySubject } from "@/lib/auth0-providers";
+import { getLinkedIdentitySubjects } from "@/lib/auth0-management";
 
 export interface MergeCandidate {
   profile_id: string;
@@ -59,6 +60,40 @@ export function linkedAuth0Subjects(linkedAccounts: unknown): string[] {
     }
   }
   return out;
+}
+
+/**
+ * Every identity subject to treat as the caller's own: the subjects cached on
+ * the profile, unioned with what Auth0 says is linked right now.
+ *
+ * The cache alone was not enough. `profiles.linked_accounts` is written only by
+ * the link callback, so a user whose link attempts failed (the 400 loop in
+ * `linkIdentity`) or whose attempt predates that persistence has an empty array
+ * while Auth0 already holds the identity — and therefore saw "No other accounts
+ * found that can be merged" even though a former profile was sitting there.
+ * Reading the authoritative set fixes that without weakening the gate: these
+ * subjects come from Auth0's own identity list, which the user cannot forge,
+ * so a match is still provably one of their own accounts.
+ *
+ * Auth0 being unreachable degrades to the cache rather than failing the whole
+ * merge flow; the warning is logged so the degradation is visible.
+ */
+export async function resolveLinkedIdentitySubjects(
+  auth0UserId: string,
+  linkedAccounts: unknown
+): Promise<string[]> {
+  const subjects = new Set(linkedAuth0Subjects(linkedAccounts));
+  try {
+    for (const subject of await getLinkedIdentitySubjects(auth0UserId)) {
+      subjects.add(subject);
+    }
+  } catch (err) {
+    logger.warn("[consolidation] live linked-identity lookup failed — using cached subjects", {
+      auth0UserId,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+  return [...subjects];
 }
 
 /**
@@ -232,7 +267,7 @@ export async function mergeProfiles(
     target.email as string | null,
     githubAccountId(target.linked_accounts),
     sourceProfileId,
-    linkedAuth0Subjects(target.linked_accounts)
+    await resolveLinkedIdentitySubjects(auth0UserId, target.linked_accounts)
   );
   if (!eligible) return { success: false, error: "Source profile is not eligible for merge" };
 
