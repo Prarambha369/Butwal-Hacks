@@ -204,6 +204,26 @@ export async function getLinkedIdentities(auth0UserId: string): Promise<Auth0Ide
 }
 
 /**
+ * Composite subjects (`provider|user_id`) of the identities currently linked
+ * to an Auth0 user, excluding the primary identity.
+ *
+ * `profiles.linked_accounts` is only a cache: it advances when a link callback
+ * completes, so it can be empty while Auth0 already holds the identity (any
+ * link attempt that failed, or one that predates that persistence). Auth0 is
+ * the authority for which identities belong to a user, so callers that need
+ * the real set ask here instead of trusting the cache.
+ */
+export async function getLinkedIdentitySubjects(auth0UserId: string): Promise<string[]> {
+  const identities = await getLinkedIdentities(auth0UserId);
+  const subjects = new Set<string>();
+  for (const identity of identities) {
+    if (!identity.provider || !identity.user_id) continue;
+    subjects.add(identitySubject(identity.provider, identity.user_id));
+  }
+  return [...subjects];
+}
+
+/**
  * Link a secondary identity to the primary user account.
  *
  * @param primaryUserId - The Auth0 user ID to link TO (e.g., "auth0|abc123")
@@ -237,8 +257,43 @@ export async function linkIdentity(
     error: errorText.slice(0, 300),
   });
 
-  if (res.status === 400 && /already (linked|exists)/i.test(errorText)) {
-    throw new Auth0UserError("That account is already connected to a profile.");
+  // Auth0's 4xx body carries the real reason ("already linked", "invalid id
+  // token", ...). The generic-appended status alone produced a retry loop:
+  // the user got "please try again", retried, and failed identically forever,
+  // because a second sign-in can't fix an Auth0-side rejection. Pull the
+  // reason out and hand the human-understandable part to the user.
+  const auth0Detail = (() => {
+    try {
+      const parsed = JSON.parse(errorText) as {
+        error?: string;
+        message?: string;
+        description?: string;
+      };
+      const text = parsed.description ?? parsed.message ?? parsed.error ?? null;
+      // Bodies are untrusted upstream data rendered in a toast: cap the
+      // length and drop anything that looks like a credential blob.
+      if (typeof text !== "string" || text.length > 160) return null;
+      if (/[A-Za-z0-9+/=_-]{40,}/.test(text)) return null;
+      return text.trim();
+    } catch {
+      return null;
+    }
+  })();
+
+  if (res.status === 400) {
+    if (/already (linked|exists)/i.test(errorText)) {
+      throw new Auth0UserError("That account is already connected to a profile.");
+    }
+    if (auth0Detail) {
+      throw new Auth0UserError(`Auth0 couldn't connect that account: ${auth0Detail}`);
+    }
+    // A 400 with an unparseable body is still an Auth0-side rejection, and a
+    // retry cannot fix it. Falling through to the generic
+    // "Failed to link account: 400" below is the dead-end this change exists
+    // to remove: the callback turns non-Auth0UserError into "please try again".
+    throw new Auth0UserError(
+      "Auth0 rejected the link request. Please contact a maintainer."
+    );
   }
   if (res.status === 409) {
     throw new Auth0UserError("That account is already connected to a different profile.");

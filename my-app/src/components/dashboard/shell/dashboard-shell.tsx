@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, cloneElement } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
@@ -9,6 +9,15 @@ import { DashboardTopbar } from "@/components/dashboard/shell/dashboard-topbar";
 import { roleConfig, type NavLink } from "@/components/sidebar-config";
 import type { Role } from "@/lib/supabase-types";
 import type { SlimProfile } from "@/components/sidebar-config";
+
+/**
+ * Props a `sidebar` override element receives. DashboardShell re-renders the
+ * element on every drawer-state change with these spliced in.
+ */
+interface ShellSidebarProps {
+  mobileOpen?: boolean;
+  onNavigate?: () => void;
+}
 
 /**
  * The shared dashboard chrome.
@@ -44,10 +53,15 @@ export function DashboardShell({
    * link instead of the org switcher. Forcing it onto the shared rail would
    * have meant deleting real functionality.
    *
-   * Receives the drawer state so the override cannot reintroduce a second,
-   * conflicting hamburger.
+   * Pass an ELEMENT, not a render function. This component renders from server
+   * layouts, and functions cannot cross the server/client component boundary —
+   * a function prop made every /dashboard/maintainer route throw
+   * "Functions cannot be passed directly to Client Components" in production
+   * (invisible to the UI audit, whose signed-in user is redirected away from
+   * maintainer routes). The drawer state is spliced in client-side with
+   * cloneElement, so the override still cannot introduce a second hamburger.
    */
-  sidebar?: (opts: { open: boolean; onNavigate: () => void }) => React.ReactNode;
+  sidebar?: React.ReactElement<ShellSidebarProps>;
   onboardingProfile?: SlimProfile | null;
   onboardingChapterCount?: number;
   onboardingProjectCount?: number;
@@ -78,7 +92,10 @@ export function DashboardShell({
 
   const renderSidebar = (open: boolean) =>
     sidebar ? (
-      sidebar({ open, onNavigate: () => setNavOpen(false) })
+      cloneElement(sidebar, {
+        mobileOpen: open,
+        onNavigate: () => setNavOpen(false),
+      })
     ) : (
       <DashboardSidebar
         role={role}

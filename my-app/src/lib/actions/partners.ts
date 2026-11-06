@@ -28,10 +28,13 @@ export async function getActivePartners(): Promise<Partner[]> {
     .order('created_at', { ascending: true })
     .abortSignal(AbortSignal.timeout(5000));
   if (error) {
-    // PGRST205 = table missing from schema cache (preview/dev DB behind
-    // on migrations). Benign and self-healing: return empty, no log spam.
-    if ((error as { code?: string }).code === 'PGRST205') return [];
-    logger.error('Error fetching partners:', error);
+    // PGRST205 (table missing from the schema cache) used to return empty with
+    // no log at all, so a database behind on migrations looked like "no
+    // partners configured". Log the code, then keep the empty-wall fallback.
+    logger.error('[partners] active partners read failed', {
+      code: (error as { code?: string }).code,
+      message: error.message,
+    });
     return [];
   }
   return (data ?? []) as Partner[];

@@ -81,6 +81,49 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("DashboardShell sidebar mounting", () => {
+  it("splices drawer state into a sidebar element override", () => {
+    // The maintainer layout is a server component, so `sidebar` must be an
+    // element (serializable), never a render function. A function prop made
+    // every /dashboard/maintainer route throw
+    // "Functions cannot be passed directly to Client Components" in
+    // production -- invisible to the signed-in audit, whose user is redirected
+    // away from maintainer routes. The drawer state must therefore arrive in
+    // the overridden element via cloneElement: closed before opening, with
+    // an onNavigate path once open.
+    const seen: { mobileOpen: boolean; hasNavigate: boolean }[] = [];
+    function Override({
+      mobileOpen,
+      onNavigate,
+    }: {
+      mobileOpen?: boolean;
+      onNavigate?: () => void;
+    }) {
+      seen.push({ mobileOpen: mobileOpen ?? false, hasNavigate: typeof onNavigate === "function" });
+      return <div data-testid="sidebar-override" />;
+    }
+
+    render(
+      <DashboardShell
+        role="maintainer"
+        slugId="BH-9999"
+        title="Maintainer"
+        links={links}
+        sidebar={<Override />}
+      >
+        <p>page content</p>
+      </DashboardShell>,
+    );
+
+    expect(seen.some((s) => !s.mobileOpen && s.hasNavigate)).toBe(true);
+
+    fireEvent.click(openButton());
+    // The drawer body re-renders the same element with mobileOpen=true...
+    expect(seen.some((s) => s.mobileOpen && s.hasNavigate)).toBe(true);
+    // ...rendered inside the drawer, not the rail container.
+    const drawer = screen.getByRole("dialog", { name: /navigation/i });
+    expect(drawer.contains(screen.getByTestId("sidebar-override"))).toBe(true);
+  });
+
   it("does not double-fetch when the drawer opens and closes repeatedly", () => {
     // Two live sidebars -- rail plus drawer body -- meant every drawer open ran
     // getSkillTreeSummary() and the profiles query twice.
