@@ -37,7 +37,7 @@
 --
 --   supabase migration repair --status reverted 077 081 091 110 120 122 124 \
 --     126 127 136
---   supabase db push
+--   supabase db push --include-all
 --
 -- Everything here is idempotent: on a healthy database every statement is a
 -- no-op, which is what makes it safe to carry on main.
@@ -96,6 +96,11 @@ CREATE INDEX IF NOT EXISTS idx_partners_cloudinary_public_id
   WHERE cloudinary_public_id IS NOT NULL;
 
 -- ─── 4. blog_posts (migration 122 + 137) ───────────────────────────────────
+DO $$
+DECLARE
+  blog_posts_created boolean := to_regclass('public.blog_posts') IS NULL;
+BEGIN
+IF blog_posts_created THEN
 CREATE TABLE IF NOT EXISTS public.blog_posts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   slug TEXT NOT NULL UNIQUE,
@@ -111,6 +116,8 @@ CREATE TABLE IF NOT EXISTS public.blog_posts (
   author_name TEXT,
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+END IF;
 
 ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
 
@@ -156,7 +163,9 @@ CREATE POLICY "Members can delete own drafts" ON public.blog_posts
   USING (author_id = current_profile_id() AND is_published = false);
 
 -- Seed from 122: the same two posts the static list carries, so the page looks
--- identical before and after the drift is repaired.
+-- identical before and after the drift is repaired. Existing tables retain
+-- editorial deletions: seed only when this migration creates the table.
+IF blog_posts_created THEN
 INSERT INTO public.blog_posts
   (slug, title, excerpt, body, tags, cover_image, is_published, published_at)
 VALUES
@@ -173,6 +182,8 @@ VALUES
    ARRAY['mentorship', 'community', 'culture', 'opensource', 'volunteer'],
    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1200', true, '2026-02-18')
 ON CONFLICT (slug) DO NOTHING;
+END IF;
+END $$;
 
 -- ─── 5. site_content (migration 110) ───────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.site_content (
@@ -490,15 +501,26 @@ CREATE TABLE IF NOT EXISTS public.knowledge_embeddings (
 );
 
 -- Older databases may carry a 384-dimensional column from migration 096.
-DROP INDEX IF EXISTS idx_knowledge_embeddings_hnsw;
+DO $$
+BEGIN
+  IF (
+    SELECT format_type(atttypid, atttypmod)
+    FROM pg_attribute
+    WHERE attrelid = 'public.knowledge_embeddings'::regclass
+      AND attname = 'embedding'
+      AND NOT attisdropped
+  ) IS DISTINCT FROM 'vector(768)' THEN
+    DROP INDEX IF EXISTS public.idx_knowledge_embeddings_hnsw;
 
-DELETE FROM public.knowledge_embeddings
-WHERE embedding IS NOT NULL
-  AND vector_dims(embedding) <> 768;
+    DELETE FROM public.knowledge_embeddings
+    WHERE embedding IS NOT NULL
+      AND vector_dims(embedding) <> 768;
 
-ALTER TABLE public.knowledge_embeddings
-  ALTER COLUMN embedding TYPE vector(768)
-  USING embedding::vector(768);
+    ALTER TABLE public.knowledge_embeddings
+      ALTER COLUMN embedding TYPE vector(768)
+      USING embedding::vector(768);
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_knowledge_embeddings_hnsw
   ON public.knowledge_embeddings
@@ -605,8 +627,8 @@ BEGIN
     $fn$;
   $sql$;
 
-  EXECUTE 'REVOKE ALL ON FUNCTION public.encrypt_google_token(text) FROM PUBLIC';
-  EXECUTE 'REVOKE ALL ON FUNCTION public.decrypt_google_token(text) FROM PUBLIC';
+  EXECUTE 'REVOKE ALL ON FUNCTION public.encrypt_google_token(text) FROM PUBLIC, anon, authenticated';
+  EXECUTE 'REVOKE ALL ON FUNCTION public.decrypt_google_token(text) FROM PUBLIC, anon, authenticated';
   EXECUTE 'GRANT EXECUTE ON FUNCTION public.encrypt_google_token(text) TO service_role';
   EXECUTE 'GRANT EXECUTE ON FUNCTION public.decrypt_google_token(text) TO service_role';
 END $$;
