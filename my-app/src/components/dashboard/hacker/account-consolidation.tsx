@@ -23,7 +23,7 @@ interface MergeCandidate {
   github_username: string | null;
   linked_accounts: { provider: string; email: string | null; name: string | null }[];
   created_at: string;
-  match_reason: "same-email" | "same-github" | "manual";
+  match_reason: "same-email" | "same-github" | "linked-identity" | "manual";
 }
 
 interface MergePreview {

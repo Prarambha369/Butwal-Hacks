@@ -13,6 +13,7 @@ import {
   findMergeCandidates,
   githubAccountId,
   isMergeCandidate,
+  linkedAuth0Subjects,
 } from "../account-consolidation";
 
 const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>;
@@ -33,7 +34,7 @@ function makeDb(responses: QueryResponse[]) {
   const calls: Array<{ method: string; args: unknown[] }> = [];
   const builder: Record<string, unknown> = {};
 
-  for (const method of ["select", "eq", "neq", "order", "contains"]) {
+  for (const method of ["select", "eq", "neq", "order", "contains", "in"]) {
     builder[method] = (...args: unknown[]) => {
       calls.push({ method, args });
       return builder;
@@ -98,6 +99,28 @@ describe("githubAccountId", () => {
 
   it("trims whitespace around the stored id", () => {
     expect(githubAccountId([{ provider: "github", user_id: ` ${GITHUB_ID} ` }])).toBe(GITHUB_ID);
+  });
+});
+
+// ─── linkedAuth0Subjects ────────────────────────────────────────────────────
+
+describe("linkedAuth0Subjects", () => {
+  it("reconstructs the composite subject for every linked identity", () => {
+    expect(
+      linkedAuth0Subjects([
+        { provider: "linkedin", user_id: "aYfV5ZyXcC" },
+        { provider: "google-oauth2", user_id: "109415547175432507265" },
+      ])
+    ).toEqual(["linkedin|aYfV5ZyXcC", "google-oauth2|109415547175432507265"]);
+  });
+
+  it("skips malformed entries and empty ids", () => {
+    expect(linkedAuth0Subjects([null, 42, { provider: "github" }, { provider: "github", user_id: "  " }])).toEqual([]);
+  });
+
+  it("returns an empty list for missing or non-array input", () => {
+    expect(linkedAuth0Subjects(null)).toEqual([]);
+    expect(linkedAuth0Subjects("github|123")).toEqual([]);
   });
 });
 
@@ -174,6 +197,28 @@ describe("findMergeCandidates", () => {
 
     expect(calls.some((c) => c.method === "eq" && c.args[0] === "is_suspended" && c.args[1] === false)).toBe(true);
     expect(calls.some((c) => c.method === "neq" && c.args[0] === "id" && c.args[1] === "profile-target")).toBe(true);
+  });
+
+  it("matches a profile still attached to a linked identity's former subject", async () => {
+    const calls = useDb([
+      { data: [profileRow({ id: "profile-former", auth0_user_id: "linkedin|aYfV5ZyXcC", linked_accounts: [] })], error: null },
+    ]);
+
+    const candidates = await findMergeCandidates("profile-target", null, null, [
+      "linkedin|aYfV5ZyXcC",
+    ]);
+
+    expect(calls.some((c) => c.method === "in" && c.args[0] === "auth0_user_id")).toBe(true);
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].match_reason).toBe("linked-identity");
+  });
+
+  it("runs no linked-identity query when the profile has none linked", async () => {
+    const calls = useDb([]);
+
+    await findMergeCandidates("profile-target", null, null, []);
+
+    expect(calls).toHaveLength(0);
   });
 });
 
