@@ -60,14 +60,11 @@ export default async function MaintainerDashboardLayout({
         role="maintainer"
         slugId={slugId}
         links={maintainerNav}
-        sidebar={({ open, onNavigate }) => (
-          <MaintainerSidebar
-            slugId={slugId}
-            links={maintainerNav}
-            mobileOpen={open}
-            onNavigate={onNavigate}
-          />
-        )}
+        // An element, not a function: this layout is a server component and
+        // DashboardShell is a client component, so a function prop cannot
+        // cross the boundary. DashboardShell clones the element with the
+        // drawer state before rendering it.
+        sidebar={<MaintainerSidebar slugId={slugId} links={maintainerNav} />}
       >
         {children}
       </DashboardShell>
