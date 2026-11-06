@@ -185,14 +185,27 @@ export async function getSponsorOpportunities() {
     const supabase = createServiceClient();
     const sponsorProfileId = await getSponsorProfileId(supabase, session.user.sub);
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("sponsor_opportunities")
       .select("*")
       .eq("sponsor_profile_id", sponsorProfileId)
       .order("created_at", { ascending: false });
 
+    // The error used to be dropped, so a missing table or a permission failure
+    // rendered as "no opportunities yet" with nothing in the logs.
+    if (error) {
+      logger.error("[sponsor-opportunities] own opportunities read failed", {
+        code: error.code,
+        message: error.message,
+      });
+      return [];
+    }
+
     return data || [];
-  } catch {
+  } catch (err) {
+    logger.error("[sponsor-opportunities] own opportunities read threw", {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return [];
   }
 }
@@ -220,7 +233,15 @@ export async function getPublicOpportunities(options?: {
     if (options?.type) countQuery = countQuery.eq("type", options.type);
     if (options?.is_bounty !== undefined) countQuery = countQuery.eq("is_bounty", options.is_bounty);
 
-    const { count } = await countQuery;
+    const { count, error: countError } = await countQuery;
+    if (countError) {
+      // Not fatal -- the rows can still render -- but it used to report a total
+      // of 0 with nothing in the logs to explain why.
+      logger.error("[sponsor-opportunities] count query failed", {
+        code: countError.code,
+        message: countError.message,
+      });
+    }
 
     // Fetch paginated results
     let query = supabase
@@ -240,9 +261,16 @@ export async function getPublicOpportunities(options?: {
     if (options?.type) query = query.eq("type", options.type);
     if (options?.is_bounty !== undefined) query = query.eq("is_bounty", options.is_bounty);
 
-    const { data } = await query
+    const { data, error } = await query
       .order("created_at", { ascending: false })
       .range(offset, offset + perPage - 1);
+
+    if (error) {
+      logger.error("[sponsor-opportunities] public opportunities read failed", {
+        code: error.code,
+        message: error.message,
+      });
+    }
 
     return {
       data: data || [],
@@ -253,7 +281,10 @@ export async function getPublicOpportunities(options?: {
         totalPages: count ? Math.ceil(count / perPage) : 0,
       },
     };
-  } catch {
+  } catch (err) {
+    logger.error("[sponsor-opportunities] public opportunities read threw", {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return { data: [], pagination: { page: 1, perPage: 20, total: 0, totalPages: 0 } };
   }
 }

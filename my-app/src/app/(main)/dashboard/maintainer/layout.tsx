@@ -3,6 +3,14 @@ import NextDynamic from "next/dynamic";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
 import { maintainerNav } from "@/lib/dashboard-nav";
+// Imported directly, not through next/dynamic. This layout is a server
+// component and the element below is a prop, so React renders the component
+// into the slot before serialization. The dynamic wrapper renders a Fragment
+// whose children are [PreloadChunks, Lazy] -- an array -- so the client
+// received an array where DashboardShell expects one element, and
+// cloneElement threw. A direct import is a client reference, which
+// serializes as a single element.
+import MaintainerSidebar from "@/components/maintainer-sidebar";
 
 export const dynamic = "force-dynamic";
 
@@ -11,9 +19,6 @@ const DashboardNavProvider = NextDynamic(() =>
   import("@/components/dashboard-nav-provider").then((m) => m.DashboardNavProvider),
 );
 
-const MaintainerSidebar = NextDynamic(() =>
-  import("@/components/maintainer-sidebar"),
-);
 const DashboardShell = NextDynamic(() =>
   import("@/components/dashboard/shell/dashboard-shell").then((m) => ({
     default: m.DashboardShell,
@@ -60,14 +65,11 @@ export default async function MaintainerDashboardLayout({
         role="maintainer"
         slugId={slugId}
         links={maintainerNav}
-        sidebar={({ open, onNavigate }) => (
-          <MaintainerSidebar
-            slugId={slugId}
-            links={maintainerNav}
-            mobileOpen={open}
-            onNavigate={onNavigate}
-          />
-        )}
+        // An element, not a function: this layout is a server component and
+        // DashboardShell is a client component, so a function prop cannot
+        // cross the boundary. DashboardShell clones the element with the
+        // drawer state before rendering it.
+        sidebar={<MaintainerSidebar slugId={slugId} links={maintainerNav} />}
       >
         {children}
       </DashboardShell>

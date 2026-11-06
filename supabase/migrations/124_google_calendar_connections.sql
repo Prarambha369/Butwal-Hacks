@@ -23,7 +23,9 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 -- regenerating it would make every already-stored token undecryptable.
 DO $$
 BEGIN
-  IF NOT EXISTS (
+  IF to_regclass('vault.decrypted_secrets') IS NULL THEN
+    RAISE NOTICE '124: vault schema absent — skipping google_calendar_token_key';
+  ELSIF NOT EXISTS (
     SELECT 1 FROM vault.decrypted_secrets WHERE name = 'google_calendar_token_key'
   ) THEN
     PERFORM vault.create_secret(
@@ -37,12 +39,20 @@ END $$;
 -- ─── Encrypt / decrypt helpers ───────────────────────────────────────
 -- Exposed as RPC so the key stays inside the database.
 
+DO $$
+BEGIN
+  IF to_regclass('vault.decrypted_secrets') IS NULL THEN
+    RAISE NOTICE '124: vault schema absent — skipping encrypt/decrypt helpers';
+    RETURN;
+  END IF;
+
+  EXECUTE $sql$
 CREATE OR REPLACE FUNCTION public.encrypt_google_token(plaintext text)
 RETURNS text
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = public, vault, extensions
-AS $$
+AS $fn$
   SELECT CASE
     WHEN plaintext IS NULL OR plaintext = '' THEN NULL
     ELSE encode(
@@ -54,14 +64,14 @@ AS $$
       'escape'
     )
   END;
-$$;
+$fn$;
 
 CREATE OR REPLACE FUNCTION public.decrypt_google_token(ciphertext text)
 RETURNS text
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = public, vault, extensions
-AS $$
+AS $fn$
   SELECT CASE
     WHEN ciphertext IS NULL OR ciphertext = '' THEN NULL
     ELSE extensions.pgp_sym_decrypt(
@@ -70,13 +80,16 @@ AS $$
         WHERE name = 'google_calendar_token_key')
     )
   END;
-$$;
+$fn$;
 
-REVOKE ALL ON FUNCTION public.encrypt_google_token(text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.decrypt_google_token(text) FROM PUBLIC;
--- service_role only (the app connects with the service role key)
-GRANT EXECUTE ON FUNCTION public.encrypt_google_token(text) TO service_role;
-GRANT EXECUTE ON FUNCTION public.decrypt_google_token(text) TO service_role;
+  $sql$;
+
+  EXECUTE 'REVOKE ALL ON FUNCTION public.encrypt_google_token(text) FROM PUBLIC, anon, authenticated';
+  EXECUTE 'REVOKE ALL ON FUNCTION public.decrypt_google_token(text) FROM PUBLIC, anon, authenticated';
+  -- service_role only (the app connects with the service role key)
+  EXECUTE 'GRANT EXECUTE ON FUNCTION public.encrypt_google_token(text) TO service_role';
+  EXECUTE 'GRANT EXECUTE ON FUNCTION public.decrypt_google_token(text) TO service_role';
+END $$;
 
 -- ─── updated_at trigger ──────────────────────────────────────────────
 -- The rest of the schema only has `DEFAULT now()` with no trigger, so the

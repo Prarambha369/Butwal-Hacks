@@ -18,7 +18,11 @@ import { createServiceClient } from "@/utils/supabase";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { logger } from "@/lib/logger";
 import { auth0 } from "@/lib/auth0";
-import { githubAccountId, isMergeCandidate } from "@/lib/actions/account-consolidation";
+import {
+  githubAccountId,
+  isMergeCandidate,
+  resolveLinkedIdentitySubjects,
+} from "@/lib/actions/account-consolidation";
 
 const initiateSchema = z.object({
   source_profile_id: z.string().uuid("source_profile_id must be a valid UUID"),
@@ -67,7 +71,10 @@ export const POST = withRateLimit(async (request: Request) => {
       currentProfile.id as string,
       currentProfile.email as string | null,
       githubAccountId(currentProfile.linked_accounts),
-      source_profile_id
+      source_profile_id,
+      // Same authoritative set the candidates list used, so preview and
+      // execution cannot disagree about eligibility.
+      await resolveLinkedIdentitySubjects(auth0UserId, currentProfile.linked_accounts)
     );
     if (!eligible) {
       return NextResponse.json({ error: "Source profile is not eligible for merge" }, { status: 404 });

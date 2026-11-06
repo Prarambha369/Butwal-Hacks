@@ -11,7 +11,11 @@
 import { NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { auth0 } from "@/lib/auth0";
-import { findMergeCandidates, githubAccountId } from "@/lib/actions/account-consolidation";
+import {
+  findMergeCandidates,
+  githubAccountId,
+  resolveLinkedIdentitySubjects,
+} from "@/lib/actions/account-consolidation";
 
 export const GET = withRateLimit(async () => {
   try {
@@ -41,7 +45,10 @@ export const GET = withRateLimit(async () => {
     const candidates = await findMergeCandidates(
       currentProfile.id,
       currentProfile.email,
-      githubAccountId(currentProfile.linked_accounts)
+      githubAccountId(currentProfile.linked_accounts),
+      // Auth0 is the authority: the profile cache can be empty while the
+      // identity is already linked, which hid every merge candidate.
+      await resolveLinkedIdentitySubjects(auth0UserId, currentProfile.linked_accounts)
     );
 
     return NextResponse.json({ candidates });
