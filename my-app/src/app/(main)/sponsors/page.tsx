@@ -4,6 +4,7 @@ import Breadcrumbs from "@/components/breadcrumbs";
 import { buildPageMetadata } from "@/lib/seo";
 import SponsorsIndexClient from "./sponsors-index-client";
 import { createServiceClient } from "@/utils/supabase";
+import { logger } from "@/lib/logger";
 
 export const revalidate = 60;
 
@@ -39,7 +40,16 @@ async function fetchSponsors(): Promise<SponsorRow[]> {
     .order("company_name", { ascending: true })
     .limit(100);
 
-  if (error) return [];
+  if (error) {
+    // A bare `return []` rendered the "no sponsors yet" empty state for every
+    // failure, a missing table included, so the page looked healthy while the
+    // query was dead. Log the PostgREST code first, then keep the fallback.
+    logger.error("[sponsors] sponsor_profiles read failed", {
+      code: error.code,
+      message: error.message,
+    });
+    return [];
+  }
   return (data ?? [])
     .filter((s) => s.company_name && s.company_name.trim() !== "")
     .sort((a, b) => (a.company_name ?? "").localeCompare(b.company_name ?? ""));

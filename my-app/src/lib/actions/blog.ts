@@ -52,8 +52,12 @@ export async function getPublishedPosts(): Promise<BlogPostWithMeta[]> {
     .eq('is_published', true)
     .order('published_at', { ascending: false });
   if (error) {
-    if ((error as { code?: string }).code === 'PGRST205') return staticPosts;
-    logger.error('Error fetching posts:', error);
+    // PGRST205 (table missing) used to return the static seed with no log, so
+    // schema drift was indistinguishable from "no posts yet". Log, then fall back.
+    logger.error('[blog] published posts read failed — serving static fallback', {
+      code: (error as { code?: string }).code,
+      message: error.message,
+    });
     return staticPosts;
   }
   const rows = (data ?? []) as BlogRow[];
@@ -70,6 +74,16 @@ export async function getPublishedPost(slug: string): Promise<BlogPostWithMeta |
     .eq('is_published', true)
     .single();
   if (error || !data) {
+    // PGRST116 is `.single()` finding no row: a missing post is a 404, not a
+    // fault, so it stays quiet. Anything else is a real read failure.
+    const code = (error as { code?: string } | null)?.code;
+    if (error && code !== 'PGRST116') {
+      logger.error('[blog] post read failed — serving static fallback', {
+        slug,
+        code,
+        message: error.message,
+      });
+    }
     return staticPosts.find((p) => p.slug === slug) ?? null;
   }
   return toPost(data as BlogRow);
