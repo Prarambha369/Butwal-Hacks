@@ -3,6 +3,7 @@
 import { createServiceClient } from "@/utils/supabase";
 import { describeSupabaseError } from "@/lib/supabase-error";
 import { logger } from "@/lib/logger";
+import { identitySubject } from "@/lib/auth0-providers";
 
 export interface MergeCandidate {
   profile_id: string;
@@ -13,7 +14,7 @@ export interface MergeCandidate {
   github_username: string | null;
   linked_accounts: { provider: string; user_id: string; email: string | null; name: string | null; linked_at: string }[];
   created_at: string;
-  match_reason: "same-email" | "same-github" | "manual";
+  match_reason: "same-email" | "same-github" | "linked-identity" | "manual";
 }
 
 /**
@@ -36,20 +37,49 @@ export function githubAccountId(linkedAccounts: unknown): string | null {
 }
 
 /**
+ * Auth0 subjects (`provider|user_id`) for the identities linked to a profile.
+ *
+ * When an owner links a secondary identity into their primary Auth0 user, the
+ * identity MOVES at Auth0's side, but any profile that still sits on the old
+ * `auth0_user_id` (the account they signed up with back then) is left
+ * attached to nothing — the merge UI never offered it, so linked accounts
+ * could not actually be consolidated ("mostly all accounts can't be merged").
+ * Deriving the subjects from linked_accounts lets those profiles surface as
+ * candidates: Auth0 guarantees a linked identity belongs to exactly one user,
+ * so a match on this value can only hit the caller's own former accounts.
+ */
+export function linkedAuth0Subjects(linkedAccounts: unknown): string[] {
+  if (!Array.isArray(linkedAccounts)) return [];
+  const out: string[] = [];
+  for (const entry of linkedAccounts) {
+    if (!entry || typeof entry !== "object") continue;
+    const { provider, user_id } = entry as { provider?: unknown; user_id?: unknown };
+    if (typeof provider === "string" && typeof user_id === "string" && user_id.trim().length > 0) {
+      out.push(identitySubject(provider, user_id));
+    }
+  }
+  return out;
+}
+
+/**
  * Find other profiles that may belong to the same owner as the current one.
  *
- * Matching identifiers are the verified email and the stable GitHub account
- * id; the mutable `github_username` is only carried for display. Rows that are
- * already suspended (merged) are excluded. Callers must still gate merge
- * eligibility through isMergeCandidate rather than trusting this list directly.
+ * Matching identifiers are the verified email, the stable GitHub account id,
+ * and the Auth0 subjects of identities this profile has linked (an identity's
+ * former profile row keeps the old auth0_user_id); the mutable
+ * `github_username` is only carried for display. Rows that are already
+ * suspended (merged) are excluded. Callers must still gate merge eligibility
+ * through isMergeCandidate rather than trusting this list directly.
  */
 export async function findMergeCandidates(
   currentProfileId: string,
   currentEmail: string | null,
-  currentGithubAccount: string | null
+  currentGithubAccount: string | null,
+  currentLinkedSubjects: string[] = []
 ): Promise<MergeCandidate[]> {
   const db = createServiceClient();
-  const select = "id, email, slug_id, role, full_name, github_username, linked_accounts, created_at";
+  const select =
+    "id, email, slug_id, role, full_name, github_username, linked_accounts, auth0_user_id, created_at";
 
   // Run one query per non-null identifier (PostgREST has no .equals operator;
   // a raw .or() string would break if values contain filter grammar characters).
@@ -97,6 +127,18 @@ export async function findMergeCandidates(
     }
   }
 
+  // Match identities the owner has linked: whatever profile still sits on one
+  // of those subjects was attached to the account the identity used to be.
+  if (currentLinkedSubjects.length > 0) {
+    const { data, error } = await baseQuery().in("auth0_user_id", currentLinkedSubjects);
+    if (error) {
+      const { userMessage } = describeSupabaseError(error);
+      logger.error("[consolidation] candidate linked-identity query error", { userMessage });
+    } else {
+      collect(data);
+    }
+  }
+
   rows.sort((a, b) =>
     String((a.created_at as string | null) ?? "").localeCompare(
       String((b.created_at as string | null) ?? "")
@@ -109,6 +151,8 @@ export async function findMergeCandidates(
     if (currentEmail && p.email === currentEmail) matchReason = "same-email";
     else if (currentGithubAccount && githubAccountId(p.linked_accounts) === currentGithubAccount) {
       matchReason = "same-github";
+    } else if (currentLinkedSubjects.includes(p.auth0_user_id as string)) {
+      matchReason = "linked-identity";
     }
     return {
       profile_id: p.id,
@@ -138,10 +182,16 @@ export async function isMergeCandidate(
   targetProfileId: string,
   targetEmail: string | null,
   targetGithubAccount: string | null,
-  sourceProfileId: string
+  sourceProfileId: string,
+  targetLinkedSubjects: string[] = []
 ): Promise<boolean> {
   if (sourceProfileId === targetProfileId) return false;
-  const candidates = await findMergeCandidates(targetProfileId, targetEmail, targetGithubAccount);
+  const candidates = await findMergeCandidates(
+    targetProfileId,
+    targetEmail,
+    targetGithubAccount,
+    targetLinkedSubjects
+  );
   return candidates.some((c) => c.profile_id === sourceProfileId);
 }
 
@@ -181,7 +231,8 @@ export async function mergeProfiles(
     targetProfileId,
     target.email as string | null,
     githubAccountId(target.linked_accounts),
-    sourceProfileId
+    sourceProfileId,
+    linkedAuth0Subjects(target.linked_accounts)
   );
   if (!eligible) return { success: false, error: "Source profile is not eligible for merge" };
 
