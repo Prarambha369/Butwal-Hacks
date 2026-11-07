@@ -2,6 +2,10 @@
 
 import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
+import { PHOTO_SELECT, mapPhoto } from "@/lib/gallery-photo";
+import type { GalleryPhoto } from "@/lib/gallery-photo";
+
+export type { GalleryPhoto } from "@/lib/gallery-photo";
 
 /**
  * Paged reads for the public event gallery.
@@ -13,22 +17,6 @@ import { logger } from "@/lib/logger";
  * database. Counting from the database instead of the page, and paging
  * through the rest, fixes both halves of that.
  */
-
-export type GalleryPhoto = {
-  id: string;
-  url: string;
-  event: string;
-  event_slug: string | null;
-  date: string;
-  span: number;
-  uploader: string | null;
-  /** Maintainer-chosen delivery recipe (null = default) */
-  optimize: string | null;
-  /** Duration in seconds — only set for video entries */
-  duration?: number;
-  /** "image" | "video". The URL is authoritative; this is the stored hint. */
-  media_type?: string;
-};
 
 /**
  * Totals for the stat bar. Read with COUNT so they stay correct no matter how
@@ -50,12 +38,6 @@ const PAGE_SIZE = 60;
 
 /** Hard ceiling on offset so a crafted offset cannot force a deep scan. */
 const MAX_OFFSET = 5000;
-
-const PHOTO_SELECT = `
-  id, url, span, optimized_transform, created_at, media_type, duration_seconds,
-  events ( id, title, slug ),
-  profiles!photos_uploader_id_fkey ( full_name )
-`;
 
 export async function fetchGalleryTotals(): Promise<GalleryTotals> {
   const supabase = createServiceClient();
@@ -154,39 +136,3 @@ export async function fetchGalleryPage(
   return { photos: rows.slice(0, PAGE_SIZE).map(mapPhoto), hasMore };
 }
 
-function mapPhoto(p: Record<string, unknown>): GalleryPhoto {
-  // PostgREST types the embedded event/profile as one-to-many, so they can
-  // arrive wrapped in an array. Unwrap the same way the original read did,
-  // otherwise `ev.title` is undefined and every tile reads "Unknown Event".
-  const ev = (Array.isArray(p.events) ? p.events[0] : p.events ?? {}) as {
-    title?: string;
-    slug?: string;
-  };
-  const prof = (Array.isArray(p.profiles)
-    ? p.profiles[0]
-    : p.profiles ?? {}) as { full_name?: string };
-  const row = p as {
-    id?: string;
-    url?: string;
-    created_at?: string;
-    optimized_transform?: string | null;
-    span?: number;
-    duration_seconds?: number | null;
-    media_type?: string;
-  };
-  return {
-    id: row.id ?? "",
-    url: row.url ?? "",
-    event: ev.title ?? "Unknown Event",
-    event_slug: ev.slug ?? null,
-    date: row.created_at ?? "",
-    span: row.span ?? 1,
-    uploader: prof.full_name ?? null,
-    optimize: row.optimized_transform ?? null,
-    duration:
-      row.duration_seconds === null || row.duration_seconds === undefined
-        ? undefined
-        : Number(row.duration_seconds),
-    media_type: row.media_type ?? "image",
-  };
-}

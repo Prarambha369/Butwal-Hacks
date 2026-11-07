@@ -37,6 +37,7 @@ const MARKETING_ROUTES = new Set([
 const MARKETING_PREFIXES = [
   "/blog/",
   "/events/",
+  "/gallery/",
   "/initiatives/",
   "/legal/",
   "/docs/",

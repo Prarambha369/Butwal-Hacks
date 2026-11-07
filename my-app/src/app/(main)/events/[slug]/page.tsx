@@ -79,7 +79,7 @@ export default async function EventDetailPage({ params }: Props) {
   // Approved photos for this event (powers the gallery preview on the page).
   const { data: photoRows, error: photoError } = await supabase
     .from("photos")
-    .select("url, media_type")
+    .select("id, url, media_type")
     .eq("event_id", event.id)
     .eq("status", "approved")
     .order("created_at", { ascending: false })
@@ -87,8 +87,11 @@ export default async function EventDetailPage({ params }: Props) {
   if (photoError) {
     logger.error("Error fetching event photos:", photoError)
   }
-  type PhotoRow = { url: string | null; media_type: string | null }
+  type PhotoRow = { id: string | null; url: string | null; media_type: string | null }
+  // `id` is what makes each tile link to its canonical /gallery/<id> page
+  // instead of dumping every visitor on the gallery index.
   const photos = ((photoRows ?? []) as PhotoRow[]).map((r) => ({
+    id: r.id ?? "",
     url: (r.url ?? "") as string,
     media_type: r.media_type ?? "image",
   }))

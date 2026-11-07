@@ -105,18 +105,18 @@ function VideoThumbnail({ url, alt: _alt }: { url: string; alt: string }) {
       {!playing && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300">
           <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-            <Play className="w-5 h-5 text-[#1F1F1F] ml-0.5" />
+            <Play className="w-5 h-5 text-surface-inverse ml-0.5" />
           </div>
         </div>
       )}
-      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-[10px] font-mono flex items-center gap-1">
+      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-mono flex items-center gap-1">
         <Video className="w-3 h-3" />
         Video
       </div>
       {playing && (
         <button
-          onClick={(e) => { e.stopPropagation(); setMuted(!muted); }}
-          className="absolute bottom-2 right-2 p-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white hover:bg-black/80 transition-colors z-10"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMuted(!muted); }}
+          className="absolute bottom-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors z-10"
           aria-label={muted ? "Unmute" : "Mute"}
         >
           {muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
@@ -149,7 +149,7 @@ function DownloadControl({
       <Link
         href="/sign-in"
         onClick={(e) => e.stopPropagation()}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 hover:text-white hover:bg-white/20 text-xs font-medium transition-all shrink-0"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-primary hover:bg-surface-hover text-xs font-medium transition-all shrink-0"
       >
         <LogIn className="w-3.5 h-3.5" />
         Sign in to download
@@ -164,7 +164,7 @@ function DownloadControl({
         onClick={(e) => e.stopPropagation()}
         aria-label="Download photo at full quality"
         title="Download full quality"
-        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 text-white/80 hover:text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/50 border border-white/20 text-white/80 hover:text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
       >
         <Download className="w-4 h-4" />
       </a>
@@ -175,7 +175,7 @@ function DownloadControl({
       href={cloudinaryDownloadUrl(url)}
       download
       onClick={(e) => e.stopPropagation()}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 hover:text-white hover:bg-white/20 text-xs font-medium transition-all shrink-0"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-primary hover:bg-surface-hover text-xs font-medium transition-all shrink-0"
     >
       <Download className="w-3.5 h-3.5" />
       Download
@@ -210,8 +210,20 @@ function Lightbox({
   canDownload: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const isVideo = isVideoUrl(photo.url);
   const [videoPlaying, setVideoPlaying] = useState(true);
+
+  // Move focus into the dialog on open and hand it back to the card that
+  // opened it on close. Without the restore, closing drops the caret onto the
+  // document body and keyboard users lose their place in the grid.
+  useEffect(() => {
+    returnFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    overlayRef.current?.focus();
+    return () => returnFocusRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -224,8 +236,15 @@ function Lightbox({
   }, [onClose, onPrev, onNext]);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300">
-      <div className="absolute inset-0 bg-black/95 backdrop-blur-sm" onClick={onClose} />
+    <div
+      ref={overlayRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${photo.event} — ${isVideo ? "video" : "photo"} preview`}
+      tabIndex={-1}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300 outline-none"
+    >
+      <div className="absolute inset-0 bg-surface-inverse" onClick={onClose} />
 
       <div className="relative max-w-6xl w-full max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-300">
         {/* Top bar */}
@@ -239,7 +258,7 @@ function Lightbox({
             )}
             <button
               onClick={() => setVideoPlaying(!videoPlaying)}
-              className="p-1.5 rounded-full bg-white/10 text-white/70 hover:text-white hover:bg-white/20 transition-colors"
+              className="p-1.5 rounded-full bg-surface text-primary hover:bg-surface-hover transition-colors"
               aria-label={videoPlaying ? "Pause" : "Play"}
             >
               {videoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -259,13 +278,13 @@ function Lightbox({
           <button
             onClick={onPrev}
             disabled={!hasPrev}
-            className="shrink-0 p-2 rounded-full bg-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-all disabled:opacity-20 disabled:cursor-not-allowed z-10"
+            className="shrink-0 p-2 rounded-full bg-surface text-primary hover:bg-surface-hover transition-all disabled:opacity-20 disabled:cursor-not-allowed z-10"
             aria-label="Previous"
           >
             <ChevronLeft size={24} />
           </button>
 
-          <div className="relative flex-1 h-[60vh] md:h-[75vh] rounded-2xl overflow-hidden shadow-2xl bg-black/40">
+          <div className="relative flex-1 h-[60vh] md:h-[75vh] rounded-2xl overflow-hidden bg-surface-inverse">
             {isVideo ? (
               <video
                 ref={videoRef}
@@ -321,7 +340,7 @@ function Lightbox({
                   <Link
                     href={`/events/${photo.event_slug}`}
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 hover:text-white hover:bg-white/20 text-xs font-medium transition-all shrink-0"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-primary hover:bg-surface-hover text-xs font-medium transition-all shrink-0"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     View Event
@@ -335,7 +354,7 @@ function Lightbox({
           <button
             onClick={onNext}
             disabled={!hasNext}
-            className="shrink-0 p-2 rounded-full bg-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-all disabled:opacity-20 disabled:cursor-not-allowed z-10"
+            className="shrink-0 p-2 rounded-full bg-surface text-primary hover:bg-surface-hover transition-all disabled:opacity-20 disabled:cursor-not-allowed z-10"
             aria-label="Next"
           >
             <ChevronRight size={24} />
@@ -356,23 +375,25 @@ function Lightbox({
 function GalleryCard({
   photo,
   index,
-  onClick,
+  onOpen,
   canDownload,
 }: {
   photo: GalleryPhoto;
   index: number;
-  onClick: () => void;
+  onOpen: (event: React.MouseEvent<HTMLAnchorElement>, index: number, id: string) => void;
   canDownload: boolean;
 }) {
   const isVideo = isVideoUrl(photo.url);
 
   return (
     <ScrollReveal delay={Math.min(index * 60, 300)}>
-      {/* Wrapper keeps valid HTML: download link is a sibling of the button, not nested inside it. */}
+      {/* Wrapper keeps valid HTML: the download control is a sibling of the
+          card link, not nested inside it. */}
       <div className="group relative">
-        <button
-          onClick={onClick}
-          className="overflow-hidden rounded-2xl border border-border bg-surface block w-full text-left cursor-pointer"
+        <Link
+          href={`/gallery/${photo.id}`}
+          onClick={(event) => onOpen(event, index, photo.id)}
+          className="overflow-hidden rounded-2xl border border-border bg-surface block w-full text-left"
         >
         <div className="p-1">
           <div className="relative w-full aspect-[4/3] overflow-hidden rounded-[14px]">
@@ -419,16 +440,16 @@ function GalleryCard({
 
         {/* Media type badge */}
         <div className="absolute top-3 left-3">
-          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider backdrop-blur-sm ${
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
             isVideo
               ? "bg-primary-red/30 text-primary-red border border-primary-red/40"
-              : "bg-white/20 text-white border border-white/20"
+              : "bg-surface text-primary border border-border"
           }`}>
             {isVideo ? <Video className="w-3 h-3" /> : <Camera className="w-3 h-3" />}
             {isVideo ? "Video" : "Photo"}
           </span>
         </div>
-        </button>
+        </Link>
         <DownloadControl url={photo.url} isVideo={isVideo} canDownload={canDownload} variant="card" />
       </div>
     </ScrollReveal>
@@ -463,6 +484,15 @@ export default function GalleryGrid({
   // On filter change the lightbox index points into a different slice; closing
   // it avoids landing on an unrelated tile.
   useEffect(() => setSelectedIdx(null), [filter]);
+
+  // The lightbox is layered on top of a real history entry, so Back closes it
+  // instead of leaving the gallery. Any popstate (Back/Forward) therefore
+  // dismisses it; prev/next use replaceState so they do not stack entries.
+  useEffect(() => {
+    const handlePopState = () => setSelectedIdx(null);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Fetch a server-filtered first page whenever the event filter changes, so
   // selecting an event that is not yet represented in the loaded photos still
@@ -509,17 +539,63 @@ export default function GalleryGrid({
   const hasPrev = selectedIdx !== null && selectedIdx > 0;
   const hasNext = selectedIdx !== null && selectedIdx < filtered.length - 1;
 
-  const handlePrev = useCallback(() => {
-    setSelectedIdx((prev) => (prev !== null ? Math.max(prev - 1, 0) : null));
-  }, []);
+  // Modified clicks (new tab, new window, download) must fall through to the
+  // browser; a plain left click opens the lightbox and pushes the photo's
+  // canonical URL so the address bar and the visible photo agree.
+  const handleOpen = useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>, index: number, id: string) => {
+      if (
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey ||
+        event.button !== 0
+      ) {
+        return;
+      }
+      event.preventDefault();
+      setSelectedIdx(index);
+      window.history.pushState({ bhGallery: true }, "", `/gallery/${id}`);
+    },
+    []
+  );
 
-  const handleClose = useCallback(() => setSelectedIdx(null), []);
+  const handlePrev = useCallback(() => {
+    if (selectedIdx === null) return;
+    const next = Math.max(selectedIdx - 1, 0);
+    const photo = filtered[next];
+    setSelectedIdx(next);
+    if (photo) {
+      window.history.replaceState({ bhGallery: true }, "", `/gallery/${photo.id}`);
+    }
+  }, [selectedIdx, filtered]);
 
   const handleNext = useCallback(() => {
-    setSelectedIdx((prev) =>
-      prev !== null ? Math.min(prev + 1, filtered.length - 1) : null
-    );
-  }, [filtered.length]);
+    if (selectedIdx === null) return;
+    const next = Math.min(selectedIdx + 1, filtered.length - 1);
+    const photo = filtered[next];
+    setSelectedIdx(next);
+    if (photo) {
+      window.history.replaceState({ bhGallery: true }, "", `/gallery/${photo.id}`);
+    }
+  }, [selectedIdx, filtered]);
+
+  const handleClose = useCallback(() => {
+    // Back out of the pushed photo entry so the browser's Back button and the
+    // close control agree. If the lightbox was restored without our state,
+    // rewrite the URL to the gallery instead of navigating away.
+    const state: unknown = window.history.state;
+    const fromGallery =
+      typeof state === "object" &&
+      state !== null &&
+      (state as { bhGallery?: unknown }).bhGallery === true;
+    if (fromGallery) {
+      window.history.back();
+    } else {
+      window.history.replaceState(null, "", "/gallery");
+    }
+    setSelectedIdx(null);
+  }, []);
 
   return (
     <>
@@ -605,7 +681,7 @@ export default function GalleryGrid({
               key={photo.id}
               photo={photo}
               index={idx}
-              onClick={() => setSelectedIdx(idx)}
+              onOpen={handleOpen}
               canDownload={canDownload}
             />
           ))}
