@@ -538,6 +538,13 @@ describe("updateProject", () => {
     const updateArg = db.update.mock.calls[0][0];
     expect(updateArg.description).toBe("New desc only");
     expect(updateArg.title).toBeUndefined();
+    // The URL fields must stay undefined unless they were sent. They used to be
+    // transformed to "", which is a defined key, so renaming a project wiped
+    // the demo, GitHub, video and cover links it already had.
+    expect(updateArg.demo_url).toBeUndefined();
+    expect(updateArg.github_url).toBeUndefined();
+    expect(updateArg.video_url).toBeUndefined();
+    expect(updateArg.cover_image).toBeUndefined();
   });
 });
 

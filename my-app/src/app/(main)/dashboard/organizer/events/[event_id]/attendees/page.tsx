@@ -9,6 +9,7 @@ import AttendeeExport, { type Attendee } from "@/components/dashboard/organizer/
 import { CheckInButton } from "./checkin-button";
 import { buildPageMetadata } from "@/lib/seo"
 import { EmptyState } from "@/components/ui/empty-state";
+import { accessSubjectFor, isMaintainer } from "@/lib/dashboard-access";
 
 
 export async function generateMetadata() {
@@ -67,8 +68,12 @@ export default async function AttendeesPage({ params }: Props) {
   if (!event) notFound();
 
   const isEventOrganizer = event.organizer_id === caller.id;
-  const isMaintainer = caller.role === "maintainer";
-  if (!isEventOrganizer && !isMaintainer) redirect("/dashboard/organizer");
+  // The shared predicate, not `role === "maintainer"`: maintainer is the role
+  // AND a verified @butwalhacks.com address, so the inline check handed every
+  // organizer's attendee list (names, emails, consent records) to a profile
+  // whose role was mis-assigned or whose address is not staff.
+  const isMaintainerCaller = isMaintainer(accessSubjectFor(session?.user, caller));
+  if (!isEventOrganizer && !isMaintainerCaller) redirect("/dashboard/organizer");
 
   // ponytail: Use Supabase join syntax to get registration data + profile info
   const { data: registrations } = await supabase

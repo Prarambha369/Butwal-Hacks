@@ -59,6 +59,18 @@ describe("parsePolicyMarkdown", () => {
     expect(parsed.blocks[1]).toEqual({ kind: "list", ordered: true, items: ["first", "second"] });
   });
 
+  it("joins a wrapped list item to its marker instead of ending the list", () => {
+    const parsed = parsePolicyMarkdown(
+      "1. A long item that wraps\n   onto a second line\n2. second\n",
+    );
+    expect(parsed.blocks).toHaveLength(1);
+    expect(parsed.blocks[0]).toEqual({
+      kind: "list",
+      ordered: true,
+      items: ["A long item that wraps onto a second line", "second"],
+    });
+  });
+
   it("parses a table with a header row", () => {
     const parsed = parsePolicyMarkdown(
       "| Policy | Covers |\n| --- | --- |\n| CoC | Behaviour |\n",

@@ -281,9 +281,12 @@ export async function toggleProjectLike(projectId: string) {
 const updateProjectSchema = z.object({
   title: z.string().min(3).optional().transform(v => (v ? sanitizeString(v, 200) : v)),
   description: z.string().min(10).optional().transform(v => (v ? sanitizeString(v, 2000) : v)),
-  demoUrl: z.string().optional().transform(v => (v ? sanitizeUrl(v) ?? "" : "")),
-  githubUrl: z.string().optional().transform(v => (v ? sanitizeUrl(v) ?? "" : "")),
-  videoUrl: z.string().optional().transform(v => (v ? sanitizeUrl(v) ?? "" : "")),
+  // Omitted stays undefined. `updateProject` builds its payload only from
+  // defined keys, so turning an omitted field into "" here made every partial
+  // edit (renaming a project) blank the demo, GitHub and video links.
+  demoUrl: z.string().optional().transform(v => (v === undefined ? v : sanitizeUrl(v) ?? "")),
+  githubUrl: z.string().optional().transform(v => (v === undefined ? v : sanitizeUrl(v) ?? "")),
+  videoUrl: z.string().optional().transform(v => (v === undefined ? v : sanitizeUrl(v) ?? "")),
   techStack: z
     .array(z.string())
     .min(1, "Add at least one technology")
@@ -294,7 +297,7 @@ const updateProjectSchema = z.object({
     .nullable()
     .optional()
     .transform(v => (v === undefined ? v : v ? sanitizeUuid(v) ?? null : null)),
-  coverImage: z.string().optional().transform(v => (v ? sanitizeUrl(v) ?? "" : "")),
+  coverImage: z.string().optional().transform(v => (v === undefined ? v : sanitizeUrl(v) ?? "")),
   category: z
     .enum(PROJECT_CATEGORIES as [ProjectCategory, ...ProjectCategory[]])
     .nullable()
