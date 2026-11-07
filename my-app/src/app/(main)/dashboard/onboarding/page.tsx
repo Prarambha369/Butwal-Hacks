@@ -4,10 +4,11 @@ import { createServiceClient } from "@/utils/supabase";
 import { RoleSelector } from "@/components/dashboard/role-selector";
 import AssistantPanel from "@/components/assistant-panel";
 import { Sparkles, User, CalendarDays, Building2 } from "lucide-react";
+import { Ballu } from "@/components/mascot/ballu";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "Onboarding", description: "Complete your onboarding", path: "/dashboard/onboarding", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Onboarding", description: "Complete your onboarding", path: "/dashboard/onboarding", keywords: []}) };
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +92,7 @@ function WelcomeSection() {
   return (
     <div className="text-center space-y-6 mb-10">
       <div className="inline-flex p-3 rounded-xl bg-primary-red/10">
-        <Sparkles className="w-6 h-6 text-primary-red" />
+        <Ballu emotion="waving" size={64} />
       </div>
 
       <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">
@@ -102,7 +103,7 @@ function WelcomeSection() {
         Pick the role that fits what you want to do next. Your BH-ID travels with
         you either way, and you can change your role later or request an upgrade.
       </p>
-      <p className="text-xs text-muted-foreground/80 max-w-lg mx-auto leading-relaxed">
+      <p className="text-xs text-muted-foreground max-w-lg mx-auto leading-relaxed">
         New here? Everything is free, beginners are welcome, and our community is moderated.
         You are safe to ask basic questions.
       </p>
@@ -135,7 +136,7 @@ function WelcomeSection() {
         />
       </div>
 
-      <p className="text-[11px] text-muted-foreground/60">
+      <p className="text-[11px] text-muted-foreground">
         Already have a role? Choose it below and the system sends you there.
       </p>
     </div>

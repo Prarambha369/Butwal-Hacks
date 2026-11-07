@@ -1,8 +1,6 @@
-import { PROFILE_SETTINGS_PATH } from "@/lib/routes";
 import { createServiceClient } from "@/utils/supabase";
 import type { Metadata } from "next"
-import Link from "next/link"
-import { Users, GraduationCap, ArrowRight } from "lucide-react"
+import { Users } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"
 import { fetchExplorerMembers, getExplorerStats } from "@/lib/members"
 import SafeJsonLd from "@/lib/json-ld"
@@ -10,6 +8,7 @@ import { ExplorerClient } from "./explorer-client"
 import { ExploreCta } from "./explore-cta"
 import { ExploreHero } from "./explore-hero"
 import { CommunityPlatforms } from "@/components/community/community-platforms"
+import SponsorsSection from "@/components/sponsor/sponsors-section"
 import { TestimonialsSection } from "@/components/testimonials"
 import TestimonialForm from "@/components/community/testimonial-form"
 import ExcuseGenerator from "@/components/home/excuse-generator"
@@ -28,13 +27,11 @@ export const metadata: Metadata = buildPageMetadata({
 export default async function ExplorePage() {
   const supabase = createServiceClient();
   // Independent reads run in parallel so one slow query never stalls the page.
-  const [explorerMembers, { count: mentorCount }] = await Promise.all([
+  const [explorerMembers, { count: sponsorProfileCount }] = await Promise.all([
     fetchExplorerMembers(supabase),
     supabase
-      .from("profiles")
-      .select("*", { count: "exact", head: true })
-      .eq("open_to_mentor", true)
-      .not("bh_id", "is", null),
+      .from("sponsor_profiles")
+      .select("id", { count: "exact", head: true }),
   ]);
   const stats = getExplorerStats(explorerMembers);
 
@@ -60,21 +57,19 @@ export default async function ExplorePage() {
           totalBuilders={stats.byRole.Builder}
           totalProjects={stats.totalProjects}
           totalEvents={stats.totalEvents}
+          totalSponsors={sponsorProfileCount ?? 0}
         />
 
         {/* ── MEMBER DIRECTORY ────────────────────────────────────── */}
-        <section className="py-16 md:py-20" aria-label="Member Directory">
+        <section className="py-12 md:py-16" aria-label="Member Directory">
           <div className="mx-auto max-w-6xl px-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Users className="w-4 h-4 text-primary-red" />
-                  <h2 className="text-sm font-bold text-primary">Community</h2>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {stats.total} people building the future of tech in Lumbini Province.
-                </p>
-              </div>
+            {/* The count already appears in the hero stats and the aria-label.
+                Repeating it here was the third instance on one screen. */}
+            <div className="mb-6">
+              <h2 className="text-xl font-bold tracking-tight text-primary">Member directory</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Search by name, BH-ID, or skill.
+              </p>
             </div>
 
             {/* Client-Side Interactive Explorer */}
@@ -83,7 +78,7 @@ export default async function ExplorePage() {
             {/* Static fallback for JS-disabled users */}
             <noscript>
               <div className="mt-8 p-8 text-center rounded-xl border border-border bg-surface">
-                <Users className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
                 <p className="text-sm font-medium text-muted-foreground">
                   Enable JavaScript to browse the full member directory, search by BH-ID, and connect with the community.
                 </p>
@@ -92,44 +87,12 @@ export default async function ExplorePage() {
           </div>
         </section>
 
-        {/* ── MENTORS STRIP (links /mentors + onboarding path) ────── */}
-        <section aria-label="Mentors" className="border-y border-border bg-surface">
-          <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-4 py-8 sm:flex-row sm:items-center">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-status-green/10 text-status-green">
-                <GraduationCap className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="font-bold text-primary">
-                  {mentorCount ?? 0} mentor{(mentorCount ?? 0) === 1 ? "" : "s"} taking 1:1 calls
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Stuck on a bug or a career call? Book time. Developers volunteer office hours here.
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/mentors"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                Find a mentor <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href={PROFILE_SETTINGS_PATH}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-surface-hover"
-              >
-                Become one
-              </Link>
-            </div>
-          </div>
-        </section>
+        {/* ── WHERE WE HANG OUT (migrated from /community) ──────────── */}        <CommunityPlatforms />
 
-        {/* ── WHERE WE HANG OUT (migrated from /community) ──────────── */}
-        <CommunityPlatforms />
+        {/* ── SPONSORS ─────────────────────────────────────────── */}
+        <SponsorsSection />
 
-        {/* ── TESTIMONIALS (migrated from /community — sole surface) ── */}
-        <TestimonialsSection />
+        {/* ── TESTIMONIALS (migrated from /community — sole surface) ── */}<TestimonialsSection />
         <div className="mx-auto max-w-6xl px-4 pb-4">
           <TestimonialForm />
         </div>
@@ -138,7 +101,7 @@ export default async function ExplorePage() {
         <ExcuseGenerator />
 
         {/* ── CTA ──────────────────────────────────────────────────── */}
-        <ExploreCta totalMembers={stats.total} />
+        <ExploreCta />
       </main>
     </>
   )

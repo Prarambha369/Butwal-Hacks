@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, ArrowUpRight, Monitor } from 'lucide-react'
+import { Heart, ArrowUpRight } from 'lucide-react'
+import { Ballu } from '@/components/mascot/ballu'
 import { cloudinaryUrl } from '@/lib/utils'
 
 interface FeaturedProject {
@@ -18,13 +19,13 @@ export default function FeaturedProjects({ projects }: { projects: FeaturedProje
       <section className="py-16 md:py-24 bg-surface border-b border-border">
         <div className="mx-auto max-w-6xl px-4">
           <div className="text-center space-y-4">
-            <div className="bh-wiggle-hover mx-auto w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center cursor-default">
-              <Monitor className="w-8 h-8 text-muted-foreground opacity-20" />
+            <div className="bh-wiggle-hover mx-auto flex h-24 w-24 items-center justify-center cursor-default">
+              <Ballu emotion="sitting" size={96} />
             </div>
-            <p className="text-sm text-muted-foreground font-mono opacity-60">
+            <p className="text-sm text-muted-foreground font-mono">
               Nothing featured yet. Your half-broken demo could live here.
             </p>
-            <p className="text-xs text-muted-foreground/70 font-mono">
+            <p className="text-xs text-muted-foreground font-mono">
               Be the first legend. Ship something at the next hackathon.
             </p>
           </div>
@@ -116,7 +117,7 @@ function ProjectCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-6xl md:text-7xl font-bold text-secondary/10">
+            <span className="text-6xl md:text-7xl font-bold text-secondary">
               {(project.title ?? '?').charAt(0).toUpperCase()}
             </span>
           </div>

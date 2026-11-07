@@ -63,7 +63,7 @@ export function CertificateExportButton({
     <button
       onClick={handleExport}
       disabled={loading}
-      className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary-red px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-deep-red disabled:opacity-50"
+      className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-bh-red-action px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-deep-red disabled:opacity-50"
     >
       {loading ? (
         <Loader2 className="w-4 h-4 animate-spin" />

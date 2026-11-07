@@ -50,12 +50,17 @@ const beliefs = [
 ];
 
 export default function AboutPage() {
+  const lastUpdated = "2026-10-29";
+
   return (
     <main className="min-h-dvh bg-background">
 
       <section className="mx-auto max-w-4xl px-4 py-14 sm:py-16">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "About" }]} />
         <h1 className="text-4xl sm:text-5xl font-bold font-heading tracking-tight text-primary">About Butwal Hacks</h1>
+        <p className="mt-2 text-xs font-mono text-muted-foreground">
+          Last updated: {lastUpdated}
+        </p>
         <p className="mt-5 text-base sm:text-lg text-muted-foreground">
           We run free hackathons, workshops, and project-based learning programs for students across Lumbini Province, Nepal.
           No fees. No experience required. Just people who show up to build.
@@ -98,7 +103,7 @@ export default function AboutPage() {
           <ol className="mt-10 space-y-10">
             {beliefs.map((b, i) => (
               <li key={b.title} className="flex gap-4 sm:gap-5">
-                <span aria-hidden="true" className="font-mono text-sm font-bold text-primary-red/60 pt-1.5">
+                <span aria-hidden="true" className="font-mono text-sm font-bold text-muted-foreground pt-1.5">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <div>

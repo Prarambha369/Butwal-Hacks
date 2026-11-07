@@ -37,6 +37,10 @@ export default async function SponsorDashboardPage() {
     .select("id", { count: "exact", head: true })
     .eq("is_active", true);
 
+  const { count: sponsorProfileCount } = await supabase
+    .from("sponsor_profiles")
+    .select("id", { count: "exact", head: true });
+
   // ── Projects by day (last 7 days) for chart ──
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
@@ -95,13 +99,13 @@ export default async function SponsorDashboardPage() {
       </div>
 
       {/* Top Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bh-card p-6 space-y-3">
           <div className="flex items-center justify-between">
             <div className="p-2.5 rounded-xl bg-status-teal/10">
               <Briefcase className="w-5 h-5 text-status-teal" />
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">Bounties</span>
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Bounties</span>
           </div>
           <p className="text-4xl font-bold text-primary">{bountyCount ?? 0}</p>
           <p className="text-xs text-muted-foreground">Active bounties and opportunities</p>
@@ -112,7 +116,7 @@ export default async function SponsorDashboardPage() {
             <div className="p-2.5 rounded-xl bg-status-blue/10">
               <Eye className="w-5 h-5 text-status-blue" />
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">Discovery</span>
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Discovery</span>
           </div>
           <p className="text-4xl font-bold text-primary">{hackerCount ?? 0}</p>
           <p className="text-xs text-muted-foreground">Hackers in the talent pool</p>
@@ -123,10 +127,21 @@ export default async function SponsorDashboardPage() {
             <div className="p-2.5 rounded-xl bg-status-green/10">
               <DollarSign className="w-5 h-5 text-status-green" />
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">Distributed</span>
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Distributed</span>
           </div>
           <p className="text-4xl font-bold text-primary">$0</p>
           <p className="text-xs text-muted-foreground">Funds distributed via Open Collective</p>
+        </div>
+
+        <div className="bh-card p-6 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="p-2.5 rounded-xl bg-status-purple/10">
+              <Building2 className="w-5 h-5 text-status-purple" />
+            </div>
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Profiles</span>
+          </div>
+          <p className="text-4xl font-bold text-primary">{sponsorProfileCount ?? 0}</p>
+          <p className="text-xs text-muted-foreground">Sponsor company profiles published</p>
         </div>
       </div>
 

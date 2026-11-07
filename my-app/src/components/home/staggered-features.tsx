@@ -80,7 +80,7 @@ export default function StaggeredFeatures() {
                 href={feature.href}
                 className={`group bh-play-hover relative overflow-hidden rounded-xl border border-border bg-surface p-6 md:p-7 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-primary-red/30 ${feature.span}`}
               >
-                <span aria-hidden="true" className="pointer-events-none absolute right-4 top-3 font-mono text-4xl font-black text-border transition-colors group-hover:text-primary-red/20">
+                <span aria-hidden="true" className="pointer-events-none absolute right-4 top-3 font-mono text-4xl font-black text-secondary/80 transition-colors group-hover:text-primary-red/20">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <div className={`bh-play-target inline-flex h-9 w-9 items-center justify-center rounded-lg ${feature.color} mb-4`}>

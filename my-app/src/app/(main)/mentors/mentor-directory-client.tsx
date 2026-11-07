@@ -105,20 +105,21 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, bio, or skill..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface border border-border text-sm text-primary placeholder:text-muted-foreground/40 outline-none focus:border-primary-red/50 focus:ring-2 focus:ring-primary-red/20 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface border border-border text-sm text-primary placeholder:text-muted-foreground outline-none focus:border-primary-red/50 focus:ring-2 focus:ring-primary-red/20 transition-all"
           />
         </div>
 
         {/* Sort */}
         <div className="relative">
-          <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40 pointer-events-none" />
+          <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
           <select
+            aria-label="Sort mentors"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortKey)}
             className="pl-9 pr-8 py-2.5 rounded-lg bg-surface border border-border text-xs font-medium text-primary appearance-none cursor-pointer outline-none focus:border-primary-red/50 focus:ring-2 focus:ring-primary-red/20 transition-all"
@@ -152,7 +153,7 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
                   "text-[10px] font-medium px-2 py-1 rounded-md border transition-all min-h-[28px]",
                   selectedSkills.includes(skill)
                     ? "bg-primary-red/10 text-primary-red border-primary-red/30"
-                    : "bg-surface text-muted-foreground/60 border-border/50 hover:border-muted-foreground/30"
+                    : "bg-surface text-muted-foreground border-border/50 hover:border-muted-foreground/30"
                 )}
               >
                 {skill}
@@ -174,12 +175,12 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
       {filtered.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-16 h-16 rounded-2xl bg-surface-hover flex items-center justify-center mx-auto mb-4 ring-1 ring-border">
-            <Users className="w-6 h-6 text-muted-foreground/40" />
+            <Users className="w-6 h-6 text-muted-foreground" />
           </div>
           <p className="text-lg font-bold text-primary">
             {mentors.length === 0 ? "No mentors available yet" : "No mentors match your search"}
           </p>
-          <p className="text-sm text-muted-foreground/60 mt-1 max-w-xs mx-auto">
+          <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
             {mentors.length === 0
               ? "Mentors who mark themselves as available in their profile settings will appear here."
               : "Try adjusting your search or filter criteria."}
@@ -206,13 +207,7 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
                 key={mentor.bh_id}
                 className="bh-card border border-border p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-1 relative overflow-hidden group"
               >
-                {/* Mentor badge */}
-                <div className="absolute top-0 right-0 flex items-center gap-1.5">
-                  <div className="flex items-center gap-1 bg-status-green/10 text-status-green text-[9px] font-bold px-2 py-1 rounded-bl-xl border-b border-l border-status-green/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-status-green animate-pulse" />
-                    AVAILABLE
-                  </div>
-                </div>
+
 
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
@@ -233,14 +228,14 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
                       <h3 className="text-sm font-bold text-primary truncate group-hover:text-primary-red transition-colors">
                         {mentor.full_name ?? "Unnamed"}
                       </h3>
-                      <p className="text-[10px] font-mono text-muted-foreground/50">
+                      <p className="text-[10px] font-mono text-muted-foreground">
                         {mentor.skills?.length ?? 0} skill{(mentor.skills?.length ?? 0) !== 1 ? 's' : ''}
                       </p>
                     </div>
 
                     {/* Bio */}
                     {mentor.bio && (
-                      <p className="text-xs text-muted-foreground/70 leading-relaxed line-clamp-2">
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                         {mentor.bio}
                       </p>
                     )}
@@ -255,14 +250,14 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
                               "text-[9px] font-medium px-1.5 py-0.5 rounded-md border",
                               selectedSkills.includes(skill)
                                 ? "bg-primary-red/10 text-primary-red border-primary-red/30"
-                                : "bg-surface-hover text-muted-foreground/60 border-border/50"
+                                : "bg-surface-hover text-muted-foreground border-border/50"
                             )}
                           >
                             {skill}
                           </span>
                         ))}
                         {mentor.skills.length > 4 && (
-                          <span className="text-[9px] text-muted-foreground/40 px-1.5 py-0.5">
+                          <span className="text-[9px] text-muted-foreground px-1.5 py-0.5">
                             +{mentor.skills.length - 4}
                           </span>
                         )}
@@ -280,7 +275,7 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
                               href={getSocialUrl(platform, value)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-md text-muted-foreground/40 hover:text-primary hover:bg-surface-hover transition-colors"
+                              className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-surface-hover transition-colors"
                               title={platform}
                             >
                               <Icon className="w-4 h-4" />
@@ -303,7 +298,7 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
                           href={mentor.cal_com_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-red text-white text-[10px] font-bold hover:bg-deep-red transition-all shadow-[var(--bh-glow-red-soft)] hover:shadow-[var(--bh-glow-red)]"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bh-red-action text-white text-[10px] font-bold hover:bg-deep-red transition-all shadow-[var(--bh-glow-red-soft)] hover:shadow-[var(--bh-glow-red)]"
                         >
                           <Calendar className="w-3 h-3" />
                           Book 15-min Chat

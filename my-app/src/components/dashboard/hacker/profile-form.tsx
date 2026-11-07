@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Save, Globe, Github, Linkedin, AlertCircle, Loader2, ZoomIn, GraduationCap, Calendar } from 'lucide-react';
 import Image from 'next/image';
-import { updateProfile } from '@/lib/actions/profile';
+import { updateProfile, fetchProviderSocials } from '@/lib/actions/profile';
 import { toast } from 'sonner';
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
 import CameraCapture from '@/components/camera-capture';
@@ -47,6 +47,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
   const [importingPicture, setImportingPicture] = useState(false);
   const [pictureError, setPictureError] = useState<string | null>(null);
+  const [socialFetchState, setSocialFetchState] = useState<Record<string, 'idle' | 'loading' | 'error'>>({ github: 'idle', linkedin: 'idle' });
 
   const bhId = initialProfile?.bh_id as string | undefined;
   const fullName = initialProfile?.full_name as string | undefined;
@@ -145,7 +146,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
     setIsSubmitting(true);
     try {
       // Only save non-avatar fields — avatar is already auto-saved
-      await updateProfile({
+      const kept = {
         full_name: formData.full_name,
         bio: formData.bio,
         avatar_url: undefined, // Don't touch avatar; already saved
@@ -155,14 +156,41 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
           github: formData.github,
           linkedin: formData.linkedin,
           website: formData.website,
-        }
-      });
-      toast.success("Profile updated successfully!");
+        },
+      };
+      await updateProfile(kept);
+      toast.success("Profile updated successfully!")
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to update profile';
       toast.error(message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleImportSocial = async (provider: 'github' | 'linkedin') => {
+    setSocialFetchState(prev => ({ ...prev, [provider]: 'loading' }));
+    try {
+      const result = await fetchProviderSocials(provider);
+      if (!result.success) {
+        toast.error(result.message);
+        setSocialFetchState(prev => ({ ...prev, [provider]: 'error' }));
+        return;
+      }
+      if (result.filled) {
+        const existingSocials = result.socials ?? {};
+        setFormData(prev => ({ ...prev, [provider]: existingSocials[provider] ?? prev[provider] }));
+      }
+      toast.success(result.message);
+      setSocialFetchState(prev => ({ ...prev, [provider]: 'idle' }));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Could not import that social URL.';
+      toast.error(message);
+      setSocialFetchState(prev => ({ ...prev, [provider]: 'error' }));
+    } finally {
+      if (socialFetchState[provider] === 'loading') {
+        setSocialFetchState(prev => ({ ...prev, [provider]: 'idle' }));
+      }
     }
   };
 
@@ -213,22 +241,46 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
 
           {/*
             Auth0 returns a picture claim for GitHub, Google and LinkedIn
-            logins. It is copied into Cloudinary rather than hotlinked,
+            logins. It is copied into Cloudinary here on demand, not on login,
             because Google's URLs are signed and expire within hours.
           */}
+          {socialPicture && socialProvider === 'github' && (
+            <button
+              type="button"
+              onClick={() => handleImportSocial('github')}
+              disabled={socialFetchState.github === 'loading'}
+              className="bh-btn-ghost w-full !justify-start text-left disabled:opacity-50"
+            >
+              <Github className="w-4 h-4 text-secondary shrink-0" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-xs font-semibold text-secondary">
+                  {socialFetchState.github === 'loading' ? 'Importing GitHub URL...'
+                    : 'Import my GitHub URL'}
+                </span>
+                <span className="block text-[10px] text-muted-foreground">
+                  Filled automatically from your linked GitHub account
+                </span>
+              </span>
+              {socialFetchState.github === 'loading' && (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-secondary shrink-0" />
+              )}
+            </button>
+          )}
           {socialPicture && (
             <button
               type="button"
               onClick={handleUseSocialPicture}
               disabled={importingPicture || avatarSaving}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface/5 hover:bg-surface/10 border border-border/40 text-left transition-colors disabled:opacity-50"
+              className="bh-btn-ghost w-full !justify-start text-left disabled:opacity-50"
             >
               <ProviderIcon className="w-4 h-4 text-secondary shrink-0" />
               <span className="flex-1 min-w-0">
                 <span className="block text-xs font-semibold text-secondary">
                   {importingPicture
                     ? 'Importing photo...'
-                    : `Use my ${socialProvider ? SOCIAL_PROVIDER_LABEL[socialProvider] : 'social'} photo`}
+                    : socialProvider
+                      ? `Use my ${SOCIAL_PROVIDER_LABEL[socialProvider]} photo (import on demand)`
+                      : 'Use your social photo'}
                 </span>
                 <span className="block text-[10px] text-muted-foreground">
                   Copied to our storage, so it keeps working after you log out
@@ -248,8 +300,9 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className={labelClass}>Full Name</label>
+          <label htmlFor="profile-full-name" className={labelClass}>Full Name</label>
           <input
+            id="profile-full-name"
             type="text"
             value={formData.full_name}
             onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
@@ -257,12 +310,15 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
           />
         </div>
         <div className="space-y-2">
-          <label className={labelClass}>BH-ID</label>
+          <label htmlFor="profile-bhid" className={labelClass}>BH-ID</label>
           <input
+            id="profile-bhid"
             type="text"
             value={(initialProfile?.bh_id as string) || ''}
             readOnly
-            className="w-full bg-background/50 border border-border/30 rounded-lg px-4 py-3 opacity-50 cursor-not-allowed"
+            aria-readonly="true"
+            aria-label="BH-ID (read-only, cannot be changed)"
+            className="w-full bg-surface-hover border border-border/30 rounded-lg px-4 py-3 text-muted-foreground cursor-not-allowed"
           />
         </div>
       </div>
@@ -270,7 +326,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
       {/* Bio with character counter */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className={labelClass}>Bio</label>
+          <label htmlFor="profile-bio" className={labelClass}>Bio</label>
           <span className={cn(
             "text-[10px] font-mono transition-colors",
             bioCharsLeft < 0 ? "text-primary-red font-bold" : bioCharsLeft < 50 ? "text-status-yellow" : "text-muted-foreground"
@@ -279,6 +335,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
           </span>
         </div>
         <textarea
+          id="profile-bio"
           value={formData.bio}
           onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
           onBlur={() => setTouched(prev => new Set(prev).add('bio'))}
@@ -299,10 +356,11 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className={cn(labelClass, "flex items-center gap-2")}>
+          <label htmlFor="profile-github" className={cn(labelClass, "flex items-center gap-2")}>
             <Github size={14} /> GitHub URL
           </label>
           <input
+            id="profile-github"
             type="text"
             value={formData.github}
             onChange={(e) => setFormData({ ...formData, github: e.target.value })}
@@ -310,6 +368,15 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
             placeholder="https://github.com/username"
             className={cn(inputClass, showError('github') && inputErrorClass)}
           />
+          {socialFetchState.github !== 'loading' && (
+            <button
+              type="button"
+              onClick={() => handleImportSocial('github')}
+              className="bh-btn-ghost mt-2 !px-3 !py-2 text-[10px] font-mono"
+            >
+              Import my GitHub URL
+            </button>
+          )}
           {showError('github') && (
             <p className="flex items-center gap-1 text-[10px] text-primary-red font-medium">
               <AlertCircle size={10} />
@@ -318,10 +385,11 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
           )}
         </div>
         <div className="space-y-2">
-          <label className={cn(labelClass, "flex items-center gap-2")}>
+          <label htmlFor="profile-linkedin" className={cn(labelClass, "flex items-center gap-2")}>
             <Linkedin size={14} /> LinkedIn URL
           </label>
           <input
+            id="profile-linkedin"
             type="text"
             value={formData.linkedin}
             onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
@@ -329,6 +397,15 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
             placeholder="https://linkedin.com/in/username"
             className={cn(inputClass, showError('linkedin') && inputErrorClass)}
           />
+          {socialFetchState.linkedin !== 'loading' && (
+            <button
+              type="button"
+              onClick={() => handleImportSocial('linkedin')}
+              className="bh-btn-ghost mt-2 !px-3 !py-2 text-[10px] font-mono"
+            >
+              Import my LinkedIn URL
+            </button>
+          )}
           {showError('linkedin') && (
             <p className="flex items-center gap-1 text-[10px] text-primary-red font-medium">
               <AlertCircle size={10} />
@@ -340,10 +417,11 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className={cn(labelClass, "flex items-center gap-2")}>
+          <label htmlFor="profile-website" className={cn(labelClass, "flex items-center gap-2")}>
             <Globe size={14} /> Portfolio Website
           </label>
           <input
+            id="profile-website"
             type="text"
             value={formData.website}
             onChange={(e) => setFormData({ ...formData, website: e.target.value })}
@@ -390,7 +468,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
               <span className="text-sm font-bold text-primary group-hover:text-primary-red transition-colors">
                 Available for Mentorship
               </span>
-              <span className="text-[10px] text-muted-foreground/60">
+              <span className="text-[10px] text-muted-foreground">
                 Show your profile in the Mentor Directory so hackers can request 1:1 chats.
               </span>
             </div>
@@ -398,17 +476,18 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
 
           {formData.open_to_mentor && (
             <div className="space-y-2 pl-13">
-              <label className={cn(labelClass, "flex items-center gap-2")}>
+              <label htmlFor="profile-calcom" className={cn(labelClass, "flex items-center gap-2")}>
                 <Calendar size={14} /> Cal.com Booking Link
               </label>
               <input
+                id="profile-calcom"
                 type="text"
                 value={formData.cal_com_url}
                 onChange={(e) => setFormData({ ...formData, cal_com_url: e.target.value })}
                 placeholder="https://cal.com/username/15min"
                 className={cn(inputClass)}
               />
-              <p className="text-[10px] text-muted-foreground/40">
+              <p className="text-[10px] text-muted-foreground">
                 Create a free 15-min booking page at Cal.com and paste the link here. Hackers will use it to schedule mentorship sessions.
               </p>
             </div>
@@ -420,7 +499,7 @@ export default function ProfileSettingsForm({ initialProfile }: { initialProfile
         <button
           type="submit"
           disabled={isSubmitting || (touched.size > 0 && hasErrors)}
-          className={cn("inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-6 py-3 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95", (isSubmitting || (touched.size > 0 && hasErrors)) && "bh-btn-disabled")}
+          className={cn("bh-btn-ink text-sm", (isSubmitting || (touched.size > 0 && hasErrors)) && "bh-btn-disabled")}
         >
           {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <><Save size={16} /> Save Changes</>}
         </button>

@@ -5,7 +5,6 @@ import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { OrgSwitcher } from "@/components/org-switcher"
 import OnboardingProgressWidget from "@/components/dashboard/onboarding-progress-widget"
-import SkillTreeWidget from "@/components/skills/skill-tree-widget"
 import SidebarNav from "@/components/sidebar-nav"
 import { DashboardRoleSwitcher } from "@/components/dashboard/dashboard-role-switcher"
 import { roleConfig, type DashboardSidebarProps } from "@/components/sidebar-config"
@@ -34,8 +33,8 @@ onboardingChapterCount,
      * drawer someone else already closed. Omitted, the sidebar keeps managing
      * its own, which is what the portal layout still relies on.
      */
-    mobileOpen?: boolean
-    onNavigate?: () => void
+    mobileOpen?: boolean;
+    onNavigate?: () => void;
   }) {
     const [ownOpen, setOwnOpen] = useState(false)
     const externallyControlled = controlledOpen !== undefined
@@ -60,8 +59,6 @@ onboardingChapterCount,
           projectCount={onboardingProjectCount}
         />
       )}
-
-      <SkillTreeWidget />
 
       <SidebarNav links={links} roleStyle={config} onLinkClick={closeMobile} />
 

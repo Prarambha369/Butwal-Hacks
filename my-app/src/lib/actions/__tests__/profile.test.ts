@@ -6,6 +6,10 @@ vi.mock("@/lib/auth0", () => ({
   auth0: { getSession: vi.fn() },
 }));
 
+vi.mock("@/lib/auth0-management", () => ({
+  getLinkedIdentities: vi.fn(),
+}));
+
 vi.mock("@/utils/supabase", () => ({
   createServiceClient: vi.fn(),
 }));
@@ -30,9 +34,11 @@ vi.mock("@/lib/validation", () => ({
 }));
 
 import { auth0 } from "@/lib/auth0";
+import { getLinkedIdentities } from "@/lib/auth0-management";
 import { createServiceClient } from "@/utils/supabase";
 
 const mockedGetSession = auth0.getSession as ReturnType<typeof vi.fn>;
+const mockedGetLinkedIdentities = getLinkedIdentities as ReturnType<typeof vi.fn>;
 const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>;
 
 // ─── Mock Database Builder ───────────────────────────────────────────────────
@@ -60,6 +66,42 @@ function mockSupabase() {
 
 function setAuthenticated(sub = "auth0|12345") {
   mockedGetSession.mockResolvedValue({ user: { sub } });
+}
+
+// Helpers for the fetchProviderSocials mock database: the chained builder
+// returns the same db object per call, and each awaited `.single()` resolves
+// the next sequenced result (last-fetch -> linked_accounts -> socials -> update).
+function mockSingleSequence(
+  db: Record<string, ReturnType<typeof vi.fn>>,
+  singleResults: unknown[]
+) {
+  let i = 0;
+  db.single.mockImplementation(() =>
+    Promise.resolve(singleResults[i++] ?? { data: null, error: null })
+  );
+  db.select.mockReturnValue(db);
+}
+
+function setupFetchMocks(opts: {
+  linkedAccounts: unknown;
+  identities: unknown[];
+  socials: Record<string, string>;
+  dbError?: { message: string };
+}) {
+  setAuthenticated();
+  const db = mockSupabase();
+
+  mockSingleSequence(db, [
+    { data: { last_social_fetch_at: null }, error: null },
+    { data: { linked_accounts: opts.linkedAccounts }, error: opts.dbError ?? null },
+    { data: { socials: opts.socials }, error: null },
+    { error: null }, // socials update
+    { error: null }, // recordSocialFetch update
+  ]);
+
+  mockedGetLinkedIdentities.mockResolvedValue(opts.identities);
+
+  return db;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -280,5 +322,281 @@ describe("updateProfile", () => {
 
     const updateData = db.update.mock.calls[0][0];
     expect(updateData.full_name).toBeUndefined();
+  });
+})
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// fetchProviderSocials
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("fetchProviderSocials", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("throws when unauthenticated", async () => {
+    mockedGetSession.mockResolvedValue(null);
+    const { fetchProviderSocials } = await import("../profile");
+    await expect(fetchProviderSocials("github")).rejects.toThrow("Unauthorized");
+  });
+
+  it("reads linked_accounts from profiles JSONB column, not a linked_accounts table", async () => {
+    const db = await setupFetchMocks({
+      linkedAccounts: [{ provider: "github", user_id: "42" }],
+      identities: [{
+        provider: "github",
+        connection: "github",
+        user_id: "42",
+        isSocial: true,
+        profileData: { nickname: "octocat" },
+      }],
+      socials: {},
+    });
+
+    const { fetchProviderSocials } = await import("../profile");
+    const result = await fetchProviderSocials("github");
+
+    expect(result).toMatchObject({ success: true, filled: true });
+    expect(result.socials).toMatchObject({ github: "https://github.com/octocat" });
+
+    const fromCalls = db.from.mock.calls.map((c) => c[0]);
+    expect(fromCalls).not.toContain("linked_accounts");
+    const selectCalls = db.select.mock.calls.map((c) => c[0]);
+    expect(selectCalls).toContain("linked_accounts");
+  });
+
+  it("targets only the session's own profile when checking linked accounts", async () => {
+    const db = await setupFetchMocks({
+      linkedAccounts: [],
+      identities: [],
+      socials: {},
+    });
+
+    const { fetchProviderSocials } = await import("../profile");
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Connect your GitHub account first") });
+
+    const eqCalls = db.eq.mock.calls;
+    const auth0Query = eqCalls.find((c) => c[0] === "auth0_user_id");
+    expect(auth0Query?.[1]).toBe("auth0|12345");
+  });
+
+  it("requires a matching provider entry in linked_accounts JSONB", async () => {
+    await setupFetchMocks({
+      linkedAccounts: [{ provider: "google-oauth2", user_id: "9" }],
+      identities: [],
+      socials: {},
+    });
+
+    const { fetchProviderSocials } = await import("../profile");
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Connect your GitHub account first") });
+  });
+
+  it("handles missing linked_accounts (null) as not linked", async () => {
+    await setupFetchMocks({
+      linkedAccounts: null,
+      identities: [],
+      socials: {},
+    });
+
+    const { fetchProviderSocials } = await import("../profile");
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Connect your GitHub account first") });
+  });
+
+  it("does not silently discard a linked_accounts read error", async () => {
+    await setupFetchMocks({
+      linkedAccounts: [],
+      identities: [],
+      socials: {},
+      dbError: { message: "db exploded" },
+    });
+
+    const { fetchProviderSocials } = await import("../profile");
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Failed to verify linked accounts") });
+  });
+
+  it("does not overwrite an existing GitHub URL", async () => {
+    await setupFetchMocks({
+      linkedAccounts: [{ provider: "github", user_id: "42" }],
+      identities: [{
+        provider: "github",
+        connection: "github",
+        user_id: "42",
+        isSocial: true,
+        profileData: { nickname: "octocat" },
+      }],
+      socials: { github: "https://github.com/already-set" },
+    });
+
+    const { fetchProviderSocials } = await import("../profile");
+    const result = await fetchProviderSocials("github");
+
+    expect(result.filled).toBe(false);
+    expect(result.socials?.github).toBe("https://github.com/already-set");
+  });
+
+  it("enforces the social fetch cooldown", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    db.single.mockResolvedValue({
+      data: { last_social_fetch_at: new Date().toISOString() },
+      error: null,
+    });
+
+    const { fetchProviderSocials } = await import("../profile");
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("cooldown") });
+  });
+
+  it("resolves LinkedIn URL via vanity nickname", async () => {
+    await setupFetchMocks({
+      linkedAccounts: [{ provider: "linkedin", user_id: "7" }],
+      identities: [{
+        provider: "linkedin",
+        connection: "linkedin",
+        user_id: "7",
+        isSocial: true,
+        profileData: { nickname: "jane-doe" },
+      }],
+      socials: {},
+    });
+
+    const { fetchProviderSocials } = await import("../profile");
+    const result = await fetchProviderSocials("linkedin");
+
+    expect(result.socials).toMatchObject({ linkedin: "https://linkedin.com/in/jane-doe" });
+    expect(mockedGetLinkedIdentities).toHaveBeenCalledWith("auth0|12345");
+  });
+
+  it("resolves LinkedIn URL to null when nickname is purely numeric", async () => {
+    await setupFetchMocks({
+      linkedAccounts: [{ provider: "linkedin", user_id: "7" }],
+      identities: [{
+        provider: "linkedin",
+        connection: "linkedin",
+        user_id: "7",
+        isSocial: true,
+        profileData: { nickname: "123456789" },
+      }],
+      socials: {},
+    });
+
+    const { fetchProviderSocials } = await import("../profile");
+    await expect(fetchProviderSocials("linkedin")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Could not read a LinkedIn profile URL") });
+  });
+
+  it("returns null when the provider profile has no nickname", async () => {
+    await setupFetchMocks({
+      linkedAccounts: [{ provider: "github", user_id: "42" }],
+      identities: [{
+        provider: "github",
+        connection: "github",
+        user_id: "42",
+        isSocial: true,
+        profileData: {},
+      }],
+      socials: {},
+    });
+
+    const { fetchProviderSocials } = await import("../profile");
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Could not read a GitHub profile URL") });
+  });
+
+  it("returns null on Auth0 Management API error", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    const singleResults = [
+      { data: { last_social_fetch_at: null }, error: null },
+      { data: { linked_accounts: [{ provider: "github", user_id: "42" }] }, error: null },
+    ];
+    let i = 0;
+    db.single.mockImplementation(() =>
+      Promise.resolve(singleResults[i++] ?? { data: null, error: null })
+    );
+    mockedGetLinkedIdentities.mockRejectedValue(new Error("Auth0 down"));
+
+    const { fetchProviderSocials } = await import("../profile");
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Could not read a GitHub profile URL") });
+  });
+
+  it("returns null when no linked identity matches the provider", async () => {
+    await setupFetchMocks({
+      linkedAccounts: [{ provider: "github", user_id: "42" }],
+      identities: [],
+      socials: {},
+    });
+
+    const { fetchProviderSocials } = await import("../profile");
+    await expect(fetchProviderSocials("github")).resolves.toMatchObject({ success: false, filled: false, message: expect.stringContaining("Could not read a GitHub profile URL") });
+  });
+})
+
+describe("resolveProviderProfileUrl", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("builds a GitHub URL from the linked identity nickname", async () => {
+    mockedGetLinkedIdentities.mockResolvedValue([{
+      provider: "github",
+      connection: "github",
+      user_id: "42",
+      isSocial: true,
+      profileData: { nickname: "octocat" },
+    }]);
+
+    const { resolveProviderProfileUrl } = await import("../profile");
+    await expect(resolveProviderProfileUrl("github", "auth0|12345")).resolves.toBe(
+      "https://github.com/octocat"
+    );
+  });
+
+  it("builds a LinkedIn URL from a non-numeric nickname", async () => {
+    mockedGetLinkedIdentities.mockResolvedValue([{
+      provider: "linkedin",
+      connection: "linkedin",
+      user_id: "7",
+      isSocial: true,
+      profileData: { nickname: "jane-doe" },
+    }]);
+
+    const { resolveProviderProfileUrl } = await import("../profile");
+    await expect(resolveProviderProfileUrl("linkedin", "auth0|12345")).resolves.toBe(
+      "https://linkedin.com/in/jane-doe"
+    );
+  });
+
+  it("returns null for a purely numeric LinkedIn nickname", async () => {
+    mockedGetLinkedIdentities.mockResolvedValue([{
+      provider: "linkedin",
+      connection: "linkedin",
+      user_id: "7",
+      isSocial: true,
+      profileData: { nickname: "123456789" },
+    }]);
+
+    const { resolveProviderProfileUrl } = await import("../profile");
+    await expect(resolveProviderProfileUrl("linkedin", "auth0|12345")).resolves.toBeNull();
+  });
+
+  it("returns null when the nickname is missing", async () => {
+    mockedGetLinkedIdentities.mockResolvedValue([{
+      provider: "github",
+      connection: "github",
+      user_id: "42",
+      isSocial: true,
+      profileData: {},
+    }]);
+
+    const { resolveProviderProfileUrl } = await import("../profile");
+    await expect(resolveProviderProfileUrl("github", "auth0|12345")).resolves.toBeNull();
+  });
+
+  it("returns null when Auth0 lookup throws", async () => {
+    mockedGetLinkedIdentities.mockRejectedValue(new Error("boom"));
+
+    const { resolveProviderProfileUrl } = await import("../profile");
+    await expect(resolveProviderProfileUrl("github", "auth0|12345")).resolves.toBeNull();
+  });
+
+  it("returns null when no matching identity exists", async () => {
+    mockedGetLinkedIdentities.mockResolvedValue([]);
+
+    const { resolveProviderProfileUrl } = await import("../profile");
+    await expect(resolveProviderProfileUrl("github", "auth0|12345")).resolves.toBeNull();
   });
 })

@@ -49,16 +49,27 @@ Root `package.json` is an npm workspace that delegates the app scripts into `my-
 
 Delegation is per script, not automatic. A script that exists only in `my-app/package.json` and is not listed above fails at the root with `Missing script`, so when you add one, add the matching root entry too.
 
-**Run the verification gates — all four, every time:**
+**Run the verification gates — all five, every time:**
 
 ```bash
 npm run typecheck    # types (tsc --noEmit)
 npm run lint         # ESLint, zero warnings
 npm run test         # Vitest
 npm run build        # production build
+npm run audit:ui     # axe + responsive audit (CI runs it for you; see below)
 ```
 
-Do not open a PR until all four pass. If a gate cannot run locally, say so explicitly rather than reporting success.
+Do not open a PR until all five pass. If a gate cannot run locally, say so
+explicitly rather than reporting success.
+
+`audit:ui` needs the built app serving: `npm run build && npm run start`, then
+`npm run audit:ui`. It loads 30 public routes (plus the signed-in dashboard
+routes when `AUTH0_TEST_EMAIL`/`AUTH0_TEST_PASSWORD` are set) at 390/768/1440px
+in light and dark, and fails on axe violations of impact serious/critical,
+horizontal overflow, uncaught page errors, or a 5xx. Screenshots and the JSON
+report land in `/tmp/bh-ui-audit`. In CI the same script runs as the **UI Audit**
+job — it builds, serves on :3000 and audits `mobile,dark` — so a regression
+fails `Quality Gate` even if nobody ran it locally.
 
 ## Reference
 
@@ -98,7 +109,7 @@ Butwal-Hacks/
 | `src/lib/i18n.ts` | English and Nepali strings |
 | `src/lib/policy-registry.ts` | The policy set, the policy version, and the consent contract |
 | `src/lib/policy-content.ts` | Reads the canonical policy markdown off disk (server-only) |
-| `src/app/globals.css` | All 58 `--bh-*` design tokens and the `bh-*` utilities |
+| `src/app/globals.css` | All 35 `--bh-*` design tokens and the `bh-*` utilities |
 
 ### Access control
 
@@ -169,6 +180,7 @@ Rate limit tiers: `public_form` 5/60s, `sensitive` 3/60s, `user_action` 5/60s, `
 |-------|------|----------|
 | Unit and integration | Vitest | `src/**/__tests__/*.test.ts` |
 | End-to-end | Playwright | `my-app/e2e/` |
+| Accessibility and responsive layout | axe-core + Playwright | `my-app/scripts/audit-ui.mjs` (`npm run audit:ui`) |
 
 - Mock Supabase with `vi.mock("@/utils/supabase")`. Tests never touch a real database.
 - Auth-dependent E2E tests use `skipInCI()`.
@@ -189,11 +201,12 @@ refactor: extract rate limiter into lib/
 ### Before you open a PR
 
 - [ ] `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build` all pass
+- [ ] `npm run audit:ui` passes (or relies on the CI **UI Audit** job having run it)
 - [ ] New mutation routes use `withRateLimit()`
 - [ ] New inputs validated with Zod before any database access
 - [ ] Every `createServiceClient()` call has an authorization check above it
-- [ ] New env vars added to `my-app/.env.example` and to the secrets table in [MAINTAINERS.md](MAINTAINERS.md)
-- [ ] Any new personal data collection updated in the canonical privacy policy — `my-app/src/app/(main)/legal/privacy/page.tsx`, which is served at `/legal/privacy` and documented in [policies/PRIVACY_POLICY.md](policies/PRIVACY_POLICY.md) — in the same PR, including whether the data leaves Nepal
+- [ ] New env vars added to `my-app/.env.example` (names, formats and purpose — never values) in the same PR
+- [ ] Any new personal data collection updated in the canonical privacy policy — `my-app/src/app/(main)/legal/privacy/page.tsx`, served at `/legal/privacy` and documented in [policies/PRIVACY_POLICY.md](policies/PRIVACY_POLICY.md) — in the same PR, including whether the data leaves Nepal
 - [ ] Any new consent captured or consent wording changed: bump `POLICY_VERSION` in `src/lib/policy-registry.ts` and update [policies/REGISTRATION_NOTICES.md](policies/REGISTRATION_NOTICES.md) in the same PR
 - [ ] New migrations are numbered sequentially and additive
 - [ ] New UI uses design tokens, not literals — see [DESIGN.md](DESIGN.md)
@@ -204,7 +217,7 @@ refactor: extract rate limiter into lib/
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | Redirect loop after login | Auth0 Post-Login Action disabled, so the profile is never created | Enable the Action; it syncs the user to Supabase |
-| 500 on any protected route | Middleware auth failing — check `src/proxy.ts` and `AUTH0_SECRET` | See [MAINTAINERS.md](MAINTAINERS.md) on-call runbook |
+| 500 on any protected route | Middleware auth failing — check `src/proxy.ts` and `AUTH0_SECRET` | See [MAINTAINERS.md](MAINTAINERS.md#if-something-breaks-in-production) |
 | `NEXT_PUBLIC_SUPABASE_*` wrong only in production | Manual Vercel env drifted from the Supabase-managed value | Delete the manual entries and use the Supabase integration |
 | Deploy fails at the migration step | `SUPABASE_DB_URL` is a transaction-pooler URL (port 6543) and cannot run DDL | Use a direct or session-pooler connection string |
 | Rate limiting appears disabled | Redis unreachable and the limiter fails open | Check `UPSTASH_REDIS_REST_URL` and quota |
@@ -212,12 +225,11 @@ refactor: extract rate limiter into lib/
 
 ## See also
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) — the human-facing contributor guide
+- [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) — the human-facing contributor guide
 - [DESIGN.md](DESIGN.md) — visual system reference
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — architecture, ADRs, and engineering detail
-- [MAINTAINERS.md](MAINTAINERS.md) — deploy, CI, secrets, rollback
-- [SECURITY.md](SECURITY.md) — vulnerability reporting
+- [MAINTAINERS.md](MAINTAINERS.md) — deploy, rollback, environment variables, incident notes
+- [.github/SECURITY.md](.github/SECURITY.md) — vulnerability reporting
 - [PRODUCT.md](PRODUCT.md) — product identity and direction
-- [docs/SECURITY_REMEDIATION_REPORT.md](docs/SECURITY_REMEDIATION_REPORT.md) — the P0 and P1 authorization defects already fixed
-- [docs/SEO_AEO_GEO_AUDIT.md](docs/SEO_AEO_GEO_AUDIT.md) — search and AI-answer visibility audit
-- [policies/README.md](policies/README.md) — terms, privacy, guardian consent, and the open compliance gaps
+- [docs/reports/2026-10-security-remediation.md](docs/reports/2026-10-security-remediation.md) — the P0 and P1 authorization defects, sanitized
+- [docs/reports/](docs/reports/) — dated historical reports (SEO audit, IA audit, monitoring playbook)

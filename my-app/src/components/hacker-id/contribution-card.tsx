@@ -40,7 +40,7 @@ export default function ContributionCard({ project, isOwner }: ContributionCardP
               {project.title}
             </h4>
             {isOwner && (
-              <span className="text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded bg-bh-red-500 text-primary">
+              <span className="text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded bg-bh-red-action text-white">
                 Lead
               </span>
             )}
@@ -52,20 +52,20 @@ export default function ContributionCard({ project, isOwner }: ContributionCardP
           {/* GitHub metadata row */}
           {meta && (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono text-muted-foreground/60" title="Stars">
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono text-muted-foreground" title="Stars">
                 <Star className="w-3 h-3" />
                 {formatCount(meta.stargazers_count)}
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono text-muted-foreground/60" title="Forks">
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono text-muted-foreground" title="Forks">
                 <GitFork className="w-3 h-3" />
                 {formatCount(meta.forks_count)}
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono text-muted-foreground/60" title="Commits">
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono text-muted-foreground" title="Commits">
                 <GitCommit className="w-3 h-3" />
                 {formatCount(meta.commit_count)}
               </span>
               {meta.language && (
-                <span className="text-[10px] font-mono text-muted-foreground/60">
+                <span className="text-[10px] font-mono text-muted-foreground">
                   {meta.language}
                 </span>
               )}
@@ -75,8 +75,8 @@ export default function ContributionCard({ project, isOwner }: ContributionCardP
           {/* README preview */}
           {meta?.readme_preview && (
             <div className="flex items-start gap-1.5 pt-0.5">
-              <BookOpen className="w-3 h-3 text-muted-foreground/40 mt-0.5 shrink-0" />
-              <p className="text-[10px] text-muted-foreground/50 leading-relaxed line-clamp-2">
+              <BookOpen className="w-3 h-3 text-muted-foreground mt-0.5 shrink-0" />
+              <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">
                 {meta.readme_preview}
               </p>
             </div>
@@ -94,7 +94,7 @@ export default function ContributionCard({ project, isOwner }: ContributionCardP
                 href={project.github_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] font-bold text-muted-foreground/60 hover:text-primary-red transition-colors flex items-center gap-1"
+                className="text-[10px] font-bold text-muted-foreground hover:text-primary-red transition-colors flex items-center gap-1"
               >
                 GitHub <ExternalLink className="w-3 h-3" />
               </a>

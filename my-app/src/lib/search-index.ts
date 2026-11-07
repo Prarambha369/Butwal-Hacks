@@ -1,17 +1,17 @@
-import { blogPosts, chapters, initiatives, programs } from "@/lib/content";
+import { blogPosts, initiatives, programs } from "@/lib/content";
 
 /**
  * Static search index for content that lives in code rather than the database.
  *
- * The database-backed sources (profiles, projects, events) are queried with
- * PostgREST `ilike` in the route. Everything else — blog posts and their full
- * body text, chapters, initiatives — is a plain array in `content.ts`, so it
- * is indexed here in memory. The corpus is a few hundred short documents, so
- * a linear scan per keystroke is well under a millisecond and avoids shipping
- * a search service for it.
+ * The database-backed sources (profiles, projects, events, chapters) are
+ * queried in the route. Everything else — blog posts and their full body
+ * text, initiatives — is a plain array in `content.ts`, so it is indexed here
+ * in memory. The corpus is a few hundred short documents, so a linear scan
+ * per keystroke is well under a millisecond and avoids shipping a search
+ * service for it.
  */
 
-export type StaticSearchType = "blog" | "initiative" | "chapter";
+export type StaticSearchType = "blog" | "initiative";
 
 export interface StaticSearchDoc {
   type: StaticSearchType;
@@ -43,27 +43,6 @@ function buildIndex(): StaticSearchDoc[] {
       tags: post.tags,
       summary: post.excerpt,
       body: post.body.join(" "),
-    });
-  }
-
-  for (const chapter of chapters) {
-    docs.push({
-      type: "chapter",
-      id: chapter.slug,
-      title: chapter.name,
-      subtitle: [chapter.school, chapter.city].filter(Boolean).join(" · "),
-      href: `/chapters/${chapter.slug}`,
-      tags: chapter.tags,
-      summary: chapter.description,
-      body: [
-        chapter.description,
-        chapter.school,
-        chapter.city,
-        chapter.district,
-        chapter.province,
-        chapter.leadName,
-        ...chapter.highlights,
-      ].join(" "),
     });
   }
 

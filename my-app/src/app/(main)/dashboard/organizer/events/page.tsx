@@ -5,10 +5,11 @@ import { formatDualDate } from "@/lib/nepali-date";
 import Link from 'next/link';
 import { Calendar, Plus, Users, BarChart3 } from 'lucide-react';
 import { buildPageMetadata } from "@/lib/seo"
+import { EmptyState } from "@/components/ui/empty-state";
 
 
 
-export const metadata = { ...buildPageMetadata({title: "Events", description: "Manage events", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Events", description: "Manage events", path: "/dashboard/organizer/events", keywords: []}) };
 
 export default async function OrganizerEventsPage() {
   const session = await auth0.getSession();
@@ -41,7 +42,7 @@ export default async function OrganizerEventsPage() {
           <h1 className="text-3xl font-bold tracking-tight text-primary">My Events</h1>
           <p className="text-sm text-muted-foreground">Manage your event lifecycle and participant engagement.</p>
         </div>
-        <Link href="/dashboard/organizer/events/new" className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-deep-red">
+        <Link href="/dashboard/organizer/events/new" className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-4 py-2 text-sm font-bold text-white transition-all hover:bg-deep-red">
           <Plus size={16} /> Create New Event
         </Link>
       </div>
@@ -83,10 +84,16 @@ export default async function OrganizerEventsPage() {
             </div>
           ))
         ) : (
-          <div className="col-span-full bh-card p-12 text-center space-y-4">
-            <Calendar size={48} className="mx-auto text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">You haven&apos;t created any events yet.</p>
-            <Link href="/dashboard/organizer/events/new" className="text-sm font-bold text-primary-red hover:underline">Start your first event →</Link>
+          <div className="col-span-full">
+            <EmptyState
+              icon={<Calendar className="w-12 h-12" />}
+              mascot="calm-neutral"
+              title="You haven't created any events yet"
+              description="Set up your first event to start collecting registrations, teams, and check-ins."
+              actions={[
+                { label: "Create your first event", href: "/dashboard/organizer/events/new", variant: "primary" },
+              ]}
+            />
           </div>
         )}
       </div>

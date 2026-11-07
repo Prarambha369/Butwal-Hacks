@@ -126,8 +126,8 @@ export default function DedicateSchoolPage() {
             type="text"
             value={schoolName}
             onChange={(e) => setSchoolName(e.target.value)}
-            placeholder="e.g. Bhawani Secondary School"
-            className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
+            placeholder="Enter the school's official name"
+            className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
             autoFocus
           />
         </div>
@@ -145,8 +145,8 @@ export default function DedicateSchoolPage() {
             type="text"
             value={leadName}
             onChange={(e) => setLeadName(e.target.value)}
-            placeholder="e.g. Sushant Acharya"
-            className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
+            placeholder="Enter the student lead's name"
+            className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
           />
         </div>
 
@@ -155,7 +155,7 @@ export default function DedicateSchoolPage() {
           <label htmlFor="leadBhId" className="mb-1.5 block text-sm font-medium text-primary">
             <span className="inline-flex items-center gap-1.5">
               <Hash className="w-3.5 h-3.5" />
-              Lead BH-ID <span className="text-muted-foreground/50">(optional)</span>
+              Lead BH-ID <span className="text-muted-foreground">(optional)</span>
             </span>
           </label>
           <input
@@ -164,7 +164,7 @@ export default function DedicateSchoolPage() {
             value={leadBhId}
             onChange={(e) => setLeadBhId(e.target.value)}
             placeholder="e.g. BH-26-F2ECCEFC"
-            className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
+            className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
           />
         </div>
 
@@ -249,7 +249,7 @@ export default function DedicateSchoolPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex items-center gap-2 rounded-full bg-primary-red px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />

@@ -8,7 +8,6 @@
 --   • 2 events (1 upcoming, 1 past)
 --   • 3 trust markers (1 verified, 1 self-reported, 1 revoked)
 --   • 2 projects with tech stacks
---   • 1 team with members
 --   • Event registrations for the hackers
 --
 -- Idempotent: safe to run multiple times (clears seed data first).
@@ -138,41 +137,6 @@ INSERT INTO events (id, title, slug, description, start_date, end_date, location
   'a0000000-0000-0000-0000-000000000010'
 );
 
--- ─── Teams ─────────────────────────────────────────────────────────────────
-
-INSERT INTO teams (id, name, event_id, created_at) VALUES
-(
-  'c0000000-0000-0000-0000-000000000001',
-  'Code4Change',
-  'b0000000-0000-0000-0000-000000000001',
-  '2024-09-14 20:00:00+05:45'
-);
-
--- ─── Team Members ──────────────────────────────────────────────────────────
-
-INSERT INTO team_members (id, team_id, profile_id, is_captain, created_at) VALUES
-(
-  'd0000000-0000-0000-0000-000000000001',
-  'c0000000-0000-0000-0000-000000000001',
-  'a0000000-0000-0000-0000-000000000001',
-  true,
-  '2024-09-14 20:00:00+05:45'
-),
-(
-  'd0000000-0000-0000-0000-000000000002',
-  'c0000000-0000-0000-0000-000000000001',
-  'a0000000-0000-0000-0000-000000000002',
-  false,
-  '2024-09-14 20:05:00+05:45'
-),
-(
-  'd0000000-0000-0000-0000-000000000003',
-  'c0000000-0000-0000-0000-000000000001',
-  'a0000000-0000-0000-0000-000000000003',
-  false,
-  '2024-09-14 20:10:00+05:45'
-);
-
 -- ─── Event Registrations ──────────────────────────────────────────────────
 
 INSERT INTO event_registrations (id, event_id, profile_id, attended, created_at) VALUES
@@ -220,12 +184,12 @@ INSERT INTO event_registrations (id, event_id, profile_id, attended, created_at)
 
 INSERT INTO projects (id, title, description, team_id, tech_stack, github_url, cover_image, created_at) VALUES
 
--- Project 1: ShikshaSetu (by Code4Change team)
+-- Project 1: ShikshaSetu (solo project by Pranav)
 (
   'f0000000-0000-0000-0000-000000000001',
   'ShikshaSetu — Bridging Rural Education Gaps',
   'A platform connecting rural school students in Nepal with volunteer tutors via SMS and offline-first mobile app. Uses NLP to translate lessons into Nepali and Maithili. Won Best Social Impact at Butwal Hacks 2024.',
-  'c0000000-0000-0000-0000-000000000001',
+  NULL,
   '{"React", "Node.js", "MongoDB", "Twilio", "Python", "NLP"}',
   'https://github.com/code4change/shikshasetu',
   'https://res.cloudinary.com/demo/image/upload/v1/projects/shikshasetu',

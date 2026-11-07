@@ -118,7 +118,7 @@ export default function InviteHackerModal({ teamId, onClose, onSuccess }: Invite
                   <button 
                     onClick={() => handleInvite(profile.id, profile.full_name)}
                     disabled={invitingId === profile.id}
-                    className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg bg-bh-red-500 text-primary hover:bg-primary-red/90 transition-colors disabled:opacity-50"
+                    className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg bg-bh-red-action text-white hover:bg-deep-red transition-colors disabled:opacity-50"
                     aria-label={`Invite ${profile.full_name}`}
                   >
                     {invitingId === profile.id ? (

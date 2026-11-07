@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Check, X, Star, Trash2, Plus } from "lucide-react";
 import {
   getTestimonialQueue,
@@ -10,6 +10,7 @@ import {
   addVipQuote,
   type ModeratedTestimonial,
 } from "@/lib/actions/testimonials";
+import { EmptyState } from "@/components/ui/empty-state";
 
 function initialsOf(name: string | null | undefined) {
   if (!name) return "?";
@@ -46,14 +47,41 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
-function VipForm({ onDone }: { onDone: () => void }) {
-  const [open, setOpen] = useState(false);
+function VipForm({
+  onDone,
+  open,
+  setOpen,
+  focusSignal = 0,
+}: {
+  onDone: () => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  /** Bumped by the parent on every activation; see the effect below. */
+  focusSignal?: number;
+}) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const lastFocusSignal = useRef(focusSignal);
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [quote, setQuote] = useState("");
   const [source, setSource] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // `open` only ever flips once, so a second click on "Add VIP quote" while
+  // the form is already open would not re-run this and a keyboard user would
+  // stay wherever they were, with no announcement that the form is where they
+  // already are. The parent bumps `focusSignal` on every activation, so each
+  // new value re-runs the focus.
+  useEffect(() => {
+    if (!open) return;
+    if (lastFocusSignal.current === focusSignal) return;
+    lastFocusSignal.current = focusSignal;
+    const field = formRef.current?.querySelector<HTMLElement>(
+      "input, textarea, select",
+    );
+    field?.focus();
+  }, [open, focusSignal]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -84,7 +112,7 @@ function VipForm({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <form onSubmit={save} className="bh-card space-y-4 p-6">
+    <form onSubmit={save} className="bh-card space-y-4 p-6" ref={formRef}>
       <h3 className="text-base font-bold text-primary">New VIP quote</h3>
       <p className="text-xs text-muted-foreground leading-relaxed">
         For words spoken by guests with no platform account (principals, speakers).
@@ -94,23 +122,23 @@ function VipForm({ onDone }: { onDone: () => void }) {
         <input
           value={name} onChange={(e) => setName(e.target.value)} required minLength={2} maxLength={200}
           placeholder="Name — e.g. Sita Sharma"
-          className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-red/40"
+          className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/40"
         />
         <input
           value={title} onChange={(e) => setTitle(e.target.value)} required minLength={2} maxLength={200}
           placeholder="Title — e.g. Principal, XYZ School"
-          className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-red/40"
+          className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/40"
         />
       </div>
       <textarea
         value={quote} onChange={(e) => setQuote(e.target.value)} required minLength={10} maxLength={2000} rows={3}
         placeholder="Their words, as spoken…"
-        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-primary placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-red/40"
+        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/40"
       />
       <input
         value={source} onChange={(e) => setSource(e.target.value)} maxLength={300}
         placeholder="Source occasion (optional) — e.g. said at Butwal orientation, Mar 2026"
-        className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-red/40"
+        className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/40"
       />
       {error && <p className="text-sm text-primary-red" role="alert">{error}</p>}
       <div className="flex items-center gap-2">
@@ -130,6 +158,14 @@ function VipForm({ onDone }: { onDone: () => void }) {
 
 export default function TestimonialsClient({ initialQueue }: { initialQueue: ModeratedTestimonial[] }) {
   const [queue, setQueue] = useState(initialQueue);
+  const [vipOpen, setVipOpen] = useState(false);
+  // Separate from `vipOpen`: opening the form and asking it to take focus are
+  // different events, and the second one has to fire again on every click.
+  const [vipFocus, setVipFocus] = useState(0);
+  const openVipForm = () => {
+    setVipOpen(true);
+    setVipFocus((n) => n + 1);
+  };
 
   async function refresh() {
     setQueue(await getTestimonialQueue());
@@ -156,14 +192,20 @@ export default function TestimonialsClient({ initialQueue }: { initialQueue: Mod
             Member submissions stay invisible until approved. VIP quotes publish instantly, featured.
           </p>
         </div>
-        <VipForm onDone={refresh} />
+        <VipForm onDone={refresh} open={vipOpen} setOpen={setVipOpen} focusSignal={vipFocus} />
       </div>
 
       <div className="space-y-3">
         {queue.length === 0 && (
-          <div className="bh-card p-10 text-center text-sm text-muted-foreground">
-            No testimonials yet — member submissions will appear here.
-          </div>
+          <EmptyState
+            icon={<Star className="w-12 h-12" />}
+            mascot="thinking-puzzled"
+            title="No testimonials yet"
+            description="Member submissions will appear here once hackers share their experience."
+            actions={[
+              { label: "Add VIP quote", onClick: openVipForm, variant: "primary" },
+            ]}
+          />
         )}
         {queue.map((item) => (
           <article key={item.id} className="bh-card space-y-3 p-5">

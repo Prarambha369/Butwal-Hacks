@@ -121,7 +121,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
       });
     });
 
-    // Code-backed sources: blog posts (including body text), chapters, initiatives.
+    // Code-backed sources: blog posts (including body text) and initiatives.
     searchStatic(q, limit).forEach((doc) => {
       results.push({
         type: doc.type,

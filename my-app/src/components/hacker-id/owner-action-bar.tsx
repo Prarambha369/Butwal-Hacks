@@ -16,13 +16,13 @@ export default function OwnerActionBar({ role }: OwnerActionBarProps) {
       <div className="bh-card rounded-full p-2 border border-primary-red/30 shadow-2xl flex items-center justify-between gap-2">
         <div className="flex items-center gap-3 px-4 py-2 border-r border-border">
           <div className="w-2 h-2 rounded-full bg-bh-red-500" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary opacity-60">
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary">
             Issuer Mode
           </span>
         </div>
         
         <div className="flex items-center gap-2 flex-1 justify-center">
-          <button className="flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-full bg-bh-red-500 text-primary text-xs font-bold hover:bg-deep-red transition-all active:scale-95 shadow-[0_0_15px_var(--glow-bh-red)] focus:ring-2 focus:ring-primary-red focus:outline-none" aria-label="Issue Certificate">
+          <button className="flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all active:scale-95 shadow-[0_0_15px_var(--glow-bh-red)] focus:ring-2 focus:ring-primary-red focus:outline-none" aria-label="Issue Certificate">
             <ShieldCheck size={14} />
             Issue Certificate
           </button>

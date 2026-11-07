@@ -3,6 +3,7 @@ import { auth0 } from "@/lib/auth0";
 import { PORTAL_ROLES } from "@/lib/dashboard-access";
 import {
   handleLocalDev,
+  redirectSignIn,
   redirectToDomain,
   requireAnyAuth,
   requireRole,
@@ -98,6 +99,12 @@ export default async function proxy(request: NextRequest) {
 
   if (hostname === "localhost" || hostname === "app.localhost" || hostname === "127.0.0.1") {
     return handleLocalDev(request);
+  }
+
+  // Edge-level redirect avoids rendering the sign-in page (and its
+  // meta-refresh fallback) which fails the axe meta-refresh accessibility audit.
+  if (pathname === "/sign-in") {
+    return redirectSignIn(request);
   }
 
   if (isRouteInSet(pathname, SHARED_PREFIXES)) {

@@ -71,14 +71,26 @@ describe("CookieConsentBanner link text", () => {
   });
 
   it("keeps every decorative icon out of the accessibility tree", () => {
-    // All five icons in the banner are decorative: the X labels via the
-    // button's aria-label, and the Cookie/Shield glyphs sit beside real text.
-    // Asserting on the svg itself rather than via closest(), which would also
-    // pass if an ancestor were hidden.
+    // The banner's icons are all decorative: the X labels via the button's
+    // aria-label, the Shield glyphs sit beside real text, and the two Mr. Ballu
+    // images (the mascot) are wrapped in an aria-hidden span by the Ballu
+    // component's default empty alt. Asserting on the elements themselves
+    // rather than via closest(), which would also pass if an ancestor were
+    // hidden.
     const icons = Array.from(banner.querySelectorAll("svg"));
-    expect(icons.length, "five decorative icons").toBe(5);
+    expect(icons.length, "three decorative lucide icons").toBe(3);
     for (const svg of icons) {
       expect(svg.getAttribute("aria-hidden"), "svg must be aria-hidden").toBe("true");
+    }
+
+    // Both responsive Mr. Ballu renders must also be hidden from the
+    // accessibility tree. next/image rewrites the src (so match on ancestry,
+    // not the URL); the Ballu wrapper sets aria-hidden when alt is empty.
+    const images = Array.from(banner.querySelectorAll("img"));
+    expect(images.length, "both Mr. Ballu variants render").toBe(2);
+    for (const img of images) {
+      const hidden = img.closest('[aria-hidden="true"]');
+      expect(hidden, "Mr. Ballu image must sit inside an aria-hidden element").toBeTruthy();
     }
   });
 });

@@ -13,18 +13,20 @@ import {
   FileDown,
   QrCode,
   ScanQrCode,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ChevronRight
 } from "lucide-react";
 import Link from "next/link";
 
 import { CloseEventClientButton } from "./close-event-button";
 import { EventSlugEditor } from "./slug-editor";
 import { CertificateExportButton } from "./certificate-export-button";
+import { BannerUploadButton } from "@/components/organizer/banner-upload-button";
 import { buildPageMetadata } from "@/lib/seo"
 
 
 export async function generateMetadata() {
-  return { ...buildPageMetadata({title: "Event Details", description: "View event details", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
+  return { ...buildPageMetadata({title: "Event Details", description: "View event details", path: "/dashboard/organizer/events", keywords: []}) };
 }
 
 export default async function EventDetailsPage({
@@ -60,6 +62,24 @@ export default async function EventDetailsPage({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
+          <nav aria-label="Breadcrumb" className="mb-1.5">
+            <ol className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <li>
+                <Link
+                  href="/dashboard/organizer/events"
+                  className="transition-colors hover:text-bh-red-action"
+                >
+                  Events
+                </Link>
+              </li>
+              <li aria-hidden="true">
+                <ChevronRight className="h-3 w-3 opacity-40" />
+              </li>
+              <li>
+                <span aria-current="page">{event.title}</span>
+              </li>
+            </ol>
+          </nav>
           <h1 className="text-3xl font-bold tracking-tight text-primary">{event.title}</h1>
           <p className="text-sm text-muted-foreground">Organizer Command Center</p>
         </div>
@@ -177,6 +197,21 @@ export default async function EventDetailsPage({
               Download all certificates for this event as a single PDF with one page per participant. Includes event details, attendee name, BH-ID, and issue date.
             </p>
             <CertificateExportButton eventId={event_id} hasCertificates={(certCount ?? 0) > 0} />
+          </div>
+
+          {/* Banner */}
+          <div className="bh-card p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="w-5 h-5 text-primary-red" />
+              <h2 className="text-base font-bold text-primary">Banner</h2>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              The banner shown on the event card. Upload a 16:9 image, or remove the current one.
+            </p>
+            <BannerUploadButton
+              eventId={event_id}
+              currentBannerUrl={event.banner_url}
+            />
           </div>
         </div>
       </div>

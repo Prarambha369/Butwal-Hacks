@@ -37,15 +37,84 @@ const baseUrl = SITE_URL;
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "NGO",
-  "name": "Butwal Hacks",
-  "url": baseUrl,
-  "logo": `${baseUrl}/icon-512.png`,
-  "description": "A student-run nonprofit organizing free hackathons, hands-on workshops, and project-based learning for young builders in Nepal.",
-  "foundingDate": "2024",
-  "areaServed": { "@type": "Place", "name": "Lumbini Province, Nepal" },
-  "knowsAbout": ["Technology Education", "Hackathons", "Youth Mentorship"],
-  "sameAs": ["https://github.com/Prarambha369/Butwal-Hacks"],
+  "@graph": [
+    {
+      "@type": "NGO",
+      "@id": `${baseUrl}/#organization`,
+      "name": "Butwal Hacks",
+      "alternateName": "ButwalHacks",
+      "url": baseUrl,
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${baseUrl}/icon-512.png`,
+        "width": 512,
+        "height": 512,
+      },
+      "image": `${baseUrl}/icon-512.png`,
+      "description": "A student-run nonprofit organizing free hackathons, hands-on workshops, and project-based learning for young builders in Nepal.",
+      "foundingDate": "2024",
+      "foundingLocation": {
+        "@type": "Place",
+        "name": "Butwal, Nepal",
+      },
+      "founder": {
+        "@type": "Organization",
+        "name": "Butwal Hacks Community",
+      },
+      "areaServed": [
+        { "@type": "AdministrativeArea", "name": "Lumbini Province" },
+        { "@type": "Country", "name": "Nepal" },
+      ],
+      "location": {
+        "@type": "Place",
+        "name": "Butwal, Nepal",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Butwal",
+          "addressRegion": "Lumbini Province",
+          "addressCountry": "NP",
+        },
+      },
+      "knowsAbout": [
+        "Technology Education",
+        "Hackathons",
+        "Youth Mentorship",
+        "Game Jams",
+        "Coding Workshops",
+        "Student Developer Community",
+        "Free Hackathons Nepal",
+      ],
+      "sameAs": [
+        "https://github.com/Prarambha369/Butwal-Hacks",
+        "https://www.instagram.com/butwalhacks/",
+        "https://www.linkedin.com/company/butwalhacks/",
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "General Inquiries",
+        "url": `${baseUrl}/contact`,
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${baseUrl}/#website`,
+      "url": baseUrl,
+      "name": "Butwal Hacks",
+      "description": "Free hackathons, workshops, and project-based learning for students in Nepal.",
+      "publisher": {
+        "@id": `${baseUrl}/#organization`,
+      },
+      "inLanguage": ["en", "ne"],
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": `${baseUrl}/explore?search={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ],
 }
 
 export const metadata: Metadata = {

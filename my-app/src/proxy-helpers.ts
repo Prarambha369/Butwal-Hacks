@@ -3,6 +3,7 @@ import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
 import { PORTAL_ROLES } from "@/lib/dashboard-access";
+import { isDevAuthBypassEnabled } from "@/lib/dev-auth-bypass";
 
 function isCalendarHost(hostname: string): boolean {
   return (
@@ -16,6 +17,12 @@ export async function requireRole(
   pathname: string,
   allowedRoles: string[]
 ): Promise<NextResponse> {
+  // Opt-in only. A blanket `NODE_ENV !== "production"` check turned this gate
+  // off for `next dev`, which is what Playwright runs, so the RBAC specs
+  // stopped seeing redirects. See lib/dev-auth-bypass.ts.
+  if (isDevAuthBypassEnabled()) {
+    return NextResponse.next();
+  }
   // Middleware must pass the request. The no-arg overload reads cookies via
   // the App Router `headers()` dynamic API, which has no request scope here
   // and throws "headers was called outside a request scope" -> 500.
@@ -102,6 +109,10 @@ export async function requireAnyAuth(
   request: NextRequest,
   pathname: string
 ): Promise<NextResponse> {
+  // See requireRole: opt-in only, never implied by NODE_ENV alone.
+  if (isDevAuthBypassEnabled()) {
+    return NextResponse.next();
+  }
   // See requireRole: middleware needs the request-scoped overload.
   const session = await auth0.getSession(request);
   if (!session?.user?.sub) {
@@ -110,6 +121,22 @@ export async function requireAnyAuth(
     return NextResponse.redirect(loginUrl);
   }
   return NextResponse.next();
+}
+
+/**
+ * Proxy-level redirect for /sign-in → /auth/login.
+ * Handles this at the edge (HTTP redirect) so the sign-in page never renders
+ * a <meta http-equiv="refresh"> fallback, which fails axe's meta-refresh rule.
+ * Mirrors the logic in app/(auth)/sign-in/page.tsx.
+ */
+export function redirectSignIn(request: NextRequest): NextResponse {
+  const mode = request.nextUrl.searchParams.get("mode");
+  const returnTo = request.nextUrl.searchParams.get("returnTo");
+  const qs = new URLSearchParams();
+  if (mode === "signup") qs.set("screen_hint", "signup");
+  qs.set("returnTo", returnTo || "/dashboard/onboarding");
+  const url = new URL(`/auth/login?${qs.toString()}`, request.url);
+  return NextResponse.redirect(url);
 }
 
 export function redirectToDomain(request: NextRequest, target: "main" | "app"): NextResponse {
@@ -127,6 +154,10 @@ export function redirectToDomain(request: NextRequest, target: "main" | "app"): 
 export async function handleLocalDev(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get("host")?.split(":")[0] ?? "";
+
+  if (pathname === "/sign-in") {
+    return redirectSignIn(request);
+  }
 
   if (pathname.startsWith("/auth/")) {
     return await runAuthMiddleware(request);

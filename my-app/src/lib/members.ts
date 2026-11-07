@@ -5,16 +5,19 @@ export interface ExplorerMember {
   name: string
   role: "Builder" | "Mentor" | "Organizer" | "Sponsor"
   avatar: string
+  avatarUrl?: string | null
   bio: string
   skills: string[]
   projects: number
   events: number
   joined: string
-  /** Auth0 user ID for live presence matching. */
-  auth0_user_id?: string
   /** Opt-in flags from profiles (migration 031) — directory filter facets. */
   openToMentor: boolean
   lookingForTeam: boolean
+  socials?: Record<string, string>
+  githubUrl?: string | null
+  websiteUrl?: string | null
+  linkedinUrl?: string | null
 }
 
 // ─── Server-side Fetcher ──────────────────────────────────────────
@@ -50,9 +53,10 @@ interface ProfileRow {
   bio: string | null
   skills: string[] | null
   created_at: string
-  auth0_user_id?: string | null
   looking_for_team?: boolean | null
   open_to_mentor?: boolean | null
+  avatar_url?: string | null
+  socials?: Record<string, string> | null
 }
 
 export async function fetchExplorerMembers(
@@ -68,9 +72,10 @@ export async function fetchExplorerMembers(
       bio,
       skills,
       created_at,
-      auth0_user_id,
       open_to_mentor,
-      looking_for_team
+      looking_for_team,
+      avatar_url,
+      socials
     `)
     .not("bh_id", "is", null)
     .limit(100);
@@ -113,21 +118,91 @@ export async function fetchExplorerMembers(
       .toUpperCase()
       .slice(0, 2);
 
+    const socials = p.socials ?? {};
+    const githubRaw = socials.github;
+    const websiteRaw = socials.website;
+    const linkedinRaw = socials.linkedin;
+    const githubUrl = normalizeGitHubUrl(githubRaw);
+    const websiteUrl = normalizeUrl(websiteRaw);
+    const linkedinUrl = normalizeLinkedInUrl(linkedinRaw);
+
     return {
       bhId: p.bh_id || "",
       name,
       role: toDisplayRole(p.role),
       avatar: initials,
+      avatarUrl: p.avatar_url || null,
       bio: p.bio || "",
       skills: p.skills || [],
       projects: projectCounts.get(p.id) || 0,
       events: eventCounts.get(p.id) || 0,
       joined: p.created_at ? p.created_at.slice(0, 7) : "",
-      auth0_user_id: p.auth0_user_id || undefined,
       openToMentor: p.open_to_mentor === true,
       lookingForTeam: p.looking_for_team === true,
+      socials: Object.keys(socials).length > 0 ? socials : undefined,
+      githubUrl,
+      websiteUrl,
+      linkedinUrl,
     };
   });
+}
+
+// ─── URL normalization helpers ──────────────────────────────────
+
+function normalizeUrl(value: string | undefined | null): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^mailto:/i.test(trimmed)) return trimmed;
+  if (/^tel:/i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+function normalizeGitHubUrl(value: string | undefined | null): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const url = new URL(trimmed);
+      if (url.hostname === 'github.com' || url.hostname.endsWith('.github.com')) {
+        return url.toString();
+      }
+    } catch {
+      // fall through to handle bare handles below
+    }
+  }
+  if (/^@[\w-]+$/i.test(trimmed)) {
+    return `https://github.com/${trimmed.slice(1)}`;
+  }
+  if (/^[\w-]+$/i.test(trimmed)) {
+    return `https://github.com/${trimmed}`;
+  }
+  return undefined;
+}
+
+function normalizeLinkedInUrl(value: string | undefined | null): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const url = new URL(trimmed);
+      if (url.hostname === 'linkedin.com' || url.hostname.endsWith('.linkedin.com')) {
+        return url.toString();
+      }
+    } catch {
+      // fall through
+    }
+  }
+  if (/^@[\w-]+$/i.test(trimmed)) {
+    return `https://linkedin.com/in/${trimmed.slice(1)}`;
+  }
+  if (/^[\w-]+(-[\w-]+)*$/i.test(trimmed)) {
+    return `https://linkedin.com/in/${trimmed}`;
+  }
+  return undefined;
 }
 
 // ─── Aggregated Stats (works on any ExplorerMember[]) ─────────────
@@ -158,7 +233,7 @@ export function getExplorerStats(members: ExplorerMember[]) {
 type ExplorerFilters = {
   role?: ExplorerMember["role"] | "All"
   query?: string
-  sortBy?: "activity" | "projects" | "name" | "joined"
+  sortBy?: "featured" | "activity" | "projects" | "name" | "joined"
   /** Opt-in availability facets (profiles columns from migration 031). */
   openToMentor?: boolean
   lookingForTeam?: boolean
@@ -200,6 +275,10 @@ export function filterMembers(
   if (filters.sortBy) {
     results.sort((a, b) => {
       switch (filters.sortBy) {
+        // The showcase order: activity first, then the client layer on top of
+        // it re-ranks opt-in members and mentors. Kept distinct from
+        // "activity" so choosing Most Active means strictly activity.
+        case "featured":
         case "activity":
           return (b.projects + b.events) - (a.projects + a.events);
         case "projects":

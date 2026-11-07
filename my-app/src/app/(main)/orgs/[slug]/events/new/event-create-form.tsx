@@ -74,14 +74,14 @@ export default function OrgEventCreateForm({ chapterId, chapterSlug }: Props) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Spring HackDay 2026"
-          className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
+          className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
           autoFocus
         />
       </div>
 
       <div>
         <label htmlFor="description" className="mb-1.5 block text-sm font-medium text-primary">
-          Description <span className="text-muted-foreground/50">(optional)</span>
+          Description <span className="text-muted-foreground">(optional)</span>
         </label>
         <textarea
           id="description"
@@ -89,7 +89,7 @@ export default function OrgEventCreateForm({ chapterId, chapterSlug }: Props) {
           onChange={(e) => setDescription(e.target.value)}
           placeholder="What's this event about?"
           rows={3}
-          className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all resize-none"
+          className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all resize-none"
         />
       </div>
 
@@ -108,7 +108,7 @@ export default function OrgEventCreateForm({ chapterId, chapterSlug }: Props) {
         </div>
         <div>
           <label htmlFor="endDate" className="mb-1.5 block text-sm font-medium text-primary">
-            End Date <span className="text-muted-foreground/50">(optional)</span>
+            End Date <span className="text-muted-foreground">(optional)</span>
           </label>
           <input
             id="endDate"
@@ -122,7 +122,7 @@ export default function OrgEventCreateForm({ chapterId, chapterSlug }: Props) {
 
       <div>
         <label htmlFor="location" className="mb-1.5 block text-sm font-medium text-primary">
-          Location <span className="text-muted-foreground/50">(optional)</span>
+          Location <span className="text-muted-foreground">(optional)</span>
         </label>
         <input
           id="location"
@@ -130,7 +130,7 @@ export default function OrgEventCreateForm({ chapterId, chapterSlug }: Props) {
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           placeholder="e.g. Butwal, Rupandehi"
-          className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
+          className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
         />
       </div>
 
@@ -144,7 +144,7 @@ export default function OrgEventCreateForm({ chapterId, chapterSlug }: Props) {
         <button
           type="submit"
           disabled={submitting}
-          className={`inline-flex items-center gap-2 rounded-full bg-primary-red px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95 ${submitting ? 'bh-btn-disabled' : ''}`}
+          className={`inline-flex items-center gap-2 rounded-full bg-bh-red-action px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95 ${submitting ? 'bh-btn-disabled' : ''}`}
         >
           {submitting ? (
             <Loader2 className="w-4 h-4 animate-spin" />

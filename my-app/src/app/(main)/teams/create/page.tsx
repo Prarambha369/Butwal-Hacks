@@ -88,7 +88,7 @@ export default function CreateTeamPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Team Innovators"
-                className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
+                className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-red/30 transition-all"
                 autoFocus
               />
             </div>
@@ -103,7 +103,7 @@ export default function CreateTeamPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className={`inline-flex items-center gap-2 rounded-full bg-primary-red px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95 ${submitting ? 'bh-btn-disabled' : ''}`}
+                className={`inline-flex items-center gap-2 rounded-full bg-bh-red-action px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95 ${submitting ? 'bh-btn-disabled' : ''}`}
               >
                 {submitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

@@ -2,8 +2,9 @@
 
 import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Ballu } from '@/components/mascot/ballu';
 import { useLanguage } from '@/components/language-provider';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { t } from '@/lib/i18n';
@@ -92,7 +93,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
     <div className="min-h-dvh flex items-center justify-center p-6 bg-background text-primary">
       <div className="max-w-md w-full text-center space-y-6">
         <div className="mx-auto w-20 h-20 rounded-full bg-primary-red/10 flex items-center justify-center text-primary-red">
-          <AlertTriangle size={40} />
+          <Ballu emotion="confused-frustrated" size={80} />
         </div>
         <div className="space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">{t('common.error', locale)}</h2>

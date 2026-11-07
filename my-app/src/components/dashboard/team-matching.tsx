@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Users, Search, Zap, RefreshCw, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import { Skeleton, FeedSkeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import type { TeamMatchResult } from "@/lib/actions/team-matching";
@@ -94,11 +95,11 @@ export default function TeamMatching() {
                   {/* Avatar */}
                   <div className="relative w-10 h-10 rounded-full overflow-hidden bg-surface/20 ring-2 ring-border/30 shrink-0">
                     {candidate.avatar_url ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
+                      <Image
                         src={candidate.avatar_url}
                         alt={candidate.full_name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-sm font-bold text-muted-foreground">
@@ -158,7 +159,7 @@ export default function TeamMatching() {
                         {candidate.matchReasons.map((reason, i) => (
                           <span
                             key={i}
-                            className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground/60"
+                            className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground"
                           >
                             <Zap className="w-2.5 h-2.5 text-status-yellow" />
                             {reason}
@@ -177,9 +178,9 @@ export default function TeamMatching() {
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
-                    {candidate.social_links?.github && (
+                    {candidate.socials?.github && (
                       <a
-                        href={candidate.social_links.github}
+                        href={candidate.socials.github}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-colors"
@@ -200,7 +201,7 @@ export default function TeamMatching() {
         /* Empty state */
         <div className="bh-card p-8 text-center">
           <div className="mx-auto w-12 h-12 rounded-full bg-surface-hover flex items-center justify-center mb-3">
-            <Search className="w-6 h-6 text-muted-foreground/50" />
+            <Search className="w-6 h-6 text-muted-foreground" />
           </div>
           <p className="text-sm font-bold text-primary mb-1">No matches found</p>
           <p className="text-xs text-muted-foreground max-w-xs mx-auto">

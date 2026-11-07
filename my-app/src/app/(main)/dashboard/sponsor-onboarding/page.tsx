@@ -7,7 +7,7 @@ import Link from "next/link";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "Sponsor Onboarding", description: "Set up your sponsor profile", path: "/dashboard/sponsor-onboarding", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Sponsor Onboarding", description: "Set up your sponsor profile", path: "/dashboard/sponsor-onboarding", keywords: []}) };
 
 export const dynamic = "force-dynamic";
 
@@ -155,7 +155,7 @@ function FunnelStep({
     <li className={isCurrent ? "" : "opacity-70"}>
       <div className={`bh-card p-5 border ${isCurrent ? "border-primary-red/30 bg-primary-red/[0.02]" : "border-border"}`}>
         <div className="flex items-start gap-4">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-mono font-bold ${isCurrent ? "bg-primary-red text-white" : "bg-status-blue/10 text-status-blue"}`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-mono font-bold ${isCurrent ? "bg-bh-red-action text-white" : "bg-status-blue/10 text-status-blue"}`}>
             {number}
           </div>
           <div className="flex-1 min-w-0">

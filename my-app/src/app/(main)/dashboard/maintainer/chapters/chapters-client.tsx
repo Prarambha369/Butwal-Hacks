@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, School } from "lucide-react";
 import {
   saveChapter,
   deleteChapter,
   type ChapterRow,
 } from "@/lib/actions/chapters";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const emptyForm = {
   name: "", slug: "", school: "", lead_name: "", city: "",
@@ -21,6 +23,7 @@ export function ChaptersClient({ initialChapters }: { initialChapters: ChapterRo
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [chapterToDelete, setChapterToDelete] = useState<{ id: string; name: string } | null>(null);
 
   async function refresh() {
     const { getAllChapters } = await import("@/lib/actions/chapters");
@@ -90,7 +93,6 @@ export function ChaptersClient({ initialChapters }: { initialChapters: ChapterRo
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this chapter?")) return;
     setBusy(true);
     try {
       await deleteChapter(id);
@@ -114,7 +116,7 @@ export function ChaptersClient({ initialChapters }: { initialChapters: ChapterRo
         <p className="max-w-2xl text-sm text-muted-foreground leading-relaxed">
           School chapters on the public page. Uncheck active to hide without deleting.
         </p>
-        <button onClick={startAdd} className="inline-flex items-center gap-1.5 rounded-full bg-primary-red px-4 py-2 text-xs font-bold text-white hover:bg-deep-red transition-all">
+        <button onClick={startAdd} className="inline-flex items-center gap-1.5 rounded-full bg-bh-red-action px-4 py-2 text-xs font-bold text-white hover:bg-deep-red transition-all">
           <Plus className="w-3.5 h-3.5" /> Add chapter
         </button>
       </div>
@@ -133,14 +135,22 @@ export function ChaptersClient({ initialChapters }: { initialChapters: ChapterRo
               <button onClick={() => startEdit(c)} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Edit ${c.name}`}>
                 <Pencil className="w-4 h-4" />
               </button>
-              <button onClick={() => remove(c.id)} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Delete ${c.name}`}>
+              <button onClick={() => setChapterToDelete({ id: c.id, name: c.name })} className="bh-icon-btn !min-w-[36px] !min-h-[36px]" aria-label={`Delete ${c.name}`}>
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
         ))}
         {chapters.length === 0 && !editingId && (
-          <p className="text-sm text-muted-foreground">No chapters in the database yet. The public page shows the built-in list.</p>
+          <EmptyState
+            icon={<School className="w-12 h-12" />}
+            mascot="welcome"
+            title="No chapters yet"
+            description="The public chapters page stays empty until you add a school chapter."
+            actions={[
+              { label: "Add chapter", onClick: () => startAdd(), variant: "primary" },
+            ]}
+          />
         )}
       </div>
 
@@ -171,7 +181,7 @@ export function ChaptersClient({ initialChapters }: { initialChapters: ChapterRo
             </label>
           </div>
           <div className="flex gap-2">
-            <button type="submit" disabled={busy} className="inline-flex items-center gap-1.5 rounded-full bg-primary-red px-5 py-2 text-xs font-bold text-white hover:bg-deep-red transition-all disabled:opacity-50">
+            <button type="submit" disabled={busy} className="inline-flex items-center gap-1.5 rounded-full bg-bh-red-action px-5 py-2 text-xs font-bold text-white hover:bg-deep-red transition-all disabled:opacity-50">
               <Check className="w-3.5 h-3.5" /> Save
             </button>
             <button type="button" onClick={() => setEditingId(null)} className="inline-flex items-center gap-1.5 rounded-full border border-border px-5 py-2 text-xs font-bold text-muted-foreground hover:text-primary transition-all">
@@ -179,6 +189,18 @@ export function ChaptersClient({ initialChapters }: { initialChapters: ChapterRo
             </button>
           </div>
         </form>
+      )}
+
+      {chapterToDelete && (
+        <ConfirmDialog
+          title="Delete chapter"
+          entityName={chapterToDelete.name}
+          consequence="The chapter record is deleted permanently, along with its school, leads, and member details. This cannot be undone."
+          confirmLabel="Delete chapter"
+          irreversible
+          onConfirm={() => remove(chapterToDelete.id)}
+          onClose={() => setChapterToDelete(null)}
+        />
       )}
     </div>
   );

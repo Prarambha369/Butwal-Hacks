@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, ArrowRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Ballu } from "@/components/mascot/ballu";
 
 /** Fired to open the palette from outside it. */
 export const OPEN_PALETTE_EVENT = "butwal:open-dashboard-palette";
@@ -183,7 +184,7 @@ export function DashboardCommandPalette({
           <div className="max-h-[50vh] overflow-y-auto overscroll-contain p-2">
             {filtered.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-10 text-center">
-                <Search className="h-7 w-7 text-muted-foreground/30" />
+                <Ballu emotion="thinking-puzzled" size={48} />
                 <p className="text-sm text-muted-foreground">
                   No pages match &ldquo;{query}&rdquo;
                 </p>
@@ -207,7 +208,7 @@ export function DashboardCommandPalette({
                         "flex h-7 w-7 items-center justify-center rounded-lg",
                         idx === selectedIdx
                           ? "text-primary-red"
-                          : "text-muted-foreground/50",
+                          : "text-muted-foreground",
                       )}
                     >
                       {link.icon}
@@ -220,7 +221,7 @@ export function DashboardCommandPalette({
                         "flex items-center gap-1 text-[10px] font-mono transition-opacity",
                         idx === selectedIdx
                           ? "opacity-100 text-muted-foreground"
-                          : "opacity-40 text-muted-foreground/50",
+                          : "opacity-40 text-muted-foreground",
                       )}
                     >
                       <kbd className="rounded border border-border/30 px-1 py-0.5">
@@ -244,7 +245,7 @@ export function DashboardCommandPalette({
 
           {/* Footer */}
           <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
-            <div className="flex items-center gap-3 text-[10px] text-muted-foreground/50">
+            <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
               <span>
                 <kbd className="rounded border border-border/30 px-1 font-mono">
                   ↑↓
@@ -266,7 +267,7 @@ export function DashboardCommandPalette({
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+              className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-muted-foreground transition-colors hover:text-muted-foreground"
             >
               <X className="h-3 w-3" />
               Close

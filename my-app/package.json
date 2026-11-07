@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.3.0"
   },
   "scripts": {
     "dev": "NODE_OPTIONS='--max-http-header-size=16384' next dev",
@@ -11,12 +11,13 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "audit:ui": "node scripts/audit-ui.mjs"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.30.0",
     "@hello-pangea/dnd": "^18.0.1",
-    "@hookform/resolvers": "^3.10.0",
+    "@hookform/resolvers": "^5.2.2",
     "@sentry/nextjs": "^10.76.2",
     "@supabase/supabase-js": "^2.108.2",
     "@upstash/ratelimit": "^2.0.8",
@@ -35,7 +36,7 @@
     "recharts": "^2.15.4",
     "sonner": "^1.7.4",
     "tailwind-merge": "^3.3.1",
-    "zod": "3.25.76"
+    "zod": "^4.6.7"
   },
   "allowScripts": {
     "@sentry/cli": true,

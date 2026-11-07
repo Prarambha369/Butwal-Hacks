@@ -179,7 +179,7 @@ export default function TeamPortfolio({ teamId }: TeamPortfolioProps) {
                     </div>
                     <Link 
                       href={`/projects/${project.id}`}
-                      className="p-2 rounded-lg bg-bh-red-500 text-primary hover:bg-primary-red/90 transition-all"
+                      className="p-2 rounded-lg bg-bh-red-action text-white hover:bg-deep-red transition-all"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </Link>

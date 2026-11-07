@@ -5,10 +5,9 @@ import { auth0 } from "@/lib/auth0"
 import { createServiceClient } from "@/utils/supabase"
 import WorkDashboardClient from "./work-dashboard-client"
 import { buildPageMetadata } from "@/lib/seo"
-import type { TeamMemberRaw } from "@/lib/team-types";
 
 
-export const metadata = { ...buildPageMetadata({title: "My Work", description: "Your submitted work", path: "/dashboard/hacker/work", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "My Work", description: "Your submitted work", path: "/dashboard/hacker/work", keywords: []}) };
 
 export const dynamic = "force-dynamic"
 
@@ -35,7 +34,7 @@ export default async function WorkPage() {
   const { data: memberships } = await db
     .from("team_members")
     .select("team_id, team:teams!inner(id, name)")
-    .eq("user_id", profile.id)
+    .eq("profile_id", profile.id)
 
   const teamIds = memberships?.map((m) => m.team_id) || []
 
@@ -54,12 +53,12 @@ export default async function WorkPage() {
   const teamMembers = firstWorkspace
     ? await db
         .from("team_members")
-        .select("user_id, profile:profiles!inner(id, full_name)")
+        .select("profile_id, profile:profiles!inner(id, full_name)")
         .eq("team_id", firstWorkspace.team_id)
     : { data: [] }
 
-  const members = ((teamMembers.data || []) as unknown as TeamMemberRaw[]).map((m) => ({
-    id: m.profile?.id || m.user_id,
+  const members = ((teamMembers.data || []) as unknown as Array<{ profile_id: string; profile: { id: string; full_name: string | null } | null }>).map((m) => ({
+    id: m.profile?.id || m.profile_id,
     name: m.profile?.full_name || "Unknown",
     initial: (m.profile?.full_name || "?").charAt(0).toUpperCase(),
   }))
@@ -91,7 +90,7 @@ export default async function WorkPage() {
         />
       ) : (
         <div className="bh-card p-12 text-center space-y-4">
-          <Users className="w-10 h-10 mx-auto text-muted-foreground/40" />
+          <Users className="w-10 h-10 mx-auto text-muted-foreground" />
           <h3 className="text-lg font-semibold text-primary">No Active Workspace</h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
             Join a team to get access to your workspace and start managing tasks.
@@ -99,7 +98,7 @@ export default async function WorkPage() {
           <div className="pt-2">
             <Link
               href="/teams"
-              className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+              className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-6 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
             >
               <Users className="w-4 h-4" />
               Join a Team

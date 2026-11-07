@@ -31,6 +31,12 @@ const guides = [
     href: "/docs/components/section-heading",
     cta: "Open preview",
   },
+  {
+    title: "Join a Hackathon",
+    description: "First hackathon? How to pick an event, register, show up, and find a team — free, beginner-friendly.",
+    href: "/join",
+    cta: "How to join",
+  },
 ]
 
 const resourceCategories = [
@@ -190,7 +196,7 @@ export default function LearnPage() {
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
+            className="bh-btn-primary text-sm"
           >
             Share Resources
           </Link>

@@ -1,0 +1,58 @@
+-- Migration: 140_drop_micro_credentials.sql
+-- Purpose: Retire the micro_credentials / profile_micro_credentials tables
+--          (created by 069; Skill Trees removed in PR #58) by archiving them
+--          through a RENAME — never a DROP.
+--
+-- Why archive-rename instead of DROP:
+--   A production scan showed this migration had not been applied and both
+--   tables still hold rows (8 in micro_credentials, 7 in
+--   profile_micro_credentials). A plain DROP would irretrievably lose that
+--   data. RENAME keeps every row, index, constraint, FK, policy and grant
+--   attached to the table; only the name changes, so nothing is destroyed.
+--
+-- Why not copy-then-rename:
+--   An earlier draft created *_archive_140 tables and then renamed the
+--   originals onto those same names, which collides. Copying is also
+--   redundant: RENAME already preserves the data in place.
+--
+-- Recovery (inverse rename, no data re-copy needed):
+--   ALTER TABLE public.profile_micro_credentials_archive_140
+--     RENAME TO profile_micro_credentials;
+--   ALTER TABLE public.micro_credentials_archive_140 RENAME TO micro_credentials;
+--
+-- Idempotency:
+--   Safe to run more than once: each rename is guarded by to_regclass() and
+--   is skipped if the archive already exists, so deploys that re-apply this
+--   file (e.g. manual prod application followed by `db push`) do not fail.
+--
+-- NOT VALID: inapplicable — this migration adds no new constraint, so there
+--   is nothing to mark NOT VALID.
+--
+-- auth.jwt(): inapplicable — this is owner DDL (ALTER TABLE ... RENAME) run
+--   as the migration role, not a per-row RLS policy. AGENTS.md's
+--   auth.jwt() ->> 'sub' rule applies to new RLS policies; none are defined
+--   here and the existing policies travel with the renamed table.
+--
+-- RLS/grant migrations that referenced these tables (073, 116) already ran
+-- and use IF EXISTS guards; they are not re-executed after this point.
+
+BEGIN;
+
+-- Idempotent: `db push` re-runs this file on environments where it was
+-- applied manually before landing; guard every rename.
+DO $$
+BEGIN
+  IF to_regclass('public.profile_micro_credentials') IS NOT NULL
+     AND to_regclass('public.profile_micro_credentials_archive_140') IS NULL THEN
+    ALTER TABLE public.profile_micro_credentials
+      RENAME TO profile_micro_credentials_archive_140;
+  END IF;
+
+  IF to_regclass('public.micro_credentials') IS NOT NULL
+     AND to_regclass('public.micro_credentials_archive_140') IS NULL THEN
+    ALTER TABLE public.micro_credentials
+      RENAME TO micro_credentials_archive_140;
+  END IF;
+END $$;
+
+COMMIT;

@@ -11,7 +11,7 @@ import GoogleCalendarSettings from '@/components/dashboard/google-calendar-setti
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "My Profile", description: "View and edit your profile", path: "/dashboard/hacker/profile", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "My Profile", description: "View and edit your profile", path: "/dashboard/hacker/profile", keywords: []}) };
 
 export default async function HackerProfileSettingsPage() {
   const session = await auth0.getSession();
@@ -37,7 +37,7 @@ export default async function HackerProfileSettingsPage() {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight text-primary">Profile Settings</h1>
-          <p className="text-sm text-muted-foreground">Manage your public identity and trust markers.</p>
+          <p className="text-sm text-muted-foreground">Edit your public identity and trust markers. Social links and avatar are saved here; they are not synced automatically on login.</p>
         </div>
       </div>
 

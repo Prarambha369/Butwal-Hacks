@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { AsyncStatus, type AsyncState } from "@/components/ui/async-status";
 // Client-safe module only. Importing from @/lib/auth0-management here would
 // pull the Management API (and its secret lookups) into the browser bundle.
 import { getProviderDisplayName } from "@/lib/auth0-providers";
@@ -28,7 +30,13 @@ type LinkStatus =
   | { type: "loading" }
   | { type: "linking"; provider: string }
   | { type: "error"; message: string }
-  | { type: "success"; message: string };
+  | { type: "success"; message: string; source: "link" | "unlink" };
+
+/**
+ * Account staged for disconnect. Held until the confirm dialog resolves, so
+ * the provider name and user id stay in scope for handleUnlink.
+ */
+type PendingUnlink = LinkedAccount | null;
 
 const PROVIDER_CONFIG: Record<string, { icon: React.ReactNode; color: string; bgClass: string }> = {
   github: {
@@ -70,6 +78,7 @@ function getProviderUi(provider: string) {
 export default function LinkedAccounts({ className }: LinkedAccountsProps) {
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingUnlink, setPendingUnlink] = useState<PendingUnlink>(null);
   const [status, setStatus] = useState<LinkStatus>({ type: "idle" });
   const [error, setError] = useState<string | null>(null);
 
@@ -128,14 +137,10 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
   };
 
   /**
-   * Unlink a connected account.
+   * Unlink a connected account. Called by the confirm dialog — the account is
+   * already confirmed disconnectable (remember: reconnect anytime).
    */
   const handleUnlink = async (account: LinkedAccount) => {
-    const displayName = getProviderDisplayName(account.provider);
-    if (!window.confirm(`Disconnect ${displayName} from your account? You can reconnect anytime.`)) {
-      return;
-    }
-
     setStatus({ type: "loading" });
     try {
       const res = await fetch("/api/auth/link/unlink", {
@@ -158,7 +163,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
           (l) => !(l.provider === account.provider && l.user_id === account.user_id)
         )
       );
-      setStatus({ type: "success", message: data.message });
+      setStatus({ type: "success", message: data.message, source: "unlink" });
       toast.success(data.message);
       setTimeout(() => setStatus({ type: "idle" }), 3000);
     } catch (err) {
@@ -175,7 +180,11 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
     if (linkedParam) {
       if (linkedParam.startsWith("success:")) {
         const provider = linkedParam.replace("success:", "");
-        setStatus({ type: "success", message: `${provider} connected successfully!` });
+        setStatus({
+          type: "success",
+          message: `${provider} connected successfully!`,
+          source: "link",
+        });
         toast.success(`${provider} connected successfully!`);
         // Refresh the list
         fetchLinkedAccounts();
@@ -195,9 +204,11 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
   }, [fetchLinkedAccounts]);
 
   const isLinking = status.type === "linking";
+  const statusState: AsyncState =
+    status.type === "success" ? "success" : status.type === "error" ? "error" : "idle";
 
   const availableProviders = [
-    { id: "github", name: "GitHub", description: "Connect your GitHub account for automatic repo syncing and contribution tracking." },
+    { id: "github", name: "GitHub", description: "Sign in with GitHub and, if your profile URL is empty, auto-fill it from your account name." },
     { id: "linkedin", name: "LinkedIn", description: "Display your LinkedIn profile and professional experience." },
     { id: "google-oauth2", name: "Google", description: "Use your Google account for quick sign-in." },
   ] as const;
@@ -234,24 +245,37 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
         <div>
           <h3 className="font-bold text-sm text-primary">Linked Accounts</h3>
           <p className="text-[10px] text-muted-foreground font-mono">
-            Connect accounts via Auth0 for single sign-on
+            Sign in with any connected account. Linking writes your linked-account list and, for GitHub/LinkedIn, optionally fills your profile URL.
           </p>
         </div>
       </div>
 
-      {/* Status banner */}
-      {status.type === "success" && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-status-green/10 border border-status-green/20 animate-in fade-in slide-in-from-top-1 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-status-green shrink-0" />
-          <span className="text-xs font-medium text-status-green">{status.message}</span>
-        </div>
-      )}
-      {status.type === "error" && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-status-red/10 border border-status-red/20 animate-in fade-in slide-in-from-top-1 duration-200">
-          <AlertCircle className="w-4 h-4 text-status-red shrink-0" />
-          <span className="text-xs font-medium text-status-red">{status.message}</span>
-        </div>
-      )}
+      {/* Outcome of the last linking/unlinking attempt. Rendered from first
+          paint so the text is swapped inside existing live regions. */}
+      <AsyncStatus
+        state={statusState}
+        success={
+          <span className="flex items-start gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span>
+              {status.type === "success" ? status.message : null}
+              {status.type === "success" && status.source === "link" && (
+                <span className="block font-normal text-muted-foreground">
+                  You can now sign in with it.
+                </span>
+              )}
+            </span>
+          </span>
+        }
+        successClassName="flex items-start gap-2 px-3 py-2 rounded-lg bg-status-green/10 border border-status-green/20 text-xs font-medium text-status-green"
+        error={
+          <span className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span>{status.type === "error" ? status.message : null}</span>
+          </span>
+        }
+        errorClassName="flex items-start gap-2 px-3 py-2 rounded-lg bg-status-red/10 border border-status-red/20 text-xs font-medium text-status-red"
+      />
 
       {/* Linked accounts list */}
       {linkedAccounts.length > 0 && (
@@ -279,8 +303,9 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
                   </p>
                 </div>
                 <button
-                  onClick={() => handleUnlink(account)}
-                  disabled={status.type === "loading"}
+                  onClick={() => setPendingUnlink(account)}
+                  disabled={status.type === "loading" || status.type === "linking"}
+                  aria-busy={status.type === "loading"}
                   className="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-status-red/10 text-muted-foreground hover:text-status-red transition-all disabled:opacity-40"
                   title={`Disconnect ${displayName}`}
                   aria-label={`Disconnect ${displayName}`}
@@ -311,6 +336,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
                 key={provider.id}
                 onClick={() => handleLink(provider.id)}
                 disabled={isLinking}
+                aria-busy={isLinking}
                 className={cn(
                   "w-full flex items-center gap-3 p-3 rounded-lg border border-border/60 hover:border-primary-red/30 hover:bg-primary-red/[0.03] transition-all text-left group",
                   isLinking && status.type === "linking" && (status as { provider: string }).provider === provider.id && "opacity-60"
@@ -331,7 +357,7 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
                     {provider.description}
                   </p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary-red/60 group-hover:translate-x-0.5 transition-all" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary-red/60 group-hover:translate-x-0.5 transition-all" />
               </button>
             );
           })}
@@ -343,11 +369,11 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
       ) && (
         <div className="text-center py-6 space-y-2">
           <div className="mx-auto w-12 h-12 rounded-full bg-surface-hover flex items-center justify-center">
-            <Link2 className="w-6 h-6 text-muted-foreground/40" />
+            <Link2 className="w-6 h-6 text-muted-foreground" />
           </div>
           <p className="text-sm font-bold text-primary">No accounts linked</p>
           <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-            Connect your GitHub, LinkedIn, or Google account for single sign-on and automatic profile syncing.
+            Connect your GitHub, LinkedIn, or Google account so you can sign in with it. GitHub and LinkedIn profile URLs are filled in automatically if your profile is missing them.
           </p>
         </div>
       )}
@@ -370,12 +396,23 @@ export default function LinkedAccounts({ className }: LinkedAccountsProps) {
 
       {/* Footer info */}
       <div className="pt-2 border-t border-border/40">
-        <p className="text-[9px] text-muted-foreground/60 leading-relaxed">
+        <p className="text-[9px] text-muted-foreground leading-relaxed">
           Accounts are linked through Auth0. You can sign in with any connected account.
           Disconnecting an account only removes it from your sign-in options - it won&apos;t
           affect your profile data.
         </p>
       </div>
+
+      {pendingUnlink && (
+        <ConfirmDialog
+          title="Disconnect account?"
+          entityName={getProviderDisplayName(pendingUnlink.provider)}
+          consequence="This removes the account from your sign-in options. You can reconnect it anytime."
+          confirmLabel={`Disconnect ${getProviderDisplayName(pendingUnlink.provider)}`}
+          onConfirm={() => handleUnlink(pendingUnlink)}
+          onClose={() => setPendingUnlink(null)}
+        />
+      )}
     </div>
   );
 }

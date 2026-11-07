@@ -72,7 +72,7 @@ export default function LinkProjectModal({ teamId, onClose, onSuccess }: LinkPro
               type="submit"
               disabled={submitting}
               className={cn(
-                "flex-1 px-4 py-3 rounded-lg bg-bh-red-500 text-primary hover:bg-primary-red/90 transition-all text-sm font-bold flex items-center justify-center gap-2",
+                "flex-1 px-4 py-3 rounded-lg bg-bh-red-action text-white hover:bg-deep-red transition-all text-sm font-bold flex items-center justify-center gap-2",
                 submitting && "opacity-70 cursor-not-allowed"
               )}
             >

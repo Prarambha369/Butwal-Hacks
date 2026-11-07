@@ -11,7 +11,7 @@ export function DonorsCTA() {
       <div className="mt-6">
         <Link
           href="/support"
-          className="inline-block rounded-lg bg-primary px-8 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          className="bh-btn-primary"
         >
           Support Our Mission
         </Link>

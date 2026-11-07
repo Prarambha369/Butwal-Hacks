@@ -105,7 +105,7 @@ export function PhotoOptimizeDialog({
                   <button
                     type="button" disabled={applying !== null}
                     onClick={() => apply(v.recipe)}
-                    className="inline-flex items-center gap-1 rounded-lg bg-primary-red px-4 py-2 text-xs font-bold text-white hover:bg-deep-red disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-lg bg-bh-red-action px-4 py-2 text-xs font-bold text-white hover:bg-deep-red disabled:opacity-50"
                   >
                     <Check className="h-3.5 w-3.5" />
                     {applying === v.recipe ? "Applying…" : "Apply to photo"}

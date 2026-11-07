@@ -8,10 +8,11 @@ import Link from "next/link";
 import AttendeeExport, { type Attendee } from "@/components/dashboard/organizer/attendee-export";
 import { CheckInButton } from "./checkin-button";
 import { buildPageMetadata } from "@/lib/seo"
+import { EmptyState } from "@/components/ui/empty-state";
 
 
 export async function generateMetadata() {
-  return { ...buildPageMetadata({title: "Attendees", description: "Event attendee list", path: "/dashboard/organizer/events", keywords: []}), robots: { index: false, follow: false } };
+  return { ...buildPageMetadata({title: "Attendees", description: "Event attendee list", path: "/dashboard/organizer/events", keywords: []}) };
 }
 
 type Props = {
@@ -223,8 +224,16 @@ export default async function AttendeesPage({ params }: Props) {
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                    No registrations yet for this event.
+                  <td colSpan={5}>
+                    <EmptyState
+                      icon={<Users className="w-12 h-12" />}
+                      mascot="thinking-puzzled"
+                      title="No registrations yet"
+                      description="Hackers appear here after they register for this event."
+                      actions={[
+                        { label: "Open event settings", href: `/dashboard/organizer/events/${event_id}`, variant: "primary" },
+                      ]}
+                    />
                   </td>
                 </tr>
               )}

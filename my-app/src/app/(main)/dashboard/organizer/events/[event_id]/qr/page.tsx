@@ -1,9 +1,9 @@
 import { createServiceClient } from "@/utils/supabase";
 import { notFound } from "next/navigation";
-import { QrCode, ArrowLeft, Users, Printer } from "lucide-react";
-import Link from "next/link";
+import { QrCode, Users, Printer } from "lucide-react";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const dynamic = "force-dynamic";
 
@@ -56,13 +56,6 @@ export default async function EventQrPage({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <Link
-              href={`/dashboard/organizer/events/${event_id}`}
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-            >
-              <ArrowLeft className="w-3 h-3" />
-              Back to Event
-            </Link>
             <div className="flex items-center gap-3 mt-1">
               <div className="w-10 h-10 rounded-xl bg-primary-red/10 flex items-center justify-center">
                 <QrCode className="w-5 h-5 text-primary-red" />
@@ -93,15 +86,15 @@ export default async function EventQrPage({
 
         {/* QR Code Grid */}
         {rows.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 rounded-2xl bg-surface-hover flex items-center justify-center mx-auto mb-4 ring-1 ring-border">
-              <QrCode className="w-6 h-6 text-muted-foreground/40" />
-            </div>
-            <p className="text-lg font-bold text-primary">No registrations yet</p>
-            <p className="text-sm text-muted-foreground/60 mt-1">
-              QR codes will appear here once hackers register for this event.
-            </p>
-          </div>
+          <EmptyState
+            icon={<QrCode className="w-12 h-12" />}
+            mascot="thinking-puzzled"
+            title="No registrations yet"
+            description="QR codes will appear here once hackers register for this event."
+            actions={[
+              { label: "Open event settings", href: `/dashboard/organizer/events/${event_id}`, variant: "primary" },
+            ]}
+          />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 print:gap-3">
             {rows.map((row) => {
@@ -132,7 +125,7 @@ export default async function EventQrPage({
                     {p?.full_name ?? "Unknown"}
                   </p>
                   {/* BH-ID */}
-                  <p className="text-[9px] font-mono text-muted-foreground/50 truncate">
+                  <p className="text-[9px] font-mono text-muted-foreground truncate">
                     {p?.bh_id ?? "—"}
                   </p>
                   {/* Status badge */}
@@ -141,7 +134,7 @@ export default async function EventQrPage({
                       CHECKED IN
                     </span>
                   ) : (
-                    <span className="inline-block text-[8px] font-mono text-muted-foreground/40">
+                    <span className="inline-block text-[8px] font-mono text-muted-foreground">
                       pending
                     </span>
                   )}

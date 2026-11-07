@@ -101,7 +101,7 @@ export default function TeamInviteList({ onUpdate }: TeamInviteListProps) {
         <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
           <Mail className="w-4 h-4" /> Pending Invitations
         </h3>
-        <p className="mt-3 text-xs text-muted-foreground font-mono opacity-60 text-center">
+        <p className="mt-3 text-xs text-muted-foreground font-mono text-center">
           No pending invitations.
         </p>
       </div>
@@ -116,7 +116,7 @@ export default function TeamInviteList({ onUpdate }: TeamInviteListProps) {
       {error && (
         <div className="flex items-center gap-2 p-3 rounded-lg bg-primary-red/10 border border-primary-red/30 text-primary-red text-sm">
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto text-primary-red/60 hover:text-primary-red text-xs">Dismiss</button>
+          <button onClick={() => setError(null)} className="ml-auto text-primary-red hover:text-deep-red text-xs">Dismiss</button>
         </div>
       )}
       <div className="space-y-3">
@@ -141,7 +141,7 @@ export default function TeamInviteList({ onUpdate }: TeamInviteListProps) {
               </button>
               <button 
                 onClick={() => handleRespond(invite.id, true)}
-                className="p-2 rounded-lg bg-bh-red-500 text-primary hover:bg-primary-red/90 transition-colors"
+                className="p-2 rounded-lg bg-bh-red-action text-white hover:bg-deep-red transition-colors"
                 title="Accept"
               >
                 <Check className="w-4 h-4" />

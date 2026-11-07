@@ -464,9 +464,21 @@ export default function GalleryGrid({
   // it avoids landing on an unrelated tile.
   useEffect(() => setSelectedIdx(null), [filter]);
 
+  // Fetch a server-filtered first page whenever the event filter changes, so
+  // selecting an event that is not yet represented in the loaded photos still
+  // renders its media instead of an empty grid.
+  const applyFilter = useCallback((nextFilter: string | null) => {
+    setFilter(nextFilter);
+    startTransition(async () => {
+      const page = await fetchGalleryPage(0, nextFilter ?? undefined);
+      setPhotos(page.photos);
+      setHasMore(page.hasMore);
+    });
+  }, []);
+
   const handleLoadMore = useCallback(() => {
     startTransition(async () => {
-      const next = await fetchGalleryPage(photos.length);
+      const next = await fetchGalleryPage(photos.length, filter ?? undefined);
       // Guard against a double click racing the transition: dedupe by id.
       setPhotos((prev) => {
         const seen = new Set(prev.map((p) => p.id));
@@ -474,7 +486,7 @@ export default function GalleryGrid({
       });
       setHasMore(next.hasMore);
     });
-  }, [photos.length]);
+  }, [photos.length, filter]);
 
   // Event list for the filter dropdown: prefer the server-provided list so all
   // events show even before their photos are paginated in.
@@ -483,11 +495,8 @@ export default function GalleryGrid({
     return [...base].sort();
   }, [eventOptions, photos]);
 
-  // Filter photos by selected event
-  const filtered = useMemo(
-    () => (filter ? photos.filter((p) => p.event === filter) : photos),
-    [photos, filter]
-  );
+  // Server already filters by event, so the grid uses the loaded photos directly.
+  const filtered = photos;
 
   // Build the lightbox photo with nav fields
   const selectedPhoto: LightboxPhoto | null = useMemo(() => {
@@ -552,7 +561,7 @@ export default function GalleryGrid({
           <div className="relative">
             <select
               value={filter ?? ""}
-              onChange={(e) => setFilter(e.target.value || null)}
+              onChange={(e) => applyFilter(e.target.value || null)}
               className="appearance-none rounded-xl border border-border bg-surface px-4 py-2.5 pr-10 text-sm font-medium text-primary cursor-pointer hover:bg-surface-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red/30"
               aria-label="Filter by event"
             >
@@ -573,7 +582,7 @@ export default function GalleryGrid({
         <ScrollReveal>
           <div className="rounded-xl border border-border bg-surface p-16 text-center space-y-4">
             <div className="mx-auto w-14 h-14 rounded-full bg-surface-hover flex items-center justify-center">
-              <ImageIcon className="w-7 h-7 text-muted-foreground/40" />
+              <ImageIcon className="w-7 h-7 text-muted-foreground" />
             </div>
             <p className="text-lg font-bold text-primary">No media found</p>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
@@ -581,7 +590,7 @@ export default function GalleryGrid({
             </p>
             <button
               onClick={() => setFilter(null)}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-red px-5 py-2 text-sm font-bold text-white hover:bg-deep-red transition-all"
+              className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2 text-sm font-bold text-white hover:bg-deep-red transition-all"
             >
               <X className="w-4 h-4" />
               Clear filter

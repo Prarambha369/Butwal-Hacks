@@ -13,7 +13,6 @@ export const metadata: Metadata = {
     path: "/dashboard/organizer/events/certificates",
     keywords: [],
   }),
-  robots: { index: false, follow: false },
 };
 
 /** Mirrors requireIssuer(): a chapter lead must not reach this page either. */

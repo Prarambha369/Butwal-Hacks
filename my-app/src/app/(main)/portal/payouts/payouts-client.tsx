@@ -3,6 +3,7 @@
 import React from "react";
 import { DollarSign, CheckCircle2, Clock, Ban, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Payout {
   id: string;
@@ -30,19 +31,21 @@ export default function PayoutsClient({ payouts }: { payouts: Payout[] }) {
     <div className="space-y-8">
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">Sponsor Payouts</h1>
-        <p className="text-secondary opacity-60">
+        <p className="text-secondary">
           Track and manage bounty payouts to hackers.
         </p>
       </div>
 
       {payouts.length === 0 ? (
-        <div className="bh-card p-12 text-center">
-          <DollarSign className="w-12 h-12 mx-auto text-secondary/40 mb-4" />
-          <p className="text-secondary opacity-60">No payouts yet.</p>
-          <p className="text-xs text-secondary/40 mt-2">
-            Payouts appear here when bounties are completed and processed.
-          </p>
-        </div>
+        <EmptyState
+          icon={<DollarSign className="w-12 h-12" />}
+          mascot="thinking-puzzled"
+          title="No payouts yet"
+          description="Payouts appear here when bounties are completed and processed."
+          actions={[
+            { label: "Manage opportunities", href: "/portal/bounties", variant: "primary" },
+          ]}
+        />
       ) : (
         <div className="bh-card overflow-hidden">
           <div className="overflow-x-auto">
@@ -73,7 +76,7 @@ export default function PayoutsClient({ payouts }: { payouts: Payout[] }) {
                           <span className="text-sm font-medium">
                             {payout.hacker?.full_name ?? "Unknown"}
                           </span>
-                          <span className="text-[10px] font-mono text-secondary/40">
+                          <span className="text-[10px] font-mono text-secondary">
                             {payout.hacker?.bh_id ?? payout.hacker?.email ?? ""}
                           </span>
                         </div>
@@ -94,7 +97,7 @@ export default function PayoutsClient({ payouts }: { payouts: Payout[] }) {
                           {statusCfg.label}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-secondary/60">
+                      <td className="px-6 py-4 text-xs text-secondary">
                         {new Date(payout.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -109,7 +112,7 @@ export default function PayoutsClient({ payouts }: { payouts: Payout[] }) {
                             OC
                           </a>
                         ) : (
-                          <span className="text-xs text-secondary/30">—</span>
+                          <span className="text-xs text-secondary">—</span>
                         )}
                       </td>
                     </tr>

@@ -94,7 +94,7 @@ export default function ExpoProjectGrid({
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
                 !selectedTech
-                  ? "bg-bh-red-500 text-white"
+                  ? "bg-bh-red-action text-white"
                   : "bg-surface-hover text-muted-foreground hover:bg-surface-hover",
               )}
             >
@@ -107,7 +107,7 @@ export default function ExpoProjectGrid({
                 className={cn(
                   "px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
                   selectedTech === tech
-                    ? "bg-bh-red-500 text-white"
+                    ? "bg-bh-red-action text-white"
                     : "bg-surface-hover text-muted-foreground hover:bg-surface-hover",
                 )}
               >

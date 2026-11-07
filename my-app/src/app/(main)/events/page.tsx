@@ -14,8 +14,9 @@ import type { EventItem } from "@/components/events/events-filter"
 import { ArrowRight, CalendarDays, FlaskConical } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Events",
-  description: "Free hackathons, workshops, and meetups in Butwal and across Nepal. Come build something.",
+  title: "Upcoming Hackathons in Butwal, Nepal",
+  description:
+    "Looking for the next upcoming hackathon in Butwal? Butwal Hacks lists free hackathons for students in Nepal — beginner-friendly events across Lumbini Province with no registration fee.",
   path: "/events",
 })
 
@@ -54,14 +55,17 @@ export default async function EventsPage() {
           <div>
             <h1 className="text-5xl font-black tracking-tight text-primary sm:text-6xl">Events</h1>
             <p className="mt-2 text-muted-foreground max-w-2xl">
-              Explore our events and programs. Join us for workshops, hackathons, and community gatherings.
+              Butwal Hacks runs upcoming free student hackathons, workshops, and meetups in Butwal,
+              Lumbini Province, Nepal — each open to beginners with no registration fee. Every
+              published event, with its date, venue, and registration link, is listed below; open
+              one to see the full schedule and sign up.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               {isSignedIn ? (
                 <>
                   <Link
                     href={`${APP_URL}/dashboard/hacker`}
-                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
                   >
                     Your Dashboard <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -76,9 +80,15 @@ export default async function EventsPage() {
                 <>
                   <Link
                     href={`${APP_URL}/auth/login?screen_hint=signup`}
-                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
+                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
                   >
                     Join an Event <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    href="/join"
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all active:scale-95"
+                  >
+                    How to join <ArrowRight className="w-4 h-4" />
                   </Link>
                   <a
                     href="/api/events/ical"
@@ -92,34 +102,54 @@ export default async function EventsPage() {
           </div>
         </div>
 
-        <div className="mt-10">
+        <div className="mt-12">
+          <div className="mb-6 flex items-baseline justify-between gap-3">
+            <h2 className="text-xl font-black tracking-tight text-primary">Events</h2>
+            <p className="text-xs font-mono uppercase tracking-[0.12em] text-muted-foreground">
+              Upcoming &amp; past
+            </p>
+          </div>
           <EventsFilter events={events} />
         </div>
 
-        {/* Ongoing initiatives — migrated from /initiatives (list retired,
-            detail pages live on at /initiatives/[slug]). */}
-        <div id="initiatives" className="mt-16 scroll-mt-24">
-          <div className="flex items-start gap-4 mb-2">
-            <div className="p-3 rounded-lg bg-status-blue/10 shrink-0">
-              <FlaskConical className="w-6 h-6 text-status-blue" />
-            </div>
+        {/* Ongoing initiatives — a secondary section, deliberately placed
+            after the event list so the calendar leads. Detail pages live at
+            /initiatives/[slug]; the old list route was retired. */}
+        <div id="initiatives" className="mt-20 scroll-mt-24 border-t border-border pt-12">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-black tracking-tight text-primary">Ongoing Initiatives</h2>
-              <p className="mt-2 text-muted-foreground max-w-2xl">
-                Programs we run, plan, and dream up — each labeled honestly by status.
+              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-status-blue">
+                <FlaskConical className="h-3 w-3" aria-hidden="true" />
+                Programs
+              </p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-primary">
+                Ongoing Initiatives
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                The recurring formats we run. Each is labelled with its real status.
               </p>
             </div>
           </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+
+          <div className="mt-6 grid gap-3 md:grid-cols-3">
             {initiatives.map((initiative) => (
-              <article key={initiative.slug} className="rounded-xl border border-border bg-surface p-6">
-                <p className="text-xs uppercase tracking-wide text-secondary">Status: {initiative.status}</p>
-                <h3 className="mt-2 text-xl font-semibold text-primary">{initiative.name}</h3>
-                <p className="mt-2 text-sm text-secondary">{initiative.summary}</p>
-                <Link href={`/initiatives/${initiative.slug}`} className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
-                  View initiative page
-                </Link>
-              </article>
+              <Link
+                key={initiative.slug}
+                href={`/initiatives/${initiative.slug}`}
+                className="group flex flex-col rounded-xl border border-border bg-surface p-5 transition-colors hover:border-primary-red/40"
+              >
+                <span className="w-fit rounded-full bg-status-blue/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-status-blue">
+                  {initiative.status}
+                </span>
+                <h3 className="mt-3 text-base font-bold text-primary">{initiative.name}</h3>
+                <p className="mt-1.5 flex-1 text-sm leading-relaxed text-secondary">
+                  {initiative.summary}
+                </p>
+                <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-primary-red">
+                  Initiative page
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                </span>
+              </Link>
             ))}
           </div>
         </div>

@@ -5,7 +5,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "Certificates", description: "Your earned certificates", path: "/dashboard/hacker/certificates", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Certificates", description: "Your earned certificates", path: "/dashboard/hacker/certificates", keywords: []}) };
 
 export const dynamic = "force-dynamic";
 
@@ -59,14 +59,14 @@ export default async function AchievementsPage() {
             <div 
               key={ach.id} 
               className={`bh-card p-6 transition-all duration-500 ${
-                ach.unlocked ? 'border-bh-red-500/30 bg-primary-red/5' : 'opacity-60 grayscale'
+                ach.unlocked ? 'border-bh-red-500/30 bg-primary-red/5' : 'grayscale text-muted-foreground'
               }`}
             >
               <div className="flex items-start justify-between mb-6">
-                <div className={`p-3 rounded-lg ${ach.unlocked ? 'bg-bh-red-500 text-white' : 'bg-surface-hover text-muted-foreground'}`}>
+                <div className={`p-3 rounded-lg ${ach.unlocked ? 'bg-bh-red-action text-white' : 'bg-surface-hover text-muted-foreground'}`}>
                   {ach.icon}
                 </div>
-                {!ach.unlocked && <Lock size={16} className="text-muted-foreground/30" />}
+                {!ach.unlocked && <Lock size={16} className="text-muted-foreground" />}
               </div>
               <h3 className="text-xl font-bold mb-2">{ach.title}</h3>
               <p className="text-sm text-muted-foreground mb-6">{ach.desc}</p>
@@ -82,6 +82,7 @@ export default async function AchievementsPage() {
       ) : (
         <EmptyState
           icon={<Award className="w-12 h-12" />}
+          mascot="calm-neutral"
           title="No achievements yet"
           description="Start building to unlock achievements. Submit your first project, join a team, and earn trust markers."
           actions={[

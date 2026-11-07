@@ -55,6 +55,8 @@ DROP POLICY IF EXISTS "Public profiles viewable" ON profiles;
 CREATE POLICY "Public profiles viewable" ON profiles FOR SELECT USING (NOT is_suspended);
 DROP POLICY IF EXISTS "Users update own profile" ON profiles;
 CREATE POLICY "Users update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+-- Ensure column exists before creating policy (defensive for reused schemas)
+ALTER TABLE trust_markers ADD COLUMN IF NOT EXISTS is_revoked boolean NOT NULL DEFAULT false;
 DROP POLICY IF EXISTS "Non-revoked markers viewable" ON trust_markers;
 CREATE POLICY "Non-revoked markers viewable" ON trust_markers FOR SELECT USING (NOT is_revoked);
 DROP POLICY IF EXISTS "Organizers insert markers" ON trust_markers;

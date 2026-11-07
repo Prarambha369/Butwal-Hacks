@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import AuthAwareCta from "@/components/auth-aware-cta"
+import { Ballu } from "@/components/mascot/ballu"
 import { useLanguage } from "@/components/language-provider"
 import { t } from "@/lib/i18n"
 import { useSiteContent } from "@/components/site-content"
@@ -104,21 +105,31 @@ export default function Hero() {
           >
             {t("home.hero.sticker3", locale)}
           </span>
+          {/* Mr. Ballu — desktop-only floating sticker, bottom-right.
+              Positioned inside the same `hidden lg:block` absolute layer so
+              mobile renders nothing and the fixed-px wrapper keeps CLS at zero. */}
+          <Ballu
+            emotion="arms-up"
+            size={128}
+            priority
+            float
+            className="absolute bottom-[4%] right-[3%]"
+          />
         </div>
 
         <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
           {/* Main headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-primary leading-[1.08]">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-primary leading-[1.08] animate-bh-pop-in">
             {title}
           </h1>
 
           {/* Subheading */}
-          <p className="mt-6 max-w-2xl text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary">
+          <p className="mt-6 max-w-2xl text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary animate-bh-pop-in [animation-delay:120ms]">
             {subtext}
           </p>
 
           {/* CTAs */}
-          <div className="mt-10 flex flex-col sm:flex-row items-center gap-3">
+          <div className="mt-10 flex flex-col sm:flex-row items-center gap-3 animate-bh-pop-in [animation-delay:240ms]">
             <AuthAwareCta
               actionHref="/dashboard/hacker"
               actionLabel={t('action.go_to_dashboard', locale)}
@@ -134,7 +145,7 @@ export default function Hero() {
           </div>
 
           {/* Terminal — supporting visual under the headline */}
-          <div className="mt-10">
+          <div className="mt-10 animate-bh-pop-in [animation-delay:360ms]">
             <TerminalTyper locale={locale} />
           </div>
         </div>

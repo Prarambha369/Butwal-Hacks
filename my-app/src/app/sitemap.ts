@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/constants'
 import { createServiceClient } from '@/utils/supabase'
-import { blogPosts, initiatives, events, chapters } from '@/lib/content'
+import { blogPosts, initiatives, events } from '@/lib/content'
 import { ALL_FESTIVALS } from '@/lib/festivals'
 import { POLICIES } from '@/lib/policy-registry'
 
@@ -24,6 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/chapters`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/gallery`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/calendar`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/sitemap`, lastModified: today, changeFrequency: 'monthly', priority: 0.8 },
 
     // ─── Tier 2.5: Community features (priority 0.75) ─────
@@ -37,7 +38,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/transparency`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/governance`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/learn`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/guides`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/guides/how-to-join-a-hackathon-in-nepal`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/contact`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/join`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/transparency?view=report`, lastModified: today, changeFrequency: 'yearly', priority: 0.7 },
 
     // ─── Tier 4: Reference & Legal (priority 0.5-0.6) ─────
@@ -70,24 +74,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // ─── Dynamic: Blog posts ──────────────────────────────────
+  // `blogPosts` from content.ts is only the fallback now that posts live in
+  // the database; DB rows are added below so member-authored posts are
+  // discoverable too.
+  const seenBlogUrls = new Set<string>()
   for (const post of blogPosts) {
+    const url = `${siteUrl}/blog/${post.slug}`
+    seenBlogUrls.add(url)
     entries.push({
-      url: `${siteUrl}/blog/${post.slug}`,
+      url,
       lastModified: new Date(post.publishedAt),
       changeFrequency: 'monthly',
       priority: 0.7,
     })
   }
 
-  // ─── Dynamic: Chapters ────────────────────────────────────
-  for (const chapter of chapters) {
-    entries.push({
-      url: `${siteUrl}/chapters/${chapter.slug}`,
-      lastModified: today,
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    })
-  }
+  // ─── Chapters ─────────────────────────────────────────────
+  // Intentionally omitted: the public directory is a "coming soon" page and
+  // chapter detail pages are noindex legacy links, so listing them would ask
+  // crawlers to index content the site no longer presents as current.
 
   // ─── Static: Festival index + permanent festival pages ────
   // Samiti-seeded, dates never change once published.
@@ -149,6 +154,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
     }
 
+    // Blog posts from DB (member + maintainer authored)
+    const { data: dbPosts } = await supabase
+      .from('blog_posts')
+      .select('slug, published_at, updated_at, cover_image')
+      .eq('is_published', true)
+      .limit(500)
+
+    for (const post of dbPosts ?? []) {
+      const url = `${siteUrl}/blog/${post.slug}`
+      if (seenBlogUrls.has(url)) continue
+      seenBlogUrls.add(url)
+      const entry: MetadataRoute.Sitemap[number] = {
+        url,
+        // An edit after publish bumps updated_at (trigger, migration 137), so
+        // crawlers learn the real last change; otherwise publish date, as today.
+        lastModified: post.updated_at
+          ? new Date(post.updated_at)
+          : post.published_at
+            ? new Date(post.published_at)
+            : today,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      }
+      if ((post as any).cover_image) {
+        entry.images = [(post as any).cover_image]
+      }
+      entries.push(entry)
+    }
+
     // Projects from DB
     const { data: dbProjects } = await supabase
       .from('projects')
@@ -180,6 +214,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'monthly',
         priority: 0.5,
       })
+    }
+
+    // Sponsor profiles from DB (public sponsor pages). Paginated with a
+    // bounded loop: a bare .limit(500) silently dropped every profile past
+    // the cap, so their /sponsor/{id} URLs never reached the sitemap. The
+    // loop stops on a short page, and the page cap bounds the total work so
+    // the sitemap can't hang.
+    const SPONSOR_PAGE_SIZE = 500;
+    const MAX_SPONSOR_PAGES = 10;
+
+    for (let page = 0; page < MAX_SPONSOR_PAGES; page++) {
+      const { data: sponsorProfiles } = await supabase
+        .from('sponsor_profiles')
+        .select('id, company_name, created_at, updated_at')
+        .order('id', { ascending: true })
+        .range(page * SPONSOR_PAGE_SIZE, (page + 1) * SPONSOR_PAGE_SIZE - 1)
+
+      for (const sp of sponsorProfiles ?? []) {
+        entries.push({
+          url: `${siteUrl}/sponsor/${sp.id}`,
+          lastModified: sp.updated_at ? new Date(sp.updated_at) : (sp.created_at ? new Date(sp.created_at) : today),
+          changeFrequency: 'monthly',
+          priority: 0.6,
+        })
+      }
+
+      if (!sponsorProfiles || sponsorProfiles.length < SPONSOR_PAGE_SIZE) break
     }
 
     // Teams from DB

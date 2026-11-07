@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Send, Github, ExternalLink, Code2, Image as ImageIcon, Calendar, Tags, Sparkles, Loader2, Trophy, Video } from 'lucide-react';
+import { Send, Github, ExternalLink, Code2, Image as ImageIcon, Calendar, Tags, Sparkles, Loader2, Trophy, Video, AlignLeft } from 'lucide-react';
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { submitProject } from '@/lib/actions/projects';
 import { toast } from 'sonner';
@@ -167,7 +167,7 @@ export default function ProjectSubmissionForm() {
     <div className="w-full max-w-2xl mx-auto">
       <div className="bh-card p-8 shadow-2xl animate-[fadeInUp_0.4s_ease-out]">
         <div className="flex items-center gap-3 mb-8">
-          <div className="p-3 rounded-lg bg-bh-red-600 text-primary">
+          <div className="p-3 rounded-lg bg-bh-red-action text-white">
             <Code2 className="w-6 h-6" />
           </div>
           <div>
@@ -248,7 +248,11 @@ export default function ProjectSubmissionForm() {
                 {generatingPitch ? 'Generating...' : 'Generate with AI'}
               </button>
             </div>
-            <textarea 
+            <label htmlFor="project-description" className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
+              <AlignLeft className="w-3 h-3" /> Description
+            </label>
+            <textarea
+              id="project-description"
               {...register('description')}
               rows={4}
               className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-primary-red focus:outline-none outline-none transition-all"
@@ -259,10 +263,11 @@ export default function ProjectSubmissionForm() {
 
           {/* Category selector */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
+            <label htmlFor="project-category" className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
               <Tags className="w-3 h-3" /> Category
             </label>
             <select
+              id="project-category"
               {...register('category')}
               className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-primary-red focus:outline-none outline-none transition-all"
             >
@@ -292,10 +297,11 @@ export default function ProjectSubmissionForm() {
           {/* Event selector — show only if user has registered events */}
           {events.length > 0 && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
+              <label htmlFor="project-event" className="text-sm font-medium text-muted-foreground ml-1 flex items-center gap-2">
                 <Calendar className="w-3 h-3" /> Event (optional)
               </label>
               <select
+                id="project-event"
                 {...register('eventId')}
                 className="w-full bg-surface-hover border border-border rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-primary-red focus:outline-none outline-none transition-all"
               >
@@ -473,8 +479,8 @@ export default function ProjectSubmissionForm() {
 
           <button
             disabled={isSubmitting}
-            type="submit"
-            className={`w-full py-4 bg-bh-red-600 hover:bg-primary-red text-primary rounded-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-red/20 ${isSubmitting ? 'bh-btn-disabled' : ''}`}
+            type="submit" 
+            className={`w-full py-4 bg-bh-red-action hover:bg-deep-red text-white rounded-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-red/20 ${isSubmitting ? 'bh-btn-disabled' : ''}`}
           >
             {isSubmitting ? (
               <RoseSpinner size="sm" />

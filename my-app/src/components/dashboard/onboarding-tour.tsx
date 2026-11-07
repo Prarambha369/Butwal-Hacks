@@ -106,11 +106,13 @@ interface OnboardingTourProps {
 
 export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps) {
   const STEPS = STEP_SETS[role];
+  const [marker, setMarker] = useState(STEPS[0]);
   const [step, setStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
   const [useAnchored, setUseAnchored] = useState(false);
+  const [cardHeight, setCardHeight] = useState(0);
   const [isCheckingSupabase, setIsCheckingSupabase] = useState(true);
   const mountedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -200,7 +202,11 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
       }
 
       setIsCheckingSupabase(false);
-      timerRef.current = setTimeout(() => setIsVisible(true), 800);
+      timerRef.current = setTimeout(() => {
+        setIsVisible(true);
+        const raf = requestAnimationFrame(updatePosition);
+        return () => cancelAnimationFrame(raf);
+      }, 800);
     };
 
     checkOnboardingStatus();
@@ -232,6 +238,18 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
 
   }, [step]);
 
+  // Measure the card so the anchored clamp keeps the whole card in view.
+  // Recomputed with each step because the card height can change per step.
+  useEffect(() => {
+    if (!isVisible) return;
+    const raf = requestAnimationFrame(() => {
+      if (cardRef.current) {
+        setCardHeight(cardRef.current.offsetHeight);
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [isVisible, step]);
+
   const handleNext = useCallback(() => {
     if (step < STEPS.length - 1) {
       setStep((s) => s + 1);
@@ -244,16 +262,31 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
     if (step > 0) setStep((s) => s - 1);
   }, [step]);
 
+  useEffect(() => {
+    setMarker(STEPS[step]);
+  }, [step]);
+
   if (!isMounted || isCheckingSupabase || !isVisible) return null;
-
-  const current = STEPS[step];
-
+  
   const tooltipLeft =
     targetRect && useAnchored ? targetRect.left + targetRect.width + 20 : null;
+  // Card-center clamp: translateY(-50%) centers the card on tooltipTop, so
+  // the minimum top must clear half the card height — otherwise the card
+  // clips above the viewport even though the anchor center is 120px down.
+  const MIN_TOP_OFFSET = 120;
+  const tooltipMinTop = MIN_TOP_OFFSET + cardHeight / 2;
+  const tooltipMaxTop = Math.max(
+    tooltipMinTop,
+    window.innerHeight - 16 - cardHeight / 2,
+  );
   const tooltipTop =
     targetRect && useAnchored
-      ? targetRect.top + targetRect.height / 2
+      ? Math.min(
+          Math.max(targetRect.top + targetRect.height / 2, tooltipMinTop),
+          tooltipMaxTop,
+        )
       : null;
+  const isCardOversized = cardHeight > window.innerHeight - 32;
 
   const tooltipOverflows =
     tooltipLeft !== null && tooltipLeft + 360 > window.innerWidth;
@@ -296,14 +329,16 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
         className="fixed z-50 animate-in fade-in zoom-in-95 duration-300"
         style={
           isAnchored
-            ? ({
+            ? {
                 top: tooltipTop!,
                 left: tooltipOverflows ? "auto" : tooltipLeft!,
                 right: tooltipOverflows ? 16 : "auto",
-              } as React.CSSProperties)
+                transform: "translateY(-50%)",
+              }
             : {
                 top: "50%",
                 left: "50%",
+                transform: "translate(-50%, -50%)",
               }
         }
       >
@@ -312,12 +347,7 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
           role="dialog"
           aria-modal="true"
           aria-label="Onboarding tour"
-          className="relative bh-card overflow-hidden w-[90vw] max-w-sm"
-          style={
-            isAnchored
-              ? { transform: "translateY(-50%)" }
-              : { transform: "translate(-50%, -50%)" }
-          }
+          className={`relative bh-card overflow-hidden w-[90vw] max-w-sm flex flex-col ${isCardOversized ? "max-h-[calc(100vh-32px)]" : ""}`}
         >
           {/* Arrow pointer */}
           {isAnchored && !tooltipOverflows && (
@@ -342,15 +372,15 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
 
           {/* Step content */}
           <div
-            key={step}
-            className="transition-all duration-300 ease-out"
+            key={marker.title}
+            className={`transition-all duration-300 ease-out ${isCardOversized ? "overflow-y-auto" : ""}`}
             style={{
               animation: "step-fade-in 0.3s ease-out",
             }}
           >
             <div className="px-6 pt-8 pb-2">
               <div className="w-12 h-12 rounded-xl bg-primary-red/10 flex items-center justify-center text-primary-red">
-                {current.icon}
+                {marker.icon}
               </div>
             </div>
 
@@ -360,11 +390,11 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
                   Step {step + 1} of {STEPS.length}
                 </p>
                 <h3 className="text-lg font-bold text-primary leading-tight">
-                  {current.title}
+                  {marker.title}
                 </h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {current.description}
+                {marker.description}
               </p>
             </div>
           </div>
@@ -373,7 +403,7 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
           <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-surface-hover/30">
             <button
               onClick={handleDismiss}
-              className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+              className="text-xs text-muted-foreground hover:text-muted-foreground transition-colors"
             >
               Skip tour
             </button>
@@ -392,7 +422,7 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
               {step < STEPS.length - 1 ? (
                 <button
                   onClick={handleNext}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all shadow-[var(--bh-glow-red-soft)] hover:shadow-[var(--bh-glow-red)]"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all shadow-[var(--bh-glow-red-soft)] hover:shadow-[var(--bh-glow-red)]"
                 >
                   Next
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -400,11 +430,11 @@ export default function OnboardingTour({ role = "hacker" }: OnboardingTourProps)
               ) : (
                 <div className="flex items-center gap-2">
                   <Link
-                    href={current.href}
+                    href={marker.href}
                     onClick={handleDismiss}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary-red text-white text-xs font-bold hover:bg-deep-red transition-all shadow-[var(--bh-glow-red-soft)] hover:shadow-[var(--bh-glow-red)]"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-bh-red-action text-white text-xs font-bold hover:bg-deep-red transition-all shadow-[var(--bh-glow-red-soft)] hover:shadow-[var(--bh-glow-red)]"
                   >
-                    {current.cta}
+                    {marker.cta}
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>

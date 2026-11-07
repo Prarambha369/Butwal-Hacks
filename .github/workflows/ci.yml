@@ -293,6 +293,136 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
 
+  ui-audit:
+    name: UI Audit
+    needs: typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: my-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22
+      - uses: actions/cache@v4
+        with:
+          # Repo-root relative: actions/cache ignores defaults.run.working-directory,
+          # and my-app is a workspace whose 35 deps all hoist to this node_modules.
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+      - run: npm install
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Check for secrets
+        id: check-secrets
+        env:
+          AUTH0_SECRET: ${{ secrets.AUTH0_SECRET }}
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        run: |
+          if [ -z "$AUTH0_SECRET" ] || [ -z "$SUPABASE_URL" ]; then
+            echo "secrets_available=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "secrets_available=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build
+        if: steps.check-secrets.outputs.secrets_available == 'true'
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+          NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
+          AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+          AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+          AUTH0_SECRET: ${{ secrets.AUTH0_SECRET }}
+          # Port 3000 on purpose: it is the callback origin the e2e login uses,
+          # so the Auth0 test account's allowed URLs already cover it.
+          AUTH0_BASE_URL: http://localhost:3000
+          APP_BASE_URL: http://localhost:3000
+          NEXT_PUBLIC_SITE_URL: https://www.butwalhacks.com
+          AUTH0_M2M_CLIENT_ID: ${{ secrets.AUTH0_M2M_CLIENT_ID }}
+          AUTH0_M2M_CLIENT_SECRET: ${{ secrets.AUTH0_M2M_CLIENT_SECRET }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          AUTH0_MANAGEMENT_API_AUDIENCE: ${{ secrets.AUTH0_MANAGEMENT_API_AUDIENCE }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+
+      - name: Start app
+        if: steps.check-secrets.outputs.secrets_available == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+          NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
+          AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+          AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+          AUTH0_SECRET: ${{ secrets.AUTH0_SECRET }}
+          AUTH0_BASE_URL: http://localhost:3000
+          APP_BASE_URL: http://localhost:3000
+          NEXT_PUBLIC_SITE_URL: https://www.butwalhacks.com
+          AUTH0_M2M_CLIENT_ID: ${{ secrets.AUTH0_M2M_CLIENT_ID }}
+          AUTH0_M2M_CLIENT_SECRET: ${{ secrets.AUTH0_M2M_CLIENT_SECRET }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          AUTH0_MANAGEMENT_API_AUDIENCE: ${{ secrets.AUTH0_MANAGEMENT_API_AUDIENCE }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+        run: |
+          npx next start -p 3000 > /tmp/ui-audit-server.log 2>&1 &
+          echo $! > /tmp/ui-audit-server.pid
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://localhost:3000/; then
+              echo "server ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "server did not become ready"
+          tail -50 /tmp/ui-audit-server.log
+          exit 1
+
+      - name: Run UI audit
+        if: steps.check-secrets.outputs.secrets_available == 'true'
+        # Two viewports in CI — a small light phone and desktop dark, which is
+        # where every violation this audit has ever found showed up. Run all
+        # four locally with `npm run audit:ui`.
+        run: node scripts/audit-ui.mjs --base=http://localhost:3000 --viewports=mobile,dark --out="$RUNNER_TEMP/ui-audit"
+        env:
+          AUTH0_TEST_EMAIL: ${{ secrets.AUTH0_TEST_EMAIL }}
+          AUTH0_TEST_PASSWORD: ${{ secrets.AUTH0_TEST_PASSWORD }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          AUTH0_M2M_CLIENT_ID: ${{ secrets.AUTH0_M2M_CLIENT_ID }}
+          AUTH0_M2M_CLIENT_SECRET: ${{ secrets.AUTH0_M2M_CLIENT_SECRET }}
+          AUTH0_MANAGEMENT_API_AUDIENCE: ${{ secrets.AUTH0_MANAGEMENT_API_AUDIENCE }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+
+      - name: Stop app
+        if: always() && steps.check-secrets.outputs.secrets_available == 'true'
+        run: kill "$(cat /tmp/ui-audit-server.pid)" 2>/dev/null || true
+
+      - name: Skip audit notice
+        if: steps.check-secrets.outputs.secrets_available != 'true'
+        run: 'echo "WARNING: Secrets missing. Skipping UI audit."'
+
+      - name: Upload UI audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-audit
+          path: ${{ runner.temp }}/ui-audit
+          if-no-files-found: ignore
+          retention-days: 3
+
   bot-trailer-check:
     name: Bot Trailer Check
     if: github.event_name == 'pull_request'
@@ -323,7 +453,7 @@ jobs:
   quality-gate:
     name: Quality Gate
     needs:
-      [lint, typecheck, build, test, e2e, security-audit, secrets-audit,
+      [lint, typecheck, build, test, e2e, ui-audit, security-audit, secrets-audit,
        auth0-m2m-verify, ai-review, ponytail-audit, bot-trailer-check]
     runs-on: ubuntu-latest
     steps:

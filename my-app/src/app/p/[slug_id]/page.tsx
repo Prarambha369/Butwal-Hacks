@@ -4,7 +4,6 @@ import { buildPageMetadata } from "@/lib/seo";
 import { Metadata } from "next";
 import ProfileClient from "@/components/hacker-id/profile-client";
 import { getUserProjects } from "@/lib/actions/projects";
-import { getProfileUnlockedSkills } from "@/lib/actions/skill-trees";
 
 // ISR: cache profile for 60s, revalidate on next request if stale.
 // Gives static speed for recruiters browsing profiles while keeping
@@ -50,7 +49,7 @@ export default async function ProfilePage({ params }: Props) {
   const { data: profile, error } = await supabase
     .from("profiles")
     .select(`
-      id, full_name, bh_id, role, bio, avatar_url, social_links, ai_summary,
+      id, full_name, bh_id, role, bio, avatar_url, socials, ai_summary, github_username,
       trust_markers!trust_markers_profile_id_fkey (
         id, title, description, type, is_revoked, revocation_reason, created_at,
         events ( title, start_date ),
@@ -65,11 +64,17 @@ export default async function ProfilePage({ params }: Props) {
   }
 
   const projects = await getUserProjects(profile.id);
-  const skillData = await getProfileUnlockedSkills(profile.id);
+
+  // No GitHub activity fetch here: ProfileClient never rendered it, so the
+  // await only sat in front of first paint -- up to five seconds of GitHub
+  // latency on a page whose whole job is to render quickly for recruiters.
 
   return (
     <main className="min-h-dvh bg-background pt-24 pb-12 px-6 md:px-20">
-      <ProfileClient profile={profile} projects={projects} unlockedSkills={skillData.unlockedSkills} totalSkillCount={skillData.totalSkills} />
+      <ProfileClient
+        profile={profile}
+        projects={projects}
+      />
     </main>
   );
 }

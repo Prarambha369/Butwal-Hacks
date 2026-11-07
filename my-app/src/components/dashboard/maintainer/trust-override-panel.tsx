@@ -265,7 +265,7 @@ export default function TrustOverridePanel({ markers }: TrustOverridePanelProps)
                         <UserCheck className="w-3 h-3" />
                         {marker.holder_name}
                         {marker.holder_bh_id && (
-                          <span className="font-mono opacity-60">
+                          <span className="font-mono">
                             · {marker.holder_bh_id}
                           </span>
                         )}
@@ -442,7 +442,7 @@ export default function TrustOverridePanel({ markers }: TrustOverridePanelProps)
               <button
                 onClick={handleRevoke}
                 disabled={revokeReason.trim().length < 5 || submitting}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-bh-red-500 text-white text-sm font-bold transition-all hover:bg-deep-red disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-bh-red-action text-white text-sm font-bold transition-all hover:bg-deep-red disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

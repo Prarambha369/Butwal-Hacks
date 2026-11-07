@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/dashboard/shell/page-header";
 import { StatCard, StatGrid } from "@/components/dashboard/shell/stat-card";
 import { createServiceClient } from "@/utils/supabase";
+import { requireMaintainer } from "@/lib/actions/admin";
 import Link from "next/link";
 import {
   Users, ShieldCheck, MessageSquare,
@@ -19,11 +20,17 @@ import type { SystemCheckResult } from "@/lib/health-checks";
 import { buildPageMetadata } from "@/lib/seo"
 
 
-export const metadata = { ...buildPageMetadata({title: "Maintainer Dashboard", description: "Maintainer workspace", path: "/dashboard/maintainer", keywords: []}), robots: { index: false, follow: false } };
+export const metadata = { ...buildPageMetadata({title: "Maintainer Dashboard", description: "Maintainer workspace", path: "/dashboard/maintainer", keywords: []}) };
 
 export const dynamic = "force-dynamic";
 
 export default async function MaintainerCommandCenter() {
+  // In-file authorization before the service role is touched. The M layout
+  // already gates this segment, but relying on another file's guard is exactly
+  // the pattern that left the event child pages readable across organizers;
+  // every createServiceClient() use gets a check directly above it.
+  await requireMaintainer();
+
   const supabase = createServiceClient();
 
   // ── Date bounds ──────────────────────────────────────────────────────
@@ -260,7 +267,7 @@ function ControlLink({ href, icon, label, desc, color }: { href: string; icon: R
         <p className="text-xs font-bold text-primary">{label}</p>
         <p className="text-[10px] text-muted-foreground truncate">{desc}</p>
       </div>
-      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary-red transition-all group-hover:translate-x-0.5 shrink-0" />
+      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary-red transition-all group-hover:translate-x-0.5 shrink-0" />
     </Link>
   );
 }

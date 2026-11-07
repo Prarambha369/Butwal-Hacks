@@ -2,14 +2,17 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import type { PolicyBlock } from "@/lib/policy-markdown";
+import { classifyHref } from "@/lib/policy-markdown";
 
 /**
  * Renders the inline markdown forms the policy documents use:
  * `**bold**`, `*italic*`, `_italic_`, `` `code` `` and `[text](href)`.
  *
  * The hrefs arriving here were already resolved to site routes (or repository
- * URLs) when the document was parsed, so this only has to decide between an
- * internal `next/link` and an external anchor.
+ * URLs) when the document was parsed. The same renderer also draws MrBallu's
+ * model-generated replies, so the target is passed through `classifyHref`: only
+ * site routes, in-page anchors, `http(s):` and `mailto:` become links. Anything
+ * else renders as plain text.
  */
 export function renderInline(text: string): ReactNode[] {
   // `_italic_` needs word boundaries on both sides: without them, a snake_case
@@ -49,25 +52,26 @@ export function renderInline(text: string): ReactNode[] {
     } else if (link) {
       const linkMatch = /^\[([^\]]*)\]\(([^)]+)\)$/.exec(link);
       const label = linkMatch?.[1] ?? link;
-      const href = linkMatch?.[2] ?? "#";
-      if (href.startsWith("/")) {
+      const target = classifyHref(linkMatch?.[2] ?? "");
+
+      if (target.kind === "internal") {
         push(
-          <Link key={`link-${key}`} href={href} className="text-primary-red hover:underline">
+          <Link key={`link-${key}`} href={target.href} className="text-primary-red hover:underline">
             {label}
           </Link>,
         );
-      } else if (href.startsWith("#")) {
+      } else if (target.kind === "anchor") {
         // An in-page anchor. It must not open a new tab.
         push(
-          <a key={`link-${key}`} href={href} className="text-primary-red hover:underline">
+          <a key={`link-${key}`} href={target.href} className="text-primary-red hover:underline">
             {label}
           </a>,
         );
-      } else {
+      } else if (target.kind === "external") {
         push(
           <a
             key={`link-${key}`}
-            href={href}
+            href={target.href}
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary-red hover:underline"
@@ -75,6 +79,9 @@ export function renderInline(text: string): ReactNode[] {
             {label}
           </a>,
         );
+      } else {
+        // Unknown or dangerous scheme: keep the words, drop the link.
+        push(label);
       }
     } else if (italic) {
       push(

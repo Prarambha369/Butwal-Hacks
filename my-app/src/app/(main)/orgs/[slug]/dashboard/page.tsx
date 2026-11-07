@@ -117,7 +117,7 @@ function StatCard({ title, value, icon, description, variant }: { title: string;
         <p className="text-sm text-primary/50">{title}</p>
         <p className={`font-bold text-primary ${isHero ? 'text-5xl' : 'text-3xl'}`}>{value}</p>
       </div>
-      <p className="text-[10px] font-medium text-primary/30 uppercase tracking-tighter">{description}</p>
+      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">{description}</p>
     </div>
   );
 }

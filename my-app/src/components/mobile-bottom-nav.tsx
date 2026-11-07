@@ -56,7 +56,7 @@ export default function MobileBottomNav() {
                   "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[56px]",
                   active
                     ? "text-primary-red"
-                    : "text-secondary/60 hover:text-primary"
+                    : "text-secondary hover:text-primary"
                 )}
                 aria-current={active ? "page" : undefined}
               >

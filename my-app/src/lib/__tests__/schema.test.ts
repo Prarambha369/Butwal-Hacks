@@ -92,6 +92,26 @@ describe("blogPostingJsonLd", () => {
     const long = "x".repeat(200);
     expect(blogPostingJsonLd({ ...post, title: long }).headline).toHaveLength(110);
   });
+
+  it("honours dateModified when one newer than publication is supplied", () => {
+    const data = blogPostingJsonLd({
+      ...post,
+      datePublished: "2026-01-01",
+      dateModified: "2026-02-15T10:30:00Z",
+    });
+    expect(data.datePublished).toBe("2026-01-01");
+    expect(data.dateModified).toBe("2026-02-15T10:30:00Z");
+  });
+
+  it("falls back to datePublished when no dateModified is supplied", () => {
+    const data = blogPostingJsonLd({
+      ...post,
+      datePublished: "2026-01-01",
+    });
+    // An unchanged post must not present its publish date as a modification
+    // decision; the fallback keeps the two dates consistent.
+    expect(data.dateModified).toBe("2026-01-01");
+  });
 });
 
 describe("client-boundary safety for FAQ data", () => {
@@ -179,5 +199,37 @@ describe("eventJsonLd venue address", () => {
       location?: unknown;
     };
     expect(out.location).toBeUndefined();
+  });
+});
+
+describe("eventJsonLd offers", () => {
+  // Google's event guidelines want an offers block for the ticket price. The
+  // builder only emits one when the caller supplies a price -- events here are
+  // free, so the caller prices them explicitly rather than defaulting here.
+  const base = {
+    title: "Dev Day",
+    startDate: "2026-03-01T06:00:00Z",
+    url: "https://www.butwalhacks.com/events/dev-day",
+  };
+
+  it("emits an Offer with the supplied price, currency and event url", () => {
+    const out = eventJsonLd({ ...base, price: "0", priceCurrency: "NPR" }) as {
+      offers?: Record<string, unknown>;
+    };
+    expect(out.offers).toEqual({
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "NPR",
+      url: base.url,
+      availability: "https://schema.org/InStock",
+    });
+    // Price is a string: schema.org expects text, not a number.
+    expect(typeof out.offers!.price).toBe("string");
+  });
+
+  it("omits offers entirely when no price is supplied", () => {
+    const out = eventJsonLd(base) as { offers?: unknown };
+    expect("offers" in out).toBe(false);
+    expect(out.offers).toBeUndefined();
   });
 });

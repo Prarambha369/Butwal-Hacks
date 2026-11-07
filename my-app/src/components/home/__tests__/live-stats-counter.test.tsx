@@ -14,7 +14,6 @@ const mockStats = {
   total_hackers: 1234,
   total_events: 56,
   total_projects: 789,
-  total_trust_markers: 101,
 };
 
 describe("LiveStatsCounter", () => {
@@ -25,12 +24,13 @@ describe("LiveStatsCounter", () => {
 
       const { container } = render(<LiveStatsCounter />);
 
-      // Should show loading badge
-      expect(screen.getByText((_, el) => el?.tagName === "SPAN" && el?.textContent === "// loading platform stats?")).toBeInTheDocument();
+      // The loading eyebrow was removed to kill CLS; the footnote's line box
+      // is reserved instead, so assert that rather than the old badge.
+      expect(screen.getByText((_, el) => el?.tagName === "P" && el?.textContent === "\u00a0")).toBeInTheDocument();
 
-      // Should render 4 skeleton cards with animate-pulse
+      // Should render 3 skeleton cards with animate-pulse
       const skeletonCards = container.querySelectorAll(".animate-pulse");
-      expect(skeletonCards.length).toBeGreaterThanOrEqual(4);
+      expect(skeletonCards.length).toBeGreaterThanOrEqual(3);
     });
   });
 
@@ -68,17 +68,18 @@ describe("LiveStatsCounter", () => {
     it("renders live from the database badge", async () => {
       render(<LiveStatsCounter />);
 
-      const badge = await screen.findByText((_, el) => el?.tagName === "SPAN" && el?.textContent === "// live from the database?");
-      expect(badge).toBeInTheDocument();
+      // The success eyebrow was removed to kill CLS; assert the footnote
+      // that now always occupies that line box.
+      const footnote = await screen.findByText("Fresh from the database. No rounding up, we promise.");
+      expect(footnote).toBeInTheDocument();
     });
 
-    it("renders all four stat labels", async () => {
+    it("renders all three stat labels", async () => {
       render(<LiveStatsCounter />);
 
       expect(await screen.findByText("Members")).toBeInTheDocument();
       expect(screen.getByText("Events")).toBeInTheDocument();
       expect(screen.getByText("Projects")).toBeInTheDocument();
-      expect(screen.getByText("Credentials")).toBeInTheDocument();
     });
 
     it("renders formatted stat values from API response", async () => {
@@ -89,7 +90,7 @@ describe("LiveStatsCounter", () => {
       // the component rendered its stat cards with the data it received.
       await screen.findByText("Members");
       const numbers = document.querySelectorAll(".tabular-nums");
-      expect(numbers.length).toBeGreaterThanOrEqual(4);
+      expect(numbers.length).toBeGreaterThanOrEqual(3);
     });
 
     it("renders underline rules for each stat", async () => {
@@ -103,7 +104,6 @@ describe("LiveStatsCounter", () => {
         ".bg-primary-red",
         ".bg-status-blue",
         ".bg-status-green",
-        ".bg-status-yellow",
       ];
       for (const rule of expectedRules) {
         expect(document.querySelectorAll(rule).length).toBeGreaterThanOrEqual(1);

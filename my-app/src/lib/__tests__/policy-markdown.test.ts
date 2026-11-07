@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { parsePolicyMarkdown, rewriteLinks, slugify } from "@/lib/policy-markdown";
+import { classifyHref, parsePolicyMarkdown, rewriteLinks, slugify } from "@/lib/policy-markdown";
 
 /**
  * The policy documents are the canonical text on the site, so the parser that
@@ -19,6 +19,13 @@ describe("parsePolicyMarkdown", () => {
     const parsed = parsePolicyMarkdown("# Doc\n\nPolicy version: 2026-10-21\n\nBody.");
     expect(parsed.version).toBe("2026-10-21");
     expect(parsed.blocks).toHaveLength(1);
+  });
+
+  it("does not extract policy version as metadata when extractVersion is false", () => {
+    const parsed = parsePolicyMarkdown("Policy version: 2026-10-21", { extractVersion: false });
+    expect(parsed.version).toBeNull();
+    expect(parsed.blocks).toHaveLength(1);
+    expect(parsed.blocks[0]).toEqual({ kind: "paragraph", text: "Policy version: 2026-10-21" });
   });
 
   it("keeps level 2 and level 3 headings with slugified ids", () => {
@@ -109,6 +116,40 @@ describe("rewriteLinks", () => {
 
   it("keeps the link text intact", () => {
     expect(rewriteLinks("[**bold**](a.md)", () => "/b")).toBe("[**bold**](/b)");
+  });
+});
+
+describe("classifyHref", () => {
+  it("treats a single-slash target as an internal route", () => {
+    expect(classifyHref("/policies/code-of-conduct")).toEqual({
+      kind: "internal",
+      href: "/policies/code-of-conduct",
+    });
+  });
+
+  it("does not treat protocol-relative targets as internal", () => {
+    expect(classifyHref("//evil.example/phish")).toEqual({ kind: "unsafe" });
+  });
+
+  it("does not treat slash-backslash targets as internal", () => {
+    expect(classifyHref("/\\\\evil.example/phish")).toEqual({ kind: "unsafe" });
+  });
+
+  it("allows in-page anchors", () => {
+    expect(classifyHref("#reporting")).toEqual({ kind: "anchor", href: "#reporting" });
+  });
+
+  it("allows http, https and mailto", () => {
+    expect(classifyHref("https://butwalhacks.com").kind).toBe("external");
+    expect(classifyHref("http://butwalhacks.com").kind).toBe("external");
+    expect(classifyHref("mailto:hello@butwalhacks.com").kind).toBe("external");
+  });
+
+  it("rejects script and data schemes", () => {
+    expect(classifyHref("javascript:alert(1)")).toEqual({ kind: "unsafe" });
+    expect(classifyHref("JavaScript:alert(1)")).toEqual({ kind: "unsafe" });
+    expect(classifyHref("data:text/html;base64,PHNjcmlwdD4=")).toEqual({ kind: "unsafe" });
+    expect(classifyHref("")).toEqual({ kind: "unsafe" });
   });
 });
 
