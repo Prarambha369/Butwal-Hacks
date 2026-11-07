@@ -441,7 +441,7 @@ export default function ProjectSubmissionForm() {
                 agree to the{" "}
                 <Link
                   href="/policies/hackathon-rules"
-                  className="text-primary-red hover:underline"
+                  className="text-primary-red underline underline-offset-2 decoration-primary-red/40 hover:decoration-primary-red"
                 >
                   Hackathon Rules
                 </Link>
@@ -463,7 +463,7 @@ export default function ProjectSubmissionForm() {
                 ends. If it is not, the project can be disqualified — see the{" "}
                 <Link
                   href="/policies/cheating-response"
-                  className="text-primary-red hover:underline"
+                  className="text-primary-red underline underline-offset-2 decoration-primary-red/40 hover:decoration-primary-red"
                 >
                   cheating response guide
                 </Link>
