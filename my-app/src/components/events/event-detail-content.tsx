@@ -35,6 +35,7 @@ interface EventData {
 }
 
 interface Photo {
+  id: string
   url: string
   media_type: string
 }
@@ -459,8 +460,10 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
                   : displayPhotoUrl(p.url, null, 400)
                 return (
                   <Link
-                    key={i}
-                    href="/gallery"
+                    key={p.id || i}
+                    // Each preview tile opens its own photo page, so a shared
+                    // link lands on the photo rather than the whole gallery.
+                    href={p.id ? `/gallery/${p.id}` : "/gallery"}
                     className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-surface"
                   >
                     <Image

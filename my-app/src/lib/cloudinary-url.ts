@@ -94,6 +94,51 @@ export function videoPlaybackUrl(url: string, width: number): string {
 }
 
 /**
+ * Social-preview card URL: a 1200×630 JPEG crop for Open Graph and Twitter.
+ *
+ * Deliberately not `f_auto`. `f_auto` negotiates the format from the
+ * requester's Accept header, and the requester here is a link-preview crawler
+ * (Slack, X, WhatsApp, Facebook), not a browser — several of them reject or
+ * mishandle WebP/AVIF and fall back to a blank card. A fixed `f_jpg` is the one
+ * format every scraper decodes, and the card is fetched once per share, so the
+ * extra bytes do not matter.
+ *
+ * `g_auto` picks the subject for the crop rather than slicing the middle out
+ * of a group photo. Video resolves to its `so_1` poster frame for the same
+ * reason videoPosterUrl exists: an Open Graph image has to be a still.
+ *
+ * Already-transformed URLs pass through unchanged rather than stacking a
+ * second transform on top of a hand-applied one.
+ */
+export function socialCardUrl(url: string): { url: string; width: number; height: number } | null {
+  const width = 1200;
+  const height = 630;
+  if (!url) return null;
+
+  const video = CLOUDINARY_VIDEO_DELIVERY.exec(url);
+  if (video) {
+    const [, cloud, path] = video;
+    if (TRANSFORM_SEGMENT.test(path.split("/")[0])) return { url, width, height };
+    const withoutExt = path.replace(/\.[a-z0-9]+$/i, "");
+    return {
+      url: `https://res.cloudinary.com/${cloud}/video/upload/so_1,c_fill,g_auto,w_${width},h_${height},f_jpg,q_auto:good/${withoutExt}.jpg`,
+      width,
+      height,
+    };
+  }
+
+  const image = CLOUDINARY_DELIVERY.exec(url);
+  if (!image) return null;
+  const [, cloud, path] = image;
+  if (TRANSFORM_SEGMENT.test(path.split("/")[0])) return { url, width, height };
+  return {
+    url: `https://res.cloudinary.com/${cloud}/image/upload/c_fill,g_auto,w_${width},h_${height},f_jpg,q_auto:good/${path}`,
+    width,
+    height,
+  };
+}
+
+/**
  * Forced-download URL at the stored asset's best quality.
  *
  * Inserts the `fl_attachment` delivery flag — the browser downloads the

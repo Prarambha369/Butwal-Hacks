@@ -2,8 +2,35 @@ import { v2 as cloudinary } from "cloudinary"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth0 } from "@/lib/auth0"
+import { encodeCloudinaryMetadata, pickDefinedMetadata } from "@/lib/cloudinary-metadata"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
+import { createServiceClient } from "@/utils/supabase"
+
+/**
+ * External IDs of the structured metadata fields that exist in this product
+ * environment, cached per instance. Cloudinary rejects an upload whose
+ * `metadata` names an undefined field, and a misconfigured console must not
+ * cost a member their profile picture — so the payload is filtered against
+ * this set and dropped entirely if the lookup fails.
+ */
+const FIELD_CACHE_TTL_MS = 10 * 60 * 1000
+let fieldCache: { ids: Set<string>; at: number } | null = null
+
+async function definedMetadataIds(): Promise<Set<string> | null> {
+  if (fieldCache && Date.now() - fieldCache.at < FIELD_CACHE_TTL_MS) {
+    return fieldCache.ids
+  }
+  try {
+    const result = await cloudinary.api.list_metadata_fields()
+    const ids = new Set(result.metadata_fields.map((field) => field.external_id))
+    fieldCache = { ids, at: Date.now() }
+    return ids
+  } catch (error) {
+    logger.error("Cloudinary metadata field lookup failed:", error)
+    return null
+  }
+}
 
 /**
  * POST /api/cloudinary-signature
@@ -14,10 +41,13 @@ import { withRateLimit } from "@/lib/rate-limiter"
  *
  * Request body (JSON):
  *   entity_type?: "avatar" | "event_banner" | "project_cover" | "blog_cover" | "gallery_photo" | "gallery_video"
- *   bh_id?: string          — BH-ID of the user (e.g. "BH-24-001")
+ *   bh_id?: string          — BH-ID of the user (e.g. "BH-24-001"); kept only
+ *                             when it matches the signed-in profile
  *   event_slug?: string     — Event slug for event-related uploads
  *   project_id?: string     — Project UUID for project cover images
- *   uploader_auth0_id?: string — Auth0 user ID of the uploader
+ *
+ * `uploader_auth0_id` is not accepted from the client. It is derived from the
+ * session, so an upload can never be attributed to another member.
  *
  * Response:
  *   { signature, timestamp, cloudName, apiKey, folder, metadata, uploadPreset? }
@@ -56,7 +86,6 @@ export const POST = withRateLimit(async (request: Request) => {
       bh_id: z.string().max(20).optional(),
       event_slug: z.string().max(200).optional(),
       project_id: z.string().uuid().optional(),
-      uploader_auth0_id: z.string().max(100).optional(),
     })
 
     const metadata: Record<string, string> = {}
@@ -70,6 +99,38 @@ export const POST = withRateLimit(async (request: Request) => {
       }
     } catch {
       // Zod error or parse failure — proceed without metadata
+    }
+
+    // Identity is server-derived. `uploader_auth0_id` used to be accepted from
+    // the request body, which let any signed-in member attribute an upload to
+    // someone else; the session is the only source of truth here.
+    metadata.uploader_auth0_id = userId
+
+    // `bh_id` is a public identifier, so a client can type any member's BH-ID.
+    // Keep the supplied value only when it matches the signed-in user's stored
+    // profile. Every failure path (lookup error, missing row, mismatch) drops
+    // the field rather than failing the upload — metadata must never cost a
+    // member their upload. The session check above is the authorization for
+    // the service-role client below.
+    if (metadata.bh_id) {
+      try {
+        const supabase = createServiceClient()
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("bh_id")
+          .eq("auth0_user_id", userId)
+          .maybeSingle()
+        const stored = data as { bh_id?: string | null } | null
+        if (error) {
+          logger.error("Cloudinary bh_id lookup failed:", error)
+          delete metadata.bh_id
+        } else if (!stored || stored.bh_id !== metadata.bh_id) {
+          delete metadata.bh_id
+        }
+      } catch (error) {
+        logger.error("Cloudinary bh_id lookup failed:", error)
+        delete metadata.bh_id
+      }
     }
 
     const timestamp = Math.round(Date.now() / 1000)
@@ -135,9 +196,14 @@ export const POST = withRateLimit(async (request: Request) => {
     // for every upload. It is returned to the client below purely so the
     // browser knows which endpoint to POST to.
 
-    // Stringified metadata for Cloudinary structured metadata
-    const metadataStr = Object.keys(metadata).length > 0
-      ? JSON.stringify(metadata)
+    // Structured metadata travels as `external_id=value|external_id=value`,
+    // not JSON, and only for fields this environment actually defines.
+    const knownFields = await definedMetadataIds()
+    const attachedMetadata = knownFields
+      ? pickDefinedMetadata(metadata, knownFields)
+      : {}
+    const metadataStr = Object.keys(attachedMetadata).length > 0
+      ? encodeCloudinaryMetadata(attachedMetadata)
       : undefined
 
     if (metadataStr) {

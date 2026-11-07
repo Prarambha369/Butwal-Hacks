@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cloudinaryDownloadUrl, displayPhotoUrl, isValidRecipe } from "../cloudinary-url";
+import { cloudinaryDownloadUrl, displayPhotoUrl, isValidRecipe, socialCardUrl } from "../cloudinary-url";
 
 // The default-transform behavior lives in displayPhotoUrl's null-recipe path.
 const sized = (url: string, width: number) => displayPhotoUrl(url, null, width);
@@ -93,5 +93,40 @@ describe("sized display passthrough", () => {
     const out = sized("https://res.cloudinary.com/demo/video/upload/clip.mp4", 600);
     expect(out).not.toContain(".mp4");
     expect(out).toContain("f_jpg");
+  });
+});
+
+describe("socialCardUrl", () => {
+  it("builds a 1200x630 JPEG card for images", () => {
+    const card = socialCardUrl(PLAIN);
+    expect(card).toEqual({
+      url: "https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_1200,h_630,f_jpg,q_auto:good/sample.jpg",
+      width: 1200,
+      height: 630,
+    });
+  });
+
+  it("derives a jpg poster for a .mov video", () => {
+    const card = socialCardUrl("https://res.cloudinary.com/demo/video/upload/clip.mov");
+    expect(card).not.toBeNull();
+    expect(card?.url).toContain("/video/upload/so_1,");
+    expect(card?.url).toContain("w_1200");
+    expect(card?.url).toContain("h_630");
+    expect(card?.url).toContain("f_jpg");
+    expect(card?.url.endsWith("/clip.jpg")).toBe(true);
+    expect(card).toMatchObject({ width: 1200, height: 630 });
+  });
+
+  it("passes an already-transformed URL through unchanged", () => {
+    expect(socialCardUrl(TRANSFORMED)).toEqual({
+      url: TRANSFORMED,
+      width: 1200,
+      height: 630,
+    });
+  });
+
+  it("returns null for empty and non-Cloudinary URLs", () => {
+    expect(socialCardUrl("")).toBeNull();
+    expect(socialCardUrl("https://images.unsplash.com/photo-123")).toBeNull();
   });
 });
