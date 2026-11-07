@@ -188,7 +188,11 @@ describe("POST /api/events/checkin", () => {
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.attended).toBe(true);
-    expect(db.update).toHaveBeenCalledWith({ attended: true });
+    expect(db.update).toHaveBeenCalledWith({
+      attended: true,
+      checked_in: true,
+      check_in_at: expect.any(String),
+    });
   });
 
   it("toggles attended when caller is event organizer (currently true → false)", async () => {
@@ -206,7 +210,11 @@ describe("POST /api/events/checkin", () => {
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.attended).toBe(false);
-    expect(db.update).toHaveBeenCalledWith({ attended: false });
+    expect(db.update).toHaveBeenCalledWith({
+      attended: false,
+      checked_in: false,
+      check_in_at: null,
+    });
   });
 
   it("returns 404 when registration not found for checkin", async () => {
@@ -240,7 +248,11 @@ describe("POST /api/events/checkin", () => {
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.attended).toBe(true);
-    expect(db.update).toHaveBeenCalledWith({ attended: true });
+    expect(db.update).toHaveBeenCalledWith({
+      attended: true,
+      checked_in: true,
+      check_in_at: expect.any(String),
+    });
   });
 
   it("accepts attended: false to force undo check-in for event organizer", async () => {
@@ -257,7 +269,11 @@ describe("POST /api/events/checkin", () => {
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.attended).toBe(false);
-    expect(db.update).toHaveBeenCalledWith({ attended: false });
+    expect(db.update).toHaveBeenCalledWith({
+      attended: false,
+      checked_in: false,
+      check_in_at: null,
+    });
   });
 
   // ── Error handling ────────────────────────────────────────────────

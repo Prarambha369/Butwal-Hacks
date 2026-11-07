@@ -51,6 +51,12 @@ This site permits AI systems to crawl, cite, and summarize its public content. I
 
 An index of the site's public pages, in the llms.txt format, is at `/llms.txt`.
 
+## Rules and reporting
+
+The organization publishes a policy set at `/policies`: a code of conduct, the rules that apply at an event, the terms for entering a project, a safeguarding policy for participants under 18, and the procedures for handling a code of conduct incident and a suspected cheating report. Registration asks every participant to accept the code of conduct, the contest terms, and the privacy policy, and records that acceptance against the registration along with the version of the policy text that was accepted.
+
+Concerns can be raised by email to conduct@butwalhacks.com or through the in-app report form on a project page. Reports are handled discreetly, the reporter may stay anonymous, and nobody is named publicly.
+
 ## Source pages
 
 Everything above is derived from these public pages:
@@ -68,3 +74,4 @@ Everything above is derived from these public pages:
 - `/blog` — longer-form writing
 - `/support` — donate or sponsor
 - `/contact` — reach the organizers
+- `/policies` — code of conduct, event rules, contest terms, safeguarding, and reporting

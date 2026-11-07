@@ -63,8 +63,11 @@ function parseSections(desc: string): Section[] {
   for (const line of lines) {
     // A section header is a line whose first token is an emoji or a known
     // keyword (Judges, Sponsors, Schedule).
+    // Extended_Pictographic, not Emoji: `\p{Emoji}` also matches digits, # and
+    // *, so a description line starting with "2026 ..." or "#1 ..." became a
+    // section header and its content was torn out of the paragraph.
     const isHeader =
-      /^[\p{Emoji}\p{Emoji_Presentation}]/u.test(line.trim()) ||
+      /^\p{Extended_Pictographic}/u.test(line.trim()) ||
       /^(Judges|Sponsors|Schedule|Prizes|Requirements|Rules)$/i.test(line.trim())
     if (isHeader && line.trim().length > 0) {
       if (current) sections.push(current)

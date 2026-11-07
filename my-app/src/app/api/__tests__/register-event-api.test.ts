@@ -35,6 +35,11 @@ const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn
 const mockedGetSession = auth0.getSession as ReturnType<typeof vi.fn>
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+const EVENT_ID = "550e8400-e29b-41d4-a716-446655440000"
+
+/** The three required acceptances. */
+const CONSENT = { code_of_conduct: true, rules: true, privacy: true }
+
 function buildMockDb() {
   const db: Record<string, ReturnType<typeof vi.fn>> = {}
   const methods = [
@@ -72,7 +77,7 @@ describe("POST /api/events/register", () => {
     mockedGetSession.mockResolvedValue(null)
 
     const { POST } = await import("../events/register/route")
-    const res = await POST(mockRequest({ event_id: "550e8400-e29b-41d4-a716-446655440000" }))
+    const res = await POST(mockRequest({ event_id: EVENT_ID, consent: CONSENT }))
 
     expect(res.status).toBe(401)
     const body = await res.json()
@@ -87,7 +92,7 @@ describe("POST /api/events/register", () => {
     mockedCreateServiceClient.mockReturnValue(db)
 
     const { POST } = await import("../events/register/route")
-    const res = await POST(mockRequest({ event_id: "550e8400-e29b-41d4-a716-446655440000" }))
+    const res = await POST(mockRequest({ event_id: EVENT_ID, consent: CONSENT }))
 
     expect(res.status).toBe(400)
     const body = await res.json()
@@ -101,7 +106,7 @@ describe("POST /api/events/register", () => {
     mockedCreateServiceClient.mockReturnValue(db)
 
     const { POST } = await import("../events/register/route")
-    await POST(mockRequest({ event_id: "550e8400-e29b-41d4-a716-446655440000" }))
+    await POST(mockRequest({ event_id: EVENT_ID, consent: CONSENT }))
 
     const eqCalls = db.eq.mock.calls
     const auth0Query = eqCalls.find(c => c[0] === "auth0_user_id")
@@ -130,9 +135,71 @@ describe("POST /api/events/register", () => {
     mockedCreateServiceClient.mockReturnValue(db)
 
     const { POST } = await import("../events/register/route")
-    const res = await POST(mockRequest({ event_id: "" }))
+    const res = await POST(mockRequest({ event_id: "", consent: CONSENT }))
 
     expect(res.status).toBe(400)
+  })
+
+  // ── Consent ──────────────────────────────────────────────────────────
+
+  it("returns 400 when the Code of Conduct is not accepted", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const { POST } = await import("../events/register/route")
+    const res = await POST(
+      mockRequest({
+        event_id: EVENT_ID,
+        consent: { ...CONSENT, code_of_conduct: false },
+      }),
+    )
+
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toContain("Code of Conduct")
+    // No registration row is written when consent is missing.
+    expect(db.insert).not.toHaveBeenCalled()
+  })
+
+  it("returns 400 when the Hackathon Rules are not accepted", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const { POST } = await import("../events/register/route")
+    const res = await POST(
+      mockRequest({ event_id: EVENT_ID, consent: { ...CONSENT, rules: false } }),
+    )
+
+    expect(res.status).toBe(400)
+    expect(db.insert).not.toHaveBeenCalled()
+  })
+
+  it("returns 400 when the Privacy Policy is not accepted", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const { POST } = await import("../events/register/route")
+    const res = await POST(
+      mockRequest({ event_id: EVENT_ID, consent: { ...CONSENT, privacy: false } }),
+    )
+
+    expect(res.status).toBe(400)
+    expect(db.insert).not.toHaveBeenCalled()
+  })
+
+  it("returns 400 when consent is missing entirely", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const { POST } = await import("../events/register/route")
+    const res = await POST(mockRequest({ event_id: EVENT_ID }))
+
+    expect(res.status).toBe(400)
+    expect(db.insert).not.toHaveBeenCalled()
   })
 
   // ── Successful flow ──────────────────────────────────────────────────
@@ -144,9 +211,7 @@ describe("POST /api/events/register", () => {
     mockedCreateServiceClient.mockReturnValue(db)
 
     const { POST } = await import("../events/register/route")
-    const res = await POST(
-      mockRequest({ event_id: "550e8400-e29b-41d4-a716-446655440000" }),
-    )
+    const res = await POST(mockRequest({ event_id: EVENT_ID, consent: CONSENT }))
 
     expect(res.status).toBe(201)
     const body = await res.json()
@@ -160,11 +225,44 @@ describe("POST /api/events/register", () => {
     mockedCreateServiceClient.mockReturnValue(db)
 
     const { POST } = await import("../events/register/route")
-    await POST(mockRequest({ event_id: "550e8400-e29b-41d4-a716-446655440000" }))
+    await POST(mockRequest({ event_id: EVENT_ID, consent: CONSENT }))
 
     const insertCall = db.insert.mock.calls[0][0]
-    expect(insertCall.event_id).toBe("550e8400-e29b-41d4-a716-446655440000")
+    expect(insertCall.event_id).toBe(EVENT_ID)
     expect(insertCall.profile_id).toBe("profile-uuid")
+  })
+
+  it("records the consent timestamps and the policy version", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null })
+    db.insert.mockResolvedValue({ error: null })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const { POST } = await import("../events/register/route")
+    await POST(mockRequest({ event_id: EVENT_ID, consent: CONSENT }))
+
+    const insertCall = db.insert.mock.calls[0][0]
+    expect(insertCall.code_of_conduct_accepted_at).toBeTruthy()
+    expect(insertCall.rules_accepted_at).toBeTruthy()
+    expect(insertCall.privacy_accepted_at).toBeTruthy()
+    expect(insertCall.policy_version).toBe("2026-10-21")
+    // The marketing opt-in is off unless it was explicitly checked.
+    expect(insertCall.marketing_opt_in).toBe(false)
+  })
+
+  it("records the marketing opt-in when it was accepted", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null })
+    db.insert.mockResolvedValue({ error: null })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const { POST } = await import("../events/register/route")
+    await POST(
+      mockRequest({ event_id: EVENT_ID, consent: { ...CONSENT, marketing: true } }),
+    )
+
+    const insertCall = db.insert.mock.calls[0][0]
+    expect(insertCall.marketing_opt_in).toBe(true)
   })
 
   // ponytail: analytics/server deleted, removed analytics test assertion.
@@ -180,7 +278,7 @@ describe("POST /api/events/register", () => {
     const { POST } = await import("../events/register/route")
     const res = await POST(
       mockRequest(
-        { event_id: "550e8400-e29b-41d4-a716-446655440000" },
+        { event_id: EVENT_ID, consent: CONSENT },
         { "idempotency-key": "idem-001" },
       ),
     )
@@ -204,7 +302,7 @@ describe("POST /api/events/register", () => {
     const { POST } = await import("../events/register/route")
     await POST(
       mockRequest(
-        { event_id: "550e8400-e29b-41d4-a716-446655440000" },
+        { event_id: EVENT_ID, consent: CONSENT },
         { "idempotency-key": "idem-002" },
       ),
     )
@@ -219,16 +317,28 @@ describe("POST /api/events/register", () => {
 
   // ── Error handling ───────────────────────────────────────────────────
 
-  it("handles Supabase insert error on registration", async () => {
+  it("returns 409 when the person is already registered", async () => {
     const db = buildMockDb()
     db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null })
     db.insert.mockResolvedValue({ error: { message: "Duplicate registration", code: "23505" } })
     mockedCreateServiceClient.mockReturnValue(db)
 
     const { POST } = await import("../events/register/route")
-    const res = await POST(
-      mockRequest({ event_id: "550e8400-e29b-41d4-a716-446655440000" }),
-    )
+    const res = await POST(mockRequest({ event_id: EVENT_ID, consent: CONSENT }))
+
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body.error).toContain("already registered")
+  })
+
+  it("handles Supabase insert error on registration", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null })
+    db.insert.mockResolvedValue({ error: { message: "Connection failure", code: "08006" } })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const { POST } = await import("../events/register/route")
+    const res = await POST(mockRequest({ event_id: EVENT_ID, consent: CONSENT }))
 
     expect(res.status).toBe(500)
     const body = await res.json()
@@ -241,9 +351,7 @@ describe("POST /api/events/register", () => {
     mockedCreateServiceClient.mockReturnValue(db)
 
     const { POST } = await import("../events/register/route")
-    const res = await POST(
-      mockRequest({ event_id: "550e8400-e29b-41d4-a716-446655440000" }),
-    )
+    const res = await POST(mockRequest({ event_id: EVENT_ID, consent: CONSENT }))
 
     expect(res.status).toBe(400)
     const body = await res.json()

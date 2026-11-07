@@ -186,8 +186,19 @@ export function parsePolicyMarkdown(
       const items: string[] = [];
       while (index < lines.length) {
         const match = pattern.exec(lines[index]);
-        if (!match) break;
-        items.push(rewriteLinks(match[1].trim(), resolveHref));
+        if (match) {
+          items.push(rewriteLinks(match[1].trim(), resolveHref));
+          index += 1;
+          continue;
+        }
+        // A wrapped list item: an indented line that is not itself a marker
+        // continues the previous item. Ending the list here dropped the
+        // continuation into a paragraph, where the marker was lost and the
+        // sentence read as a stray standalone line.
+        if (items.length === 0) break;
+        if (!lines[index].trim() || !/^\s+\S/.test(lines[index])) break;
+        items[items.length - 1] =
+          `${items[items.length - 1]} ${rewriteLinks(lines[index].trim(), resolveHref)}`;
         index += 1;
       }
       blocks.push({ kind: "list", ordered: isOrdered, items });

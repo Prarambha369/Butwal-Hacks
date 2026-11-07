@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation"
 import { CheckCircle, AlertCircle, LogIn } from "lucide-react"
 import { useAuthUser } from "@/components/auth-user-provider"
 import { cn } from "@/lib/utils"
-import { RoseSpinner } from "@/components/ui/rose-loader";
+import { RoseSpinner } from "@/components/ui/rose-loader"
+import RegistrationConsentModal, {
+  type RegistrationConsent,
+} from "@/components/events/registration-consent-modal"
 
 interface Props {
   eventId: string
@@ -17,15 +20,11 @@ export default function EventRegisterButton({ eventId, eventSlug }: Props) {
   const { user, isLoading: authLoading } = useAuthUser()
   const [state, setState] = useState<"idle" | "loading" | "registered" | "error">("idle")
   const [message, setMessage] = useState("")
+  const [showConsent, setShowConsent] = useState(false)
 
   const isSignedIn = !!user
 
-  const handleRegister = async () => {
-    if (!isSignedIn) {
-      router.push("/sign-in?returnTo=/events/" + eventSlug)
-      return
-    }
-
+  const handleRegister = async (consent: RegistrationConsent) => {
     setState("loading")
     setMessage("Registering...")
 
@@ -33,7 +32,15 @@ export default function EventRegisterButton({ eventId, eventSlug }: Props) {
       const res = await fetch("/api/events/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId }),
+        body: JSON.stringify({
+          event_id: eventId,
+          consent: {
+            code_of_conduct: consent.code_of_conduct,
+            rules: consent.rules,
+            privacy: consent.privacy,
+            marketing: consent.marketing,
+          },
+        }),
       })
 
       const data = await res.json()
@@ -44,6 +51,7 @@ export default function EventRegisterButton({ eventId, eventSlug }: Props) {
         return
       }
 
+      setShowConsent(false)
       setState("registered")
       setMessage(data.message || "You're registered!")
       router.refresh()
@@ -68,7 +76,15 @@ export default function EventRegisterButton({ eventId, eventSlug }: Props) {
   return (
     <div className="space-y-2">
       <button
-        onClick={handleRegister}
+        onClick={() => {
+          if (!isSignedIn) {
+            router.push("/sign-in?returnTo=/events/" + eventSlug)
+            return
+          }
+          setMessage("")
+          setState("idle")
+          setShowConsent(true)
+        }}
         disabled={state === "loading" || state === "registered"}
         className={cn(
           "inline-flex items-center gap-2 px-8 py-4 rounded-lg font-bold text-sm transition-all active:scale-95",
@@ -107,6 +123,15 @@ export default function EventRegisterButton({ eventId, eventSlug }: Props) {
         >
           {message}
         </p>
+      )}
+
+      {showConsent && (
+        <RegistrationConsentModal
+          onClose={() => setShowConsent(false)}
+          onConfirm={handleRegister}
+          submitting={state === "loading"}
+          error={state === "error" ? message : null}
+        />
       )}
     </div>
   )
