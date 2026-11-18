@@ -3,13 +3,19 @@ import { GraduationCap } from "lucide-react"
 import type { Metadata } from "next"
 import { MentorDirectoryClient } from "./mentor-directory-client"
 import type { MentorProfile } from "@/lib/mentor-types";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+// ISR: public, session-free data. Rebuilt at most every 5 minutes instead of
+// rendering on every request, which was burning Fluid Active CPU.
+export const revalidate = 300;
 
-export const metadata: Metadata = {
+// buildPageMetadata sets the canonical; a bare object inherited the root
+// layout's canonical, so /mentors told crawlers it was a copy of the homepage.
+export const metadata: Metadata = buildPageMetadata({
   title: "Mentor Directory — Butwal Hacks",
   description: "Talk 1:1 with developers and engineers volunteering as mentors. Ask anything, no stupid questions.",
-};
+  path: "/mentors",
+});
 
 export default async function MentorsPage() {
   const supabase = createServiceClient();

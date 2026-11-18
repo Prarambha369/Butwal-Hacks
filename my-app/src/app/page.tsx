@@ -28,7 +28,9 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/",
 });
 
-export const dynamic = "force-dynamic";
+// ISR: public, session-free data. Rebuilt at most every 5 minutes instead of
+// rendering on every request, which was burning Fluid Active CPU.
+export const revalidate = 300;
 
 /**
  * Landing page — one calm narrative, no filler:

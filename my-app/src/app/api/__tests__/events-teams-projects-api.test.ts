@@ -88,7 +88,10 @@ describe("POST /api/events/register", () => {
   it("returns 401 when not authenticated", async () => {
     mockedGetSession.mockResolvedValue(null);
     const { POST } = await import("../events/register/route");
-    const res = await POST(mockRequest({ event_id: "some-uuid" }));
+    const res = await POST(mockRequest({
+      event_id: "some-uuid",
+      consent: { code_of_conduct: true, rules: true, privacy: true },
+    }));
     const body = await res.json();
 
     expect(res.status).toBe(401);
@@ -102,7 +105,10 @@ describe("POST /api/events/register", () => {
     mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../events/register/route");
-    const res = await POST(mockRequest({ event_id: "some-uuid" }));
+    const res = await POST(mockRequest({
+      event_id: "some-uuid",
+      consent: { code_of_conduct: true, rules: true, privacy: true },
+    }));
     const body = await res.json();
 
     expect(res.status).toBe(400);
@@ -117,7 +123,10 @@ describe("POST /api/events/register", () => {
     mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../events/register/route");
-    await POST(mockRequest({ event_id: "some-uuid" }));
+    await POST(mockRequest({
+      event_id: "some-uuid",
+      consent: { code_of_conduct: true, rules: true, privacy: true },
+    }));
 
     const eqCalls = db.eq.mock.calls;
     const auth0Query = eqCalls.find(c => c[0] === "auth0_user_id");
@@ -133,11 +142,37 @@ describe("POST /api/events/register", () => {
     mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../events/register/route");
-    const res = await POST(mockRequest({ event_id: "valid-uuid" }));
+    const res = await POST(
+      mockRequest({
+        event_id: "valid-uuid",
+        consent: { code_of_conduct: true, rules: true, privacy: true },
+      }),
+    );
 
     expect(res.status).toBe(201);
     const body = await res.json();
     expect(body.success).toBe(true);
+  });
+
+  it("returns 400 when the consent is not accepted", async () => {
+    const db = buildMockDb();
+    db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null });
+    db.insert.mockResolvedValue({ error: null });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
+
+    const { POST } = await import("../events/register/route");
+    const res = await POST(
+      mockRequest({
+        event_id: "valid-uuid",
+        consent: { code_of_conduct: false, rules: true, privacy: true },
+      }),
+    );
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("Code of Conduct");
+    expect(db.insert).not.toHaveBeenCalled();
   });
 });
 
@@ -233,7 +268,12 @@ describe("POST /api/projects", () => {
   it("returns 401 when not authenticated", async () => {
     mockedGetSession.mockResolvedValue(null);
     const { POST } = await import("../projects/route");
-    const res = await POST(mockRequest({ title: "My Project", description: "A cool project" }));
+    const res = await POST(mockRequest({
+      title: "My Project",
+      description: "A cool project",
+      rules_accepted: true,
+      public_code_attested: true,
+    }));
     const body = await res.json();
 
     expect(res.status).toBe(401);
@@ -247,7 +287,12 @@ describe("POST /api/projects", () => {
     mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../projects/route");
-    const res = await POST(mockRequest({ title: "My Project", description: "A cool project" }));
+    const res = await POST(mockRequest({
+      title: "My Project",
+      description: "A cool project",
+      rules_accepted: true,
+      public_code_attested: true,
+    }));
 
     expect(res.status).toBe(400);
     const body = await res.json();
@@ -262,7 +307,12 @@ describe("POST /api/projects", () => {
     mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
 
     const { POST } = await import("../projects/route");
-    await POST(mockRequest({ title: "My Project", description: "A cool project" }));
+    await POST(mockRequest({
+      title: "My Project",
+      description: "A cool project",
+      rules_accepted: true,
+      public_code_attested: true,
+    }));
 
     const eqCalls = db.eq.mock.calls;
     const auth0Query = eqCalls.find(c => c[0] === "auth0_user_id");
@@ -284,11 +334,31 @@ describe("POST /api/projects", () => {
       github_url: "https://github.com/user/repo",
       demo_url: "https://demo.example.com",
       tech_stack: ["React"],
+      rules_accepted: true,
+      public_code_attested: true,
     }));
 
     expect(res.status).toBe(201);
     const body = await res.json();
     expect(body.success).toBe(true);
+  });
+
+  it("rejects a submission that does not accept the rules", async () => {
+    const db = buildMockDb();
+    db.single.mockResolvedValue({ data: { id: "profile-uuid" }, error: null });
+    mockedCreateServiceClient.mockReturnValue(db);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } });
+
+    const { POST } = await import("../projects/route");
+    const res = await POST(mockRequest({
+      title: "My Project",
+      description: "A cool project description",
+      rules_accepted: false,
+      public_code_attested: true,
+    }));
+
+    expect(res.status).toBe(400);
+    expect(db.insert).not.toHaveBeenCalled();
   });
 
   it("rejects request with missing title", async () => {
