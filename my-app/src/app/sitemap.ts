@@ -3,7 +3,7 @@ import { SITE_URL } from '@/lib/constants'
 import { createServiceClient } from '@/utils/supabase'
 import { blogPosts, initiatives, events } from '@/lib/content'
 import { ALL_FESTIVALS } from '@/lib/festivals'
-import { POLICIES } from '@/lib/policy-registry'
+import { PUBLISHED_POLICIES } from '@/lib/policy-registry'
 
 const siteUrl = SITE_URL
 const today = new Date()
@@ -52,9 +52,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   // ─── Dynamic: Policies ───────────────────────────────────────────────
-  // The policy set is canonical markdown in the repository. These pages
-  // render that same file, so the site and the repo cannot disagree.
-  for (const policy of POLICIES) {
+  // Only published policies. The rest redirect while they are under legal
+  // review, and a sitemap must not list URLs that only redirect.
+  for (const policy of PUBLISHED_POLICIES) {
     entries.push({
       url: `${siteUrl}/policies/${policy.slug}`,
       lastModified: today,

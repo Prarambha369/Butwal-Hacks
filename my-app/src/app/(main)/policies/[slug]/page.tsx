@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { buildPageMetadata } from "@/lib/seo";
 import LegalDocumentLayout from "@/components/legal-document-layout";
@@ -10,6 +10,7 @@ import {
   POLICIES,
   POLICY_NAV,
   formatPolicyDate,
+  unpublishedPolicyRedirect,
   type PolicySlug,
 } from "@/lib/policy-registry";
 
@@ -35,6 +36,17 @@ export async function generateMetadata({
     });
   }
 
+  if (!policy.published) {
+    return {
+      ...buildPageMetadata({
+        title: "Policies",
+        description: "The Butwal Hacks policies.",
+        path: "/policies",
+      }),
+      robots: { index: false, follow: true },
+    };
+  }
+
   return buildPageMetadata({
     title: policy.title,
     description: policy.summary,
@@ -51,6 +63,11 @@ export default async function PolicyPage({
   const policy = POLICIES.find((p) => p.slug === slug);
 
   if (!policy) notFound();
+
+  // Not yet published: the document is under review with our legal advisor.
+  // Redirect (temporarily, so it can be published at the same URL later)
+  // rather than 404, so old links still land somewhere useful.
+  if (!policy.published) redirect(unpublishedPolicyRedirect(policy));
 
   const parsed = loadPolicy(policy.slug as PolicySlug);
   if (!parsed) notFound();

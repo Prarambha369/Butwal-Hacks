@@ -160,7 +160,8 @@ Rate limit tiers: `public_form` 5/60s, `sensitive` 3/60s, `user_action` 5/60s, `
 
 ### Policies and consent
 
-- `policies/` holds the canonical policy documents as markdown. The site renders those same files at `/policies` and `/policies/<slug>`, so the repository and the website cannot drift apart. Edit the markdown, not the rendered page.
+- `policies/` holds the canonical policy documents as markdown. The site renders those same files at `/policies/<slug>`, so the repository and the website cannot drift apart. Edit the markdown, not the rendered page.
+- Only policies marked `published: true` in `src/lib/policy-registry.ts` appear on the site: the five participants accept or read (code of conduct, hackathon rules, privacy, registration notices, cheating response). The rest are under review with the legal advisor; their URLs redirect to `/policies` (terms and cookies to their summary pages), and links to them inside published documents render as plain text. Publishing one is a one-line change in the registry, after legal sign-off.
 - Privacy, terms, and cookies also have public-facing summary pages — `/legal/privacy`, `/legal/terms`, and `/cookie-policy` — which name the real subprocessors and data categories in plain language. They are summaries, not the canonical text: `policies/PRIVACY_POLICY.md`, `TERMS_OF_SERVICE.md`, and `COOKIE_POLICY.md` govern. When you change one, update the other in the same PR so they do not disagree.
 - The consent text is in `policies/REGISTRATION_NOTICES.md`, and the version recorded against a registration is `POLICY_VERSION` in `src/lib/policy-registry.ts`. Change one, change the other.
 - Consent is refused by default. The registration route rejects a request without the three required acceptances, and no row is written. The marketing opt-in is optional and off unless it was checked.

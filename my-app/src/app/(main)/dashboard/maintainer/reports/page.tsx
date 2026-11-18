@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { REPO_URL } from "@/lib/policy-registry";
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
 import { ShieldAlert } from "lucide-react";
@@ -58,9 +58,16 @@ export default async function MaintainerReportsPage() {
         <h1 className="text-3xl font-bold tracking-tight text-primary">Reports</h1>
         <p className="text-sm text-muted-foreground">
           Code of conduct and suspected cheating reports. Handling follows{" "}
-          <Link href="/policies/incident-response" className="text-primary-red hover:underline">
+          {/* Internal procedure, not published on the site while it is under
+              legal review; maintainers read it in the repository. */}
+          <a
+            href={`${REPO_URL}/blob/main/policies/INCIDENT_RESPONSE.md`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary-red hover:underline"
+          >
             the incident response procedure
-          </Link>
+          </a>
           .
         </p>
       </div>

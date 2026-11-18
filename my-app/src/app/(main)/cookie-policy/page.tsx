@@ -1,7 +1,6 @@
 export const dynamic = "force-static";
 
 import type { Metadata } from "next"
-import Link from "next/link"
 import { buildPageMetadata } from "@/lib/seo"
 import LegalDocumentLayout from "@/components/legal-document-layout"
 
@@ -97,19 +96,8 @@ export default function CookiePolicyPage() {
       ),
     },
     {
-      id: "full-policy",
-      title: "6. The Full Policy",
-      content: (
-        <p>
-          This page is a summary. The governing text, including the full list of cookies, is the{" "}
-          <Link href="/policies/cookies" className="text-primary underline">Cookie Policy</Link>{" "}
-          in our policy set. Where the two differ, the full policy applies.
-        </p>
-      ),
-    },
-    {
       id: "contact",
-      title: "7. Contact",
+      title: "6. Contact",
       content: (
         <p>
           Questions about cookies can be sent to <a href="mailto:hello@butwalhacks.com" className="text-primary hover:underline">hello@butwalhacks.com</a>.

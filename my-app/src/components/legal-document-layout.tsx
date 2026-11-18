@@ -16,7 +16,7 @@ interface LegalDocumentLayoutProps {
   effectiveDate: string;
   activePolicy: string;
   sections: LegalSection[];
-  /** Override the pill nav. Defaults to the two application-page policies. */
+  /** Override the pill nav. Defaults to the three application-page policies. */
   policyLinks?: PolicyNavLink[];
 }
 
@@ -57,16 +57,14 @@ export default function LegalDocumentLayout({
         className="mb-8 rounded-lg border border-primary-red/30 bg-primary-red/5 p-4 text-sm text-secondary"
         aria-label="Policy status"
       >
-        <p className="font-semibold text-primary">Draft &mdash; not yet legally reviewed</p>
+        <p className="font-semibold text-primary">Draft &mdash; under legal review</p>
         <p className="mt-2">
-          This summary has not been reviewed by an advocate qualified in the laws of Nepal,
-          and the review is tracked as an open item. The{" "}
+          This page is being reviewed with our legal advisor and may change before it is final.
+          See our{" "}
           <Link href="/policies" className="text-primary-red underline hover:no-underline">
-            full policy set
+            policies
           </Link>{" "}
-          on this site is the canonical and more detailed version, and includes the
-          terms for members under 18 and our safeguarding commitments, which are not
-          summarised on this page.
+          for the rules participants agree to.
         </p>
       </aside>
       )}
