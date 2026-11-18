@@ -4,7 +4,9 @@ import type { Metadata } from "next"
 import { MentorDirectoryClient } from "./mentor-directory-client"
 import type { MentorProfile } from "@/lib/mentor-types";
 
-export const dynamic = "force-dynamic";
+// ISR: public, session-free data. Rebuilt at most every 5 minutes instead of
+// rendering on every request, which was burning Fluid Active CPU.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Mentor Directory — Butwal Hacks",
