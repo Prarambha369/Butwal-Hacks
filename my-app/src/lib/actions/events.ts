@@ -79,9 +79,31 @@ async function resolveEventSlug(
   })
 }
 
+const BANNER_URL_PREFIX = "https://res.cloudinary.com/"
+const BANNER_REJECTED = "Banner uploads must come from the uploader below."
+
+/**
+ * Normalize a caller-supplied banner URL.
+ *
+ * Banners render through next/image, so a host outside the configured image
+ * allowlist breaks the event hero, and an arbitrary URL is attacker-chosen
+ * content on a public page. Only the uploader's Cloudinary URLs are accepted.
+ * Blank or missing means "no banner" and becomes null.
+ */
+function normalizeBannerUrl(
+  value: string | null | undefined,
+): { ok: true; value: string | null } | { ok: false } {
+  const trimmed = (value ?? "").trim()
+  if (trimmed === "") return { ok: true, value: null }
+  return trimmed.startsWith(BANNER_URL_PREFIX) ? { ok: true, value: trimmed } : { ok: false }
+}
+
 // ponytail: Looks up profile UUID from Auth0 user ID to satisfy organizer_id FK
 export async function createEvent(input: CreateEventInput) {
   try {
+    const banner = normalizeBannerUrl(input.banner_url)
+    if (!banner.ok) return { success: false, error: BANNER_REJECTED }
+
     const supabase = createServiceClient()
     const profileId = await resolveProfileId()
     const slug = await resolveEventSlug(supabase, input.slug, input.title)
@@ -105,7 +127,7 @@ export async function createEvent(input: CreateEventInput) {
         start_date: input.start_date,
         end_date: input.end_date,
         location: input.location ?? null,
-        banner_url: input.banner_url ?? null,
+        banner_url: banner.value,
         is_published: input.is_published ?? false,
         organizer_id: profileId,
       })
@@ -148,6 +170,9 @@ interface CreateChapterEventInput {
 
 export async function createChapterEvent(input: CreateChapterEventInput, orgSlug: string) {
   try {
+    const banner = normalizeBannerUrl(input.banner_url)
+    if (!banner.ok) return { success: false, error: BANNER_REJECTED }
+
     const supabase = createServiceClient()
     const profileId = await resolveProfileId()
     const slug = await resolveEventSlug(supabase, input.slug, input.title)
@@ -168,7 +193,7 @@ export async function createChapterEvent(input: CreateChapterEventInput, orgSlug
         start_date: input.start_date,
         end_date: input.end_date,
         location: input.location ?? null,
-        banner_url: input.banner_url ?? null,
+        banner_url: banner.value,
         is_published: input.is_published ?? false,
         organizer_id: profileId,
         chapter_id: input.chapterId,
@@ -399,13 +424,11 @@ export async function updateEventBanner(eventId: string, bannerUrl: string) {
     }
 
     // Only accept a Cloudinary URL or an explicit empty-string removal.
-    const trimmed = bannerUrl.trim()
-    if (trimmed !== "" && !trimmed.startsWith("https://res.cloudinary.com/")) {
-      return {
-        success: false,
-        error: "Banner uploads must come from the uploader below.",
-      }
+    const banner = normalizeBannerUrl(bannerUrl)
+    if (!banner.ok) {
+      return { success: false, error: BANNER_REJECTED }
     }
+    const trimmed = banner.value ?? ""
 
     if (trimmed === event.banner_url) {
       return { success: true, unchanged: true }

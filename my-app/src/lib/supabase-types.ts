@@ -84,6 +84,14 @@ export interface Project {
   github_meta: GitHubMeta | null
   created_at: string
   gallery: string[] | null
+  /** Prize categories the team opted into at submission. */
+  prize_categories: string[] | null
+  /** AI tools the team disclosed using. */
+  ai_tools: string[] | null
+  /** When the hackathon rules were accepted. */
+  rules_accepted_at: string | null
+  /** Whether the team attested that the code is publicly available. */
+  public_code_attested: boolean
   project_likes?: { count: number }[]
 }
 
@@ -109,6 +117,15 @@ export interface EventRegistration {
   profile_id: string
   attended: boolean
   created_at: string
+  /** When the Code of Conduct was accepted at registration. */
+  code_of_conduct_accepted_at: string | null
+  /** When the Hackathon Rules and the Privacy Policy were accepted. */
+  rules_accepted_at: string | null
+  privacy_accepted_at: string | null
+  /** Which version of the policy text was accepted. */
+  policy_version: string | null
+  /** Optional communications opt-in. Off unless explicitly checked. */
+  marketing_opt_in: boolean
 }
 
 export interface AuditLog {

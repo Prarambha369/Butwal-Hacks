@@ -59,6 +59,27 @@ describe("parsePolicyMarkdown", () => {
     expect(parsed.blocks[1]).toEqual({ kind: "list", ordered: true, items: ["first", "second"] });
   });
 
+  it("joins a wrapped list item to its marker instead of ending the list", () => {
+    const parsed = parsePolicyMarkdown(
+      "1. A long item that wraps\n   onto a second line\n2. second\n",
+    );
+    expect(parsed.blocks).toHaveLength(1);
+    expect(parsed.blocks[0]).toEqual({
+      kind: "list",
+      ordered: true,
+      items: ["A long item that wraps onto a second line", "second"],
+    });
+  });
+
+  it("resolves a link that wraps onto a list item's continuation line", () => {
+    const parsed = parsePolicyMarkdown("- See the [Hackathon\n  Rules](RULES.md) first\n", (href) => `/x/${href}`);
+    expect(parsed.blocks[0]).toEqual({
+      kind: "list",
+      ordered: false,
+      items: ["See the [Hackathon Rules](/x/RULES.md) first"],
+    });
+  });
+
   it("parses a table with a header row", () => {
     const parsed = parsePolicyMarkdown(
       "| Policy | Covers |\n| --- | --- |\n| CoC | Behaviour |\n",
@@ -73,6 +94,17 @@ describe("parsePolicyMarkdown", () => {
   it("parses a blockquote", () => {
     const parsed = parsePolicyMarkdown("> Handle it discreetly.\n");
     expect(parsed.blocks[0]).toEqual({ kind: "quote", text: "Handle it discreetly." });
+  });
+
+  it("keeps a blockquote together across a bare > separator line", () => {
+    const parsed = parsePolicyMarkdown("> First part.\n>\n> Second part.\n");
+    expect(parsed.blocks).toEqual([{ kind: "quote", text: "First part. Second part." }]);
+  });
+
+  it("extracts a policy version declared inside a blockquote", () => {
+    const parsed = parsePolicyMarkdown("> Summary.\n>\n> Policy version: 2026-11-18\n");
+    expect(parsed.version).toBe("2026-11-18");
+    expect(parsed.blocks).toEqual([{ kind: "quote", text: "Summary." }]);
   });
 
   it("parses a horizontal rule", () => {

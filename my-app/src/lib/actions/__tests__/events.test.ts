@@ -179,14 +179,46 @@ describe("createEvent", () => {
       title: "Location Event", description: "With location",
       start_date: "2026-06-01", end_date: "2026-06-02",
       location: "Kathmandu",
-      banner_url: "https://example.com/banner.jpg",
+      banner_url: "https://res.cloudinary.com/demo/image/upload/banner.jpg",
       is_published: true,
     });
 
     const insertData = db.insert.mock.calls[0][0];
     expect(insertData.location).toBe("Kathmandu");
-    expect(insertData.banner_url).toBe("https://example.com/banner.jpg");
+    expect(insertData.banner_url).toBe("https://res.cloudinary.com/demo/image/upload/banner.jpg");
     expect(insertData.is_published).toBe(true);
+  });
+
+  it("rejects a banner URL from a host outside the image allowlist", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    setProfileFound(db);
+
+    const { createEvent } = await import("../events");
+    const result = await createEvent({
+      title: "Hostile Banner", description: "",
+      start_date: "2026-06-01", end_date: "2026-06-02",
+      banner_url: "https://example.com/banner.jpg",
+    });
+
+    expect(result.success).toBe(false);
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  it("stores a blank banner URL as null", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    setProfileFound(db);
+    db.single.mockResolvedValue({ data: { id: "event-1" }, error: null });
+
+    const { createEvent } = await import("../events");
+    await createEvent({
+      title: "No Banner", description: "",
+      start_date: "2026-06-01", end_date: "2026-06-02",
+      banner_url: "",
+    });
+
+    expect(db.insert.mock.calls[0][0].banner_url).toBeNull();
   });
 });
 

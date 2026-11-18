@@ -99,7 +99,12 @@ const sections: SiteSection[] = [
     description: "Policies, terms, and compliance information.",
     icon: <FileText className="h-5 w-5" />,
     links: [
-      { href: "/legal/privacy", label: "Privacy Policy", description: "How we handle your data" },
+      { href: "/policies", label: "Policies", description: "The rules participants agree to, and how to report something" },
+      { href: "/policies/code-of-conduct", label: "Code of Conduct", description: "The standard every space holds to" },
+      { href: "/policies/hackathon-rules", label: "Hackathon Rules", description: "Rules of an event and the grounds for disqualification" },
+      { href: "/policies/privacy", label: "Privacy Policy", description: "What we collect, why, and who sees it" },
+      { href: "/policies/cheating-response", label: "Cheating Response", description: "What happens when a project is suspected of cheating" },
+      { href: "/legal/privacy", label: "Privacy Summary", description: "How we handle your data, in brief" },
       { href: "/legal/terms", label: "Terms of Service", description: "Terms governing platform use" },
       { href: "/cookie-policy", label: "Cookie Policy", description: "How we use cookies and tracking" },
     ],
