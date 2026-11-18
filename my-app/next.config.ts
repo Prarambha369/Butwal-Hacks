@@ -113,6 +113,11 @@ const nextConfig: NextConfig = {
     root: path.resolve(process.cwd(), ".."),
   },
 
+  experimental: {
+    // Agent-driven upgrades stay on security releases only.
+    agentUpgrade: "security",
+  },
+
 
 
   images: {
