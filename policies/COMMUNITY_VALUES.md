@@ -77,7 +77,7 @@ ourselves accountable to.
 - **Published follow-up.** We publish the rules in advance; we do not yet
   publish a post-event report on how an event went.
 
-Policy version: 2026-10-21
+Policy version: 2026-11-18
 
 ## See also
 

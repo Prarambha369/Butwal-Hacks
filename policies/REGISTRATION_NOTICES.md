@@ -8,7 +8,7 @@ require at registration. The wording is ours, and the documents being
 accepted are the ones in this directory — currently drafts pending legal
 review, tracked in [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md).
 
-**Policy version: 2026-10-21**
+**Policy version: 2026-11-18**
 
 ## Required — Code of Conduct
 

@@ -2,7 +2,7 @@
 
 > The binding documents that govern use of the Butwal Hacks platform and participation in our programs. Maintained by the core team. Engineering detail is in [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
 >
-> Policy version: 2026-10-21
+> Policy version: 2026-11-18
 
 ## What this is
 
@@ -11,7 +11,7 @@ The complete set of policies for Butwal Hacks: terms of use, privacy, consent fo
 The set has two layers, and it is worth saying which is which:
 
 - **The legal layer** — the documents in this directory. What we owe members, what they owe us, and what the law of Nepal requires of us.
-- **The operational layer** — how the platform actually carries that out. What consent is captured at registration, where a report lands, who may read it, and what a sanction looks like. These are enforced in code, and the code is the reason the documents are not merely decorative.
+- **The operational layer** — how the platform actually carries that out. What consent is captured at registration, where a report lands, who may read it, and what a sanction looks like. The commitments listed under [How the platform carries this out](#how-the-platform-carries-this-out) are enforced in code, and that code is the reason the documents are not merely decorative.
 
 ## ⚠️ Status: drafts pending legal review
 
@@ -66,7 +66,7 @@ The Code of Conduct sits at the repository root, because it applies to every spa
 
 **Someone suspects a project was not built during the event.** Follow [CHEATING_RESPONSE.md](CHEATING_RESPONSE.md). Handle it discreetly — no public accusations, no pile-ons.
 
-**A maintainer wants to add a feature that collects new data.** Read [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md) first, then update [PRIVACY_POLICY.md](PRIVACY_POLICY.md) in the same PR.
+**A maintainer wants to add a feature that collects new data.** Read [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md) first, then update [PRIVACY_POLICY.md](PRIVACY_POLICY.md) — the canonical text — and its public summary at `/legal/privacy` (`my-app/src/app/(main)/legal/privacy/page.tsx`) in the same PR, so the two do not disagree.
 
 **Someone asks why we cannot sign a subprocessor agreement or hire.** Because we have no legal person yet. See [LEGAL_ENTITY.md](LEGAL_ENTITY.md).
 
@@ -74,13 +74,13 @@ The Code of Conduct sits at the repository root, because it applies to every spa
 
 ## How the platform carries this out
 
-The operational layer is enforced, not described. Where the documents say something, the code does it.
+The commitments in the table below are enforced in code, not only described. Other statements in these documents are commitments we intend to keep; where one is not yet built, [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md) says so.
 
 | Commitment | Where it is enforced |
 |------------|---------------------|
 | Registration records acceptance of the Code of Conduct, the Hackathon Rules, and the Privacy Policy | `POST /api/events/register` refuses a request without them and writes no row; `event_registrations` stores the three acceptance timestamps and the policy version |
 | The communications opt-in is off unless it was checked | `event_registrations.marketing_opt_in` defaults to `false` |
-| A consent, once given, cannot be changed | A database trigger rejects any update to the acceptance timestamps or the policy version (migration `135`) |
+| A consent, once given, cannot be changed | A database trigger rejects any update to the acceptance timestamps or the policy version (migration `144`) |
 | Project submission requires the rules to be accepted and the code to be public | `projects.rules_accepted_at` and `projects.public_code_attested`; the submission endpoint rejects a project without them |
 | AI use is disclosed, not hidden | `projects.ai_tools` records what the team used, and the Hackathon Rules ask for it |
 | A report has somewhere to land | `conduct_reports`, `POST /api/reports`, and the in-app form on each project page |

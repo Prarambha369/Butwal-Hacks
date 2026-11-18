@@ -161,10 +161,10 @@ Rate limit tiers: `public_form` 5/60s, `sensitive` 3/60s, `user_action` 5/60s, `
 ### Policies and consent
 
 - `policies/` holds the canonical policy documents as markdown. The site renders those same files at `/policies` and `/policies/<slug>`, so the repository and the website cannot drift apart. Edit the markdown, not the rendered page.
-- Privacy, terms, and cookies are the exception: they are maintained as application pages under `src/app/(main)/legal/` because they name the real subprocessors and data categories. `policies/PRIVACY_POLICY.md` and friends point at them.
+- Privacy, terms, and cookies also have public-facing summary pages — `/legal/privacy`, `/legal/terms`, and `/cookie-policy` — which name the real subprocessors and data categories in plain language. They are summaries, not the canonical text: `policies/PRIVACY_POLICY.md`, `TERMS_OF_SERVICE.md`, and `COOKIE_POLICY.md` govern. When you change one, update the other in the same PR so they do not disagree.
 - The consent text is in `policies/REGISTRATION_NOTICES.md`, and the version recorded against a registration is `POLICY_VERSION` in `src/lib/policy-registry.ts`. Change one, change the other.
 - Consent is refused by default. The registration route rejects a request without the three required acceptances, and no row is written. The marketing opt-in is optional and off unless it was checked.
-- Registration consent is immutable once written (enforced by a trigger in migration `135`). Do not add a code path that updates it.
+- Registration consent is immutable once written (enforced by a trigger in migration `144`). Do not add a code path that updates it.
 - Suspected cheating and code of conduct reports go to `conduct_reports` through `/api/reports`. Reports are handled discreetly, the reporter may stay anonymous, and a report is never a verdict.
 
 ### Database
@@ -206,7 +206,7 @@ refactor: extract rate limiter into lib/
 - [ ] New inputs validated with Zod before any database access
 - [ ] Every `createServiceClient()` call has an authorization check above it
 - [ ] New env vars added to `my-app/.env.example` (names, formats and purpose — never values) in the same PR
-- [ ] Any new personal data collection updated in the canonical privacy policy — `my-app/src/app/(main)/legal/privacy/page.tsx`, served at `/legal/privacy` and documented in [policies/PRIVACY_POLICY.md](policies/PRIVACY_POLICY.md) — in the same PR, including whether the data leaves Nepal
+- [ ] Any new personal data collection updated in the canonical privacy policy, [policies/PRIVACY_POLICY.md](policies/PRIVACY_POLICY.md), and in its public summary at `my-app/src/app/(main)/legal/privacy/page.tsx` (served at `/legal/privacy`), in the same PR, including whether the data leaves Nepal
 - [ ] Any new consent captured or consent wording changed: bump `POLICY_VERSION` in `src/lib/policy-registry.ts` and update [policies/REGISTRATION_NOTICES.md](policies/REGISTRATION_NOTICES.md) in the same PR
 - [ ] New migrations are numbered sequentially and additive
 - [ ] New UI uses design tokens, not literals — see [DESIGN.md](DESIGN.md)

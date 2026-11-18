@@ -73,7 +73,7 @@ Disciplinary records are access-controlled. The identity of a reporter is
 never disclosed. The identity of the person an action was applied to is
 disclosed only to people who need it to enforce the action.
 
-Policy version: 2026-10-21
+Policy version: 2026-11-18
 
 ## See also
 

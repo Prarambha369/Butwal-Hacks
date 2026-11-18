@@ -1,6 +1,8 @@
 # Compliance Gaps
 
-> What Butwal Hacks must fix to meet the data-protection commitments in these policies, ranked by risk. Read this before adding any feature that collects data.
+> What Butwal Hacks must fix to meet the data-protection commitments in these policies. Read this before adding any feature that collects data.
+>
+> The priority numbers are stable references, not a strict risk ranking: items 1–6 are the data-protection gaps, ordered by risk, and items 7–10 are the organisational and legal-structure items added after them. Each item states its own risk level, and the sequenced plan near the end gives the order in which to act.
 
 ## What this is
 

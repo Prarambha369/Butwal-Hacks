@@ -1,6 +1,10 @@
 # Data Subject Rights
 
-> How to see, correct, delete, or restrict your data, and what we must do about it. Effective 16 October 2026.
+> How to see, correct, delete, or restrict your data, and what we must do about it.
+>
+> **Engineering draft — pending legal review.** Not yet in force. It takes effect when the core team has had it reviewed and published; the date will be added at that point.
+>
+> Policy version: 2026-11-18
 
 ## What this is
 

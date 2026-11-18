@@ -4,7 +4,7 @@
 >
 > Adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1.
 >
-> Policy version: 2026-10-21
+> Policy version: 2026-11-18
 
 ## What this is
 

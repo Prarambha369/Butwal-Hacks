@@ -1,6 +1,10 @@
 # Cookie Policy
 
-> The cookies and similar storage this site uses, and how to control them. Effective 16 October 2026.
+> The cookies and similar storage this site uses, and how to control them.
+>
+> **Engineering draft — pending legal review.** Not yet in force. It takes effect when the core team has had it reviewed and published; the date will be added at that point.
+>
+> Policy version: 2026-11-18
 
 ## What this is
 
@@ -20,9 +24,9 @@ These keep the site working. They cannot be switched off, because the service do
 
 | Name | Purpose | Duration | Set by |
 |------|---------|----------|--------|
-| Auth0 session cookies | Keeping you signed in and enforcing your session | Session or persistent | Auth0 |
-| `__Secure-next-auth.*` | Application security and routing state | Session | Application |
-| `csrf*` | Preventing cross-site request forgery | Session | Application |
+| `__session` (may be split into `__session__0`, `__session__1`, …) | Your encrypted sign-in session | Rolling: ends after 1 day without activity, and after 3 days at most | Auth0 SDK |
+| `__txn_*` | Sign-in transaction state, which protects the login redirect against forgery | Up to 1 hour, removed when sign-in completes | Auth0 SDK |
+| Auth0 login cookies | Running the sign-in page on Auth0's own login domain | Session or persistent | Auth0 |
 
 **No personal data is stored in these cookies beyond an opaque identifier and session state.** They are not used to track you across other sites.
 
@@ -57,7 +61,7 @@ Session replays are **not** gated by the analytics choice above. They are set on
 
 ## Do Not Track
 
-We do not respond to a Do Not Track signal, because no consistent industry standard exists. We honour consent for non-essential analytics instead, which is the approach the law requires.
+We do not respond to a Do Not Track signal, because no consistent industry standard exists. We honour consent for non-essential analytics instead. That is our own policy commitment; whether Nepali law requires it is one of the questions pending legal review in [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md).
 
 ## We do not use these
 

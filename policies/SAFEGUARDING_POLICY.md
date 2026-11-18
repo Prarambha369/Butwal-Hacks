@@ -1,6 +1,10 @@
 # Safeguarding Policy
 
-> Our commitments to young participants, and the boundaries maintainers, organizers, and mentors must keep. Effective 16 October 2026.
+> Our commitments to young participants, and the boundaries maintainers, organizers, and mentors must keep.
+>
+> **Engineering draft — pending legal review.** Not yet in force. It takes effect when the core team has had it reviewed and published; the date will be added at that point.
+>
+> Policy version: 2026-11-18
 
 ## What this is
 

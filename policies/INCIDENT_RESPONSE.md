@@ -111,7 +111,7 @@ If attendees are angry or distressed about how an incident was handled:
 These are targets, not guarantees. If a case needs longer, the reporter is
 told that it is taking longer and why.
 
-Policy version: 2026-10-21
+Policy version: 2026-11-18
 
 ## See also
 

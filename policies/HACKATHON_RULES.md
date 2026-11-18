@@ -1,6 +1,10 @@
 # Hackathon Rules
 
-> The rules of the competition. Separate from the platform terms, on purpose. Effective 16 October 2026.
+> The rules of the competition. Separate from the platform terms, on purpose.
+>
+> **Engineering draft — pending legal review.** Not yet in force. It takes effect when the core team has had it reviewed and published; the date will be added at that point.
+>
+> Policy version: 2026-11-18
 
 ## What this is
 
@@ -61,7 +65,7 @@ Submitting AI-generated work you cannot explain risks disqualification.
 - A submission typically includes a description, a link to the repository, and a demo video.
 - **Include screenshots or a demo.** A project nobody can see is a project that cannot be judged.
 - You must have the right to submit everything you submit, and you must be able to publish it publicly.
-- **A submission records two acceptances:** that you built the project during the event and agree to these rules, and that the code is publicly available or will be when the event ends. A project without them cannot be judged. The acceptances and the version of these documents you accepted are recorded against the submission and are never edited afterwards.
+- **A submission records two acceptances:** that you built the project during the event and agree to these rules, and that the code is publicly available or will be when the event ends. A project without them cannot be judged. The submission records when you accepted the rules (`rules_accepted_at`) and that you attested the code is public (`public_code_attested`).
 - **You may opt into prize categories.** A project that opts into none is still eligible for the overall awards. See [REGISTRATION_NOTICES.md](REGISTRATION_NOTICES.md).
 
 ## Judging
@@ -74,7 +78,7 @@ Judges' decisions are final on matters relating to the competition. If the event
 
 - Prizes and bounties are **not guaranteed** and depend on available funding. Sponsors fund bounties separately from organizer prizes.
 - A prize may be withdrawn where a team is disqualified.
-- **AI-assisted work cannot win a prize judged on skill** unless the event announcement says otherwise.
+- **Disclosed AI use does not affect prize eligibility**, including for Best Use of AI. Undisclosed AI use can lead to a prize being withdrawn. An event may exclude AI-assisted work from a specific category, but only by naming that category in its announcement.
 - Payment to a **minor** requires a verified guardian-provided payout account. See [PARTICIPANT_AND_GUARDIAN_TERMS.md](PARTICIPANT_AND_GUARDIAN_TERMS.md).
 - Tax and foreign-exchange consequences are the winner's responsibility.
 - A prize does not imply endorsement of a project by Butwal Hacks or a sponsor.

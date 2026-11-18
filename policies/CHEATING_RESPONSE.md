@@ -120,7 +120,7 @@ permanently banned from participating in Butwal Hacks events.
 - We will not reach a conclusion from a screenshot alone, or from the fact
   that someone's code "looks too good".
 
-Policy version: 2026-10-21
+Policy version: 2026-11-18
 
 ## See also
 

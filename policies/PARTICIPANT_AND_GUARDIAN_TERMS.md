@@ -1,6 +1,10 @@
 # Participant and Guardian Terms
 
-> Consent, rights, and responsibilities for members under 18 and the adults who consent for them. Effective 16 October 2026.
+> Consent, rights, and responsibilities for members under 18 and the adults who consent for them.
+>
+> **Engineering draft — pending legal review.** Not yet in force. It takes effect when the core team has had it reviewed and published; the date will be added at that point.
+>
+> Policy version: 2026-11-18
 
 ## What this is
 

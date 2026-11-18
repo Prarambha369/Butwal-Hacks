@@ -1,6 +1,10 @@
 # Legal Entity and Registration
 
-> The registration decision, what it obliges us to, and what it unblocks. Effective 16 October 2026.
+> The registration decision, what it obliges us to, and what it unblocks.
+>
+> **Engineering draft — pending legal review.** Not yet in force. It takes effect when the core team has had it reviewed and published; the date will be added at that point.
+>
+> Policy version: 2026-11-18
 
 ## What this is
 
@@ -78,7 +82,7 @@ Registering does not solve everything, but it removes real blockers.
 
 | Blocker | Effect of registering |
 |---------|----------------------|
-| **Cannot sign a subprocessor DPA** — we have committed to a written transfer arrangement with every processor, and a non-distributing company cannot contract as a body | **Solved.** We can execute transfer agreements with Auth0, Supabase, Cloudinary, and the rest |
+| **Cannot sign a subprocessor DPA** — we have committed to a written transfer arrangement with every processor, and as an informal group with no legal personality we cannot contract as a body | **Solved.** We can execute transfer agreements with Auth0, Supabase, Cloudinary, and the rest |
 | **Directors have no legal duty** — today no individual is legally responsible for data protection | **Solved.** The duty attaches to the company and its officers, which makes the data protection role real rather than honorary |
 | **Cannot employ** | Solved when we choose to hire |
 | **Cannot receive foreign grants formally**, or open a corporate account, or issue a proper invoice | **Solved** |
@@ -120,7 +124,7 @@ Registration is not paperwork we file once. It creates recurring duties. This is
 Not applicable yet — we are not employing staff. Record it now so it is not a surprise.
 
 - **Employees Provident Fund (EPF)** under the **Employees Provident Fund Act, 2019 (1962)** — Karmachari Sanchaya Kosh. Applies to public and private sector employees.
-- **Citizenship Improvement Trust Fund (CIT)** — separate mandatory contribution for private-sector employees.
+- **Citizen Investment Trust (Nagarik Lagani Kosh, CIT)** — a separate savings and retirement scheme. Whether contributions to it would be required of us is **to be confirmed by an accountant**.
 - **Labour Act 2074 (2017)** — employment contracts, leave, working hours, record keeping, and workplace obligations.
 - Registration with the Labour Office.
 
