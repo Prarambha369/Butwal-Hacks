@@ -31,10 +31,10 @@ Two working days is our target for responding with information or acknowledgemen
 
 ## How to make a request
 
-Include whichever of these you have. If you cannot find the last one, tell us your username and we will find you.
+Include whichever of these you have:
 
-- **Your account username or the `slug_id` on your public profile** — this is the most reliable
-- The email address associated with your account
+- **The email address associated with your account** — send the request from it if you can; we will verify you through it
+- Your account username, to help us find the account (a username is public, so it locates the account but does not prove it is yours)
 - What you want done
 - The email address or postal address to send the reply to
 
@@ -46,7 +46,7 @@ We accept verification by:
 
 - replying from the email address on the account, **or**
 - signing in to the account, **or**
-- if neither is possible, telling us two details already on your profile that we can check
+- if neither is possible, another method agreed with us that does not rely on anything publicly visible — profile details are public, so they cannot prove who you are
 
 We will never ask for your password, your Auth0 credentials, or a full payment card number, and no member of Butwal Hacks will ask you for them.
 

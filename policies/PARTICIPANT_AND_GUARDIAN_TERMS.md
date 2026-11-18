@@ -134,7 +134,7 @@ By signing below, you confirm that you are the minor's parent or legal guardian,
 | Field | Value |
 |-------|-------|
 | Minor's name | |
-| Minor's username on the Platform | |
+| Minor's username on the Platform (optional — leave blank if they have no account yet; email it to us from the same address once they sign up, and we will add it to this consent record) | |
 | Date of birth or age | |
 | Your name | |
 | Your relationship to the minor | |
@@ -154,4 +154,4 @@ By signing below, you confirm that you are the minor's parent or legal guardian,
 - [HACKATHON_RULES.md](HACKATHON_RULES.md) — event rules and prize eligibility
 - [TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md) — the general terms of use
 - [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md) — including the unenforced consent gate
-- [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — community standards
+- [../CODE_OF_CONDUCT.md](../.github/CODE_OF_CONDUCT.md) — community standards

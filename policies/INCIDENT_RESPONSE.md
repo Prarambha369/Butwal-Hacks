@@ -115,7 +115,7 @@ Policy version: 2026-11-18
 
 ## See also
 
-- [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — the standard being enforced
+- [CODE_OF_CONDUCT.md](../.github/CODE_OF_CONDUCT.md) — the standard being enforced
 - [DISCIPLINARY_ACTION.md](DISCIPLINARY_ACTION.md) — sanctions and appeals
 - [SAFEGUARDING_POLICY.md](SAFEGUARDING_POLICY.md) — reports involving minors
 - [CHEATING_RESPONSE.md](CHEATING_RESPONSE.md) — suspected cheating

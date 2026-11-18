@@ -23,7 +23,7 @@ ourselves accountable to.
 - At least one lead organizer with the authority to make decisions on site at
   any hour of the event.
 - Intellectual property stays with the people who made it.
-- The [Code of Conduct](../CODE_OF_CONDUCT.md) is enforced, not just
+- The [Code of Conduct](../.github/CODE_OF_CONDUCT.md) is enforced, not just
   published.
 
 ## Events are open and accessible
@@ -51,7 +51,7 @@ ourselves accountable to.
 
 ## Events are safe and welcoming
 
-- The [Code of Conduct](../CODE_OF_CONDUCT.md) is adopted, published,
+- The [Code of Conduct](../.github/CODE_OF_CONDUCT.md) is adopted, published,
   linked from the event's own page, and accepted by every registrant during
   registration.
 - The Code applies to everyone: hackers, volunteers, organizers, sponsors,
@@ -81,7 +81,7 @@ Policy version: 2026-11-18
 
 ## See also
 
-- [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — the standard itself
+- [CODE_OF_CONDUCT.md](../.github/CODE_OF_CONDUCT.md) — the standard itself
 - [HACKATHON_RULES.md](HACKATHON_RULES.md) — the rules of an event
 - [HACKATHON_RULES.md](HACKATHON_RULES.md) — eligibility, judging, prizes
 - [SAFEGUARDING_POLICY.md](SAFEGUARDING_POLICY.md) — participants under 18

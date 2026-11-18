@@ -34,7 +34,7 @@ Where an event sets an age threshold for eligibility of work or awards, work, su
 
 ## The rules
 
-1. **Everyone agrees to uphold the** [Code of Conduct](../CODE_OF_CONDUCT.md) and, where they are under 18, the [Safeguarding Policy](SAFEGUARDING_POLICY.md).
+1. **Everyone agrees to uphold the** [Code of Conduct](../.github/CODE_OF_CONDUCT.md) and, where they are under 18, the [Safeguarding Policy](SAFEGUARDING_POLICY.md).
 2. **Work on your project must be done during the event period.** Ideas you had beforehand are welcome and encouraged.
 3. **Use open-source libraries, frameworks, and previously available code freely.** Pre-opening a project solely to use its code during the event is against the spirit and is not allowed.
 4. **Do not re-use code or project material from a previous project of your own** in a way that misrepresents the work as new.
@@ -100,7 +100,7 @@ We may, at our sole discretion and without limitation, disqualify any applicatio
 ## See also
 
 - [TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md) — the general terms of use
-- [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — community standards
+- [../CODE_OF_CONDUCT.md](../.github/CODE_OF_CONDUCT.md) — community standards
 - [SAFEGUARDING_POLICY.md](SAFEGUARDING_POLICY.md) — safety and staff boundaries
 - [PARTICIPANT_AND_GUARDIAN_TERMS.md](PARTICIPANT_AND_GUARDIAN_TERMS.md) — consent for members under 18
 - [ACCEPTABLE_USE_POLICY.md](ACCEPTABLE_USE_POLICY.md) — what use is tolerated on the platform

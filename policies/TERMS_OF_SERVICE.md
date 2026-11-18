@@ -12,7 +12,7 @@ The contract between you and Butwal Hacks when you use this website, our APIs, o
 
 ## Acceptance
 
-By creating an account, signing in, or otherwise using the Butwal Hacks platform (the "Platform"), you agree to these Terms and to the [Privacy Policy](PRIVACY_POLICY.md), the [Code of Conduct](../CODE_OF_CONDUCT.md), and the [Acceptable Use Policy](ACCEPTABLE_USE_POLICY.md).
+By creating an account, signing in, or otherwise using the Butwal Hacks platform (the "Platform"), you agree to these Terms and to the [Privacy Policy](PRIVACY_POLICY.md), the [Code of Conduct](../.github/CODE_OF_CONDUCT.md), and the [Acceptable Use Policy](ACCEPTABLE_USE_POLICY.md).
 
 If you are **under 18 years of age**, you may not accept these Terms yourself. A parent or legal guardian must accept them on your behalf under the [Participant and Guardian Terms](PARTICIPANT_AND_GUARDIAN_TERMS.md). By accepting these Terms you confirm that you are at least 18, or that a guardian has accepted them for you.
 
@@ -61,7 +61,7 @@ You agree that you will:
 
 ## Prohibited conduct
 
-The [Code of Conduct](../CODE_OF_CONDUCT.md) and [Acceptable Use Policy](ACCEPTABLE_USE_POLICY.md) are part of these Terms. Breaking either is a breach of these Terms. In particular you must not:
+The [Code of Conduct](../.github/CODE_OF_CONDUCT.md) and [Acceptable Use Policy](ACCEPTABLE_USE_POLICY.md) are part of these Terms. Breaking either is a breach of these Terms. In particular you must not:
 
 - harass, bully, threaten, or discriminate against anyone
 - post or distribute illegal, hateful, or sexually explicit content
@@ -141,5 +141,5 @@ Notices are effective on receipt. We may send notices to the email address assoc
 - [HACKATHON_RULES.md](HACKATHON_RULES.md) — event rules
 - [ACCEPTABLE_USE_POLICY.md](ACCEPTABLE_USE_POLICY.md) — tolerated and prohibited use
 - [DATA_SUBJECT_RIGHTS.md](DATA_SUBJECT_RIGHTS.md) — how to exercise your rights
-- [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — community standards
+- [../CODE_OF_CONDUCT.md](../.github/CODE_OF_CONDUCT.md) — community standards
 - [../SECURITY.md](../SECURITY.md) — reporting a vulnerability

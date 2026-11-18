@@ -146,7 +146,7 @@ Anyone working directly with minors must be:
 
 ## Breaching this policy
 
-A breach is handled under the [Code of Conduct](../CODE_OF_CONDUCT.md) enforcement process, with these additional consequences available:
+A breach is handled under the [Code of Conduct](../.github/CODE_OF_CONDUCT.md) enforcement process, with these additional consequences available:
 
 - immediate removal from the event without notice
 - suspension or permanent removal from the Butwal Hacks team
@@ -170,6 +170,6 @@ You will not be penalised for making a report in good faith, even if it turns ou
 
 - [PARTICIPANT_AND_GUARDIAN_TERMS.md](PARTICIPANT_AND_GUARDIAN_TERMS.md) — consent for members under 18
 - [HACKATHON_RULES.md](HACKATHON_RULES.md) — event rules
-- [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — community standards and enforcement
+- [../CODE_OF_CONDUCT.md](../.github/CODE_OF_CONDUCT.md) — community standards and enforcement
 - [PRIVACY_POLICY.md](PRIVACY_POLICY.md) — how we handle event safety records
 - [TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md) — the general terms of use

@@ -25,7 +25,7 @@ You must not:
 - **Attack third-party systems.** Do not scan, stress-test, or attack any other network, service, or system, including sponsors' and venues'.
 - **Introduce malicious code.** No malware, ransomware, phishing pages, or malicious scripts, whether in a project, a profile field, or uploaded media.
 - **Store or transmit illegal content**, including content that is illegal in Nepal or in the jurisdiction of the server.
-- **Harass, threaten, stalk, or target anyone.** The [Code of Conduct](../CODE_OF_CONDUCT.md) applies here as much as at events.
+- **Harass, threaten, stalk, or target anyone.** The [Code of Conduct](../.github/CODE_OF_CONDUCT.md) applies here as much as at events.
 - **Impersonate anyone** or misrepresent your identity, credentials, or affiliation.
 - **Infringe intellectual property**, or submit work you do not have the right to publish.
 - **Publish another person's personal information** without their consent.
@@ -102,7 +102,7 @@ This policy covers the Platform: the website, the API, the embeddable badge, and
 ## See also
 
 - [TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md) — the general terms of use
-- [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — community standards
+- [../CODE_OF_CONDUCT.md](../.github/CODE_OF_CONDUCT.md) — community standards
 - [SAFEGUARDING_POLICY.md](SAFEGUARDING_POLICY.md) — safety and staff boundaries
 - [../SECURITY.md](../SECURITY.md) — reporting a vulnerability
 - [PRIVACY_POLICY.md](PRIVACY_POLICY.md) — what we collect

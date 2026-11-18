@@ -34,7 +34,7 @@ All complaints are reviewed promptly and fairly. Every community leader is oblig
 
 ## Who it covers
 
-Everyone: hackers, volunteers, organizers, mentors, judges, sponsors, and the maintainers. It applies at every event, in our online spaces, and whenever someone is representing the community in public. See the [incident response guide](policies/INCIDENT_RESPONSE.md) for how a report is handled and [disciplinary action policy](policies/DISCIPLINARY_ACTION.md) for what happens next.
+Everyone: hackers, volunteers, organizers, mentors, judges, sponsors, and the maintainers. It applies at every event, in our online spaces, and whenever someone is representing the community in public. See the [incident response guide](../policies/INCIDENT_RESPONSE.md) for how a report is handled and [disciplinary action policy](../policies/DISCIPLINARY_ACTION.md) for what happens next.
 
 ## Reference
 
@@ -68,7 +68,7 @@ This Code of Conduct applies within all community spaces, and also when an indiv
 
 ### Enforcement guidelines
 
-Community leaders follow the Community Impact Guidelines below when determining consequences. The full ladder, including the notification and appeal procedure, is in the [disciplinary action policy](policies/DISCIPLINARY_ACTION.md).
+Community leaders follow the Community Impact Guidelines below when determining consequences. The full ladder, including the notification and appeal procedure, is in the [disciplinary action policy](../policies/DISCIPLINARY_ACTION.md).
 
 #### 1. Correction
 

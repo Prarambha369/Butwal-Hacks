@@ -12,7 +12,7 @@ review, tracked in [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md).
 
 ## Required — Code of Conduct
 
-> I have read and agree to the [Code of Conduct](../CODE_OF_CONDUCT.md).
+> I have read and agree to the [Code of Conduct](../.github/CODE_OF_CONDUCT.md).
 
 Recorded as `event_registrations.code_of_conduct_accepted_at`.
 
@@ -93,7 +93,7 @@ collected by the event organizer and is not one of these notices.
 
 ## See also
 
-- [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — the standard being accepted
+- [../CODE_OF_CONDUCT.md](../.github/CODE_OF_CONDUCT.md) — the standard being accepted
 - [HACKATHON_RULES.md](HACKATHON_RULES.md) — the rules being accepted
 - [PRIVACY_POLICY.md](PRIVACY_POLICY.md) — what is collected, and where
 - [PARTICIPANT_AND_GUARDIAN_TERMS.md](PARTICIPANT_AND_GUARDIAN_TERMS.md) — participants under 18

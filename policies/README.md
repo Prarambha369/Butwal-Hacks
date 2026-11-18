@@ -1,6 +1,6 @@
 # Butwal Hacks Policies
 
-> The binding documents that govern use of the Butwal Hacks platform and participation in our programs. Maintained by the core team. Engineering detail is in [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
+> Draft documents, pending legal review, that will govern use of the Butwal Hacks platform and participation in our programs once approved. They are not yet binding. Maintained by the core team. Engineering detail is in [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
 >
 > Policy version: 2026-11-18
 
@@ -56,7 +56,7 @@ publishing an inaccurate policy is worse than publishing none: it creates a writ
 | [DISCIPLINARY_ACTION.md](DISCIPLINARY_ACTION.md) | Maintainers, organizers | The ladder of sanctions, how they are notified, and how they are appealed |
 | [COMMUNITY_VALUES.md](COMMUNITY_VALUES.md) | Everyone | What we hold ourselves to when we run an event |
 
-The Code of Conduct sits at the repository root, because it applies to every space and not only to the platform: [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md).
+The Code of Conduct lives at `.github/CODE_OF_CONDUCT.md`, outside this directory, because it applies to every space and not only to the platform: [Code of Conduct](../.github/CODE_OF_CONDUCT.md).
 
 ## Quick actions
 
@@ -106,7 +106,7 @@ Primary instruments relied on:
 
 ## See also
 
-- [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — community standards, enforced separately from these terms
+- [CODE_OF_CONDUCT.md](../.github/CODE_OF_CONDUCT.md) — community standards, enforced separately from these terms
 - [SECURITY.md](../SECURITY.md) — vulnerability reporting
 - [PRODUCT.md](../PRODUCT.md) — who the platform serves
 - [README.md](../README.md) — project overview

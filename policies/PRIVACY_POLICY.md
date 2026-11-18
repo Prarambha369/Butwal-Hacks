@@ -203,4 +203,4 @@ We will post material changes in this file, announce them in-product and by emai
 - [TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md) — the contract of use
 - [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md) — what we still have to fix
 - [../SECURITY.md](../SECURITY.md) — reporting a vulnerability
-- [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — community standards
+- [../CODE_OF_CONDUCT.md](../.github/CODE_OF_CONDUCT.md) — community standards

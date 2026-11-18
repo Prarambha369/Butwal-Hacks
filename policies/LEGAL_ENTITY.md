@@ -294,10 +294,17 @@ Without the certificate, your operational income is **not automatically exempt**
 - [ ] Five (Option A) or seven (Option B) founding members identified, each with citizenship certificates
 - [ ] Passport photographs and signature specimens collected
 - [ ] Registered office address secured, with a **rent agreement or ownership certificate**, plus the landlord's citizenship and land ownership certificate
+**Option A — company not distributing profit (OCR):**
+
 - [ ] Name reserved on CAMIS in **both Nepali and English**, as a company not distributing profit, with **no "Limited" suffix**
 - [ ] **NSIC objective codes chosen**, and they genuinely match what Butwal Hacks does
 - [ ] **Name reservation expiry date noted** — the validity window is disputed between sources, so record the date OCR gives you
 - [ ] **MOA and AOA drafted** on stamp paper, using OCR model formats, with precisely stated objects
+
+**Option B — association under the Associations Registration Act 2034 (DAO):**
+
+- [ ] **Statute (constitution) drafted** and adopted by the founding members, with precisely stated objectives
+- [ ] **DAO document list confirmed** with the District Administration Office or counsel before filing — no CAMIS name reservation applies to this option
 - [ ] Board of directors or managing committee identified
 
 ### Filing
