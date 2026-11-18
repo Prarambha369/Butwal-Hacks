@@ -1,4 +1,8 @@
--- 135_policy_consent_and_reports.sql
+-- 144_policy_consent_and_reports.sql
+--
+-- (Written as 135 and renumbered: main reached 143 first, and
+-- `supabase db push` refuses a local migration older than the newest one
+-- already applied unless run with --include-all.)
 --
 -- Three related pieces of the policy layer:
 --
@@ -46,8 +50,11 @@ ALTER TABLE event_registrations
 -- record is not a state the application should be able to write, and a
 -- policy version without acceptances describes nothing.
 --
--- NOT VALID then VALIDATE: the constraint is added without scanning the
--- table under an ACCESS EXCLUSIVE lock, then validated separately.
+-- NOT VALID here, VALIDATE in migration 145: the constraint is added without
+-- scanning the table, and the scan runs later in its own transaction under a
+-- SHARE UPDATE EXCLUSIVE lock. Validating in this transaction would gain
+-- nothing, because the ACCESS EXCLUSIVE lock from ADD CONSTRAINT is held until
+-- COMMIT. New writes are checked from the moment this commits.
 ALTER TABLE event_registrations
   DROP CONSTRAINT IF EXISTS event_registrations_consent_complete;
 ALTER TABLE event_registrations
@@ -65,8 +72,6 @@ ALTER TABLE event_registrations
       AND policy_version IS NOT NULL
     )
   ) NOT VALID;
-ALTER TABLE event_registrations
-  VALIDATE CONSTRAINT event_registrations_consent_complete;
 
 -- Once written, an acceptance cannot be rewritten -- and neither can the
 -- policy version, because the version is the record of *which* wording the
@@ -118,6 +123,7 @@ ALTER TABLE projects
 
 -- A submitted project either carries the full submission consent or carries
 -- none of it. Legacy projects (submitted before this migration) carry none.
+-- Validated in migration 145, for the same reason as above.
 ALTER TABLE projects
   DROP CONSTRAINT IF EXISTS projects_submission_consent_complete;
 ALTER TABLE projects
@@ -125,8 +131,6 @@ ALTER TABLE projects
     (rules_accepted_at IS NULL AND public_code_attested = FALSE)
     OR (rules_accepted_at IS NOT NULL AND public_code_attested = TRUE)
   ) NOT VALID;
-ALTER TABLE projects
-  VALIDATE CONSTRAINT projects_submission_consent_complete;
 
 -- ─── 4. Conduct and cheating reports ──────────────────────────────────────
 -- A report has to land somewhere durable. Without a table, reports live in
@@ -216,16 +220,16 @@ CREATE TRIGGER conduct_reports_bind_resolver
   BEFORE UPDATE ON conduct_reports
   FOR EACH ROW EXECUTE FUNCTION conduct_reports_bind_resolver();
 
--- A closed report must say what was decided and who decided it.
+-- A closed report must say what was decided and who decided it. Added as a
+-- plain, immediately valid constraint: the table was created above and is
+-- empty, so there is nothing to scan and NOT VALID would buy nothing.
 ALTER TABLE conduct_reports
   DROP CONSTRAINT IF EXISTS conduct_reports_closed_requires_resolution;
 ALTER TABLE conduct_reports
   ADD CONSTRAINT conduct_reports_closed_requires_resolution CHECK (
     status NOT IN ('resolved', 'dismissed')
     OR (resolution IS NOT NULL AND resolved_by IS NOT NULL AND resolved_at IS NOT NULL)
-  ) NOT VALID;
-ALTER TABLE conduct_reports
-  VALIDATE CONSTRAINT conduct_reports_closed_requires_resolution;
+  );
 
 -- ─── Row level security ───────────────────────────────────────────────────
 -- Deny-by-default for anon and authenticated: reports contain names, and
