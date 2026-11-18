@@ -42,7 +42,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/guides/how-to-join-a-hackathon-in-nepal`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/contact`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/join`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${siteUrl}/transparency?view=report`, lastModified: today, changeFrequency: 'yearly', priority: 0.7 },
 
     // ─── Tier 4: Reference & Legal (priority 0.5-0.6) ─────
     { url: `${siteUrl}/legal/privacy`, lastModified: today, changeFrequency: 'yearly', priority: 0.5 },
@@ -129,6 +128,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // ─── Dynamic: DB-driven routes ────────────────────────────
+  // Select only columns that exist in supabase/migrations. A missing column
+  // makes PostgREST return an error with null data, which silently drops the
+  // whole section from the sitemap (events, projects, profiles and teams
+  // were all missing in production because of `updated_at`/`status`).
   try {
     // Service client: anon RLS policies would silently block public reads,
     // leaving DB-backed URLs out of the sitemap. Best-effort; falls back to
@@ -138,8 +141,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Events from DB
     const { data: dbEvents } = await supabase
       .from('events')
-      .select('slug, updated_at')
-      .not('status', 'eq', 'archived')
+      .select('slug, created_at')
+      .eq('is_published', true)
+      .not('slug', 'is', null)
       .limit(200)
 
     for (const event of dbEvents ?? []) {
@@ -148,7 +152,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       seenEventUrls.add(url)
       entries.push({
         url,
-        lastModified: event.updated_at ? new Date(event.updated_at) : today,
+        lastModified: event.created_at ? new Date(event.created_at) : today,
         changeFrequency: 'weekly',
         priority: 0.8,
       })
@@ -186,14 +190,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Projects from DB
     const { data: dbProjects } = await supabase
       .from('projects')
-      .select('id, updated_at')
-      .order('updated_at', { ascending: false })
+      .select('id, created_at')
+      .order('created_at', { ascending: false })
       .limit(200)
 
     for (const project of dbProjects ?? []) {
       entries.push({
         url: `${siteUrl}/projects/${project.id}`,
-        lastModified: project.updated_at ? new Date(project.updated_at) : today,
+        lastModified: project.created_at ? new Date(project.created_at) : today,
         changeFrequency: 'weekly',
         priority: 0.7,
       })
@@ -202,15 +206,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Public profiles from DB
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('bh_id, updated_at')
+      .select('bh_id, created_at')
       .eq('is_claimed', true)
       .eq('is_suspended', false)
+      .not('bh_id', 'is', null)
       .limit(500)
 
     for (const profile of profiles ?? []) {
       entries.push({
         url: `${siteUrl}/p/${profile.bh_id}`,
-        lastModified: profile.updated_at ? new Date(profile.updated_at) : today,
+        lastModified: profile.created_at ? new Date(profile.created_at) : today,
         changeFrequency: 'monthly',
         priority: 0.5,
       })
@@ -246,13 +251,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Teams from DB
     const { data: teams } = await supabase
       .from('teams')
-      .select('id, updated_at')
+      .select('id, created_at')
       .limit(200)
 
     for (const team of teams ?? []) {
       entries.push({
         url: `${siteUrl}/teams/${team.id}`,
-        lastModified: team.updated_at ? new Date(team.updated_at) : today,
+        lastModified: team.created_at ? new Date(team.created_at) : today,
         changeFrequency: 'monthly',
         priority: 0.5,
       })
