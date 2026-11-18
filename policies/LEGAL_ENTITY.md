@@ -119,7 +119,7 @@ Registration is not paperwork we file once. It creates recurring duties. This is
 
 Not applicable yet — we are not employing staff. Record it now so it is not a surprise.
 
-- **Employees Provident Fund (EPF)** under the **Employees Provident Fund Act 2019** — Karmachari Sanchaya Kosh. Applies to public and private sector employees.
+- **Employees Provident Fund (EPF)** under the **Employees Provident Fund Act, 2019 (1962)** — Karmachari Sanchaya Kosh. Applies to public and private sector employees.
 - **Citizenship Improvement Trust Fund (CIT)** — separate mandatory contribution for private-sector employees.
 - **Labour Act 2074 (2017)** — employment contracts, leave, working hours, record keeping, and workplace obligations.
 - Registration with the Labour Office.

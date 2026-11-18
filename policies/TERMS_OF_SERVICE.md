@@ -111,7 +111,7 @@ These Terms are governed by the **laws of Nepal**, without regard to conflict-of
 
 Before filing any claim, please raise it with us at **legal@butwalhacks.com**. Most disputes resolve directly, and we commit to acknowledging a claim within five working days.
 
-If a dispute is not resolved, you may bring proceedings before the competent courts of Nepal. Where the Arbitration Act 2037 (1981) applies, or where the parties so agree, the dispute shall be referred to a sole arbitrator seated in Kathmandu, with the language of the arbitration being English or Nepali as the parties choose. Judgment on an award may be enforced in any country party to the New York Convention on the Recognition and Enforcement of Foreign Arbitral Awards, to which Nepal is a party.
+If a dispute is not resolved, you may bring proceedings before the competent courts of Nepal. Where the Arbitration Act 2055 (1999) applies, or where the parties so agree, the dispute shall be referred to a sole arbitrator seated in Kathmandu, with the language of the arbitration being English or Nepali as the parties choose. Judgment on an award may be enforced in any country party to the New York Convention on the Recognition and Enforcement of Foreign Arbitral Awards, to which Nepal is a party.
 
 Where the Consumer Protection Act 2075 (2018) gives you a non-excludable remedy or a right to litigate in consumer forums, that right prevails over this section.
 

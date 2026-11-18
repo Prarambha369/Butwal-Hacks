@@ -47,7 +47,7 @@ publishing an inaccurate policy is worse than publishing none: it creates a writ
 | [HACKATHON_RULES.md](HACKATHON_RULES.md) | Event participants | The rules of the competition, separate from platform terms |
 | [ACCEPTABLE_USE_POLICY.md](ACCEPTABLE_USE_POLICY.md) | Everyone using the site | What use is tolerated and what is not |
 | [COOKIE_POLICY.md](COOKIE_POLICY.md) | Website visitors | Cookies, local storage, and analytics |
-| [DATA_SUBJECT_RIGHTS.md](DATA_SUBJECT_RIGHTS.md) | Everyone whose data we hold | How to exercise rights, and our statutory deadlines |
+| [DATA_SUBJECT_RIGHTS.md](DATA_SUBJECT_RIGHTS.md) | Everyone whose data we hold | How to exercise rights, and our response targets |
 | [LEGAL_ENTITY.md](LEGAL_ENTITY.md) | The board and maintainers | The registration decision, its obligations, and the incorporation checklist |
 | [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md) | Maintainers and the board | **Read this first.** What we must fix, ranked |
 | [REGISTRATION_NOTICES.md](REGISTRATION_NOTICES.md) | Participants | The exact consent text captured at registration and submission |
@@ -91,16 +91,15 @@ The operational layer is enforced, not described. Where the documents say someth
 
 ## Governing law
 
-These documents are governed by the laws of Nepal and subject to the exclusive jurisdiction of the courts of Nepal, with disputes escalated to arbitration under the Arbitration Act 2037 (1981) where the parties agree or where the Act so provides. Mandatory consumer protections under the Consumer Protection Act 2075 (2018) are not waived, and nothing here restricts a data subject's rights under the Privacy Act 2075 (2018). We do not reduce the rights we grant in these documents even where no law requires us to.
+These documents are governed by the laws of Nepal and subject to the exclusive jurisdiction of the courts of Nepal, with disputes escalated to arbitration under the Arbitration Act 2055 (1999) where the parties agree or where the Act so provides. Mandatory consumer protections under the Consumer Protection Act 2075 (2018) are not waived, and nothing here restricts a data subject's rights under the Individual Privacy Act, 2075 (2018). We do not reduce the rights we grant in these documents even where no law requires us to.
 
 Primary instruments relied on:
 
-- **Privacy Act 2075 (2018)** — the general right-to-privacy statute
-- **Criminal Procedure Code 2017** — for the privacy offences it creates
-- **Electronic Transactions Act 2063 (2007)**
-- **Electronic Transactions Act 2063 (2007)**
+- **Individual Privacy Act, 2075 (2018)** — the general right-to-privacy statute — and the **Rules Relating to the Right to Individual Privacy, 2077 (2020)**
+- **National Criminal Procedure (Code) Act, 2074 (2017)** — for the privacy offences the criminal law creates
+- **Electronic Transactions Act 2063 (2006)** — Nepal's standing cyber/IT statute (the Information Technology and Cyber Security Bill that would replace it lapsed in 2082/2025 and is not in force)
 - **Data Center and Cloud Service (Operation and Management) Directives 2081 (2025)**
-- **Consumer Protection Act 2075 (2018)**, **Contract Act 2056 (1999)**, **Arbitration Act 2037 (1981)**, **Copyright Act 2059 (2002)**
+- **Consumer Protection Act 2075 (2018)**, **National Civil Code 2074 (2017)** (contract law, Part 5, which replaced the Contract Act 2056), **Arbitration Act 2055 (1999)**, **Copyright Act 2059 (2002)**
 - **Companies Act 2063 (2006)**, as amended in 2081 — the section numbering for non-distributing companies is cited inconsistently across published guidance, so it must be confirmed with counsel or the Office of Company Registrar before filing. See [LEGAL_ENTITY.md](LEGAL_ENTITY.md)
 - **Social Welfare Act 2049 (1992)** and the **Social Welfare Council**, applicable because we receive foreign grants
 - **Associations Registration Act 2034 (1977)**, if the association route is chosen

@@ -163,7 +163,7 @@ Registering a legal person removes the blocker on **priority 2**. Until we can c
 
 **Risk: low. Status: unresolved.**
 
-[TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md) commits to arbitration seated in Kathmandu under the **Arbitration Act 2037 (1981)**, with a carve-out preserving consumer rights under the **Consumer Protection Act 2075 (2018)**.
+[TERMS_OF_SERVICE.md](TERMS_OF_SERVICE.md) commits to arbitration seated in Kathmandu under the **Arbitration Act 2055 (1999)**, with a carve-out preserving consumer rights under the **Consumer Protection Act 2075 (2018)**.
 
 Two points need confirming with counsel before we rely on them:
 

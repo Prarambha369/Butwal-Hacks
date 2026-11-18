@@ -4,7 +4,7 @@
 
 ## What this is
 
-The policy that governs every piece of personal data Butwal Hacks holds. Nepal has no comprehensive personal data protection statute in force that we are aware of; the **Privacy Act 2075 (2018)** is the general right-to-privacy statute. Every data-protection control described here is therefore **our own commitment rather than a statutory obligation**, and mapping them onto Nepali law is an open item for a Nepal-qualified advocate — see [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md).
+The policy that governs every piece of personal data Butwal Hacks holds. Nepal has no comprehensive personal data protection statute in force that we are aware of; the **Individual Privacy Act, 2075 (2018)** — with the **Rules Relating to the Right to Individual Privacy, 2077 (2020)** — is the general right-to-privacy statute, and it is consent-based: it sets no dedicated cross-border transfer regime, no mandatory data-protection impact assessment, no statutory response deadline, and designates no data protection authority. Every data-protection control described here is therefore **our own commitment rather than a statutory obligation**, and mapping them onto Nepali law is an open item for a Nepal-qualified advocate — see [COMPLIANCE_GAPS.md](COMPLIANCE_GAPS.md).
 
 Where a statement here describes a control we have not yet built, this policy says so. We would rather admit a gap than claim a safeguard we do not maintain.
 
@@ -157,7 +157,7 @@ You have the following rights over your data. We grant them whether or not Nepal
 - request a portable copy of your data
 - complain
 
-Read [DATA_SUBJECT_RIGHTS.md](DATA_SUBJECT_RIGHTS.md) for how to exercise each right, the form to use, and our **statutory deadlines of two working days to respond and fifteen days to implement**.
+Read [DATA_SUBJECT_RIGHTS.md](DATA_SUBJECT_RIGHTS.md) for how to exercise each right, the form to use, and our **own targets of two working days to respond and fifteen days to implement** — these are commitments we set, not statutory deadlines, because Nepali law prescribes none.
 
 Two rights are worth stating separately:
 
@@ -174,7 +174,7 @@ We do not condition a child's participation on giving more data than the activit
 
 ## Your Nepal statutory rights and their limits
 
-You may complain to us, to the competent police or judicial authorities in respect of an offence, and to any data protection authority Nepal may designate. Under the Privacy Act 2075, you have the right to keep your personal data confidential and to have it used only for the purpose for which it was collected. Under the Criminal Procedure Code 2017, certain privacy offences are state-party offences.
+You may complain to us, to the competent police or judicial authorities in respect of an offence, and to any data protection authority Nepal may designate. Under the Individual Privacy Act, 2075 (2018), you have the right to keep your personal data confidential and to have it used only for the purpose for which it was collected. Certain privacy offences may be prosecuted by the State under Nepal's criminal law, including the National Penal (Code) Act, 2074 (2017) and the National Criminal Procedure (Code) Act, 2074 (2017).
 
 We set a period of **30 days** to acknowledge a complaint and **60 days** to resolve it, and we will tell you if we need longer.
 
