@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Send, Github, ExternalLink, Code2, Image as ImageIcon, Calendar, Tags, Sparkles, Loader2, Trophy, Video, AlignLeft } from 'lucide-react';
@@ -48,7 +48,7 @@ export default function ProjectSubmissionForm() {
   const { user } = useAuthUser();
   const [events, setEvents] = useState<EventOption[]>([]);
   const [generatingPitch, setGeneratingPitch] = useState(false);
-  const { register, handleSubmit, setValue, getValues, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, setValue, getValues, control, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       title: '',
@@ -65,6 +65,7 @@ export default function ProjectSubmissionForm() {
       publicCodeAttested: false,
     }
   });
+  const selectedEventId = useWatch({ control, name: 'eventId' });
 
   const [techTags, setTechTags] = useState<string[]>([]);
   const [coverImage, setCoverImage] = useState('');
@@ -437,8 +438,11 @@ export default function ProjectSubmissionForm() {
                 className="mt-0.5 h-4 w-4 rounded border-border accent-primary-red"
               />
               <span className="text-sm text-secondary leading-relaxed">
-                I built this project during the event, I have the right to submit it, and I
-                agree to the{" "}
+                {/* Standalone projects (no event) are supported, so the
+                    attestation only claims "during the event" when there is one. */}
+                {selectedEventId
+                  ?"I built this project during the event, I have the right to submit it, and I agree to the "
+                  : "I built this project, I have the right to submit it, and I agree to the "}
                 <Link
                   href="/policies/hackathon-rules"
                   className="text-primary-red underline underline-offset-2 decoration-primary-red/40 hover:decoration-primary-red"

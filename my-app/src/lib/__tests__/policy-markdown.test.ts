@@ -71,6 +71,15 @@ describe("parsePolicyMarkdown", () => {
     });
   });
 
+  it("resolves a link that wraps onto a list item's continuation line", () => {
+    const parsed = parsePolicyMarkdown("- See the [Hackathon\n  Rules](RULES.md) first\n", (href) => `/x/${href}`);
+    expect(parsed.blocks[0]).toEqual({
+      kind: "list",
+      ordered: false,
+      items: ["See the [Hackathon Rules](/x/RULES.md) first"],
+    });
+  });
+
   it("parses a table with a header row", () => {
     const parsed = parsePolicyMarkdown(
       "| Policy | Covers |\n| --- | --- |\n| CoC | Behaviour |\n",

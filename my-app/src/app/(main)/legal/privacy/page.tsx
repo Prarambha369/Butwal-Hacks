@@ -409,7 +409,7 @@ export default function PrivacyPolicyPage() {
       title: "16. Children's Privacy",
       content: (
         <p>
-          Our services are intended for community members aged 16 and over. We do not knowingly collect personal information from anyone under 16. If you believe a minor has provided us personal information, contact us and we will delete it.
+          Our events are open to people aged 13 and over. Anyone aged 13 to 17 needs a parent or guardian&rsquo;s consent to take part. When someone signs up, we collect the same account data whatever their age, because the sign-up flow does not yet ask for a date of birth. We do not knowingly keep an account for anyone under 13. A parent or guardian can ask us to delete a minor&rsquo;s account and data at any time; contact us and we will do so.
         </p>
       ),
     },

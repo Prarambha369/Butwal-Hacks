@@ -279,19 +279,30 @@ export async function toggleProjectLike(projectId: string) {
 }
 
 const updateProjectSchema = z.object({
-  title: z.string().min(3).optional().transform(v => (v ? sanitizeString(v, 200) : v)),
-  description: z.string().min(10).optional().transform(v => (v ? sanitizeString(v, 2000) : v)),
+  // Sanitize first, then check length: "<b></b>abc" must not pass min(3) on
+  // its raw length and then shrink below it.
+  title: z
+    .string()
+    .transform(v => sanitizeString(v, 200))
+    .pipe(z.string().min(3))
+    .optional(),
+  description: z
+    .string()
+    .transform(v => sanitizeString(v, 2000))
+    .pipe(z.string().min(10))
+    .optional(),
   // Omitted stays undefined. `updateProject` builds its payload only from
   // defined keys, so turning an omitted field into "" here made every partial
   // edit (renaming a project) blank the demo, GitHub and video links.
   demoUrl: z.string().optional().transform(v => (v === undefined ? v : sanitizeUrl(v) ?? "")),
   githubUrl: z.string().optional().transform(v => (v === undefined ? v : sanitizeUrl(v) ?? "")),
   videoUrl: z.string().optional().transform(v => (v === undefined ? v : sanitizeUrl(v) ?? "")),
+  // Filter first, then require one: ["", "<i></i>"] is not a tech stack.
   techStack: z
     .array(z.string())
-    .min(1, "Add at least one technology")
-    .optional()
-    .transform(v => (v ? v.map(t => sanitizeString(t, 50)).filter(Boolean) : v)),
+    .transform(v => v.map(t => sanitizeString(t, 50)).filter(Boolean))
+    .pipe(z.array(z.string()).min(1, "Add at least one technology"))
+    .optional(),
   eventId: z
     .string()
     .nullable()

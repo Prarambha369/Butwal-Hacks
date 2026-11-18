@@ -1,7 +1,7 @@
 -- 145_validate_policy_consent_constraints.sql
 --
--- Validate the two consent CHECK constraints that migration 144 added as
--- NOT VALID.
+-- Validate the CHECK constraints that migration 144 added as NOT VALID: the
+-- two consent checks and the closed-report resolution check.
 --
 -- Why a separate migration: VALIDATE CONSTRAINT only avoids blocking writes
 -- when it runs in a different transaction from the ADD CONSTRAINT. In the
@@ -22,4 +22,9 @@ COMMIT;
 BEGIN;
 ALTER TABLE projects
   VALIDATE CONSTRAINT projects_submission_consent_complete;
+COMMIT;
+
+BEGIN;
+ALTER TABLE conduct_reports
+  VALIDATE CONSTRAINT conduct_reports_closed_requires_resolution;
 COMMIT;

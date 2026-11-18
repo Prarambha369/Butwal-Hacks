@@ -173,6 +173,23 @@ describe("POST /api/events/checkin", () => {
     expect(db.update).not.toHaveBeenCalled();
   });
 
+  it("keeps the original check-in time when attendance is confirmed again", async () => {
+    const db = buildMockDb();
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller-id", role: "organizer" }, error: null })
+      .mockResolvedValueOnce({
+        data: { attended: true, check_in_at: "2026-11-01T09:00:00.000Z", events: { organizer_id: "caller-id" } },
+        error: null,
+      });
+    mockedCreateServiceClient.mockReturnValue(db);
+    const { POST } = await import("../checkin/route");
+
+    const res = await POST(mockRequest({ registration_id: VALID_UUID, attended: true }));
+
+    expect(res.status).toBe(200);
+    expect(db.update.mock.calls[0][0].check_in_at).toBe("2026-11-01T09:00:00.000Z");
+  });
+
   it("allows maintainer to check in regardless of event organizer_id", async () => {
     mockedGetSession.mockResolvedValue({
       user: { sub: "auth0|12345", email: "staff@butwalhacks.com", email_verified: true },

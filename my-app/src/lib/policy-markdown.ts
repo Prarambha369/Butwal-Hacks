@@ -204,7 +204,7 @@ export function parsePolicyMarkdown(
       while (index < lines.length) {
         const match = pattern.exec(lines[index]);
         if (match) {
-          items.push(rewriteLinks(match[1].trim(), resolveHref));
+          items.push(match[1].trim());
           index += 1;
           continue;
         }
@@ -214,11 +214,16 @@ export function parsePolicyMarkdown(
         // sentence read as a stray standalone line.
         if (items.length === 0) break;
         if (!lines[index].trim() || !/^\s+\S/.test(lines[index])) break;
-        items[items.length - 1] =
-          `${items[items.length - 1]} ${rewriteLinks(lines[index].trim(), resolveHref)}`;
+        items[items.length - 1] = `${items[items.length - 1]} ${lines[index].trim()}`;
         index += 1;
       }
-      blocks.push({ kind: "list", ordered: isOrdered, items });
+      // Rewrite links once per joined item, so a link wrapped across lines is
+      // still recognised.
+      blocks.push({
+        kind: "list",
+        ordered: isOrdered,
+        items: items.map((item) => rewriteLinks(item, resolveHref)),
+      });
       continue;
     }
 

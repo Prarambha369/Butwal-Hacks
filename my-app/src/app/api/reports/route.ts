@@ -205,8 +205,17 @@ export const GET = withSentrySpan("GET /api/reports", withRateLimit(async (_requ
     const { data: reports, error } = await query;
     if (error) throw error;
 
+    // A maintainer can be the subject of a report. They still see that it
+    // exists, but never who filed it -- the reporter's identity is not
+    // disclosed to the person reported, staff or not.
+    const visible = ((reports ?? []) as unknown as Array<Record<string, unknown>>).map((report) =>
+      caller.isMaintainer && report.subject_profile_id === caller.id
+        ? { ...report, reported_by: null }
+        : report,
+    );
+
     return NextResponse.json(
-      { reports: reports ?? [] },
+      { reports: visible },
       { headers: { 'Cache-Control': 'private, max-age=0' } },
     );
   } catch (err) {

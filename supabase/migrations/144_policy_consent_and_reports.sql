@@ -210,6 +210,13 @@ BEGIN
     IF NEW.resolved_by IS NULL THEN
       NEW.resolved_by := current_profile_id();
     END IF;
+    -- Who closed it is required at the moment of closing. It is checked here
+    -- rather than in the CHECK below, because resolved_by is ON DELETE SET
+    -- NULL: deleting the resolver's profile later must not make an already
+    -- closed report violate a constraint (and so block the profile delete).
+    IF NEW.resolved_by IS NULL THEN
+      RAISE EXCEPTION 'closing a conduct report requires resolved_by';
+    END IF;
   END IF;
   RETURN NEW;
 END;
@@ -220,16 +227,18 @@ CREATE TRIGGER conduct_reports_bind_resolver
   BEFORE UPDATE ON conduct_reports
   FOR EACH ROW EXECUTE FUNCTION conduct_reports_bind_resolver();
 
--- A closed report must say what was decided and who decided it. Added as a
--- plain, immediately valid constraint: the table was created above and is
--- empty, so there is nothing to scan and NOT VALID would buy nothing.
+-- A closed report must say what was decided and when. Who decided it is
+-- enforced by the trigger above at closing time; see the note there.
+--
+-- NOT VALID here, validated in migration 145 with the other consent checks:
+-- CREATE TABLE IF NOT EXISTS may have reused an existing, non-empty table.
 ALTER TABLE conduct_reports
   DROP CONSTRAINT IF EXISTS conduct_reports_closed_requires_resolution;
 ALTER TABLE conduct_reports
   ADD CONSTRAINT conduct_reports_closed_requires_resolution CHECK (
     status NOT IN ('resolved', 'dismissed')
-    OR (resolution IS NOT NULL AND resolved_by IS NOT NULL AND resolved_at IS NOT NULL)
-  );
+    OR (resolution IS NOT NULL AND resolved_at IS NOT NULL)
+  ) NOT VALID;
 
 -- ─── Row level security ───────────────────────────────────────────────────
 -- Deny-by-default for anon and authenticated: reports contain names, and

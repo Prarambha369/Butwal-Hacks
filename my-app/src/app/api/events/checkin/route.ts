@@ -35,7 +35,7 @@ export const POST = withRateLimit(async (request: Request) => {
 
     const { data: reg } = await supabase
       .from('event_registrations')
-      .select('attended, events!inner(organizer_id)')
+      .select('attended, check_in_at, events!inner(organizer_id)')
       .eq('id', registration_id)
       .single();
 
@@ -57,12 +57,21 @@ export const POST = withRateLimit(async (request: Request) => {
     // `checked_in` / `check_in_at` were added by migration 036 but never
     // written, so the attendance history was a single boolean with no time
     // on it. Record both, and clear the timestamp when a check-in is undone.
+    // A repeated "attended: true" keeps the original check-in time rather than
+    // moving it to the moment of the retry.
+    const existingCheckIn = (reg as { check_in_at?: string | null }).check_in_at ?? null;
+    const checkInAt = !nextAttended
+      ? null
+      : reg.attended && existingCheckIn
+        ? existingCheckIn
+        : new Date().toISOString();
+
     const { error } = await supabase
       .from('event_registrations')
       .update({
         attended: nextAttended,
         checked_in: nextAttended,
-        check_in_at: nextAttended ? new Date().toISOString() : null,
+        check_in_at: checkInAt,
       })
       .eq('id', registration_id);
 

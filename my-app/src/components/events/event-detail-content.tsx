@@ -67,7 +67,8 @@ function parseSections(desc: string): Section[] {
     // *, so a description line starting with "2026 ..." or "#1 ..." became a
     // section header and its content was torn out of the paragraph.
     const isHeader =
-      /^\p{Extended_Pictographic}/u.test(line.trim()) ||
+      // Regional_Indicator too: flag emoji (🇳🇵) are not pictographic.
+      /^[\p{Extended_Pictographic}\p{Regional_Indicator}]/u.test(line.trim()) ||
       /^(Judges|Sponsors|Schedule|Prizes|Requirements|Rules)$/i.test(line.trim())
     if (isHeader && line.trim().length > 0) {
       if (current) sections.push(current)
