@@ -58,7 +58,16 @@ jobs:
         # It is lint tooling that never runs in production, and failing every PR
         # on it would block all work indefinitely. Fixable advisories still get
         # bumped in the lockfile — see the 5.0.9 -> 5.0.12 brace-expansion bump.
-        run: npm audit --omit=dev --audit-level=high
+        #
+        # High/critical advisories with no published fix that are unreachable
+        # here are allowlisted, one GHSA id at a time with a written reason, in
+        # scripts/npm-audit-gate.mjs. Everything else at high or above still
+        # fails this job, and the gate fails closed if npm audit errors.
+        run: |
+          # The readable report, for the log. Its exit code is judged below.
+          npm audit --omit=dev || true
+          npm audit --omit=dev --json > "$RUNNER_TEMP/npm-audit.json" || true
+          node scripts/npm-audit-gate.mjs "$RUNNER_TEMP/npm-audit.json"
 
   typecheck:
     name: Typecheck
