@@ -342,7 +342,7 @@ export default function PrivacyPolicyPage() {
           <ul className="list-disc space-y-1 pl-5">
             <li>Database access is restricted to server-side code; credentials are never exposed to the browser.</li>
             <li>
-              Row-level security is enabled on every table. Most tables are deny-by-default for browser access and are only reached through server-side code that checks who is asking. The tables that are genuinely public — profiles, events, projects — are readable by anyone holding the publishable key, and their column-level grants exclude consent timestamps, the communications opt-in, and other contact data.
+              Row-level security is enabled on every table. Most tables are deny-by-default for browser access and are only reached through server-side code that checks who is asking. The tables that are genuinely public are readable by anyone holding the publishable key: profiles, through column-level grants that exclude email addresses, sign-in tokens, and other contact data; events and projects, through table-level grants, so a project&rsquo;s submission record — including when the rules were accepted and the AI tools it disclosed — is public along with the project itself; and event registrations, limited to the registration id, event, profile, attendance, and creation time. Registration consent timestamps and the communications opt-in are not readable through the publishable key.
             </li>
             <li>Privileged roles require both the right role and a verified organisational email address, and fail closed if either is missing.</li>
             <li>All user input is validated against a schema and sanitised before it is stored or rendered.</li>

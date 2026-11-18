@@ -245,7 +245,7 @@ describe("POST /api/events/register", () => {
     expect(insertCall.code_of_conduct_accepted_at).toBeTruthy()
     expect(insertCall.rules_accepted_at).toBeTruthy()
     expect(insertCall.privacy_accepted_at).toBeTruthy()
-    expect(insertCall.policy_version).toBe("2026-10-21")
+    expect(insertCall.policy_version).toBe("2026-11-18")
     // The marketing opt-in is off unless it was explicitly checked.
     expect(insertCall.marketing_opt_in).toBe(false)
   })

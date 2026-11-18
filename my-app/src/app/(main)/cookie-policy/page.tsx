@@ -1,6 +1,7 @@
 export const dynamic = "force-static";
 
 import type { Metadata } from "next"
+import Link from "next/link"
 import { buildPageMetadata } from "@/lib/seo"
 import LegalDocumentLayout from "@/components/legal-document-layout"
 
@@ -75,7 +76,9 @@ export default function CookiePolicyPage() {
             </li>
             <li>
               <strong>Sentry</strong> &mdash; error reporting and performance monitoring. Session replay
-              is sampled rather than recorded for every visit.
+              is sampled rather than recorded for every visit, all text in a replay is masked, and it is
+              not gated by the cookie notice. To opt out of replays, email{" "}
+              <a href="mailto:privacy@butwalhacks.com" className="text-primary underline">privacy@butwalhacks.com</a>.
             </li>
           </ul>
           <p className="mt-2">
@@ -94,8 +97,19 @@ export default function CookiePolicyPage() {
       ),
     },
     {
+      id: "full-policy",
+      title: "6. The Full Policy",
+      content: (
+        <p>
+          This page is a summary. The governing text, including the full list of cookies, is the{" "}
+          <Link href="/policies/cookies" className="text-primary underline">Cookie Policy</Link>{" "}
+          in our policy set. Where the two differ, the full policy applies.
+        </p>
+      ),
+    },
+    {
       id: "contact",
-      title: "6. Contact",
+      title: "7. Contact",
       content: (
         <p>
           Questions about cookies can be sent to <a href="mailto:hello@butwalhacks.com" className="text-primary hover:underline">hello@butwalhacks.com</a>.
@@ -110,7 +124,7 @@ export default function CookiePolicyPage() {
       <LegalDocumentLayout
         title="Cookie Policy"
         summary="This page explains what cookies are, why we use them, and how you can manage them."
-        lastUpdated="October 14, 2026"
+        lastUpdated="November 18, 2026"
         effectiveDate="October 14, 2026"
         activePolicy="cookie"
         sections={sections}

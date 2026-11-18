@@ -50,11 +50,17 @@ export function resolvePolicyHref(href: string, fromFile: string): string {
     return href;
   }
 
-  const resolved = path.posix.normalize(path.posix.join(path.posix.dirname(fromFile), href));
-  const policy = POLICIES.find((p) => p.file === resolved);
-  if (policy) return `/policies/${policy.slug}`;
+  // Split off a `#fragment` first: `PRIVACY_POLICY.md#retention` must still
+  // match the policy file, and keep its anchor on the resulting URL.
+  const hashIndex = href.indexOf("#");
+  const target = hashIndex === -1 ? href : href.slice(0, hashIndex);
+  const fragment = hashIndex === -1 ? "" : href.slice(hashIndex);
 
-  return `${REPO_URL}/blob/main/${resolved}`;
+  const resolved = path.posix.normalize(path.posix.join(path.posix.dirname(fromFile), target));
+  const policy = POLICIES.find((p) => p.file === resolved);
+  if (policy) return `/policies/${policy.slug}${fragment}`;
+
+  return `${REPO_URL}/blob/main/${resolved}${fragment}`;
 }
 
 /**

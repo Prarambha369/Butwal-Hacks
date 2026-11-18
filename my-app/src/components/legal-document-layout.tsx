@@ -41,12 +41,18 @@ export default function LegalDocumentLayout({
       </div>
 
       {/*
-        The full policy set lives in `policies/`. This page is the public-facing
-        summary. Where the two differ, the `policies/` version governs, and it is
-        the fuller document. The data-protection controls described there are our
-        own commitments, not statutory obligations -- see the compliance gaps for
-        what still has to be confirmed by a Nepal-qualified advocate.
+        The full policy set lives in `policies/`. The /legal/* and /cookie-policy
+        pages are the public-facing summaries. Where the two differ, the
+        `policies/` version governs, and it is the fuller document. The
+        data-protection controls described there are our own commitments, not
+        statutory obligations -- see the compliance gaps for what still has to be
+        confirmed by a Nepal-qualified advocate.
+
+        Only the summary pages get this notice: the /policies pages pass their
+        own `policyLinks` and render the canonical text, so calling them a
+        summary would be wrong.
       */}
+      {!policyLinks && (
       <aside
         className="mb-8 rounded-lg border border-primary-red/30 bg-primary-red/5 p-4 text-sm text-secondary"
         aria-label="Policy status"
@@ -63,6 +69,7 @@ export default function LegalDocumentLayout({
           summarised on this page.
         </p>
       </aside>
+      )}
 
       <nav className="flex gap-2 mb-8 pb-4 border-b border-border overflow-x-auto">
         {links.map((link) => (

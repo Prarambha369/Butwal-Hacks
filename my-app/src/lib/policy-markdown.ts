@@ -89,6 +89,17 @@ export function parsePolicyMarkdown(
 
   let index = 0;
 
+  // The version a line declares, or null. The line may carry markdown
+  // decoration (`**Policy version: X**`, `> Policy version: X`), so strip it
+  // before matching.
+  const versionOf = (value: string): string | null => {
+    if (!extractVersion) return null;
+    const match = /^Policy version:\s*(.+)$/i.exec(
+      value.trim().replace(/^[>*#\s]+/, "").replace(/[*_`]+$/, "").trim(),
+    );
+    return match ? match[1].trim() : null;
+  };
+
   const flushParagraph = (buffer: string[]) => {
     const text = buffer.join(" ").trim();
     buffer.length = 0;
@@ -110,16 +121,12 @@ export function parsePolicyMarkdown(
     // Policy version declaration — metadata, not content. The line may carry
     // markdown decoration (`**Policy version: X**`, `> Policy version: X`),
     // so strip it before matching.
-    if (extractVersion) {
-      const versionMatch = /^Policy version:\s*(.+)$/i.exec(
-        line.trim().replace(/^[>*#\s]+/, "").replace(/[*_`]+$/, "").trim(),
-      );
-      if (versionMatch) {
-        flushParagraph(paragraph);
-        version = versionMatch[1].trim();
-        index += 1;
-        continue;
-      }
+    const lineVersion = versionOf(line);
+    if (lineVersion !== null) {
+      flushParagraph(paragraph);
+      version = lineVersion;
+      index += 1;
+      continue;
     }
 
     const headingMatch = /^(#{1,3})\s+(.*)$/.exec(line);
@@ -148,16 +155,26 @@ export function parsePolicyMarkdown(
       continue;
     }
 
-    if (line.trim().startsWith("> ")) {
+    // A quote line is "> text" or a bare ">" separator. Matching only "> "
+    // ended the quote at the first bare ">", so the rest rendered as a
+    // paragraph with a literal "> " in front of it.
+    const isQuoteLine = (value: string) => /^>(\s|$)/.test(value.trim());
+    if (isQuoteLine(line)) {
       flushParagraph(paragraph);
       const quoteLines: string[] = [];
-      while (index < lines.length && lines[index].trim().startsWith("> ")) {
-        quoteLines.push(lines[index].trim().slice(2));
+      while (index < lines.length && isQuoteLine(lines[index])) {
+        // A version declared inside the quote is still metadata, not text.
+        const quotedVersion = versionOf(lines[index]);
+        if (quotedVersion !== null) {
+          version = quotedVersion;
+        } else {
+          quoteLines.push(lines[index].trim().replace(/^>\s?/, ""));
+        }
         index += 1;
       }
       blocks.push({
         kind: "quote",
-        text: rewriteLinks(quoteLines.join(" ").trim(), resolveHref),
+        text: rewriteLinks(quoteLines.filter(Boolean).join(" ").trim(), resolveHref),
       });
       continue;
     }

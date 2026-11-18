@@ -22,10 +22,10 @@
  * changes, so that a registration always says which wording the person
  * agreed to.
  */
-export const POLICY_VERSION = "2026-10-21";
+export const POLICY_VERSION = "2026-11-18";
 
 /** Human-readable form of the version above, shown on the policy pages. */
-export const POLICY_LAST_UPDATED = "October 21, 2026";
+export const POLICY_LAST_UPDATED = "November 18, 2026";
 
 /**
  * Format a policy's own version for display.

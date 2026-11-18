@@ -83,34 +83,38 @@ export type GalleryEvent = { title: string; slug: string | null };
 
 export async function fetchGalleryEvents(): Promise<GalleryEvent[]> {
   const supabase = createServiceClient();
-  // Paginate so event discovery is not truncated by the PostgREST row cap
-  // before deduplication.
+  // Start from events and inner-join approved photos, so the result is one
+  // row per event rather than one row per photo. Reading photos and
+  // deduplicating pulled every approved photo row just to build this list.
+  // Paginate anyway so a large event table is not cut off by the row cap.
   const seen = new Set<string>();
   const out: GalleryEvent[] = [];
   const PAGE = 1000;
   let offset = 0;
   while (true) {
     const { data, error } = await supabase
-      .from("photos")
-      .select("events!inner(id, title, slug)")
-      .eq("status", "approved")
-      .not("event_id", "is", null)
+      .from("events")
+      .select("title, slug, photos!inner(id)")
+      .eq("photos.status", "approved")
+      .limit(1, { referencedTable: "photos" })
+      .order("title", { ascending: true })
       .range(offset, offset + PAGE - 1);
     if (error) {
       logger.error("Error fetching gallery events:", error);
       break;
     }
-    const rows = (data ?? []) as Array<{ events: { title?: string; slug?: string } | null }>;
+    const rows = (data ?? []) as Array<{ title?: string | null; slug?: string | null }>;
     for (const row of rows) {
-      const ev = Array.isArray(row.events) ? row.events[0] : row.events;
-      const title = ev?.title;
+      const title = row.title;
       if (!title || seen.has(title)) continue;
       seen.add(title);
-      out.push({ title, slug: ev?.slug ?? null });
+      out.push({ title, slug: row.slug ?? null });
     }
     if (rows.length < PAGE) break;
     offset += PAGE;
   }
+  // Keep the locale-aware order the UI has always used; the SQL order above
+  // only makes pagination stable.
   out.sort((a, b) => a.title.localeCompare(b.title));
   return out;
 }

@@ -87,6 +87,17 @@ describe("parsePolicyMarkdown", () => {
     expect(parsed.blocks[0]).toEqual({ kind: "quote", text: "Handle it discreetly." });
   });
 
+  it("keeps a blockquote together across a bare > separator line", () => {
+    const parsed = parsePolicyMarkdown("> First part.\n>\n> Second part.\n");
+    expect(parsed.blocks).toEqual([{ kind: "quote", text: "First part. Second part." }]);
+  });
+
+  it("extracts a policy version declared inside a blockquote", () => {
+    const parsed = parsePolicyMarkdown("> Summary.\n>\n> Policy version: 2026-11-18\n");
+    expect(parsed.version).toBe("2026-11-18");
+    expect(parsed.blocks).toEqual([{ kind: "quote", text: "Summary." }]);
+  });
+
   it("parses a horizontal rule", () => {
     const parsed = parsePolicyMarkdown("---\n");
     expect(parsed.blocks[0]).toEqual({ kind: "rule" });

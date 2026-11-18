@@ -154,7 +154,29 @@ describe("POST /api/events/checkin", () => {
     expect(body.error).toBe("Forbidden");
   });
 
+  it("returns 403 for a maintainer-role profile without a verified staff email", async () => {
+    mockedGetSession.mockResolvedValue({
+      user: { sub: "auth0|12345", email: "someone@gmail.com", email_verified: true },
+    });
+    const db = buildMockDb();
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller-id", role: "maintainer" }, error: null }) // caller profile
+      .mockResolvedValueOnce({ data: { attended: false, events: { organizer_id: "other-organizer-id" } }, error: null }); // reg query
+    mockedCreateServiceClient.mockReturnValue(db);
+    const { POST } = await import("../checkin/route");
+
+    const res = await POST(mockRequest({ registration_id: VALID_UUID }));
+    const body = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(body.error).toBe("Forbidden");
+    expect(db.update).not.toHaveBeenCalled();
+  });
+
   it("allows maintainer to check in regardless of event organizer_id", async () => {
+    mockedGetSession.mockResolvedValue({
+      user: { sub: "auth0|12345", email: "staff@butwalhacks.com", email_verified: true },
+    });
     const db = buildMockDb();
     db.single
       .mockResolvedValueOnce({ data: { id: "caller-id", role: "maintainer" }, error: null }) // caller profile

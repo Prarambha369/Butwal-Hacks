@@ -584,17 +584,29 @@ export default function GalleryGrid({
             <div className="mx-auto w-14 h-14 rounded-full bg-surface-hover flex items-center justify-center">
               <ImageIcon className="w-7 h-7 text-muted-foreground" />
             </div>
-            <p className="text-lg font-bold text-primary">No media found</p>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-              No photos or videos found for this event. Try selecting a different event.
+            {/* An empty page with more to come is not "no media": say so, and
+                let the Load more button below fetch the next page. */}
+            <p className="text-lg font-bold text-primary">
+              {hasMore ? "Nothing loaded yet" : "No media found"}
             </p>
-            <button
-              onClick={() => setFilter(null)}
-              className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2 text-sm font-bold text-white hover:bg-deep-red transition-all"
-            >
-              <X className="w-4 h-4" />
-              Clear filter
-            </button>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+              {hasMore
+                ? "More photos and videos are available. Use Load more below to see them."
+                : filter
+                  ? "No photos or videos found for this event. Try selecting a different event."
+                  : "No photos or videos have been published yet."}
+            </p>
+            {filter && (
+              <button
+                // applyFilter, not setFilter: the loaded photos are the filtered
+                // page, so clearing only the state left the grid empty.
+                onClick={() => applyFilter(null)}
+                className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2 text-sm font-bold text-white hover:bg-deep-red transition-all"
+              >
+                <X className="w-4 h-4" />
+                Clear filter
+              </button>
+            )}
           </div>
         </ScrollReveal>
       ) : (

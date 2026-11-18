@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { withRateLimit } from '@/lib/rate-limiter';
+import { accessSubjectFor, isMaintainer } from '@/lib/dashboard-access';
 
 const checkinSchema = z.object({
   registration_id: z.string().transform(v => sanitizeUuid(v) ?? ''),
@@ -42,9 +43,12 @@ export const POST = withRateLimit(async (request: Request) => {
 
     const eventOrganizerId = (reg.events as unknown as { organizer_id: string } | null)?.organizer_id;
     const isOrganizer = Boolean(eventOrganizerId && eventOrganizerId === caller.id);
-    const isMaintainer = caller.role === 'maintainer';
+    // The shared predicate, not `role === 'maintainer'`: maintainer is the role
+    // AND a verified @butwalhacks.com address, so the inline check let any
+    // profile carrying the role mark attendance on every event.
+    const isMaintainerCaller = isMaintainer(accessSubjectFor(session.user, caller));
 
-    if (!isOrganizer && !isMaintainer) {
+    if (!isOrganizer && !isMaintainerCaller) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
