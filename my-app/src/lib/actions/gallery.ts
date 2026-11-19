@@ -1,7 +1,12 @@
 "use server";
 
+import { unstable_cache } from "next/cache";
 import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
+import { PHOTO_SELECT, PHOTO_SELECT_BY_EVENT, mapPhoto } from "@/lib/gallery-photo";
+import type { GalleryPhoto } from "@/lib/gallery-photo";
+
+export type { GalleryPhoto } from "@/lib/gallery-photo";
 
 /**
  * Paged reads for the public event gallery.
@@ -13,22 +18,6 @@ import { logger } from "@/lib/logger";
  * database. Counting from the database instead of the page, and paging
  * through the rest, fixes both halves of that.
  */
-
-export type GalleryPhoto = {
-  id: string;
-  url: string;
-  event: string;
-  event_slug: string | null;
-  date: string;
-  span: number;
-  uploader: string | null;
-  /** Maintainer-chosen delivery recipe (null = default) */
-  optimize: string | null;
-  /** Duration in seconds — only set for video entries */
-  duration?: number;
-  /** "image" | "video". The URL is authoritative; this is the stored hint. */
-  media_type?: string;
-};
 
 /**
  * Totals for the stat bar. Read with COUNT so they stay correct no matter how
@@ -46,30 +35,32 @@ export type GalleryTotals = {
  * The client sends only an offset, so paging cannot be used to pull the whole
  * table in one oversized request.
  */
-const PAGE_SIZE = 60;
+// 24 fills 1, 2, 3 or 4 columns evenly. Infinite scroll pulls the next page
+// well before the visitor reaches the end, so a smaller page costs nothing in
+// feel but cuts the first-load payload and the thumbnails it pulls in.
+const PAGE_SIZE = 24;
+
+/**
+ * Totals and the event list change only when a maintainer approves media, but
+ * they were read on every visit — and the event list scans every approved row.
+ * Neither depends on the viewer, so cache them briefly across requests.
+ */
+const GALLERY_CACHE_SECONDS = 300;
 
 /** Hard ceiling on offset so a crafted offset cannot force a deep scan. */
 const MAX_OFFSET = 5000;
 
-const PHOTO_SELECT = `
-  id, url, span, optimized_transform, created_at, media_type, duration_seconds,
-  events ( id, title, slug ),
-  profiles!photos_uploader_id_fkey ( full_name )
-`;
-
-export async function fetchGalleryTotals(): Promise<GalleryTotals> {
+async function readGalleryTotals(): Promise<GalleryTotals> {
   const supabase = createServiceClient();
 
   // One round trip. COUNT(DISTINCT event_id) is not expressible over
   // PostgREST, so this lives in SQL — see migration 132.
   const { data, error } = await supabase.rpc("gallery_totals");
 
-  if (error || !data) {
-    logger.error("Error fetching gallery totals:", error);
-    // Do not blank the stat bar on a transient failure; the rendered rows
-    // still stand on their own.
-    return { photos: 0, videos: 0, events: 0 };
-  }
+  // Throw, don't fall back: this runs inside unstable_cache, which would keep
+  // a fallback value after the database recovers. The fallback lives in
+  // fetchGalleryTotals, outside the cache.
+  if (error || !data) throw new Error(`gallery_totals failed: ${error?.message ?? "no data"}`);
 
   const row = data as Partial<GalleryTotals>;
   return {
@@ -81,7 +72,7 @@ export async function fetchGalleryTotals(): Promise<GalleryTotals> {
 
 export type GalleryEvent = { title: string; slug: string | null };
 
-export async function fetchGalleryEvents(): Promise<GalleryEvent[]> {
+async function readGalleryEvents(): Promise<GalleryEvent[]> {
   const supabase = createServiceClient();
   // Start from events and inner-join approved photos, so the result is one
   // row per event rather than one row per photo. Reading photos and
@@ -99,10 +90,9 @@ export async function fetchGalleryEvents(): Promise<GalleryEvent[]> {
       .limit(1, { referencedTable: "photos" })
       .order("title", { ascending: true })
       .range(offset, offset + PAGE - 1);
-    if (error) {
-      logger.error("Error fetching gallery events:", error);
-      break;
-    }
+    // Throw rather than return a partial list: the cache would keep the
+    // missing filter chips after the database recovers.
+    if (error) throw new Error(`gallery events query failed: ${error.message}`);
     const rows = (data ?? []) as Array<{ title?: string | null; slug?: string | null }>;
     for (const row of rows) {
       const title = row.title;
@@ -119,6 +109,35 @@ export async function fetchGalleryEvents(): Promise<GalleryEvent[]> {
   return out;
 }
 
+const cachedTotals = unstable_cache(readGalleryTotals, ["gallery-totals"], {
+  revalidate: GALLERY_CACHE_SECONDS,
+  tags: ["gallery"],
+});
+const cachedEvents = unstable_cache(readGalleryEvents, ["gallery-events"], {
+  revalidate: GALLERY_CACHE_SECONDS,
+  tags: ["gallery"],
+});
+
+export async function fetchGalleryTotals(): Promise<GalleryTotals> {
+  try {
+    return await cachedTotals();
+  } catch (error) {
+    logger.error("Error fetching gallery totals:", error);
+    // Do not blank the page on a transient failure; the rendered rows still
+    // stand on their own. Not cached, so the next request retries.
+    return { photos: 0, videos: 0, events: 0 };
+  }
+}
+
+export async function fetchGalleryEvents(): Promise<GalleryEvent[]> {
+  try {
+    return await cachedEvents();
+  } catch (error) {
+    logger.error("Error fetching gallery events:", error);
+    return [];
+  }
+}
+
 export async function fetchGalleryPage(
   offset: number,
   eventFilter?: string,
@@ -131,9 +150,13 @@ export async function fetchGalleryPage(
       ? Math.min(Math.floor(offset), MAX_OFFSET)
       : 0;
 
+  // Filtering on an embedded table only narrows the parent rows when the
+  // embed is an inner join. With the plain embed, `.eq("events.title", …)`
+  // returned every photo and nulled the event on the rest, so a filtered view
+  // showed the whole gallery labelled "Unknown Event".
   let query = supabase
     .from("photos")
-    .select(PHOTO_SELECT)
+    .select(eventFilter ? PHOTO_SELECT_BY_EVENT : PHOTO_SELECT)
     .eq("status", "approved")
     .order("created_at", { ascending: false })
     // Defensive tie-break. Every row currently has a distinct created_at, but
@@ -147,50 +170,19 @@ export async function fetchGalleryPage(
 
   if (error) {
     logger.error("Error fetching gallery page:", error);
-    // Degrade to the honest empty page rather than taking down the route.
-    return { photos: [], hasMore: false };
+    // Throw rather than return an empty page: an empty result is a valid
+    // answer, and the grid would show it as "no photos" and cache it under the
+    // filter, so picking that filter again would never retry. The grid catches
+    // this into its retryable error state; the page render degrades itself.
+    throw new Error("Could not load the gallery");
   }
 
-  const rows = data ?? [];
+  // The select string is chosen at runtime, so PostgREST cannot infer the row
+  // type; mapPhoto validates each field itself.
+  const rows = (data ?? []) as unknown as Record<string, unknown>[];
   // We asked for PAGE_SIZE + 1: the extra row is purely the "there is more"
   // signal, so it must not reach the grid or the last page renders ragged.
   const hasMore = rows.length > PAGE_SIZE;
   return { photos: rows.slice(0, PAGE_SIZE).map(mapPhoto), hasMore };
 }
 
-function mapPhoto(p: Record<string, unknown>): GalleryPhoto {
-  // PostgREST types the embedded event/profile as one-to-many, so they can
-  // arrive wrapped in an array. Unwrap the same way the original read did,
-  // otherwise `ev.title` is undefined and every tile reads "Unknown Event".
-  const ev = (Array.isArray(p.events) ? p.events[0] : p.events ?? {}) as {
-    title?: string;
-    slug?: string;
-  };
-  const prof = (Array.isArray(p.profiles)
-    ? p.profiles[0]
-    : p.profiles ?? {}) as { full_name?: string };
-  const row = p as {
-    id?: string;
-    url?: string;
-    created_at?: string;
-    optimized_transform?: string | null;
-    span?: number;
-    duration_seconds?: number | null;
-    media_type?: string;
-  };
-  return {
-    id: row.id ?? "",
-    url: row.url ?? "",
-    event: ev.title ?? "Unknown Event",
-    event_slug: ev.slug ?? null,
-    date: row.created_at ?? "",
-    span: row.span ?? 1,
-    uploader: prof.full_name ?? null,
-    optimize: row.optimized_transform ?? null,
-    duration:
-      row.duration_seconds === null || row.duration_seconds === undefined
-        ? undefined
-        : Number(row.duration_seconds),
-    media_type: row.media_type ?? "image",
-  };
-}
