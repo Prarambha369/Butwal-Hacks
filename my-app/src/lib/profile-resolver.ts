@@ -3,49 +3,48 @@
 import { createServiceClient } from "@/utils/supabase";
 import { auth0 } from "@/lib/auth0";
 
-/**
- * Generate a sequential BH-ID like BH-26-001.
- */
-async function generateBhId(): Promise<string> {
-  const supabase = createServiceClient();
-  const yearSuffix = new Date().getFullYear().toString().slice(-2);
-  const { data: maxRow } = await supabase
-    .from("profiles")
-    .select("slug_id")
-    .like("slug_id", `BH-${yearSuffix}-%`)
-    .order("slug_id", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  let nextNum = 1;
-  if (maxRow?.slug_id) {
-    const parts = maxRow.slug_id.split("-");
-    const lastNum = parseInt(parts[2], 10);
-    if (!isNaN(lastNum)) nextNum = lastNum + 1;
-  }
-  return `BH-${yearSuffix}-${String(nextNum).padStart(3, "0")}`;
-}
+// Not exported: a "use server" module may only export async functions.
+const DUPLICATE_EMAIL_MESSAGE =
+  "This email already has a Butwal Hacks account under a different sign-in method. " +
+  "Sign in the way you did before, then link this method under Dashboard → Connections.";
 
 /**
- * Upsert a minimal profile row for an Auth0 user who doesn't have one yet.
+ * Create the profile for an Auth0 user who doesn't have one yet.
+ *
+ * Goes through create_profile_with_bh_id (atomic BH-ID, claims ghost rows)
+ * with the session's email. The old version inserted directly with NO email
+ * and a racy BH-ID, which is how production got email-less "New Hacker"
+ * duplicates: the email belonged to the member's other login, the webhook
+ * could not create a row, and this silently created a second one.
  */
 async function upsertProfile(auth0Sub: string): Promise<string> {
   const supabase = createServiceClient();
-  const bhId = await generateBhId();
-  const profileId = crypto.randomUUID();
+  const session = await auth0.getSession().catch(() => null);
+  const user = session?.user?.sub === auth0Sub ? session.user : null;
+  const email = typeof user?.email === "string" && user.email.includes("@") ? user.email.toLowerCase() : null;
+  const name = typeof user?.name === "string" && user.name.trim() && !user.name.includes("@") ? user.name.trim() : "New Hacker";
 
-  const { error } = await supabase.from("profiles").insert({
-    id: profileId,
-    auth0_user_id: auth0Sub,
-    slug_id: bhId,
-    bh_id: bhId,
-    full_name: "New Hacker",
-    role: "hacker",
-    is_claimed: true,
+  const { data, error } = await supabase.rpc("create_profile_with_bh_id", {
+    p_auth0_user_id: auth0Sub,
+    p_email: email,
+    p_full_name: name,
+    p_role: "hacker",
   });
 
-  if (error) throw new Error(`Failed to create profile: ${error.message}`);
-  return profileId;
+  if (error?.code === "23505") {
+    // Either the webhook created the row a moment ago (same sub: use it), or
+    // the email belongs to another identity (don't mint a duplicate).
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("auth0_user_id", auth0Sub)
+      .single();
+    if (existing) return existing.id;
+    throw new Error(DUPLICATE_EMAIL_MESSAGE);
+  }
+  const id = (data as { id?: string } | null)?.id;
+  if (error || !id) throw new Error(`Failed to create profile: ${error?.message ?? "no id returned"}`);
+  return id;
 }
 
 /**

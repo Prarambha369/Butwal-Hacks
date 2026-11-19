@@ -110,9 +110,16 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     }
     const { sub, email, name, auth0_roles } = parsedBody
 
-    if (!sub || !email) {
-      return NextResponse.json({ error: "sub and email are required" }, { status: 400 })
+    // Email is optional: a GitHub login whose address is private arrives
+    // without one. Rejecting it used to leave the user with no profile, and
+    // the first server action then minted an email-less "New Hacker" row.
+    if (!sub) {
+      return NextResponse.json({ error: "sub is required" }, { status: 400 })
     }
+    const normalizedEmail = typeof email === "string" && email.includes("@") ? email.trim().toLowerCase() : null
+    // Auth0 sets `name` to the email address for database signups. That is
+    // not a name; never store it as one.
+    const cleanName = name?.trim() && !name.includes("@") ? name.trim() : null
 
     // ── Map Auth0 roles to app role ──────────────────────────────
     const resolvedRole = mapAuth0Roles(auth0_roles ?? []) || "hacker";
@@ -122,7 +129,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     // Check if profile already exists (by auth0_user_id)
     const { data: existingProfile } = await db
       .from("profiles")
-      .select("id, role")
+      .select("id, role, email, full_name")
       .eq("auth0_user_id", sub)
       .single()
 
@@ -132,10 +139,16 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         // stored "Asha@Example.com" would never match a lowercased roster row
         // and the organizer would be told "no profile" for someone who is
         // registered. Email local parts are case-insensitive per RFC 5321.
-        const update: Record<string, unknown> = {
-          email: email.toLowerCase(),
-          full_name: name?.trim() || null,
-        };
+        const update: Record<string, unknown> = {};
+        if (normalizedEmail && normalizedEmail !== existingProfile.email) {
+          update.email = normalizedEmail;
+        }
+        // Only fill a placeholder name. Overwriting on every login reset any
+        // name the member had edited in their profile back to Auth0's value.
+        const currentName = (existingProfile.full_name ?? "").trim();
+        if (cleanName && (!currentName || currentName === "New Hacker" || currentName.includes("@"))) {
+          update.full_name = cleanName;
+        }
 
       if (resolvedRole !== existingProfile.role) {
         // Unknown/invalid existing roles are treated as lowest precedence so a
@@ -149,7 +162,21 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         }
       }
 
-      await db.from("profiles").update(update).eq("id", existingProfile.id)
+      if (Object.keys(update).length > 0) {
+        const { error: updateError } = await db.from("profiles").update(update).eq("id", existingProfile.id)
+        if (updateError?.code === "23505" && "email" in update) {
+          // The address already belongs to another profile (same person,
+          // different login method, not yet linked). Don't let that one
+          // column sink the role/name sync; keep the rest and flag it.
+          logger.warn("[auth0-webhook] email already on another profile; possible duplicate account", { auth0_id: sub })
+          delete update.email
+          if (Object.keys(update).length > 0) {
+            await db.from("profiles").update(update).eq("id", existingProfile.id)
+          }
+        } else if (updateError) {
+          logger.error("[auth0-webhook] profile update failed:", updateError)
+        }
+      }
 
       logger.info("Auth0 webhook: existing profile updated", {
         auth0_id: sub,
@@ -165,11 +192,19 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         // writing mixed case.
         const { data: result, error: rpcError } = await db.rpc('create_profile_with_bh_id', {
           p_auth0_user_id: sub,
-          p_email: email.toLowerCase(),
-          p_full_name: name?.trim() || 'New Hacker',
+          p_email: normalizedEmail,
+          p_full_name: cleanName || 'New Hacker',
           p_role: resolvedRole,
         })
 
+      if (rpcError?.code === "23505") {
+        // Same email, different Auth0 identity: this is a second login method
+        // for an existing member. Creating a parallel profile is exactly the
+        // duplicate-account bug, so don't. The member links the identity from
+        // their dashboard (Settings → Linked accounts) instead.
+        logger.warn("[auth0-webhook] email already on another profile; not creating a duplicate", { auth0_id: sub })
+        return NextResponse.json({ success: true, duplicate_email: true })
+      }
       if (rpcError || !result) {
         logger.error("[auth0-webhook] RPC insert failed:", rpcError)
         return NextResponse.json({ error: "Failed to create profile" }, { status: 500 })
