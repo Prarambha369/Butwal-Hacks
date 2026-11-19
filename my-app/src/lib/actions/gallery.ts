@@ -161,8 +161,11 @@ export async function fetchGalleryPage(
 
   if (error) {
     logger.error("Error fetching gallery page:", error);
-    // Degrade to the honest empty page rather than taking down the route.
-    return { photos: [], hasMore: false };
+    // Throw rather than return an empty page: an empty result is a valid
+    // answer, and the grid would show it as "no photos" and cache it under the
+    // filter, so picking that filter again would never retry. The grid catches
+    // this into its retryable error state; the page render degrades itself.
+    throw new Error("Could not load the gallery");
   }
 
   // The select string is chosen at runtime, so PostgREST cannot infer the row

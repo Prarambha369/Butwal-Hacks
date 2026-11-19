@@ -54,10 +54,35 @@ interface UploadProgress {
   speedKBps: number;
 }
 
+/**
+ * Cloudinary's rejection of a signed `metadata` param that names a field which
+ * no longer exists (e.g. deleted in the console after the server cached the
+ * field list). Matched loosely on purpose: the exact wording is not a contract.
+ */
+class MetadataRejectedError extends Error {}
+const METADATA_REJECTION = /metadata|external[_ ]?id/i;
+
 /** Upload a blob/file to Cloudinary via the signed API endpoint. Returns url + public_id. */
 async function uploadToCloudinary(
   blob: Blob,
   metadata: Record<string, string | undefined>,
+  onProgress?: (progress: UploadProgress) => void,
+  xhrRef?: { current: XMLHttpRequest | null },
+): Promise<{ url: string; publicId: string }> {
+  try {
+    return await attemptUpload(blob, metadata, false, onProgress, xhrRef);
+  } catch (error) {
+    if (!(error instanceof MetadataRejectedError)) throw error;
+    // One bounded retry: a fresh signature built from a refreshed field list.
+    // The rejected form is never edited; its metadata is part of what was signed.
+    return attemptUpload(blob, metadata, true, onProgress, xhrRef);
+  }
+}
+
+async function attemptUpload(
+  blob: Blob,
+  metadata: Record<string, string | undefined>,
+  refreshMetadata: boolean,
   onProgress?: (progress: UploadProgress) => void,
   xhrRef?: { current: XMLHttpRequest | null },
 ): Promise<{ url: string; publicId: string }> {
@@ -71,6 +96,7 @@ async function uploadToCloudinary(
       event_slug: metadata.eventSlug,
       project_id: metadata.projectId,
       uploader_auth0_id: metadata.uploaderAuth0Id,
+      ...(refreshMetadata ? { refresh_metadata: true } : {}),
     }),
   });
   if (!res.ok) {
@@ -129,7 +155,10 @@ async function uploadToCloudinary(
       } else {
         try {
           const err = JSON.parse(xhr.responseText);
-          reject(new Error(err.error?.message || err.error || "Cloudinary upload failed"));
+          const message: string = err.error?.message || err.error || "Cloudinary upload failed";
+          const rejectedMetadata =
+            xhr.status === 400 && Boolean(metadataStr) && METADATA_REJECTION.test(message);
+          reject(rejectedMetadata ? new MetadataRejectedError(message) : new Error(message));
         } catch {
           reject(new Error(`Upload failed with status ${xhr.status}`));
         }

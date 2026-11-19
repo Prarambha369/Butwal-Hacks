@@ -15,11 +15,18 @@ import { createServiceClient } from "@/utils/supabase"
  * this set and dropped entirely if the lookup fails.
  */
 const FIELD_CACHE_TTL_MS = 10 * 60 * 1000
+// A client whose upload was rejected for an unknown metadata field asks for a
+// refresh (a field was deleted after the cache filled). Honour that at most
+// this often, so a retry loop or a hostile client cannot spend the Admin API
+// quota through this route.
+const FIELD_REFRESH_MIN_AGE_MS = 30 * 1000
 let fieldCache: { ids: Set<string>; at: number } | null = null
 
-async function definedMetadataIds(): Promise<Set<string> | null> {
-  if (fieldCache && Date.now() - fieldCache.at < FIELD_CACHE_TTL_MS) {
-    return fieldCache.ids
+async function definedMetadataIds(refresh = false): Promise<Set<string> | null> {
+  if (fieldCache) {
+    const age = Date.now() - fieldCache.at
+    const wantsRefresh = refresh && age >= FIELD_REFRESH_MIN_AGE_MS
+    if (age < FIELD_CACHE_TTL_MS && !wantsRefresh) return fieldCache.ids
   }
   try {
     const result = await cloudinary.api.list_metadata_fields()
@@ -86,12 +93,17 @@ export const POST = withRateLimit(async (request: Request) => {
       bh_id: z.string().max(20).optional(),
       event_slug: z.string().max(200).optional(),
       project_id: z.string().uuid().optional(),
+      // Not metadata: set by the upload client on its one retry after
+      // Cloudinary rejected the signed metadata (see definedMetadataIds).
+      refresh_metadata: z.boolean().optional(),
     })
 
     const metadata: Record<string, string> = {}
+    let refreshMetadata = false
     try {
       const body = await request.json()
-      const valid = metadataSchema.parse(body)
+      const { refresh_metadata, ...valid } = metadataSchema.parse(body)
+      refreshMetadata = refresh_metadata === true
       for (const [key, value] of Object.entries(valid)) {
         if (value) {
           metadata[key] = value
@@ -213,7 +225,7 @@ export const POST = withRateLimit(async (request: Request) => {
 
     // Structured metadata travels as `external_id=value|external_id=value`,
     // not JSON, and only for fields this environment actually defines.
-    const knownFields = await definedMetadataIds()
+    const knownFields = await definedMetadataIds(refreshMetadata)
     const attachedMetadata = knownFields
       ? pickDefinedMetadata(metadata, knownFields)
       : {}

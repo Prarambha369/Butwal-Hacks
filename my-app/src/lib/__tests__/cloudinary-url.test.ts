@@ -125,6 +125,16 @@ describe("socialCardUrl", () => {
     });
   });
 
+  it("still produces a jpg poster for an already-transformed video", () => {
+    // og:image must be an image; passing the .mp4 through would not be one.
+    const card = socialCardUrl("https://res.cloudinary.com/demo/video/upload/w_800/v123/clip.mp4");
+    expect(card).toEqual({
+      url: "https://res.cloudinary.com/demo/video/upload/w_800/so_1,c_fill,g_auto,w_1200,h_630,f_jpg,q_auto:good/v123/clip.jpg",
+      width: 1200,
+      height: 630,
+    });
+  });
+
   it("returns null for empty and non-Cloudinary URLs", () => {
     expect(socialCardUrl("")).toBeNull();
     expect(socialCardUrl("https://images.unsplash.com/photo-123")).toBeNull();

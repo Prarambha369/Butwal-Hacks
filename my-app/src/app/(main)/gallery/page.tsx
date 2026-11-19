@@ -29,8 +29,11 @@ export default async function GalleryPage({
   // Totals, first page, and the event list are independent reads; run them
   // together. The first page is fetched once, already filtered — the old code
   // always fetched the unfiltered page too and threw it away.
+  // A failed page read throws (so the client grid can retry it); on the server
+  // render, degrade to an empty first page rather than taking down the route.
+  const emptyPage = { photos: [], hasMore: false };
   const [requestedPage, totals, events] = await Promise.all([
-    fetchGalleryPage(0, requested ?? undefined),
+    fetchGalleryPage(0, requested ?? undefined).catch(() => emptyPage),
     fetchGalleryTotals(),
     fetchGalleryEvents(),
   ]);
@@ -43,7 +46,9 @@ export default async function GalleryPage({
       : null;
   // Only an unknown ?event= value needs a second read (rare: a stale link).
   const page =
-    requested && !initialFilter ? await fetchGalleryPage(0) : requestedPage;
+    requested && !initialFilter
+      ? await fetchGalleryPage(0).catch(() => emptyPage)
+      : requestedPage;
   const photos = page.photos;
   const galleryEmpty =
     photos.length === 0 && totals.photos + totals.videos === 0;
