@@ -1,6 +1,6 @@
 "use client";
 
-import { videoPlaybackUrl, videoPosterUrl } from "@/lib/cloudinary-url";
+import { videoPosterUrl, videoSources } from "@/lib/cloudinary-url";
 
 /**
  * Poster-only presentation of a video. No interactivity.
@@ -56,7 +56,9 @@ export function VideoPlayer({
   const poster = videoPosterUrl(url, width);
   return (
     <video
-      src={videoPlaybackUrl(url, width)}
+      // <source> children don't restart resource selection on an element that
+      // already loaded media, so a new url must remount the element.
+      key={url}
       poster={poster ?? undefined}
       controls
       autoPlay
@@ -64,6 +66,10 @@ export function VideoPlayer({
       preload="metadata"
       aria-label={alt}
       className="max-h-[80vh] w-full bg-black object-contain"
-    />
+    >
+      {videoSources(url, width).map((s) => (
+        <source key={s.src} src={s.src} type={s.type} />
+      ))}
+    </video>
   );
 }
