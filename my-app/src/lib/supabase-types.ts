@@ -13,6 +13,8 @@ export interface Profile {
   avatar_url: string | null
   is_suspended: boolean
   has_completed_onboarding: boolean
+  /** false hides the profile from every public surface (migration 147) */
+  is_listed: boolean
   created_at: string
   bh_id: string
   socials?: {

@@ -78,6 +78,7 @@ export async function fetchExplorerMembers(
       socials
     `)
     .not("bh_id", "is", null)
+    .eq("is_listed", true)
     .limit(100);
 
   if (error || !profiles) {
