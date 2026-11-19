@@ -16,11 +16,18 @@ import { test, expect } from "./fixtures";
 
 const PHOTO_PATH = /^\/gallery\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-/** The first tile's href, or null when the gallery renders no photo tiles. */
+/**
+ * The first tile's href, or null only when the gallery shows its explicit
+ * empty state. Zero canonical links on a populated gallery (cards regressed to
+ * buttons, or href="/gallery") fails here instead of skipping.
+ */
 async function firstPhotoHref(page: Page): Promise<string | null> {
   await page.goto("/gallery");
   const cards = page.locator('a[href^="/gallery/"]');
-  if ((await cards.count()) === 0) return null;
+  if ((await cards.count()) === 0) {
+    await expect(page.getByText(/^(No photos yet|No media found)$/)).toBeVisible();
+    return null;
+  }
   return cards.first().getAttribute("href");
 }
 

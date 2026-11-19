@@ -5,6 +5,10 @@ import { logger } from '@/lib/logger';
 import { resolveProfileId } from '@/lib/profile-resolver';
 import { revalidatePath } from 'next/cache';
 import { requireMaintainer } from '@/lib/actions/admin';
+import { isVideoUrl } from '@/lib/cloudinary-url';
+
+// 'use server' files may only export async functions, so this stays private.
+const NON_CLOUDINARY_VIDEO_FILE = /\.(mp4|webm|mov|ogg|avi)(\?|#|$)/i;
 
 export interface GalleryPhotoRow {
   id: string;
@@ -92,7 +96,11 @@ export async function addEventPhotos(
 ) {
   const clean = items
     .map((item) => ({ url: item.url.trim(), publicId: item.publicId?.trim() || null }))
-    .filter((item) => item.url.startsWith('https://'));
+    .filter((item) => item.url.startsWith('https://'))
+    // Renderers only play Cloudinary /video/upload/ URLs (isVideoUrl). A video
+    // file hosted elsewhere would be stored as an image and render broken, so
+    // refuse it here rather than half-support it downstream.
+    .filter((item) => isVideoUrl(item.url) || !NON_CLOUDINARY_VIDEO_FILE.test(item.url));
   if (clean.length === 0) {
     return { success: false, error: 'No valid photo URLs provided' };
   }

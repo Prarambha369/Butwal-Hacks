@@ -519,7 +519,9 @@ export default function GalleryGrid({
   // its place), a load-more appends (show skeletons after it).
   const [filtering, setFiltering] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [loadError, setLoadError] = useState(false);
+  // Which request failed, so "Try again" repeats that request: a failed filter
+  // is re-applied, never retried as the next page of the previous filter.
+  const [loadError, setLoadError] = useState<false | "filter" | "page">(false);
   // Every request gets a ticket; a response whose ticket is stale is dropped,
   // so tapping two chips quickly can never leave the first event's photos
   // under the second event's label.
@@ -575,7 +577,12 @@ export default function GalleryGrid({
       setPhotos(page.photos);
       setHasMore(page.hasMore);
     } catch {
-      if (ticket === requestRef.current) setLoadError(true);
+      if (ticket === requestRef.current) {
+        // Don't leave the previous filter's photos labelled as this one's.
+        setPhotos([]);
+        setHasMore(false);
+        setLoadError("filter");
+      }
     } finally {
       if (ticket === requestRef.current) setFiltering(false);
     }
@@ -596,7 +603,7 @@ export default function GalleryGrid({
       });
       setHasMore(next.hasMore);
     } catch {
-      if (ticket === requestRef.current) setLoadError(true);
+      if (ticket === requestRef.current) setLoadError("page");
     } finally {
       setLoadingMore(false);
     }
@@ -643,8 +650,11 @@ export default function GalleryGrid({
       event.preventDefault();
       setSelectedIdx(index);
       window.history.pushState({ bhGallery: true }, "", `/gallery/${id}`);
+      // Same near-end check as goTo: without IntersectionObserver, opening the
+      // last loaded card would otherwise leave Next disabled with more to load.
+      if (index >= photos.length - 3 && hasMore) void handleLoadMore();
     },
-    []
+    [photos.length, hasMore, handleLoadMore]
   );
 
   const goTo = useCallback((next: number) => {
@@ -744,7 +754,7 @@ export default function GalleryGrid({
           Couldn&apos;t load media. Check your connection.
           <button
             type="button"
-            onClick={() => (photos.length && !filtering ? handleLoadMore() : applyFilter(filter))}
+            onClick={() => (loadError === "page" ? handleLoadMore() : applyFilter(filter))}
             className="rounded-full border border-border px-4 py-1.5 font-semibold hover:bg-surface-hover"
           >
             Try again

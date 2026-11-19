@@ -34,8 +34,13 @@ export default async function GalleryPage({
     fetchGalleryTotals(),
     fetchGalleryEvents(),
   ]);
+  // Matching rows prove the event exists even when the cached event list
+  // predates its first approved photo; the list is for the filter chips.
   const initialFilter =
-    requested && events.some((e) => e.title === requested) ? requested : null;
+    requested &&
+    (requestedPage.photos.length > 0 || events.some((e) => e.title === requested))
+      ? requested
+      : null;
   // Only an unknown ?event= value needs a second read (rare: a stale link).
   const page =
     requested && !initialFilter ? await fetchGalleryPage(0) : requestedPage;
