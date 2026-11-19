@@ -69,3 +69,59 @@ describe("createServiceClient", () => {
     expect(serviceRoleKey()).toBe("explicit-secret");
   });
 });
+
+describe("skewTolerantFetch", () => {
+  const skew = () =>
+    new Response(JSON.stringify({ code: "PGRST303", message: "JWT issued at future" }), {
+      status: 401,
+    });
+  const ok = () => new Response("[]", { status: 200 });
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("retries a PGRST303 rejection and returns the successful response", async () => {
+    const f = vi.fn().mockResolvedValueOnce(skew()).mockResolvedValueOnce(ok());
+    vi.stubGlobal("fetch", f);
+    const { skewTolerantFetch } = await import("@/utils/supabase");
+    const p = skewTolerantFetch("https://x.supabase.co/rest/v1/projects", { method: "GET" });
+    await vi.runAllTimersAsync();
+    const res = await p;
+    expect(res.status).toBe(200);
+    expect(f).toHaveBeenCalledTimes(2);
+  });
+
+  it("gives up after two retries and returns the last rejection", async () => {
+    const f = vi.fn().mockImplementation(async () => skew());
+    vi.stubGlobal("fetch", f);
+    const { skewTolerantFetch } = await import("@/utils/supabase");
+    const p = skewTolerantFetch("https://x.supabase.co/rest/v1/projects");
+    await vi.runAllTimersAsync();
+    expect((await p).status).toBe(401);
+    expect(f).toHaveBeenCalledTimes(3);
+  });
+
+  it("does not retry other 401s", async () => {
+    const f = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ code: "PGRST301" }), { status: 401 }),
+    );
+    vi.stubGlobal("fetch", f);
+    const { skewTolerantFetch } = await import("@/utils/supabase");
+    expect((await skewTolerantFetch("https://x.supabase.co/rest/v1/p")).status).toBe(401);
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not replay a streamed body", async () => {
+    const f = vi.fn().mockResolvedValue(skew());
+    vi.stubGlobal("fetch", f);
+    const { skewTolerantFetch } = await import("@/utils/supabase");
+    const body = new ReadableStream();
+    await skewTolerantFetch("https://x.supabase.co/storage/v1/o", { method: "POST", body });
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+});

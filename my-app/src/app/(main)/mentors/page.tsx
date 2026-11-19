@@ -24,6 +24,7 @@ export default async function MentorsPage() {
     .from("profiles")
     .select("bh_id, full_name, avatar_url, bio, skills, cal_com_url, socials")
     .eq("open_to_mentor", true)
+    .eq("is_listed", true)
     .not("bh_id", "is", null)
     .order("full_name", { ascending: true })
     .limit(50);

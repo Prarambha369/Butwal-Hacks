@@ -10,10 +10,9 @@ import {
   displayPhotoUrl,
   isVideoUrl,
   socialCardUrl,
-  videoSources,
-  videoPosterUrl,
 } from "@/lib/cloudinary-url";
 import { SITE_URL } from "@/lib/constants";
+import { VideoPlayer } from "@/components/gallery/video-tile";
 import { getGalleryPhoto } from "@/lib/gallery-photo";
 import { buildPageMetadata } from "@/lib/seo";
 import ShareButtons from "./share-buttons";
@@ -135,17 +134,14 @@ export default async function GalleryPhotoPage({ params }: Props) {
 
           <div className="bh-card overflow-hidden">
             {isVideo ? (
-              <video
-                controls
-                playsInline
-                preload="metadata"
-                poster={videoPosterUrl(photo.url, 1600) ?? undefined}
+              // Client component: it carries the decode-error WebM fallback.
+              <VideoPlayer
+                url={photo.url}
+                width={1600}
+                alt={photo.event}
+                autoPlay={false}
                 className="w-full bg-surface-inverse"
-              >
-                {videoSources(photo.url, 1600).map((s) => (
-                  <source key={s.src} src={s.src} type={s.type} />
-                ))}
-              </video>
+              />
             ) : (
               <Image
                 src={displayPhotoUrl(photo.url, photo.optimize, 1600)}

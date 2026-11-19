@@ -1,6 +1,6 @@
 "use client";
 
-import { videoPosterUrl, videoSources } from "@/lib/cloudinary-url";
+import { fallBackToWebmOnDecodeError, videoPosterUrl, videoSources } from "@/lib/cloudinary-url";
 
 /**
  * Poster-only presentation of a video. No interactivity.
@@ -48,10 +48,14 @@ export function VideoPlayer({
   url,
   width,
   alt,
+  autoPlay = true,
+  className = "max-h-[80vh] w-full bg-black object-contain",
 }: {
   url: string;
   width: number;
   alt: string;
+  autoPlay?: boolean;
+  className?: string;
 }) {
   const poster = videoPosterUrl(url, width);
   return (
@@ -59,13 +63,14 @@ export function VideoPlayer({
       // <source> children don't restart resource selection on an element that
       // already loaded media, so a new url must remount the element.
       key={url}
+      onError={fallBackToWebmOnDecodeError}
       poster={poster ?? undefined}
       controls
-      autoPlay
+      autoPlay={autoPlay}
       playsInline
       preload="metadata"
       aria-label={alt}
-      className="max-h-[80vh] w-full bg-black object-contain"
+      className={className}
     >
       {videoSources(url, width).map((s) => (
         <source key={s.src} src={s.src} type={s.type} />

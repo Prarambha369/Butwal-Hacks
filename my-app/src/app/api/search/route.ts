@@ -68,6 +68,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
         .from("profiles")
         .select("id, full_name, bh_id")
         .or(`full_name.ilike.${term},bh_id.ilike.${term}`)
+        .eq("is_listed", true)
         .range(from, to),
       supabase
         .from("projects")

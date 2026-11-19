@@ -223,15 +223,24 @@ export const POST = withRateLimit(async (request: Request) => {
     const resourceType = metadata.entity_type === "gallery_video" ? "video" : "image"
 
     // Video uploads are stored as .mp4 (Firefox rejects H.264 in a .mov
-    // container) and the two gallery playback renditions are generated in the
-    // background right after upload, so the first viewer never waits on (or
-    // gets a 423 from) an on-the-fly transcode. These strings must match
-    // videoPlaybackUrl(url, 1600) and videoPlaybackUrl(url, 640) exactly, or
+    // container) and every gallery playback rendition is generated in the
+    // background right after upload, so the first viewer never waits on an
+    // on-the-fly transcode. That includes the VP9 WebM fallbacks: a browser
+    // without an H.264 decoder (Firefox on many Linux installs) goes straight
+    // to the WebM, and an ungenerated one stalls 10-30s while Cloudinary
+    // transcodes it, long enough for Firefox to give up with "No video with
+    // supported format and MIME type found". These strings must match
+    // videoSources(url, 1600) and videoSources(url, 640) exactly, or
     // Cloudinary treats the request as a different derivative.
     const videoUploadParams = resourceType === "video"
       ? {
           format: "mp4",
-          eager: "w_1600,vc_h264,q_auto/mp4|w_640,vc_h264,q_auto/mp4",
+          eager: [
+            "w_1600,vc_h264,q_auto/mp4",
+            "w_640,vc_h264,q_auto/mp4",
+            "w_1600,vc_vp9,q_auto/webm",
+            "w_640,vc_vp9,q_auto/webm",
+          ].join("|"),
           eager_async: "true",
         }
       : undefined
