@@ -10,13 +10,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getDiceBearPlaceholder } from "@/lib/utils";
-import {
-  cloudinaryDownloadUrl,
-  cloudinaryImageLoader,
-  isVideoUrl,
-  videoPosterUrl,
-  videoSources,
-} from "@/lib/cloudinary-url";
+import { cloudinaryDownloadUrl, cloudinaryImageLoader, isVideoUrl, videoPosterUrl, videoSources, fallBackToWebmOnDecodeError } from "@/lib/cloudinary-url";
 // Server actions live in `lib`; the page's types are re-exported there, so
 // import both from one place rather than through `./page`.
 import { fetchGalleryPage } from "@/lib/actions/gallery";
@@ -71,6 +65,7 @@ function VideoThumbnail({ url }: { url: string }) {
         preload="none"
         className="absolute inset-0 w-full h-full object-cover"
         poster={videoPosterUrl(url, 640) ?? undefined}
+        onError={fallBackToWebmOnDecodeError}
       >
         {videoSources(url, 640).map((s) => (
           <source key={s.src} src={s.src} type={s.type} />
@@ -351,6 +346,7 @@ function Lightbox({
                 onPlay={() => setVideoPlaying(true)}
                 onPause={() => setVideoPlaying(false)}
                 onEnded={() => setVideoPlaying(false)}
+                onError={fallBackToWebmOnDecodeError}
                 className="w-full h-full object-contain"
               >
                 {/* With <source> children a failed load fires `error` on the

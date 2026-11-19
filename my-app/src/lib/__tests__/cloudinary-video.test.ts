@@ -1,7 +1,10 @@
-import { describe, expect, it } from "vitest";
+// @vitest-environment happy-dom
+
+import { describe, expect, it, vi } from "vitest";
 import {
   cloudinaryDownloadUrl,
   displayPhotoUrl,
+  fallBackToWebmOnDecodeError,
   isVideoUrl,
   videoPlaybackUrl,
   videoPosterUrl,
@@ -166,6 +169,15 @@ describe("videoSources", () => {
     expect(mp4.type).toMatch(/^video\/mp4; codecs="avc1\./);
   });
 
+  it("labels the MP4 as High profile, matching what vc_h264 actually encodes", () => {
+    // Verified with ffprobe on res.cloudinary.com: vc_h264 serves High@4.0
+    // (1600px) and High@3.0 (640px). A Baseline label (avc1.42E01E) let
+    // Firefox's Baseline-only OpenH264 claim the MP4, fail to decode it, and
+    // never fall back to the WebM.
+    const [mp4] = videoSources(VIDEO_MOV, 1600);
+    expect(mp4.type).toBe('video/mp4; codecs="avc1.640028"');
+  });
+
   it("falls back to VP9 WebM for browsers without an H.264 decoder", () => {
     // Firefox on Linux without a usable system libavcodec cannot decode
     // H.264 at all and shows "No video with supported format and MIME type
@@ -177,5 +189,37 @@ describe("videoSources", () => {
 
   it("returns the URL alone when it is not a transformable Cloudinary video", () => {
     expect(videoSources(IMAGE, 1600)).toEqual([{ src: IMAGE }]);
+  });
+});
+
+describe("fallBackToWebmOnDecodeError", () => {
+  function player(currentSrc: string, error: unknown) {
+    const video = document.createElement("video");
+    for (const s of videoSources(VIDEO_MOV, 1600)) {
+      const source = document.createElement("source");
+      source.src = s.src;
+      if (s.type) source.setAttribute("type", s.type);
+      video.appendChild(source);
+    }
+    Object.defineProperty(video, "currentSrc", { value: currentSrc });
+    Object.defineProperty(video, "error", { value: error });
+    video.load = vi.fn();
+    return video;
+  }
+
+  it("retags the MP4 and reloads when the MP4 failed to decode", () => {
+    const [mp4] = videoSources(VIDEO_MOV, 1600);
+    const video = player(mp4.src, { code: 3 });
+    fallBackToWebmOnDecodeError({ currentTarget: video });
+    expect(video.querySelector('source[type^="video/mp4"]')).toBeNull();
+    expect(video.querySelector('source[type^="video/webm"]')).not.toBeNull();
+    expect(video.load).toHaveBeenCalledTimes(1);
+  });
+
+  it("does nothing when the WebM itself failed, so it cannot loop", () => {
+    const [, webm] = videoSources(VIDEO_MOV, 1600);
+    const video = player(webm.src, { code: 3 });
+    fallBackToWebmOnDecodeError({ currentTarget: video });
+    expect(video.load).not.toHaveBeenCalled();
   });
 });
