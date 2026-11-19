@@ -39,6 +39,9 @@ export const PHOTO_SELECT = `
   profiles!photos_uploader_id_fkey ( full_name )
 `;
 
+/** Same columns, but the event embed is an inner join so it can filter rows. */
+export const PHOTO_SELECT_BY_EVENT = PHOTO_SELECT.replace("events (", "events!inner (");
+
 export function mapPhoto(p: Record<string, unknown>): GalleryPhoto {
   // PostgREST types the embedded event/profile as one-to-many, so they can
   // arrive wrapped in an array. Unwrap the same way the original read did,

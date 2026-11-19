@@ -141,6 +141,13 @@ describe("cloudinaryDownloadUrl with video", () => {
     expect(url).not.toContain("/image/upload/");
   });
 
+  it("downloads a transcoded .mp4 instead of the original .mov", () => {
+    const mov = `${CLOUD}/video/upload/v123/hackday-butwal/mvi_5296.mov`;
+    expect(cloudinaryDownloadUrl(mov)).toBe(
+      `${CLOUD}/video/upload/fl_attachment/vc_h264,q_auto/v123/hackday-butwal/mvi_5296.mp4`,
+    );
+  });
+
   it("is unchanged for images", () => {
     expect(cloudinaryDownloadUrl(IMAGE)).toContain("/image/upload/fl_attachment/");
   });

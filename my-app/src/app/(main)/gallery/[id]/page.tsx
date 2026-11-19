@@ -71,7 +71,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return buildPageMetadata({
     title: `${photo.event} — ${kind} · Butwal Hacks`,
     description,
-    path: `/gallery/${id}`,
+    path: `/gallery/${photo.id}`,
     robots: { index: false, follow: true },
     ...(card
       ? {
@@ -151,6 +151,9 @@ export default async function GalleryPhotoPage({ params }: Props) {
                 height={1000}
                 sizes="(max-width: 768px) 100vw, 900px"
                 className="h-auto w-full object-contain"
+                // Already a sized q_auto,f_auto Cloudinary URL; skip the
+                // second encode/transfer through /_next/image.
+                unoptimized
                 priority
               />
             )}

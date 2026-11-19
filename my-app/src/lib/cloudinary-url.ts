@@ -157,8 +157,16 @@ export function cloudinaryDownloadUrl(url: string): string {
   if (path.split("/")[0] === "fl_attachment") return url;
   // Preserve the asset type: splicing an image fl_attachment onto a video URL
   // would 404.
-  const assetType = CLOUDINARY_VIDEO_DELIVERY.test(url) ? "video" : "image";
-  return `https://res.cloudinary.com/${cloud}/${assetType}/upload/fl_attachment/${path}`;
+  if (CLOUDINARY_VIDEO_DELIVERY.test(url)) {
+    // Videos download as an H.264 .mp4 at full resolution instead of the
+    // stored original: a 61 MB camera .mov becomes ~3 MB and opens on every
+    // phone. Same .mp4-not-.mov reasoning as videoPlaybackUrl. A URL that
+    // already carries transforms is left alone rather than stacked.
+    if (TRANSFORM_SEGMENT.test(path.split("/")[0])) return url;
+    const asMp4 = path.replace(/\.[a-z0-9]+$/i, "") + ".mp4";
+    return `https://res.cloudinary.com/${cloud}/video/upload/fl_attachment/vc_h264,q_auto/${asMp4}`;
+  }
+  return `https://res.cloudinary.com/${cloud}/image/upload/fl_attachment/${path}`;
 }
 /** Fixed recipe set maintainers can apply per photo. No freeform input. */
 export const OPTIMIZE_RECIPES = {
@@ -203,4 +211,23 @@ export function displayPhotoUrl(url: string, recipe: string | null, width: numbe
   if (isVideoUrl(url)) return videoPosterUrl(url, width) ?? url;
   if (!recipe || !isValidRecipe(recipe)) return withWidthTransform(url, width, "q_auto,f_auto");
   return withWidthTransform(url, width, recipe);
+}
+
+/**
+ * next/image loader that asks Cloudinary for each srcset width directly.
+ *
+ * Without it, next/image routed every gallery image through Vercel's image
+ * optimizer: the browser fetched /_next/image, Vercel pulled the Cloudinary
+ * file, re-encoded it, and sent it on — two transfers and an optimizer charge
+ * per image, for bytes Cloudinary already resizes and format-negotiates
+ * (q_auto,f_auto) at its own CDN edge. The optimizer's srcset also reaches
+ * 3840w on a wide retina screen; `maxWidth` caps what we ever request.
+ *
+ * Non-Cloudinary URLs come back unchanged (displayPhotoUrl passes them through).
+ */
+export function cloudinaryImageLoader(
+  recipe: string | null,
+  maxWidth: number,
+): (p: { src: string; width: number }) => string {
+  return ({ src, width }) => displayPhotoUrl(src, recipe, Math.min(width, maxWidth));
 }

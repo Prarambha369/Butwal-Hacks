@@ -1,8 +1,9 @@
 "use server";
 
+import { unstable_cache } from "next/cache";
 import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
-import { PHOTO_SELECT, mapPhoto } from "@/lib/gallery-photo";
+import { PHOTO_SELECT, PHOTO_SELECT_BY_EVENT, mapPhoto } from "@/lib/gallery-photo";
 import type { GalleryPhoto } from "@/lib/gallery-photo";
 
 export type { GalleryPhoto } from "@/lib/gallery-photo";
@@ -34,12 +35,22 @@ export type GalleryTotals = {
  * The client sends only an offset, so paging cannot be used to pull the whole
  * table in one oversized request.
  */
-const PAGE_SIZE = 60;
+// 24 fills 1, 2, 3 or 4 columns evenly. Infinite scroll pulls the next page
+// well before the visitor reaches the end, so a smaller page costs nothing in
+// feel but cuts the first-load payload and the thumbnails it pulls in.
+const PAGE_SIZE = 24;
+
+/**
+ * Totals and the event list change only when a maintainer approves media, but
+ * they were read on every visit — and the event list scans every approved row.
+ * Neither depends on the viewer, so cache them briefly across requests.
+ */
+const GALLERY_CACHE_SECONDS = 300;
 
 /** Hard ceiling on offset so a crafted offset cannot force a deep scan. */
 const MAX_OFFSET = 5000;
 
-export async function fetchGalleryTotals(): Promise<GalleryTotals> {
+async function readGalleryTotals(): Promise<GalleryTotals> {
   const supabase = createServiceClient();
 
   // One round trip. COUNT(DISTINCT event_id) is not expressible over
@@ -63,7 +74,7 @@ export async function fetchGalleryTotals(): Promise<GalleryTotals> {
 
 export type GalleryEvent = { title: string; slug: string | null };
 
-export async function fetchGalleryEvents(): Promise<GalleryEvent[]> {
+async function readGalleryEvents(): Promise<GalleryEvent[]> {
   const supabase = createServiceClient();
   // Paginate so event discovery is not truncated by the PostgREST row cap
   // before deduplication.
@@ -97,6 +108,23 @@ export async function fetchGalleryEvents(): Promise<GalleryEvent[]> {
   return out;
 }
 
+const cachedTotals = unstable_cache(readGalleryTotals, ["gallery-totals"], {
+  revalidate: GALLERY_CACHE_SECONDS,
+  tags: ["gallery"],
+});
+const cachedEvents = unstable_cache(readGalleryEvents, ["gallery-events"], {
+  revalidate: GALLERY_CACHE_SECONDS,
+  tags: ["gallery"],
+});
+
+export async function fetchGalleryTotals(): Promise<GalleryTotals> {
+  return cachedTotals();
+}
+
+export async function fetchGalleryEvents(): Promise<GalleryEvent[]> {
+  return cachedEvents();
+}
+
 export async function fetchGalleryPage(
   offset: number,
   eventFilter?: string,
@@ -109,9 +137,13 @@ export async function fetchGalleryPage(
       ? Math.min(Math.floor(offset), MAX_OFFSET)
       : 0;
 
+  // Filtering on an embedded table only narrows the parent rows when the
+  // embed is an inner join. With the plain embed, `.eq("events.title", …)`
+  // returned every photo and nulled the event on the rest, so a filtered view
+  // showed the whole gallery labelled "Unknown Event".
   let query = supabase
     .from("photos")
-    .select(PHOTO_SELECT)
+    .select(eventFilter ? PHOTO_SELECT_BY_EVENT : PHOTO_SELECT)
     .eq("status", "approved")
     .order("created_at", { ascending: false })
     // Defensive tie-break. Every row currently has a distinct created_at, but
@@ -129,7 +161,9 @@ export async function fetchGalleryPage(
     return { photos: [], hasMore: false };
   }
 
-  const rows = data ?? [];
+  // The select string is chosen at runtime, so PostgREST cannot infer the row
+  // type; mapPhoto validates each field itself.
+  const rows = (data ?? []) as unknown as Record<string, unknown>[];
   // We asked for PAGE_SIZE + 1: the extra row is purely the "there is more"
   // signal, so it must not reach the grid or the last page renders ragged.
   const hasMore = rows.length > PAGE_SIZE;

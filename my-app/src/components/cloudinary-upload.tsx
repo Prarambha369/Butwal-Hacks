@@ -78,7 +78,7 @@ async function uploadToCloudinary(
     throw new Error(err.error || "Failed to get upload signature");
   }
 
-  const { signature, timestamp, cloudName, apiKey, folder, uploadPreset, transformation, metadata: metadataStr } = await res.json();
+  const { signature, timestamp, cloudName, apiKey, folder, uploadPreset, transformation, metadata: metadataStr, videoUploadParams } = await res.json();
 
   const formData = new FormData();
   formData.append("file", blob);
@@ -90,6 +90,12 @@ async function uploadToCloudinary(
   // Signed server-side: incoming transform (resize/quality/watermark for gallery).
   if (transformation) formData.append("transformation", transformation);
   if (metadataStr) formData.append("metadata", metadataStr);
+  // Signed server-side: .mp4 storage + eager playback renditions for video.
+  if (videoUploadParams && typeof videoUploadParams === "object") {
+    for (const [key, value] of Object.entries(videoUploadParams as Record<string, unknown>)) {
+      if (typeof value === "string") formData.append(key, value);
+    }
+  }
 
   // Use XHR for upload progress tracking
   return new Promise((resolve, reject) => {

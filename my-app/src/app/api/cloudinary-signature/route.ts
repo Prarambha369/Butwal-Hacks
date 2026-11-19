@@ -183,12 +183,27 @@ export const POST = withRateLimit(async (request: Request) => {
     // every /video/upload delivery transform then 404s.
     const resourceType = metadata.entity_type === "gallery_video" ? "video" : "image"
 
+    // Video uploads are stored as .mp4 (Firefox rejects H.264 in a .mov
+    // container) and the two gallery playback renditions are generated in the
+    // background right after upload, so the first viewer never waits on (or
+    // gets a 423 from) an on-the-fly transcode. These strings must match
+    // videoPlaybackUrl(url, 1600) and videoPlaybackUrl(url, 640) exactly, or
+    // Cloudinary treats the request as a different derivative.
+    const videoUploadParams = resourceType === "video"
+      ? {
+          format: "mp4",
+          eager: "w_1600,vc_h264,q_auto/mp4|w_640,vc_h264,q_auto/mp4",
+          eager_async: "true",
+        }
+      : undefined
+
     // Build params to sign — include metadata if present
     const paramsToSign: Record<string, string | number> = {
       timestamp,
       folder,
       ...(uploadPreset ? { upload_preset: uploadPreset } : {}),
       ...(transformation ? { transformation } : {}),
+      ...videoUploadParams,
     }
     // NOTE: resource_type is deliberately NOT signed. Cloudinary takes it from
     // the endpoint path (/v1_1/<cloud>/<resource_type>/upload) and excludes it
@@ -225,6 +240,7 @@ export const POST = withRateLimit(async (request: Request) => {
       ...(uploadPreset ? { uploadPreset } : {}),
       ...(transformation ? { transformation } : {}),
       ...(metadataStr ? { metadata: metadataStr } : {}),
+      ...(videoUploadParams ? { videoUploadParams } : {}),
     })
   } catch (error) {
     logger.error("Cloudinary signature error:", error)
