@@ -727,7 +727,9 @@ export default function GalleryGrid({
   const chipClass = (active: boolean) =>
     `shrink-0 inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red ${
       active
-        ? "border-primary-red bg-primary-red text-white"
+        // bh-red-action, not the brand red: white text-sm on #FE0000 is 4.03:1
+        // and fails WCAG AA (see --bh-red-action in globals.css).
+        ? "border-bh-red-action bg-bh-red-action text-white"
         : "border-border bg-surface text-primary hover:bg-surface-hover"
     }`;
 
