@@ -3,7 +3,7 @@
 import { unstable_cache } from "next/cache";
 import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
-import { PHOTO_SELECT, PHOTO_SELECT_BY_EVENT, mapPhoto } from "@/lib/gallery-photo";
+import { PHOTO_SELECT, PHOTO_SELECT_BY_EVENT, mapPhoto, selectWithCaptionFallback } from "@/lib/gallery-photo";
 import type { GalleryPhoto } from "@/lib/gallery-photo";
 
 export type { GalleryPhoto } from "@/lib/gallery-photo";
@@ -154,19 +154,22 @@ export async function fetchGalleryPage(
   // embed is an inner join. With the plain embed, `.eq("events.title", …)`
   // returned every photo and nulled the event on the rest, so a filtered view
   // showed the whole gallery labelled "Unknown Event".
-  let query = supabase
-    .from("photos")
-    .select(eventFilter ? PHOTO_SELECT_BY_EVENT : PHOTO_SELECT)
-    .eq("status", "approved")
-    .order("created_at", { ascending: false })
-    // Defensive tie-break. Every row currently has a distinct created_at, but
-    // an unstable sort is what makes paged UIs drop or duplicate rows at the
-    // page boundary when a future upload lands in the same millisecond.
-    .order("id", { ascending: true })
-  if (eventFilter) {
-    query = query.eq("events.title", eventFilter)
-  }
-  const { data, error } = await query.range(safeOffset, safeOffset + PAGE_SIZE);
+  const { data, error } = await selectWithCaptionFallback(
+    eventFilter ? PHOTO_SELECT_BY_EVENT : PHOTO_SELECT,
+    (select) => {
+      let query = supabase
+        .from("photos")
+        .select(select)
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        // Defensive tie-break. Every row currently has a distinct created_at,
+        // but an unstable sort is what makes paged UIs drop or duplicate rows
+        // at the page boundary when a future upload lands in the same ms.
+        .order("id", { ascending: true });
+      if (eventFilter) query = query.eq("events.title", eventFilter);
+      return query.range(safeOffset, safeOffset + PAGE_SIZE);
+    },
+  );
 
   if (error) {
     logger.error("Error fetching gallery page:", error);
