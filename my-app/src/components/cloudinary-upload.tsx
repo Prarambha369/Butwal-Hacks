@@ -54,16 +54,48 @@ interface UploadProgress {
   speedKBps: number;
 }
 
+/**
+ * Cloudinary's rejection of a signed `metadata` param that names a field which
+ * no longer exists (e.g. deleted in the console after the server cached the
+ * field list). Matched loosely on purpose: the exact wording is not a contract.
+ */
+class MetadataRejectedError extends Error {}
+const METADATA_REJECTION = /metadata|external[_ ]?id/i;
+
 /** Upload a blob/file to Cloudinary via the signed API endpoint. Returns url + public_id. */
 async function uploadToCloudinary(
   blob: Blob,
   metadata: Record<string, string | undefined>,
   onProgress?: (progress: UploadProgress) => void,
   xhrRef?: { current: XMLHttpRequest | null },
+  signal?: AbortSignal,
 ): Promise<{ url: string; publicId: string }> {
+  try {
+    return await attemptUpload(blob, metadata, false, onProgress, xhrRef, signal);
+  } catch (error) {
+    if (!(error instanceof MetadataRejectedError)) throw error;
+    // Cancelled while the first attempt was being rejected: never send again.
+    if (signal?.aborted) throw new Error("Upload aborted");
+    // One bounded retry: a fresh signature built from a refreshed field list.
+    // The rejected form is never edited; its metadata is part of what was signed.
+    // If the server declines the refresh it signs this retry without metadata.
+    return attemptUpload(blob, metadata, true, onProgress, xhrRef, signal);
+  }
+}
+
+async function attemptUpload(
+  blob: Blob,
+  metadata: Record<string, string | undefined>,
+  refreshMetadata: boolean,
+  onProgress?: (progress: UploadProgress) => void,
+  xhrRef?: { current: XMLHttpRequest | null },
+  signal?: AbortSignal,
+): Promise<{ url: string; publicId: string }> {
+  if (signal?.aborted) throw new Error("Upload aborted");
   // Fetch signature with metadata
   const res = await fetch("/api/cloudinary-signature", {
     method: "POST",
+    signal,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       entity_type: metadata.entityType,
@@ -71,14 +103,18 @@ async function uploadToCloudinary(
       event_slug: metadata.eventSlug,
       project_id: metadata.projectId,
       uploader_auth0_id: metadata.uploaderAuth0Id,
+      ...(refreshMetadata ? { refresh_metadata: true } : {}),
     }),
+  }).catch((error: unknown) => {
+    if (signal?.aborted) throw new Error("Upload aborted");
+    throw error;
   });
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.error || "Failed to get upload signature");
   }
 
-  const { signature, timestamp, cloudName, apiKey, folder, uploadPreset, transformation, metadata: metadataStr } = await res.json();
+  const { signature, timestamp, cloudName, apiKey, folder, uploadPreset, transformation, metadata: metadataStr, videoUploadParams } = await res.json();
 
   const formData = new FormData();
   formData.append("file", blob);
@@ -90,11 +126,19 @@ async function uploadToCloudinary(
   // Signed server-side: incoming transform (resize/quality/watermark for gallery).
   if (transformation) formData.append("transformation", transformation);
   if (metadataStr) formData.append("metadata", metadataStr);
+  // Signed server-side: .mp4 storage + eager playback renditions for video.
+  if (videoUploadParams && typeof videoUploadParams === "object") {
+    for (const [key, value] of Object.entries(videoUploadParams as Record<string, unknown>)) {
+      if (typeof value === "string") formData.append(key, value);
+    }
+  }
 
   // Use XHR for upload progress tracking
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(new Error("Upload aborted"));
     const xhr = new XMLHttpRequest();
     if (xhrRef) xhrRef.current = xhr;
+    signal?.addEventListener("abort", () => xhr.abort(), { once: true });
 
     let lastLoaded = 0;
     let lastTime = Date.now();
@@ -123,7 +167,10 @@ async function uploadToCloudinary(
       } else {
         try {
           const err = JSON.parse(xhr.responseText);
-          reject(new Error(err.error?.message || err.error || "Cloudinary upload failed"));
+          const message: string = err.error?.message || err.error || "Cloudinary upload failed";
+          const rejectedMetadata =
+            xhr.status === 400 && Boolean(metadataStr) && METADATA_REJECTION.test(message);
+          reject(rejectedMetadata ? new MetadataRejectedError(message) : new Error(message));
         } catch {
           reject(new Error(`Upload failed with status ${xhr.status}`));
         }
@@ -161,6 +208,9 @@ export function CloudinaryUpload({
   const [cropFile, setCropFile] = useState<File | null>(null);
   const pendingBlobRef = useRef<Blob | null>(null);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
+  // Cancels the whole upload, including a metadata retry that has not sent
+  // its blob yet (xhrRef only reaches a request that already exists).
+  const abortRef = useRef<AbortController | null>(null);
   const prevExternalFileRef = useRef<File | null>(null);
 
   // Watch externalFile prop — when a new file arrives from CameraCapture,
@@ -201,11 +251,13 @@ export function CloudinaryUpload({
     setUploadProgress(0);
     setUploadSpeed(0);
     pendingBlobRef.current = blob;
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
       const result = await uploadToCloudinary(blob, { entityType, bhId, eventSlug, projectId, uploaderAuth0Id }, (p) => {
         setUploadProgress(p.pct);
         setUploadSpeed(p.speedKBps);
-      }, xhrRef);
+      }, xhrRef, controller.signal);
       onUpload?.(result.url);
       onUploadResult?.(result);
       pendingBlobRef.current = null;
@@ -235,6 +287,8 @@ export function CloudinaryUpload({
   }, [startUpload]);
 
   const handleAbort = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
     xhrRef.current?.abort();
     xhrRef.current = null;
     pendingBlobRef.current = null;
