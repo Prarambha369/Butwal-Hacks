@@ -20,23 +20,50 @@ const FIELD_CACHE_TTL_MS = 10 * 60 * 1000
 // this often, so a retry loop or a hostile client cannot spend the Admin API
 // quota through this route.
 const FIELD_REFRESH_MIN_AGE_MS = 30 * 1000
+// After a failed lookup, don't call the Admin API again for this long: with
+// an empty or expired cache every signature request would otherwise retry it.
+const FIELD_FAILURE_COOLDOWN_MS = 30 * 1000
 let fieldCache: { ids: Set<string>; at: number } | null = null
+// One lookup at a time: concurrent requests on a cold cache share it.
+let fieldLookup: Promise<Set<string> | null> | null = null
+let lastFieldFailureAt = 0
 
-async function definedMetadataIds(refresh = false): Promise<Set<string> | null> {
+function lookupMetadataIds(): Promise<Set<string> | null> {
+  fieldLookup ??= (async () => {
+    try {
+      const result = await cloudinary.api.list_metadata_fields()
+      const ids = new Set(result.metadata_fields.map((field) => field.external_id))
+      fieldCache = { ids, at: Date.now() }
+      return ids
+    } catch (error) {
+      lastFieldFailureAt = Date.now()
+      logger.error("Cloudinary metadata field lookup failed:", error)
+      return null
+    } finally {
+      fieldLookup = null
+    }
+  })()
+  return fieldLookup
+}
+
+/**
+ * `refreshed` is false when a requested refresh was declined (throttled or in
+ * failure cooldown): the caller then knows `ids` may still name the field
+ * Cloudinary just rejected.
+ */
+async function definedMetadataIds(
+  refresh = false,
+): Promise<{ ids: Set<string> | null; refreshed: boolean }> {
   if (fieldCache) {
     const age = Date.now() - fieldCache.at
-    const wantsRefresh = refresh && age >= FIELD_REFRESH_MIN_AGE_MS
-    if (age < FIELD_CACHE_TTL_MS && !wantsRefresh) return fieldCache.ids
+    if (refresh && age < FIELD_REFRESH_MIN_AGE_MS) return { ids: fieldCache.ids, refreshed: false }
+    if (!refresh && age < FIELD_CACHE_TTL_MS) return { ids: fieldCache.ids, refreshed: false }
   }
-  try {
-    const result = await cloudinary.api.list_metadata_fields()
-    const ids = new Set(result.metadata_fields.map((field) => field.external_id))
-    fieldCache = { ids, at: Date.now() }
-    return ids
-  } catch (error) {
-    logger.error("Cloudinary metadata field lookup failed:", error)
-    return null
+  if (Date.now() - lastFieldFailureAt < FIELD_FAILURE_COOLDOWN_MS) {
+    return { ids: null, refreshed: false }
   }
+  const ids = await lookupMetadataIds()
+  return { ids, refreshed: ids !== null }
 }
 
 /**
@@ -225,7 +252,10 @@ export const POST = withRateLimit(async (request: Request) => {
 
     // Structured metadata travels as `external_id=value|external_id=value`,
     // not JSON, and only for fields this environment actually defines.
-    const knownFields = await definedMetadataIds(refreshMetadata)
+    const { ids: fieldIds, refreshed } = await definedMetadataIds(refreshMetadata)
+    // A retry whose refresh was declined would re-sign the metadata Cloudinary
+    // just rejected and fail identically, so sign that retry metadata-free.
+    const knownFields = refreshMetadata && !refreshed ? null : fieldIds
     const attachedMetadata = knownFields
       ? pickDefinedMetadata(metadata, knownFields)
       : {}

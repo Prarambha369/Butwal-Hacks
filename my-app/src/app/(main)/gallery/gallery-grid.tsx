@@ -538,6 +538,14 @@ export default function GalleryGrid({
   // so tapping two chips quickly can never leave the first event's photos
   // under the second event's label.
   const requestRef = useRef(0);
+  // Load-more requests are owned separately: a filter change abandons any
+  // pending page, and only the newest page request may clear `loadingMore`.
+  const pageRequestRef = useRef(0);
+  // Latest photos for the popstate handler, which is registered once.
+  const photosRef = useRef(initialPhotos);
+  useEffect(() => {
+    photosRef.current = photos;
+  }, [photos]);
   // Pages already loaded, per filter ("" = all events). Switching back to a
   // filter you have seen restores it instantly with no request at all.
   const pageCacheRef = useRef(new Map<string, { photos: GalleryPhoto[]; hasMore: boolean }>());
@@ -551,10 +559,18 @@ export default function GalleryGrid({
   }, [initialEvents, initialPhotos]);
 
   // The lightbox is layered on top of a real history entry, so Back closes it
-  // instead of leaving the gallery. Any popstate (Back/Forward) therefore
-  // dismisses it; prev/next use replaceState so they do not stack entries.
+  // instead of leaving the gallery. On any popstate the selection is derived
+  // from the destination URL: Forward onto /gallery/<id> reopens that photo,
+  // anything else (or an id no longer loaded) closes the lightbox. prev/next
+  // use replaceState so they do not stack entries.
   useEffect(() => {
-    const handlePopState = () => setSelectedIdx(null);
+    const handlePopState = () => {
+      const match = /^\/gallery\/([^/]+)\/?$/.exec(window.location.pathname);
+      if (!match) return setSelectedIdx(null);
+      const id = decodeURIComponent(match[1]);
+      const index = photosRef.current.findIndex((p) => p.id === id);
+      setSelectedIdx(index === -1 ? null : index);
+    };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
@@ -565,6 +581,10 @@ export default function GalleryGrid({
   const applyFilter = useCallback(async (nextFilter: string | null) => {
     if (nextFilter === filter && !loadError) return;
     const ticket = ++requestRef.current;
+    // Abandon any in-flight page of the previous filter so its pending state
+    // cannot keep this filter's Load more disabled.
+    pageRequestRef.current++;
+    setLoadingMore(false);
     // Stash what is on screen (including pages appended by scrolling) before
     // swapping it out — unless it is an error/empty state worth refetching.
     if (!loadError && !filtering) {
@@ -603,6 +623,7 @@ export default function GalleryGrid({
   const handleLoadMore = useCallback(async () => {
     if (loadingMore || filtering || !hasMore) return;
     const ticket = requestRef.current;
+    const pageTicket = ++pageRequestRef.current;
     setLoadingMore(true);
     setLoadError(false);
     try {
@@ -617,7 +638,7 @@ export default function GalleryGrid({
     } catch {
       if (ticket === requestRef.current) setLoadError("page");
     } finally {
-      setLoadingMore(false);
+      if (pageTicket === pageRequestRef.current) setLoadingMore(false);
     }
   }, [loadingMore, filtering, hasMore, photos.length, filter]);
 

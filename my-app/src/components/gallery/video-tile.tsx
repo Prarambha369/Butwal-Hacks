@@ -56,6 +56,9 @@ export function VideoPlayer({
   const poster = videoPosterUrl(url, width);
   return (
     <video
+      // <source> children don't restart resource selection on an element that
+      // already loaded media, so a new url must remount the element.
+      key={url}
       poster={poster ?? undefined}
       controls
       autoPlay

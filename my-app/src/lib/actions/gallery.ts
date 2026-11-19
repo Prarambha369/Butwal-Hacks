@@ -57,12 +57,10 @@ async function readGalleryTotals(): Promise<GalleryTotals> {
   // PostgREST, so this lives in SQL — see migration 132.
   const { data, error } = await supabase.rpc("gallery_totals");
 
-  if (error || !data) {
-    logger.error("Error fetching gallery totals:", error);
-    // Do not blank the stat bar on a transient failure; the rendered rows
-    // still stand on their own.
-    return { photos: 0, videos: 0, events: 0 };
-  }
+  // Throw, don't fall back: this runs inside unstable_cache, which would keep
+  // a fallback value after the database recovers. The fallback lives in
+  // fetchGalleryTotals, outside the cache.
+  if (error || !data) throw new Error(`gallery_totals failed: ${error?.message ?? "no data"}`);
 
   const row = data as Partial<GalleryTotals>;
   return {
@@ -92,10 +90,9 @@ async function readGalleryEvents(): Promise<GalleryEvent[]> {
       .limit(1, { referencedTable: "photos" })
       .order("title", { ascending: true })
       .range(offset, offset + PAGE - 1);
-    if (error) {
-      logger.error("Error fetching gallery events:", error);
-      break;
-    }
+    // Throw rather than return a partial list: the cache would keep the
+    // missing filter chips after the database recovers.
+    if (error) throw new Error(`gallery events query failed: ${error.message}`);
     const rows = (data ?? []) as Array<{ title?: string | null; slug?: string | null }>;
     for (const row of rows) {
       const title = row.title;
@@ -122,11 +119,23 @@ const cachedEvents = unstable_cache(readGalleryEvents, ["gallery-events"], {
 });
 
 export async function fetchGalleryTotals(): Promise<GalleryTotals> {
-  return cachedTotals();
+  try {
+    return await cachedTotals();
+  } catch (error) {
+    logger.error("Error fetching gallery totals:", error);
+    // Do not blank the page on a transient failure; the rendered rows still
+    // stand on their own. Not cached, so the next request retries.
+    return { photos: 0, videos: 0, events: 0 };
+  }
 }
 
 export async function fetchGalleryEvents(): Promise<GalleryEvent[]> {
-  return cachedEvents();
+  try {
+    return await cachedEvents();
+  } catch (error) {
+    logger.error("Error fetching gallery events:", error);
+    return [];
+  }
 }
 
 export async function fetchGalleryPage(

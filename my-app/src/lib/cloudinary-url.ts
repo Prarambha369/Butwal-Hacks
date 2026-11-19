@@ -134,10 +134,11 @@ export function videoSources(url: string, width: number): { src: string; type?: 
  * of a group photo. Video resolves to its `so_1` poster frame for the same
  * reason videoPosterUrl exists: an Open Graph image has to be a still.
  *
- * Already-transformed image URLs pass through unchanged rather than stacking
- * a second transform on top of a hand-applied one. Already-transformed video
- * URLs keep their transforms and get the poster crop chained after them,
- * because passing an .mp4 through would put a video in og:image.
+ * Already-transformed URLs keep their transforms and get the card crop
+ * chained after them, so the final c_fill and f_jpg make the reported
+ * 1200×630 JPEG true either way (an image passed through as `w_600,f_auto`
+ * would be neither). Video additionally resolves to a poster frame, because
+ * passing an .mp4 through would put a video in og:image.
  */
 export function socialCardUrl(url: string): { url: string; width: number; height: number } | null {
   const width = 1200;
@@ -165,9 +166,13 @@ export function socialCardUrl(url: string): { url: string; width: number; height
   const image = CLOUDINARY_DELIVERY.exec(url);
   if (!image) return null;
   const [, cloud, path] = image;
-  if (TRANSFORM_SEGMENT.test(path.split("/")[0])) return { url, width, height };
+  const segments = path.split("/");
+  let t = 0;
+  while (t < segments.length - 1 && TRANSFORM_SEGMENT.test(segments[t])) t++;
+  const chain = segments.slice(0, t).map((s) => `${s}/`).join("");
+  const rest = segments.slice(t).join("/");
   return {
-    url: `https://res.cloudinary.com/${cloud}/image/upload/c_fill,g_auto,w_${width},h_${height},f_jpg,q_auto:good/${path}`,
+    url: `https://res.cloudinary.com/${cloud}/image/upload/${chain}c_fill,g_auto,w_${width},h_${height},f_jpg,q_auto:good/${rest}`,
     width,
     height,
   };

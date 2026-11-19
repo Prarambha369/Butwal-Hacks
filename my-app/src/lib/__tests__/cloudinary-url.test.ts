@@ -117,9 +117,9 @@ describe("socialCardUrl", () => {
     expect(card).toMatchObject({ width: 1200, height: 630 });
   });
 
-  it("passes an already-transformed URL through unchanged", () => {
+  it("keeps existing transforms and chains the 1200×630 jpg card crop after them", () => {
     expect(socialCardUrl(TRANSFORMED)).toEqual({
-      url: TRANSFORMED,
+      url: "https://res.cloudinary.com/demo/image/upload/w_600,q_auto,f_auto/c_fill,g_auto,w_1200,h_630,f_jpg,q_auto:good/sample.jpg",
       width: 1200,
       height: 630,
     });

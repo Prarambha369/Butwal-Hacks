@@ -8,7 +8,17 @@ import { requireMaintainer } from '@/lib/actions/admin';
 import { isVideoUrl } from '@/lib/cloudinary-url';
 
 // 'use server' files may only export async functions, so this stays private.
-const NON_CLOUDINARY_VIDEO_FILE = /\.(mp4|webm|mov|ogg|avi)(\?|#|$)/i;
+// Matched against the parsed pathname only, so a query value such as
+// `?reference=clip.mp4` on an image URL is not mistaken for a video file.
+const VIDEO_FILE_PATH = /\.(mp4|webm|mov|ogg|avi)$/i;
+
+function isNonCloudinaryVideoFile(url: string): boolean {
+  try {
+    return VIDEO_FILE_PATH.test(new URL(url).pathname);
+  } catch {
+    return false;
+  }
+}
 
 export interface GalleryPhotoRow {
   id: string;
@@ -100,7 +110,7 @@ export async function addEventPhotos(
     // Renderers only play Cloudinary /video/upload/ URLs (isVideoUrl). A video
     // file hosted elsewhere would be stored as an image and render broken, so
     // refuse it here rather than half-support it downstream.
-    .filter((item) => isVideoUrl(item.url) || !NON_CLOUDINARY_VIDEO_FILE.test(item.url));
+    .filter((item) => isVideoUrl(item.url) || !isNonCloudinaryVideoFile(item.url));
   if (clean.length === 0) {
     return { success: false, error: 'No valid photo URLs provided' };
   }

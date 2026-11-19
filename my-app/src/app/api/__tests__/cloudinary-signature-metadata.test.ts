@@ -68,6 +68,46 @@ describe("cloudinary-signature metadata field cache", () => {
     expect(listMetadataFields).toHaveBeenCalledTimes(1);
   });
 
+  it("signs a throttled refresh without metadata instead of re-signing the rejected fields", async () => {
+    listMetadataFields.mockResolvedValue({ metadata_fields: [{ external_id: "entity_type" }] });
+    const POST = await loadRoute();
+
+    const first = await (await POST(sign({ entity_type: "avatar" }))).json();
+    expect(first.metadata).toContain("entity_type=avatar");
+    const retried = await (await POST(sign({ entity_type: "avatar", refresh_metadata: true }))).json();
+    expect(listMetadataFields).toHaveBeenCalledTimes(1);
+    expect(retried.metadata).toBeUndefined();
+  });
+
+  it("shares one in-flight lookup between concurrent requests on a cold cache", async () => {
+    let resolve!: (v: unknown) => void;
+    listMetadataFields.mockReturnValue(new Promise((r) => { resolve = r; }));
+    const POST = await loadRoute();
+
+    const pending = [POST(sign({ entity_type: "avatar" })), POST(sign({ entity_type: "avatar" }))];
+    await Promise.resolve();
+    resolve({ metadata_fields: [{ external_id: "entity_type" }] });
+    const bodies = await Promise.all(pending.map(async (p) => (await p).json()));
+    expect(listMetadataFields).toHaveBeenCalledTimes(1);
+    for (const body of bodies) expect(body.metadata).toContain("entity_type=avatar");
+  });
+
+  it("waits out a cooldown after a failed lookup before calling the Admin API again", async () => {
+    vi.useFakeTimers();
+    listMetadataFields
+      .mockRejectedValueOnce(new Error("admin api down"))
+      .mockResolvedValue({ metadata_fields: [{ external_id: "entity_type" }] });
+    const POST = await loadRoute();
+
+    expect((await (await POST(sign({ entity_type: "avatar" }))).json()).metadata).toBeUndefined();
+    expect((await (await POST(sign({ entity_type: "avatar" }))).json()).metadata).toBeUndefined();
+    expect(listMetadataFields).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(31_000);
+    expect((await (await POST(sign({ entity_type: "avatar" }))).json()).metadata).toContain("entity_type=avatar");
+    expect(listMetadataFields).toHaveBeenCalledTimes(2);
+  });
+
   it("never treats refresh_metadata as a metadata field", async () => {
     listMetadataFields.mockResolvedValue({
       metadata_fields: [{ external_id: "entity_type" }, { external_id: "refresh_metadata" }],
