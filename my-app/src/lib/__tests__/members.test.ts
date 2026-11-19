@@ -107,7 +107,9 @@ describe("fetchExplorerMembers", () => {
           return {
             select: () => ({
               not: () => ({
-                limit: async () => ({ data: profiles, error: null }),
+                eq: () => ({
+                  limit: async () => ({ data: profiles, error: null }),
+                }),
               }),
             }),
           };
@@ -168,7 +170,9 @@ describe("fetchExplorerMembers", () => {
       from: () => ({
         select: () => ({
           not: () => ({
-            limit: async () => ({ data: null, error: { message: "boom" } }),
+            eq: () => ({
+              limit: async () => ({ data: null, error: { message: "boom" } }),
+            }),
           }),
         }),
       }),
