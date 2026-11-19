@@ -94,6 +94,33 @@ export function videoPlaybackUrl(url: string, width: number): string {
 }
 
 /**
+ * Ordered `<source>` list for a gallery `<video>`: H.264 MP4 first, VP9 WebM
+ * as the fallback.
+ *
+ * A correct `video/mp4;codecs=avc1` response is still not enough everywhere.
+ * Firefox on Linux decodes H.264 through the system's ffmpeg/libavcodec, and
+ * when that library is missing or a version it does not support (common on
+ * rolling distros and in sandboxed builds) it shows the same "No video with
+ * supported format and MIME type found" error. VP9 is decoded by the browser
+ * itself, so it always works there.
+ *
+ * The codecs parameter on the MP4 `type` is what makes this work:
+ * `canPlayType` then reports whether an H.264 decoder actually exists, and a
+ * browser without one skips straight to the WebM. Every other browser stops at
+ * the MP4, so the WebM rendition (an on-the-fly transcode) is only generated
+ * for the viewers who need it.
+ */
+export function videoSources(url: string, width: number): { src: string; type?: string }[] {
+  const mp4 = videoPlaybackUrl(url, width);
+  if (mp4 === url) return [{ src: url }];
+  const webm = mp4.replace(",vc_h264,", ",vc_vp9,").replace(/\.mp4$/, ".webm");
+  return [
+    { src: mp4, type: 'video/mp4; codecs="avc1.42E01E"' },
+    { src: webm, type: 'video/webm; codecs="vp9"' },
+  ];
+}
+
+/**
  * Social-preview card URL: a 1200×630 JPEG crop for Open Graph and Twitter.
  *
  * Deliberately not `f_auto`. `f_auto` negotiates the format from the

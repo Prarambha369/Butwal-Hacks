@@ -5,6 +5,7 @@ import {
   isVideoUrl,
   videoPlaybackUrl,
   videoPosterUrl,
+  videoSources,
 } from "../cloudinary-url";
 
 const CLOUD = "https://res.cloudinary.com/rs6xky5b";
@@ -155,5 +156,26 @@ describe("cloudinaryDownloadUrl with video", () => {
   it("does not double-apply fl_attachment", () => {
     const once = cloudinaryDownloadUrl(VIDEO_MP4);
     expect(cloudinaryDownloadUrl(once)).toBe(once);
+  });
+});
+
+describe("videoSources", () => {
+  it("offers H.264 MP4 first, typed with a codec so canPlayType can reject it", () => {
+    const [mp4] = videoSources(VIDEO_MOV, 1600);
+    expect(mp4.src).toBe(videoPlaybackUrl(VIDEO_MOV, 1600));
+    expect(mp4.type).toMatch(/^video\/mp4; codecs="avc1\./);
+  });
+
+  it("falls back to VP9 WebM for browsers without an H.264 decoder", () => {
+    // Firefox on Linux without a usable system libavcodec cannot decode
+    // H.264 at all and shows "No video with supported format and MIME type
+    // found" even for a correct video/mp4 response.
+    const [, webm] = videoSources(VIDEO_MOV, 1600);
+    expect(webm.src).toBe(`${CLOUD}/video/upload/w_1600,vc_vp9,q_auto/v123/daydream-butwal/dsc_1075.webm`);
+    expect(webm.type).toBe('video/webm; codecs="vp9"');
+  });
+
+  it("returns the URL alone when it is not a transformable Cloudinary video", () => {
+    expect(videoSources(IMAGE, 1600)).toEqual([{ src: IMAGE }]);
   });
 });

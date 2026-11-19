@@ -14,8 +14,8 @@ import {
   cloudinaryDownloadUrl,
   cloudinaryImageLoader,
   isVideoUrl,
-  videoPlaybackUrl,
   videoPosterUrl,
+  videoSources,
 } from "@/lib/cloudinary-url";
 // Server actions live in `lib`; the page's types are re-exported there, so
 // import both from one place rather than through `./page`.
@@ -63,7 +63,6 @@ function VideoThumbnail({ url }: { url: string }) {
     >
       <video
         ref={videoRef}
-        src={videoPlaybackUrl(url, 640)}
         muted
         loop
         playsInline
@@ -72,7 +71,11 @@ function VideoThumbnail({ url }: { url: string }) {
         preload="none"
         className="absolute inset-0 w-full h-full object-cover"
         poster={videoPosterUrl(url, 640) ?? undefined}
-      />
+      >
+        {videoSources(url, 640).map((s) => (
+          <source key={s.src} src={s.src} type={s.type} />
+        ))}
+      </video>
       <div
         className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
           playing ? "opacity-0" : "opacity-100"
@@ -340,18 +343,27 @@ function Lightbox({
                 // half-buffered src carried across prev/next.
                 key={photo.id}
                 ref={videoRef}
-                src={videoPlaybackUrl(photo.url, 1600)}
                 poster={videoPosterUrl(photo.url, 1600) ?? undefined}
                 controls
                 playsInline
                 preload="auto"
                 onLoadedData={markLoaded}
-                onError={markLoaded}
                 onPlay={() => setVideoPlaying(true)}
                 onPause={() => setVideoPlaying(false)}
                 onEnded={() => setVideoPlaying(false)}
                 className="w-full h-full object-contain"
-              />
+              >
+                {/* With <source> children a failed load fires `error` on the
+                    source, not the <video>, so the last one clears the spinner. */}
+                {videoSources(photo.url, 1600).map((s, i, all) => (
+                  <source
+                    key={s.src}
+                    src={s.src}
+                    type={s.type}
+                    onError={i === all.length - 1 ? markLoaded : undefined}
+                  />
+                ))}
+              </video>
             ) : (
               <Image
                 key={photo.id}

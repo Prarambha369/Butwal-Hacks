@@ -10,7 +10,7 @@ import {
   displayPhotoUrl,
   isVideoUrl,
   socialCardUrl,
-  videoPlaybackUrl,
+  videoSources,
   videoPosterUrl,
 } from "@/lib/cloudinary-url";
 import { SITE_URL } from "@/lib/constants";
@@ -136,13 +136,16 @@ export default async function GalleryPhotoPage({ params }: Props) {
           <div className="bh-card overflow-hidden">
             {isVideo ? (
               <video
-                src={videoPlaybackUrl(photo.url, 1600)}
                 controls
                 playsInline
                 preload="metadata"
                 poster={videoPosterUrl(photo.url, 1600) ?? undefined}
                 className="w-full bg-surface-inverse"
-              />
+              >
+                {videoSources(photo.url, 1600).map((s) => (
+                  <source key={s.src} src={s.src} type={s.type} />
+                ))}
+              </video>
             ) : (
               <Image
                 src={displayPhotoUrl(photo.url, photo.optimize, 1600)}
