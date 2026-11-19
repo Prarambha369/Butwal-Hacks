@@ -41,6 +41,8 @@ function buildMockDb() {
   for (const m of methods) {
     db[m] = vi.fn(() => db);
   }
+  // Profile auto-creation goes through the atomic create_profile_with_bh_id RPC.
+  db.rpc = vi.fn(async () => ({ data: { id: "auto-profile-id", bh_id: "BH-26-999" }, error: null }));
 
   return db as unknown as ReturnType<typeof createServiceClient> & {
     from: ReturnType<typeof vi.fn>;
