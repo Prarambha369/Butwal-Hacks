@@ -154,7 +154,46 @@ describe("POST /api/events/checkin", () => {
     expect(body.error).toBe("Forbidden");
   });
 
+  it("returns 403 for a maintainer-role profile without a verified staff email", async () => {
+    mockedGetSession.mockResolvedValue({
+      user: { sub: "auth0|12345", email: "someone@gmail.com", email_verified: true },
+    });
+    const db = buildMockDb();
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller-id", role: "maintainer" }, error: null }) // caller profile
+      .mockResolvedValueOnce({ data: { attended: false, events: { organizer_id: "other-organizer-id" } }, error: null }); // reg query
+    mockedCreateServiceClient.mockReturnValue(db);
+    const { POST } = await import("../checkin/route");
+
+    const res = await POST(mockRequest({ registration_id: VALID_UUID }));
+    const body = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(body.error).toBe("Forbidden");
+    expect(db.update).not.toHaveBeenCalled();
+  });
+
+  it("keeps the original check-in time when attendance is confirmed again", async () => {
+    const db = buildMockDb();
+    db.single
+      .mockResolvedValueOnce({ data: { id: "caller-id", role: "organizer" }, error: null })
+      .mockResolvedValueOnce({
+        data: { attended: true, check_in_at: "2026-11-01T09:00:00.000Z", events: { organizer_id: "caller-id" } },
+        error: null,
+      });
+    mockedCreateServiceClient.mockReturnValue(db);
+    const { POST } = await import("../checkin/route");
+
+    const res = await POST(mockRequest({ registration_id: VALID_UUID, attended: true }));
+
+    expect(res.status).toBe(200);
+    expect(db.update.mock.calls[0][0].check_in_at).toBe("2026-11-01T09:00:00.000Z");
+  });
+
   it("allows maintainer to check in regardless of event organizer_id", async () => {
+    mockedGetSession.mockResolvedValue({
+      user: { sub: "auth0|12345", email: "staff@butwalhacks.com", email_verified: true },
+    });
     const db = buildMockDb();
     db.single
       .mockResolvedValueOnce({ data: { id: "caller-id", role: "maintainer" }, error: null }) // caller profile
@@ -188,7 +227,11 @@ describe("POST /api/events/checkin", () => {
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.attended).toBe(true);
-    expect(db.update).toHaveBeenCalledWith({ attended: true });
+    expect(db.update).toHaveBeenCalledWith({
+      attended: true,
+      checked_in: true,
+      check_in_at: expect.any(String),
+    });
   });
 
   it("toggles attended when caller is event organizer (currently true → false)", async () => {
@@ -206,7 +249,11 @@ describe("POST /api/events/checkin", () => {
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.attended).toBe(false);
-    expect(db.update).toHaveBeenCalledWith({ attended: false });
+    expect(db.update).toHaveBeenCalledWith({
+      attended: false,
+      checked_in: false,
+      check_in_at: null,
+    });
   });
 
   it("returns 404 when registration not found for checkin", async () => {
@@ -240,7 +287,11 @@ describe("POST /api/events/checkin", () => {
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.attended).toBe(true);
-    expect(db.update).toHaveBeenCalledWith({ attended: true });
+    expect(db.update).toHaveBeenCalledWith({
+      attended: true,
+      checked_in: true,
+      check_in_at: expect.any(String),
+    });
   });
 
   it("accepts attended: false to force undo check-in for event organizer", async () => {
@@ -257,7 +308,11 @@ describe("POST /api/events/checkin", () => {
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.attended).toBe(false);
-    expect(db.update).toHaveBeenCalledWith({ attended: false });
+    expect(db.update).toHaveBeenCalledWith({
+      attended: false,
+      checked_in: false,
+      check_in_at: null,
+    });
   });
 
   // ── Error handling ────────────────────────────────────────────────

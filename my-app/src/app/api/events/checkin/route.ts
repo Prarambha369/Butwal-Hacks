@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { withRateLimit } from '@/lib/rate-limiter';
+import { accessSubjectFor, isMaintainer } from '@/lib/dashboard-access';
 
 const checkinSchema = z.object({
   registration_id: z.string().transform(v => sanitizeUuid(v) ?? ''),
@@ -34,7 +35,7 @@ export const POST = withRateLimit(async (request: Request) => {
 
     const { data: reg } = await supabase
       .from('event_registrations')
-      .select('attended, events!inner(organizer_id)')
+      .select('attended, check_in_at, events!inner(organizer_id)')
       .eq('id', registration_id)
       .single();
 
@@ -42,17 +43,36 @@ export const POST = withRateLimit(async (request: Request) => {
 
     const eventOrganizerId = (reg.events as unknown as { organizer_id: string } | null)?.organizer_id;
     const isOrganizer = Boolean(eventOrganizerId && eventOrganizerId === caller.id);
-    const isMaintainer = caller.role === 'maintainer';
+    // The shared predicate, not `role === 'maintainer'`: maintainer is the role
+    // AND a verified @butwalhacks.com address, so the inline check let any
+    // profile carrying the role mark attendance on every event.
+    const isMaintainerCaller = isMaintainer(accessSubjectFor(session.user, caller));
 
-    if (!isOrganizer && !isMaintainer) {
+    if (!isOrganizer && !isMaintainerCaller) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const nextAttended = attended ?? !reg.attended;
 
+    // `checked_in` / `check_in_at` were added by migration 036 but never
+    // written, so the attendance history was a single boolean with no time
+    // on it. Record both, and clear the timestamp when a check-in is undone.
+    // A repeated "attended: true" keeps the original check-in time rather than
+    // moving it to the moment of the retry.
+    const existingCheckIn = (reg as { check_in_at?: string | null }).check_in_at ?? null;
+    const checkInAt = !nextAttended
+      ? null
+      : reg.attended && existingCheckIn
+        ? existingCheckIn
+        : new Date().toISOString();
+
     const { error } = await supabase
       .from('event_registrations')
-      .update({ attended: nextAttended })
+      .update({
+        attended: nextAttended,
+        checked_in: nextAttended,
+        check_in_at: checkInAt,
+      })
       .eq('id', registration_id);
 
     if (error) throw error;

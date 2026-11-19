@@ -350,7 +350,7 @@ for (const viewport of viewports) {
     if (!external) {
       try {
         axe = await runAxe();
-      } catch (err) {
+      } catch {
         await page.waitForLoadState('load', { timeout: 5000 }).catch(() => {});
         await page.waitForTimeout(500);
         if (!onOurOrigin()) {

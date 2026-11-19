@@ -1,6 +1,22 @@
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/constants'
 
+// Shared by every group: a crawler obeys only the most specific group that
+// names it, so a named AI-bot group without these would be allowed into
+// /api, /dashboard and the other private routes.
+const PRIVATE_PATHS = [
+  '/api/*',
+  '/dashboard/*',
+  '/portal/*',
+  '/orgs/*',
+  '/profile/',
+  '/auth/',
+  '/login',
+  '/sign-in',
+  '/sign-up',
+  '/claim/*',
+]
+
 export default function robots(): MetadataRoute.Robots {
   const siteUrl = SITE_URL
 
@@ -13,18 +29,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: [
-          '/api/*',
-          '/dashboard/*',
-          '/portal/*',
-          '/orgs/*',
-          '/profile/',
-          '/auth/',
-          '/login',
-          '/sign-in',
-          '/sign-up',
-          '/claim/*',
-        ],
+        disallow: PRIVATE_PATHS,
       },
       // ─── AI crawler policy ──────────────────────────────────────────
       // AI bots are explicitly allowed to index public content. These rules
@@ -46,6 +51,7 @@ export default function robots(): MetadataRoute.Robots {
           'Bytespider',
         ],
         allow: '/',
+        disallow: PRIVATE_PATHS,
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,

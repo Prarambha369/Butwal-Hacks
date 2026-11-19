@@ -75,7 +75,9 @@ export default function CookiePolicyPage() {
             </li>
             <li>
               <strong>Sentry</strong> &mdash; error reporting and performance monitoring. Session replay
-              is sampled rather than recorded for every visit.
+              is sampled rather than recorded for every visit, all text in a replay is masked, and it is
+              not gated by the cookie notice. To opt out of replays, email{" "}
+              <a href="mailto:privacy@butwalhacks.com" className="text-primary underline">privacy@butwalhacks.com</a>.
             </li>
           </ul>
           <p className="mt-2">
@@ -110,7 +112,7 @@ export default function CookiePolicyPage() {
       <LegalDocumentLayout
         title="Cookie Policy"
         summary="This page explains what cookies are, why we use them, and how you can manage them."
-        lastUpdated="October 14, 2026"
+        lastUpdated="November 18, 2026"
         effectiveDate="October 14, 2026"
         activePolicy="cookie"
         sections={sections}

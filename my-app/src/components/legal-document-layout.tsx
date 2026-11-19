@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-interface LegalSection {
+import type { PolicyNavLink } from "@/lib/policy-registry";
+
+export interface LegalSection {
   id: string;
   title: string;
   content: ReactNode;
@@ -14,14 +16,17 @@ interface LegalDocumentLayoutProps {
   effectiveDate: string;
   activePolicy: string;
   sections: LegalSection[];
+  /** Override the pill nav. Defaults to the three application-page policies. */
+  policyLinks?: PolicyNavLink[];
 }
 
 export default function LegalDocumentLayout({
-  title, summary, lastUpdated, effectiveDate, activePolicy, sections,
+  title, summary, lastUpdated, effectiveDate, activePolicy, sections, policyLinks,
 }: LegalDocumentLayoutProps) {
-  const policyLinks = [
+  const links: PolicyNavLink[] = policyLinks ?? [
     { id: "privacy", label: "Privacy Policy", href: "/legal/privacy" },
     { id: "terms", label: "Terms of Service", href: "/legal/terms" },
+    { id: "cookie", label: "Cookie Policy", href: "/cookie-policy" },
   ];
 
   return (
@@ -35,8 +40,37 @@ export default function LegalDocumentLayout({
         </div>
       </div>
 
+      {/*
+        The full policy set lives in `policies/`. The /legal/* and /cookie-policy
+        pages are the public-facing summaries. Where the two differ, the
+        `policies/` version governs, and it is the fuller document. The
+        data-protection controls described there are our own commitments, not
+        statutory obligations -- see the compliance gaps for what still has to be
+        confirmed by a Nepal-qualified advocate.
+
+        Only the summary pages get this notice: the /policies pages pass their
+        own `policyLinks` and render the canonical text, so calling them a
+        summary would be wrong.
+      */}
+      {!policyLinks && (
+      <aside
+        className="mb-8 rounded-lg border border-primary-red/30 bg-primary-red/5 p-4 text-sm text-secondary"
+        aria-label="Policy status"
+      >
+        <p className="font-semibold text-primary">Draft &mdash; under legal review</p>
+        <p className="mt-2">
+          This page is being reviewed with our legal advisor and may change before it is final.
+          See our{" "}
+          <Link href="/policies" className="text-primary-red underline hover:no-underline">
+            policies
+          </Link>{" "}
+          for the rules participants agree to.
+        </p>
+      </aside>
+      )}
+
       <nav className="flex gap-2 mb-8 pb-4 border-b border-border overflow-x-auto">
-        {policyLinks.map((link) => (
+        {links.map((link) => (
           <Link
             key={link.id}
             href={link.href}
