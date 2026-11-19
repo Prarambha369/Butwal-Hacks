@@ -105,17 +105,42 @@ export function videoPlaybackUrl(url: string, width: number): string {
  * itself, so it always works there.
  *
  * The codecs parameter on the MP4 `type` is what makes this work:
- * `canPlayType` then reports whether an H.264 decoder actually exists, and a
- * browser without one skips straight to the WebM. Every other browser stops at
- * the MP4, so the WebM rendition (an on-the-fly transcode) is only generated
- * for the viewers who need it.
+ * `canPlayType` then reports whether a decoder for *this* stream exists, and a
+ * browser without one skips straight to the WebM. It must describe the stream
+ * Cloudinary actually serves: `vc_h264` encodes High profile (level 4.0 at
+ * 1600px, 3.0 at 640px). Firefox on Linux without ffmpeg falls back to Cisco's
+ * OpenH264 plugin, which decodes Constrained Baseline only, so a Baseline
+ * label (`avc1.42E01E`) made it claim the MP4, fail to decode it, and never
+ * reach the WebM (a decode failure does not advance to the next <source>).
+ * `avc1.640028` is High@4.0, which covers both sizes. Both renditions are
+ * generated eagerly at upload (see the signature route).
  */
+/**
+ * `onError` handler for a gallery `<video>` built from videoSources().
+ *
+ * A decode failure after the browser picked a `<source>` fires `error` on the
+ * video and does NOT advance to the next source, so a browser that claimed the
+ * MP4 but cannot decode it would stop with "No video with supported format".
+ * Retag the MP4 sources as an unsupported type and reload: resource selection
+ * then skips them and plays the WebM. React leaves the attribute alone because
+ * the props did not change; a new item remounts the element (callers key it).
+ * Runs at most once per element, because the retagged MP4 is never picked again.
+ */
+export function fallBackToWebmOnDecodeError(event: { currentTarget: HTMLVideoElement }): void {
+  const video = event.currentTarget;
+  if (!video.error || !/\.mp4(\?|$)/.test(video.currentSrc)) return;
+  const mp4Sources = video.querySelectorAll<HTMLSourceElement>('source[type^="video/mp4"]');
+  if (mp4Sources.length === 0) return;
+  mp4Sources.forEach((source) => source.setAttribute("type", "video/x-undecodable"));
+  video.load();
+}
+
 export function videoSources(url: string, width: number): { src: string; type?: string }[] {
   const mp4 = videoPlaybackUrl(url, width);
   if (mp4 === url) return [{ src: url }];
   const webm = mp4.replace(",vc_h264,", ",vc_vp9,").replace(/\.mp4$/, ".webm");
   return [
-    { src: mp4, type: 'video/mp4; codecs="avc1.42E01E"' },
+    { src: mp4, type: 'video/mp4; codecs="avc1.640028"' },
     { src: webm, type: 'video/webm; codecs="vp9"' },
   ];
 }
