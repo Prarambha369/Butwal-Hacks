@@ -1,0 +1,5 @@
+Contact: mailto:tech@butwalhacks.com
+Expires: 2027-11-25T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://www.butwalhacks.com/.well-known/security.txt
+Policy: https://github.com/Prarambha369/Butwal-Hacks/blob/main/.github/SECURITY.md

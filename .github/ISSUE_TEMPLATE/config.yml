@@ -2,4 +2,4 @@ blank_issues_enabled: true
 contact_links:
   - name: Report a Security Vulnerability
     url: https://github.com/Prarambha369/Butwal-Hacks/security/policy
-    about: Do NOT report security vulnerabilities through public GitHub Issues. Read SECURITY.md and email security@butwalhacks.com instead.
+    about: Do NOT report security vulnerabilities through public GitHub Issues. Read SECURITY.md and email tech@butwalhacks.com instead.
