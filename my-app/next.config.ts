@@ -35,13 +35,22 @@ import path from "path";
 
 const isDev = process.env.NODE_ENV === 'development';
 
-/** Base CSP without frame-ancestors — appended per-route below. */
+/**
+ * Base CSP without frame-ancestors — appended per-route below.
+ *
+ * media-src must list Cloudinary. Without it <video>/<audio> fall back to
+ * default-src 'self', and every browser refuses the gallery clips while the
+ * poster (an <img>, covered by img-src) still paints — so the tile looks fine
+ * and the player just never starts. Camera capture uses srcObject, which CSP
+ * does not govern.
+ */
 const baseCSP = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://auth.butwalhacks.com https://*.posthog.com https://va.vercel-scripts.com;
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://api.dicebear.com https://api.qrserver.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://media.licdn.com https://cdn.auth0.com https://s.gravatar.com;
   font-src 'self';
+  media-src 'self' https://res.cloudinary.com;
   worker-src 'self' blob:;
   object-src 'none';
   base-uri 'self';

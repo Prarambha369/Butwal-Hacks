@@ -21,8 +21,40 @@ import { test, expect } from "./fixtures";
 
 const VIDEO_TILE = 'a[href^="/gallery/"]:has(video)';
 
+/**
+ * WebKit applies the CSP's `upgrade-insecure-requests` to http://localhost
+ * (Chromium and Firefox exempt it), so against a local `next start` every
+ * script and chunk is rewritten to https://localhost and the page never
+ * hydrates. Drop that one directive for plain-http localhost documents only;
+ * a deployed HTTPS preview is tested with its CSP untouched.
+ */
+async function allowPlainHttpLocalhost(page: Page): Promise<void> {
+  await page.route(
+    (url) => url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname),
+    async (route) => {
+      if (route.request().resourceType() !== "document") return route.continue();
+      const response = await route.fetch();
+      const headers = { ...response.headers() };
+      const csp = headers["content-security-policy"];
+      if (csp) headers["content-security-policy"] = csp.replace(/upgrade-insecure-requests;?\s*/, "");
+      return route.fulfill({ response, headers });
+    },
+  );
+}
+
 /** First video tile on /gallery, or null when the gallery has no videos. */
 async function firstVideoTile(page: Page): Promise<Locator | null> {
+  // Decline cookies up front. The consent banner otherwise slides in over the
+  // lower tiles a moment after load, and the pointer "leaving" onto it pauses
+  // a hover preview — correct behaviour, but not what these tests measure.
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("bh:cookie-consent", "denied");
+    } catch {
+      // Storage disabled: the banner shows, and the hover test may flake.
+    }
+  });
+  await allowPlainHttpLocalhost(page);
   await page.goto("/gallery");
   await expect(
     page.locator('a[href^="/gallery/"]').first().or(page.getByText(/^(No photos yet|No media found)$/)),
@@ -157,7 +189,7 @@ test.describe("Gallery video playback", () => {
 
     // The canonical page renders the player without autoplay.
     await page.goto((await (tile as Locator).getAttribute("href")) as string);
-    const video = page.locator("main video");
+    const video = page.locator("article video");
     await expect
       .poll(() => video.evaluate((v: HTMLVideoElement) => v.readyState), { timeout: 30_000 })
       .toBeGreaterThanOrEqual(1);
