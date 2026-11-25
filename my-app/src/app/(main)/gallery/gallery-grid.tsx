@@ -151,8 +151,10 @@ function VideoThumbnail({ url }: { url: string }) {
           playing ? "opacity-0" : "opacity-100"
         }`}
       >
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/45 ring-1 ring-white/40 backdrop-blur-sm sm:h-12 sm:w-12">
-          <Play className="ml-0.5 h-4 w-4 fill-white text-white sm:h-5 sm:w-5" aria-hidden="true" />
+        {/* Phones have no hover preview and the corner chip already marks the
+            tile as a video, so the badge would only cover the caption. */}
+        <div className="hidden h-12 w-12 items-center justify-center rounded-full bg-black/45 ring-1 ring-white/40 backdrop-blur-sm sm:flex">
+          <Play className="ml-0.5 h-5 w-5 fill-white text-white" aria-hidden="true" />
         </div>
       </div>
     </div>
@@ -440,7 +442,7 @@ function Lightbox({
       aria-modal="true"
       aria-label={`${galleryAlt(photo)}: ${isVideo ? "video" : "photo"} preview`}
       tabIndex={-1}
-      className="fixed inset-0 z-[100] flex flex-col bg-black/95 text-white outline-none animate-in fade-in duration-200 motion-reduce:animate-none"
+      className="fixed inset-0 z-[100] flex flex-col bg-black text-white outline-none animate-in fade-in duration-200 motion-reduce:animate-none"
     >
       {/* Top bar: position, media type, close */}
       <div className="flex items-center justify-between gap-2 px-2 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4">
@@ -650,25 +652,29 @@ function GallerySection({
   const date = formatGalleryDate(group.date, "long");
   return (
     <section aria-labelledby={headingId}>
-      <header className="mb-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-border pb-3 md:mb-5">
-        <div className="min-w-0">
+      <header className="mb-3 flex items-end justify-between gap-3 border-b border-border pb-3 md:mb-5">
+        <div className="min-w-0 flex-1">
           <h2 id={headingId} className="text-lg font-bold leading-tight text-primary md:text-2xl">
             {group.event}
           </h2>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-secondary md:text-sm">
+          <p className="mt-1 flex min-w-0 items-center gap-x-2 text-xs text-secondary md:text-sm">
             {date && (
-              <time dateTime={group.date} className="font-mono">
+              <time dateTime={group.date} className="shrink-0 font-mono">
                 {date}
               </time>
             )}
             {date && group.location && <span aria-hidden="true">·</span>}
-            {group.location && <span>{group.location}</span>}
+            {group.location && (
+              <span className="truncate" title={group.location}>
+                {group.location}
+              </span>
+            )}
           </p>
         </div>
         {group.eventSlug && (
           <Link
             href={`/events/${group.eventSlug}`}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-primary-red hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red"
+            className="-mr-3 inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full px-3 text-sm font-semibold text-primary-red hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red"
           >
             View event
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
