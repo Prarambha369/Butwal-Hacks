@@ -97,6 +97,21 @@ export async function resolveLinkedIdentitySubjects(
 }
 
 /**
+ * The email to match merge candidates on, or null. Email is only an ownership
+ * signal when Auth0 says the signed-in user verified it and it is the address
+ * on their profile; an unverified address proves nothing about who owns
+ * another row with the same email.
+ */
+export function verifiedMatchEmail(
+  profileEmail: string | null | undefined,
+  sessionUser: { email?: unknown; email_verified?: unknown } | null | undefined
+): string | null {
+  if (!profileEmail || sessionUser?.email_verified !== true) return null;
+  if (typeof sessionUser.email !== "string") return null;
+  return sessionUser.email.trim().toLowerCase() === profileEmail.trim().toLowerCase() ? profileEmail : null;
+}
+
+/**
  * Find other profiles that may belong to the same owner as the current one.
  *
  * Matching identifiers are the verified email, the stable GitHub account id,
@@ -238,7 +253,8 @@ export async function isMergeCandidate(
  */
 export async function mergeProfiles(
   sourceProfileId: string,
-  auth0UserId: string
+  auth0UserId: string,
+  sessionUser: { email?: unknown; email_verified?: unknown } | null = null
 ): Promise<{ success: boolean; error?: string; mergedProfileId?: string }> {
   const db = createServiceClient();
 
@@ -264,7 +280,7 @@ export async function mergeProfiles(
   // IDOR guard: only a candidate of this target may be merged into it.
   const eligible = await isMergeCandidate(
     targetProfileId,
-    target.email as string | null,
+    verifiedMatchEmail(target.email as string | null, sessionUser),
     githubAccountId(target.linked_accounts),
     sourceProfileId,
     await resolveLinkedIdentitySubjects(auth0UserId, target.linked_accounts)

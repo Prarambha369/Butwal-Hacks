@@ -310,6 +310,7 @@ describe("GET /api/auth/link/callback", () => {
     db = buildDb();
     mockedCreateServiceClient.mockReturnValue(db);
     (linkIdentity as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|primary" } });
     (exchangeCodeForTokens as ReturnType<typeof vi.fn>).mockResolvedValue({
       access_token: "at",
       id_token: fakeIdToken({
@@ -321,6 +322,23 @@ describe("GET /api/auth/link/callback", () => {
       token_type: "Bearer",
       expires_in: 86400,
     });
+  });
+
+  it.each([
+    ["another user is signed in", { user: { sub: "auth0|attacker" } }],
+    ["nobody is signed in", null],
+  ])("refuses to link when %s (forged state cookie)", async (_label, session) => {
+    // The state cookie is client-controlled; a forged primary must never be
+    // linked to, or the forger could sign in as that user.
+    mockedGetSession.mockResolvedValue(session);
+    cookieStore.get.mockReturnValue({ value: STATE });
+    const { GET } = await import("../callback/route");
+    const res = await GET(callbackUrl(STATE));
+
+    expect(res.status).toBe(307);
+    expect(decodeURIComponent(new URL(res.headers.get("location")!).searchParams.get("linked")!)).toMatch(/sign in again/i);
+    expect(exchangeCodeForTokens).not.toHaveBeenCalled();
+    expect(linkIdentity).not.toHaveBeenCalled();
   });
 
   it("redirects with an error when the state cookie is missing", async () => {
