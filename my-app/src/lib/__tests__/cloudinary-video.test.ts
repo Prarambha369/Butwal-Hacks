@@ -1,7 +1,10 @@
-import { describe, expect, it } from "vitest";
+// @vitest-environment happy-dom
+
+import { describe, expect, it, vi } from "vitest";
 import {
   cloudinaryDownloadUrl,
   displayPhotoUrl,
+  fallBackToWebmOnDecodeError,
   isVideoUrl,
   videoPlaybackUrl,
   videoPosterUrl,
@@ -166,6 +169,15 @@ describe("videoSources", () => {
     expect(mp4.type).toMatch(/^video\/mp4; codecs="avc1\./);
   });
 
+  it("labels the MP4 as High profile, matching what vc_h264 actually encodes", () => {
+    // Verified with ffprobe on res.cloudinary.com: vc_h264 serves High@4.0
+    // (1600px) and High@3.0 (640px). A Baseline label (avc1.42E01E) let
+    // Firefox's Baseline-only OpenH264 claim the MP4, fail to decode it, and
+    // never fall back to the WebM.
+    const [mp4] = videoSources(VIDEO_MOV, 1600);
+    expect(mp4.type).toBe('video/mp4; codecs="avc1.640028"');
+  });
+
   it("falls back to VP9 WebM for browsers without an H.264 decoder", () => {
     // Firefox on Linux without a usable system libavcodec cannot decode
     // H.264 at all and shows "No video with supported format and MIME type
@@ -177,5 +189,87 @@ describe("videoSources", () => {
 
   it("returns the URL alone when it is not a transformable Cloudinary video", () => {
     expect(videoSources(IMAGE, 1600)).toEqual([{ src: IMAGE }]);
+  });
+});
+
+describe("fallBackToWebmOnDecodeError", () => {
+  function player(currentSrc: string, error: unknown) {
+    const video = document.createElement("video");
+    for (const s of videoSources(VIDEO_MOV, 1600)) {
+      const source = document.createElement("source");
+      source.src = s.src;
+      if (s.type) source.setAttribute("type", s.type);
+      video.appendChild(source);
+    }
+    Object.defineProperty(video, "currentSrc", { value: currentSrc });
+    Object.defineProperty(video, "error", { value: error });
+    video.load = vi.fn();
+    return video;
+  }
+
+  /**
+   * A player that models the playback state the spec defines for load() and
+   * play(): load() sets `paused` back to true (and drops pending play()
+   * promises), play() sets it to false. That is the behaviour the CodeRabbit
+   * review caught: retagging and reloading alone left a playing video paused.
+   */
+  function statefulPlayer(currentSrc: string, initiallyPaused: boolean) {
+    const video = player(currentSrc, { code: 3 });
+    let paused = initiallyPaused;
+    Object.defineProperty(video, "paused", { get: () => paused });
+    Object.defineProperty(video, "ended", { value: false });
+    const calls: string[] = [];
+    video.load = vi.fn(() => {
+      calls.push("load");
+      paused = true;
+    });
+    video.play = vi.fn(() => {
+      calls.push("play");
+      paused = false;
+      return Promise.resolve();
+    });
+    return { video, calls };
+  }
+
+  it("keeps a playing video playing across the WebM reload", () => {
+    const [mp4] = videoSources(VIDEO_MOV, 640);
+    const { video, calls } = statefulPlayer(mp4.src, false);
+    fallBackToWebmOnDecodeError({ currentTarget: video });
+    // play() must come after load(): played before, the reload would undo it.
+    expect(calls).toEqual(["load", "play"]);
+    expect(video.paused).toBe(false);
+  });
+
+  it("leaves a paused video paused across the WebM reload", () => {
+    const [mp4] = videoSources(VIDEO_MOV, 1600);
+    const { video, calls } = statefulPlayer(mp4.src, true);
+    fallBackToWebmOnDecodeError({ currentTarget: video });
+    expect(calls).toEqual(["load"]);
+    expect(video.paused).toBe(true);
+  });
+
+  it("handles a rejected resume instead of leaking an unhandled rejection", () => {
+    const [mp4] = videoSources(VIDEO_MOV, 640);
+    const { video } = statefulPlayer(mp4.src, false);
+    const resume = { catch: vi.fn() };
+    video.play = vi.fn(() => resume as unknown as Promise<void>);
+    fallBackToWebmOnDecodeError({ currentTarget: video });
+    expect(resume.catch).toHaveBeenCalledTimes(1);
+  });
+
+  it("retags the MP4 and reloads when the MP4 failed to decode", () => {
+    const [mp4] = videoSources(VIDEO_MOV, 1600);
+    const video = player(mp4.src, { code: 3 });
+    fallBackToWebmOnDecodeError({ currentTarget: video });
+    expect(video.querySelector('source[type^="video/mp4"]')).toBeNull();
+    expect(video.querySelector('source[type^="video/webm"]')).not.toBeNull();
+    expect(video.load).toHaveBeenCalledTimes(1);
+  });
+
+  it("does nothing when the WebM itself failed, so it cannot loop", () => {
+    const [, webm] = videoSources(VIDEO_MOV, 1600);
+    const video = player(webm.src, { code: 3 });
+    fallBackToWebmOnDecodeError({ currentTarget: video });
+    expect(video.load).not.toHaveBeenCalled();
   });
 });

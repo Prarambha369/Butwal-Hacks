@@ -117,3 +117,29 @@ describe("cloudinary-signature metadata field cache", () => {
     expect(body.metadata ?? "").not.toContain("refresh_metadata");
   });
 });
+
+describe("cloudinary-signature video renditions", () => {
+  beforeEach(() => {
+    listMetadataFields.mockReset();
+    listMetadataFields.mockResolvedValue({ metadata_fields: [] });
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = "demo";
+    process.env.CLOUDINARY_API_KEY = "key";
+    process.env.CLOUDINARY_API_SECRET = "secret";
+  });
+
+  it("eagerly generates every source the gallery player requests, WebM fallback included", async () => {
+    const { videoSources } = await import("@/lib/cloudinary-url");
+    const POST = await loadRoute();
+    const body = await (await POST(sign({ entity_type: "gallery_video" }))).json();
+    const eager = String(body.videoUploadParams.eager).split("|");
+
+    const stored = "https://res.cloudinary.com/demo/video/upload/clips/a.mp4";
+    for (const width of [1600, 640]) {
+      for (const { src } of videoSources(stored, width)) {
+        // ".../video/upload/<transform>/clips/a.<ext>" -> "<transform>/<ext>"
+        const [, transform, ext] = /\/video\/upload\/([^/]+)\/.+\.(\w+)$/.exec(src) ?? [];
+        expect(eager).toContain(`${transform}/${ext}`);
+      }
+    }
+  });
+});

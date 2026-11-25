@@ -94,6 +94,40 @@ export function videoPlaybackUrl(url: string, width: number): string {
 }
 
 /**
+ * `onError` handler for a gallery `<video>` built from videoSources().
+ *
+ * A decode failure after the browser picked a `<source>` fires `error` on the
+ * video and does NOT advance to the next source, so a browser that claimed the
+ * MP4 but cannot decode it would stop with "No video with supported format".
+ * Retag the MP4 sources as an unsupported type and reload: resource selection
+ * then skips them and plays the WebM. React leaves the attribute alone because
+ * the props did not change; a new item remounts the element (callers key it).
+ * Runs at most once per element, because the retagged MP4 is never picked again.
+ *
+ * load() resets `paused` to true and rejects any pending play() promise, so
+ * the reload alone would leave a hover preview or an autoplaying lightbox
+ * sitting on its poster. Playback intent is read before the reload and
+ * restored after it: a video that was playing (or had been asked to play) is
+ * played again, one that was paused stays paused. A preview the pointer has
+ * left, or a clip the viewer paused, already reports `paused` and is left
+ * alone. Muting is untouched by load(), so a muted preview resumes muted and
+ * does not trip the autoplay policy.
+ */
+export function fallBackToWebmOnDecodeError(event: { currentTarget: HTMLVideoElement }): void {
+  const video = event.currentTarget;
+  if (!video.error || !/\.mp4(\?|$)/.test(video.currentSrc)) return;
+  const mp4Sources = video.querySelectorAll<HTMLSourceElement>('source[type^="video/mp4"]');
+  if (mp4Sources.length === 0) return;
+  const shouldResume = !video.paused && !video.ended;
+  mp4Sources.forEach((source) => source.setAttribute("type", "video/x-undecodable"));
+  video.load();
+  // A rejection here (autoplay policy, a WebM that also fails) leaves the
+  // element paused with its poster and native controls, which is the right
+  // end state; it must not surface as an unhandled rejection.
+  if (shouldResume) video.play().catch(() => {});
+}
+
+/**
  * Ordered `<source>` list for a gallery `<video>`: H.264 MP4 first, VP9 WebM
  * as the fallback.
  *
@@ -105,17 +139,22 @@ export function videoPlaybackUrl(url: string, width: number): string {
  * itself, so it always works there.
  *
  * The codecs parameter on the MP4 `type` is what makes this work:
- * `canPlayType` then reports whether an H.264 decoder actually exists, and a
- * browser without one skips straight to the WebM. Every other browser stops at
- * the MP4, so the WebM rendition (an on-the-fly transcode) is only generated
- * for the viewers who need it.
+ * `canPlayType` then reports whether a decoder for *this* stream exists, and a
+ * browser without one skips straight to the WebM. It must describe the stream
+ * Cloudinary actually serves: `vc_h264` encodes High profile (level 4.0 at
+ * 1600px, 3.0 at 640px). Firefox on Linux without ffmpeg falls back to Cisco's
+ * OpenH264 plugin, which decodes Constrained Baseline only, so a Baseline
+ * label (`avc1.42E01E`) made it claim the MP4, fail to decode it, and never
+ * reach the WebM (a decode failure does not advance to the next <source>).
+ * `avc1.640028` is High@4.0, which covers both sizes. Both renditions are
+ * generated eagerly at upload (see the signature route).
  */
 export function videoSources(url: string, width: number): { src: string; type?: string }[] {
   const mp4 = videoPlaybackUrl(url, width);
   if (mp4 === url) return [{ src: url }];
   const webm = mp4.replace(",vc_h264,", ",vc_vp9,").replace(/\.mp4$/, ".webm");
   return [
-    { src: mp4, type: 'video/mp4; codecs="avc1.42E01E"' },
+    { src: mp4, type: 'video/mp4; codecs="avc1.640028"' },
     { src: webm, type: 'video/webm; codecs="vp9"' },
   ];
 }
