@@ -44,6 +44,8 @@ function formatLongDate(value: string): string | null {
     month: "long",
     day: "numeric",
     year: "numeric",
+    // Same zone as the grid, so the date matches what the lightbox showed.
+    timeZone: "Asia/Kathmandu",
   });
 }
 
@@ -61,14 +63,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const card = socialCardUrl(photo.url);
 
   const description = [
-    `${kind} from the ${photo.event} event gallery`,
+    photo.caption ? `${photo.caption}. ` : "",
+    `${kind} from ${photo.event}`,
+    photo.location ? `, ${photo.location}` : "",
     date ? `, ${date}` : "",
     photo.uploader ? `, by ${photo.uploader}` : "",
     ".",
   ].join("");
 
   return buildPageMetadata({
-    title: `${photo.event} — ${kind} · Butwal Hacks`,
+    // Captioned items get their own title (also used for OG/Twitter), so
+    // shared links are not all "HackDay Butwal — photo".
+    title: photo.caption
+      ? `${photo.caption} · ${photo.event} · Butwal Hacks`
+      : `${photo.event} — ${kind} · Butwal Hacks`,
     description,
     path: `/gallery/${photo.id}`,
     robots: { index: false, follow: true },
@@ -76,7 +84,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? {
           image: {
             url: card.url,
-            alt: `${photo.event} — ${kind}`,
+            alt: photo.caption ?? `${photo.event} — ${kind}`,
             width: card.width,
             height: card.height,
           },
@@ -118,10 +126,14 @@ export default async function GalleryPhotoPage({ params }: Props) {
               {kind}
             </p>
             <h1 className="text-3xl font-bold leading-tight text-primary md:text-4xl">
-              {photo.event}
+              {photo.caption ?? photo.event}
             </h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+              {photo.caption && <span className="font-semibold text-primary">{photo.event}</span>}
+              {photo.caption && date && <span aria-hidden="true">·</span>}
               {date && <span className="font-mono">{date}</span>}
+              {photo.location && <span aria-hidden="true">·</span>}
+              {photo.location && <span>{photo.location}</span>}
               {date && photo.uploader && <span aria-hidden="true">·</span>}
               {photo.uploader && <span>by {photo.uploader}</span>}
               {isVideo && photo.duration && (
@@ -145,7 +157,7 @@ export default async function GalleryPhotoPage({ params }: Props) {
             ) : (
               <Image
                 src={displayPhotoUrl(photo.url, photo.optimize, 1600)}
-                alt={photo.event}
+                alt={photo.caption ?? photo.event}
                 width={1600}
                 height={1000}
                 sizes="(max-width: 768px) 100vw, 900px"

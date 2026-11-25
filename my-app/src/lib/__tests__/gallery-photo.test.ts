@@ -9,7 +9,7 @@ vi.mock("@/lib/logger", () => ({
 }));
 
 import { createServiceClient } from "@/utils/supabase";
-import { getGalleryPhoto } from "@/lib/gallery-photo";
+import { getGalleryPhoto, selectWithCaptionFallback } from "@/lib/gallery-photo";
 
 const mockedCreateServiceClient = createServiceClient as unknown as ReturnType<typeof vi.fn>;
 
@@ -78,6 +78,47 @@ describe("getGalleryPhoto", () => {
       media_type: "image",
     });
     expect(photo?.duration).toBeUndefined();
+    // No caption or location on the row: both come back as null, not "".
+    expect(photo).toMatchObject({ caption: null, location: null });
+  });
+
+  it("dates an item by its event, not its upload, and trims the caption", async () => {
+    mockDb({
+      data: {
+        id: UUID,
+        url: "https://res.cloudinary.com/demo/image/upload/photo.jpg",
+        span: 1,
+        optimized_transform: null,
+        // Bulk-imported nine months after the event.
+        created_at: "2026-10-21T08:00:00.000Z",
+        media_type: "image",
+        duration_seconds: null,
+        caption: "  Snack courier arrives  ",
+        events: {
+          id: "e1",
+          title: "HackDay Butwal",
+          slug: "hackday-butwal",
+          start_date: "2026-01-17T02:15:00+00:00",
+          location: " Lumbini World School ",
+        },
+        profiles: null,
+      },
+      error: null,
+    });
+
+    expect(await getGalleryPhoto(UUID)).toMatchObject({
+      date: "2026-01-17T02:15:00+00:00",
+      caption: "Snack courier arrives",
+      location: "Lumbini World School",
+    });
+  });
+
+  it("treats a blank caption as none", async () => {
+    mockDb({
+      data: { id: UUID, url: "u", created_at: "2026-01-05T10:00:00.000Z", caption: "   ", events: { title: "Hack" } },
+      error: null,
+    });
+    expect((await getGalleryPhoto(UUID))?.caption).toBeNull();
   });
 
   it("returns null when no approved row exists", async () => {
@@ -89,5 +130,23 @@ describe("getGalleryPhoto", () => {
     const error = { message: "connection refused", code: "08006" };
     mockDb({ data: null, error });
     await expect(getGalleryPhoto(UUID)).rejects.toBe(error);
+  });
+});
+
+describe("selectWithCaptionFallback", () => {
+  it("retries without caption when the column does not exist yet", async () => {
+    const run = vi
+      .fn()
+      .mockResolvedValueOnce({ data: null, error: { code: "42703" } })
+      .mockResolvedValueOnce({ data: [{ id: "x" }], error: null });
+    const result = await selectWithCaptionFallback("id, url, caption, events ( title )", run);
+    expect(run).toHaveBeenNthCalledWith(2, "id, url, events ( title )");
+    expect(result).toEqual({ data: [{ id: "x" }], error: null });
+  });
+
+  it("does not retry on any other error", async () => {
+    const run = vi.fn().mockResolvedValue({ data: null, error: { code: "PGRST301" } });
+    await selectWithCaptionFallback("id, caption, url", run);
+    expect(run).toHaveBeenCalledTimes(1);
   });
 });
