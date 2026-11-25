@@ -10,7 +10,14 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getDiceBearPlaceholder } from "@/lib/utils";
-import { cloudinaryDownloadUrl, cloudinaryImageLoader, isVideoUrl, videoPosterUrl, videoSources, fallBackToWebmOnDecodeError } from "@/lib/cloudinary-url";
+import {
+  cloudinaryDownloadUrl,
+  cloudinaryImageLoader,
+  fallBackToWebmOnDecodeError,
+  isVideoUrl,
+  videoPosterUrl,
+  videoSources,
+} from "@/lib/cloudinary-url";
 // Server actions live in `lib`; the page's types are re-exported there, so
 // import both from one place rather than through `./page`.
 import { fetchGalleryPage } from "@/lib/actions/gallery";
@@ -38,15 +45,18 @@ function VideoThumbnail({ url }: { url: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
 
-  // Only flip to "playing" once play() actually resolves, so the play badge
-  // never disappears over a video that failed to start.
+  // The badge follows the element's own `playing`/`pause` events rather than
+  // the play() promise: when the WebM fallback reloads the element, the first
+  // promise rejects even though the clip then plays from the WebM.
   const handleMouseEnter = useCallback(() => {
-    videoRef.current?.play().then(() => setPlaying(true)).catch(() => {});
+    // A hover preview is motion the viewer did not ask for. With reduced
+    // motion the tile stays on its poster; clicking still opens the player.
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+    videoRef.current?.play().catch(() => {});
   }, []);
 
   const handleMouseLeave = useCallback(() => {
     videoRef.current?.pause();
-    setPlaying(false);
   }, []);
 
   return (
@@ -65,6 +75,8 @@ function VideoThumbnail({ url }: { url: string }) {
         preload="none"
         className="absolute inset-0 w-full h-full object-cover"
         poster={videoPosterUrl(url, 640) ?? undefined}
+        onPlaying={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
         onError={fallBackToWebmOnDecodeError}
       >
         {videoSources(url, 640).map((s) => (
@@ -223,7 +235,11 @@ function Lightbox({
   useEffect(() => {
     const el = videoRef.current;
     if (!isVideo || !el) return;
-    el.play().catch(() => {
+    el.play().catch((err: unknown) => {
+      // Only an autoplay-policy refusal is fixed by muting. An AbortError from
+      // the WebM fallback's reload (which resumes playback itself) or a source
+      // that failed must not silently mute the clip the viewer opened.
+      if (!(err instanceof DOMException) || err.name !== "NotAllowedError") return;
       el.muted = true;
       el.play().catch(() => {});
     });

@@ -207,6 +207,56 @@ describe("fallBackToWebmOnDecodeError", () => {
     return video;
   }
 
+  /**
+   * A player that models the playback state the spec defines for load() and
+   * play(): load() sets `paused` back to true (and drops pending play()
+   * promises), play() sets it to false. That is the behaviour the CodeRabbit
+   * review caught: retagging and reloading alone left a playing video paused.
+   */
+  function statefulPlayer(currentSrc: string, initiallyPaused: boolean) {
+    const video = player(currentSrc, { code: 3 });
+    let paused = initiallyPaused;
+    Object.defineProperty(video, "paused", { get: () => paused });
+    Object.defineProperty(video, "ended", { value: false });
+    const calls: string[] = [];
+    video.load = vi.fn(() => {
+      calls.push("load");
+      paused = true;
+    });
+    video.play = vi.fn(() => {
+      calls.push("play");
+      paused = false;
+      return Promise.resolve();
+    });
+    return { video, calls };
+  }
+
+  it("keeps a playing video playing across the WebM reload", () => {
+    const [mp4] = videoSources(VIDEO_MOV, 640);
+    const { video, calls } = statefulPlayer(mp4.src, false);
+    fallBackToWebmOnDecodeError({ currentTarget: video });
+    // play() must come after load(): played before, the reload would undo it.
+    expect(calls).toEqual(["load", "play"]);
+    expect(video.paused).toBe(false);
+  });
+
+  it("leaves a paused video paused across the WebM reload", () => {
+    const [mp4] = videoSources(VIDEO_MOV, 1600);
+    const { video, calls } = statefulPlayer(mp4.src, true);
+    fallBackToWebmOnDecodeError({ currentTarget: video });
+    expect(calls).toEqual(["load"]);
+    expect(video.paused).toBe(true);
+  });
+
+  it("handles a rejected resume instead of leaking an unhandled rejection", () => {
+    const [mp4] = videoSources(VIDEO_MOV, 640);
+    const { video } = statefulPlayer(mp4.src, false);
+    const resume = { catch: vi.fn() };
+    video.play = vi.fn(() => resume as unknown as Promise<void>);
+    fallBackToWebmOnDecodeError({ currentTarget: video });
+    expect(resume.catch).toHaveBeenCalledTimes(1);
+  });
+
   it("retags the MP4 and reloads when the MP4 failed to decode", () => {
     const [mp4] = videoSources(VIDEO_MOV, 1600);
     const video = player(mp4.src, { code: 3 });
