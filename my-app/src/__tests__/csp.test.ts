@@ -70,6 +70,12 @@ describe("CSP builders", () => {
     expect(REPORTING_ENDPOINTS).toBe('csp-endpoint="/api/csp-violation"');
   });
 
+  it("allows Cloudinary media in both policies (gallery videos)", () => {
+    for (const csp of [buildNonceCsp("n"), buildStaticCsp(false), buildStaticCsp(true)]) {
+      expect(directive(csp, "media-src")).toBe("media-src 'self' https://res.cloudinary.com");
+    }
+  });
+
   it("sets frame-ancestors per policy", () => {
     expect(buildNonceCsp("n")).toContain("frame-ancestors 'none';");
     expect(buildStaticCsp(false)).toContain("frame-ancestors 'none';");

@@ -65,6 +65,9 @@ const SHARED_DIRECTIVES = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://api.dicebear.com https://api.qrserver.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://media.licdn.com https://cdn.auth0.com https://s.gravatar.com",
   "font-src 'self'",
+  // Gallery videos are served from Cloudinary; without this, default-src
+  // 'self' blocks them.
+  "media-src 'self' https://res.cloudinary.com",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
