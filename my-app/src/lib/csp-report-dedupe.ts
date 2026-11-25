@@ -33,6 +33,26 @@ export function shouldLogCspReport(key: string, now: number = Date.now()): boole
   return true;
 }
 
+/**
+ * Admission limit, standing in for withRateLimit() (which would spend one
+ * Upstash command per report). Distinct keys bypass the dedupe, so this caps
+ * how many reports one instance logs per minute; the rest are dropped.
+ */
+export const LOG_BUDGET_PER_MINUTE = 60;
+let budgetWindowStart = 0;
+let budgetUsed = 0;
+
+/** True while this instance has log budget left in the current minute. */
+export function takeCspLogBudget(now: number = Date.now()): boolean {
+  if (now - budgetWindowStart >= 60_000) {
+    budgetWindowStart = now;
+    budgetUsed = 0;
+  }
+  if (budgetUsed >= LOG_BUDGET_PER_MINUTE) return false;
+  budgetUsed += 1;
+  return true;
+}
+
 /** Number of keys currently tracked (tests and diagnostics). */
 export function cspDedupeSize(): number {
   return recentlyLogged.size;
@@ -41,4 +61,6 @@ export function cspDedupeSize(): number {
 /** Forget every key (tests). */
 export function resetCspDedupe(): void {
   recentlyLogged.clear();
+  budgetWindowStart = 0;
+  budgetUsed = 0;
 }

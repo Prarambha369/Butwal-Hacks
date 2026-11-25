@@ -14,7 +14,13 @@ vi.mock("@/lib/rate-limiter", () => ({
 
 import { logger } from "@/lib/logger";
 import { POST } from "@/app/api/csp-violation/route";
-import { DEDUPE_MAX_KEYS, cspDedupeSize, resetCspDedupe, shouldLogCspReport } from "@/lib/csp-report-dedupe";
+import {
+  DEDUPE_MAX_KEYS,
+  LOG_BUDGET_PER_MINUTE,
+  cspDedupeSize,
+  resetCspDedupe,
+  shouldLogCspReport,
+} from "@/lib/csp-report-dedupe";
 
 const warn = logger.warn as ReturnType<typeof vi.fn>;
 
@@ -54,11 +60,42 @@ describe("POST /api/csp-violation", () => {
     expect(logger.error).not.toHaveBeenCalled();
   });
 
-  it("strips query strings and fragments from logged URLs", async () => {
+  it("strips query strings, fragments and claim tokens from logged URLs", async () => {
     await post(legacy("https://evil.example/x.js?token=abc"), "application/csp-report");
     const entry = warn.mock.calls[0][1] as Record<string, unknown>;
-    expect(entry.document).toBe("https://www.butwalhacks.com/claim/secret-token");
+    expect(entry.document).toBe("https://www.butwalhacks.com/claim/[token]");
     expect(entry.blocked).toBe("https://evil.example/x.js");
+    expect(JSON.stringify(warn.mock.calls)).not.toContain("secret-token");
+  });
+
+  it("accepts the null fields the CSP spec allows", async () => {
+    const body = JSON.stringify([
+      {
+        type: "csp-violation",
+        url: "https://www.butwalhacks.com/",
+        body: {
+          documentURL: "https://www.butwalhacks.com/",
+          blockedURL: "https://a.example/a.js",
+          effectiveDirective: "script-src-elem",
+          disposition: "enforce",
+          sourceFile: null,
+          lineNumber: null,
+          columnNumber: null,
+          sample: null,
+        },
+      },
+    ]);
+    const res = await post(body, "application/reports+json");
+    expect(res.status).toBe(204);
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops logging past the per-minute budget but still answers 204", async () => {
+    for (let i = 0; i < LOG_BUDGET_PER_MINUTE + 10; i += 1) {
+      const res = await post(legacy(`https://x${i}.example/a.js`), "application/csp-report");
+      expect(res.status).toBe(204);
+    }
+    expect(warn).toHaveBeenCalledTimes(LOG_BUDGET_PER_MINUTE);
   });
 
   it("accepts Reporting API batches (application/reports+json)", async () => {

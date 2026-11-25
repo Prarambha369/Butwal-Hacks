@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
-import { shouldLogCspReport } from "@/lib/csp-report-dedupe";
+import { shouldLogCspReport, takeCspLogBudget } from "@/lib/csp-report-dedupe";
 
 /**
  * POST /api/csp-violation
@@ -15,7 +15,8 @@ import { shouldLogCspReport } from "@/lib/csp-report-dedupe";
  * route trusts nothing: the body is capped at MAX_BODY_BYTES (counted while
  * reading, not taken from Content-Length), parsed through Zod, and only a few
  * truncated fields are logged. URLs are logged without query string or
- * fragment, since page URLs can carry tokens (e.g. /claim/[token]?...).
+ * fragment, and the /claim/[token] segment is redacted, since page URLs can
+ * carry secrets.
  *
  * Free-plan budget (Vercel Hobby, Upstash, Sentry free tiers):
  *  - No Upstash call. Report volume is unbounded and attacker-controlled, so
@@ -27,6 +28,9 @@ import { shouldLogCspReport } from "@/lib/csp-report-dedupe";
  *  - Deduplicated per function instance: the same (directive, blocked URL,
  *    page path) is logged once per DEDUPE_WINDOW_MS, then dropped. The map is
  *    bounded at DEDUPE_MAX_KEYS.
+ *  - Admission limit in place of withRateLimit(): each instance logs at most
+ *    LOG_BUDGET_PER_MINUTE reports a minute; the rest still get 204 and are
+ *    dropped, so distinct-key floods cannot grow the log volume either.
  *  - Node.js runtime (the default; Edge is deprecated on Vercel). The handler
  *    does no I/O beyond reading the capped body, so CPU time is negligible.
  *
@@ -41,15 +45,15 @@ const MAX_FIELD = 300;
 
 const legacySchema = z.object({
   "csp-report": z.object({
-    "document-uri": z.string().optional(),
-    "violated-directive": z.string().optional(),
-    "effective-directive": z.string().optional(),
-    "blocked-uri": z.string().optional(),
-    "source-file": z.string().optional(),
-    "line-number": z.number().optional(),
-    "column-number": z.number().optional(),
-    disposition: z.string().optional(),
-    "script-sample": z.string().optional(),
+    "document-uri": z.string().nullish(),
+    "violated-directive": z.string().nullish(),
+    "effective-directive": z.string().nullish(),
+    "blocked-uri": z.string().nullish(),
+    "source-file": z.string().nullish(),
+    "line-number": z.number().nullish(),
+    "column-number": z.number().nullish(),
+    disposition: z.string().nullish(),
+    "script-sample": z.string().nullish(),
   }),
 });
 
@@ -57,46 +61,57 @@ const reportingApiSchema = z
   .array(
     z.object({
       type: z.string(),
-      url: z.string().optional(),
+      url: z.string().nullish(),
       body: z
         .object({
-          documentURL: z.string().optional(),
-          blockedURL: z.string().optional(),
-          effectiveDirective: z.string().optional(),
-          disposition: z.string().optional(),
-          sourceFile: z.string().optional(),
-          lineNumber: z.number().optional(),
-          columnNumber: z.number().optional(),
-          sample: z.string().optional(),
+          documentURL: z.string().nullish(),
+          blockedURL: z.string().nullish(),
+          effectiveDirective: z.string().nullish(),
+          disposition: z.string().nullish(),
+          sourceFile: z.string().nullish(),
+          lineNumber: z.number().nullish(),
+          columnNumber: z.number().nullish(),
+          sample: z.string().nullish(),
         })
-        .optional(),
+        .nullish(),
     }),
   )
   .max(MAX_REPORTS);
 
+// The CSP spec allows null for sourceFile, lineNumber, sample, etc. (e.g. a
+// blocked external resource has no source location), so every field is
+// nullish and normalised to undefined before logging.
 interface Violation {
-  document?: string;
-  blocked?: string;
-  directive?: string;
-  disposition?: string;
-  source?: string;
-  line?: number;
-  sample?: string;
+  document?: string | null;
+  blocked?: string | null;
+  directive?: string | null;
+  disposition?: string | null;
+  source?: string | null;
+  line?: number | null;
+  sample?: string | null;
 }
 
-function truncate(value: string | undefined): string | undefined {
-  if (value === undefined) return undefined;
+function truncate(value: string | null | undefined): string | undefined {
+  if (value == null) return undefined;
   return value.length > MAX_FIELD ? `${value.slice(0, MAX_FIELD)}…` : value;
 }
 
-/** Drop query string and fragment; keep keywords like "inline" or "eval". */
-function stripUrl(value: string | undefined): string | undefined {
-  if (!value) return value;
+/** Path segments that are secrets: the claim token in /claim/[token]. */
+function redactPath(pathname: string): string {
+  return pathname.replace(/^\/claim\/[^/]+/, "/claim/[token]");
+}
+
+/**
+ * Drop query string and fragment, and redact secret path segments. Values
+ * that are not URLs (keywords like "inline" or "eval") pass through.
+ */
+function stripUrl(value: string | null | undefined): string | undefined {
+  if (!value) return undefined;
   try {
     const u = new URL(value);
-    return truncate(`${u.origin}${u.pathname}`);
+    return truncate(`${u.origin}${redactPath(u.pathname)}`);
   } catch {
-    return truncate(value.split(/[?#]/)[0]);
+    return truncate(redactPath(value.split(/[?#]/)[0]));
   }
 }
 
@@ -208,10 +223,11 @@ async function handler(request: NextRequest): Promise<NextResponse> {
       directive: truncate(v.directive),
       disposition: truncate(v.disposition),
       source: stripUrl(v.source),
-      line: v.line,
+      line: v.line ?? undefined,
       sample: truncate(v.sample),
     };
     if (!shouldLogCspReport(`${entry.directive}|${entry.blocked}|${entry.document}`)) continue;
+    if (!takeCspLogBudget()) break;
     logger.warn("[csp-violation]", entry);
   }
 
