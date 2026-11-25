@@ -72,7 +72,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   ].join("");
 
   return buildPageMetadata({
-    title: `${photo.event} — ${kind} · Butwal Hacks`,
+    // Captioned items get their own title (also used for OG/Twitter), so
+    // shared links are not all "HackDay Butwal — photo".
+    title: photo.caption
+      ? `${photo.caption} · ${photo.event} · Butwal Hacks`
+      : `${photo.event} — ${kind} · Butwal Hacks`,
     description,
     path: `/gallery/${photo.id}`,
     robots: { index: false, follow: true },

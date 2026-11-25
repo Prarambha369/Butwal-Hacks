@@ -296,6 +296,9 @@ function ShareControl({ id, title, className }: { id: string; title: string; cla
   );
 }
 
+/** Height of the native video control bar plus slack; swipes starting here scrub instead. */
+const VIDEO_CONTROLS_HEIGHT = 96;
+
 // ─── LightboxPhoto (extends GalleryPhoto with nav fields) ──────────
 
 interface LightboxPhoto extends GalleryPhoto {
@@ -409,12 +412,16 @@ function Lightbox({
     return () => window.removeEventListener("keydown", handleKey);
   }, [onClose, onPrev, onNext]);
 
-  // Swipe left/right on the stage to move between items. Ignored when the
-  // touch starts on the video, whose own controls use horizontal drags.
+  // Swipe left/right on the stage to move between items. The video fills the
+  // stage, so a swipe over it still navigates, except when it starts on the
+  // native control bar along its bottom edge, where a horizontal drag scrubs.
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.target instanceof HTMLVideoElement) return;
     const t = e.touches[0];
+    if (e.target instanceof HTMLVideoElement) {
+      const box = e.target.getBoundingClientRect();
+      if (t.clientY > box.bottom - VIDEO_CONTROLS_HEIGHT) return;
+    }
     touchStart.current = { x: t.clientX, y: t.clientY };
   };
   const handleTouchEnd = (e: React.TouchEvent) => {

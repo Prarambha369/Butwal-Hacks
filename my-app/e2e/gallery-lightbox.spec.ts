@@ -169,15 +169,17 @@ test.describe("Gallery lightbox", () => {
     const dialog = page.locator(LIGHTBOX);
     await expect(dialog).toBeVisible();
 
-    // Start on the stage but off the media element, which handles its own
-    // horizontal drags (video scrubbing).
+    // Touch whatever is really under the finger near the top of the stage:
+    // usually the photo or the video itself (the first items are videos), which
+    // must still navigate. Only the video's bottom control bar is exempt.
     const stage = dialog.getByRole("button", { name: "Next" }).locator("..");
-    const swiped = await stage.evaluate((el) => {
+    const swiped = await stage.evaluate((stageEl) => {
       // WebKit (iPhone emulation included) exposes Touch but throws "Illegal
       // constructor", so synthetic swipes only work in Chromium.
       try {
-        const r = el.getBoundingClientRect();
-        const y = r.top + 8;
+        const r = stageEl.getBoundingClientRect();
+        const y = r.top + r.height * 0.3;
+        const el = document.elementFromPoint(r.left + r.width / 2, y) ?? stageEl;
         const at = (x: number) => new Touch({ identifier: 1, target: el, clientX: x, clientY: y });
         const start = at(r.right - 40);
         const end = at(r.left + 40);
