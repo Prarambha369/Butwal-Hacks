@@ -10,11 +10,15 @@ const CLOCK_SKEW_RETRY_DELAYS_MS = [750, 1500];
 function sleep(ms: number, signal?: AbortSignal | null) {
   return new Promise<void>((resolve, reject) => {
     if (signal?.aborted) return reject(signal.reason);
-    const t = setTimeout(resolve, ms);
-    signal?.addEventListener("abort", () => {
+    const onAbort = () => {
       clearTimeout(t);
-      reject(signal.reason);
-    }, { once: true });
+      reject(signal?.reason);
+    };
+    const t = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
   });
 }
 

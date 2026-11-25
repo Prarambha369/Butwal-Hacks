@@ -167,6 +167,47 @@ describe("POST /api/webhooks/auth0", () => {
     expect(db.insert).not.toHaveBeenCalled()
   })
 
+  it("lets only a verified email claim a ghost profile", async () => {
+    // An unverified address must not take over a pre-seeded row (migration 149).
+    for (const [payload, expected] of [
+      [{ sub: "auth0|u1", email: "ghost@test.com" }, false],
+      [{ sub: "auth0|u2", email: "ghost@test.com", email_verified: false }, false],
+      [{ sub: "auth0|u3", email: "ghost@test.com", email_verified: true }, true],
+    ] as const) {
+      const db = buildMockDb()
+      db.single.mockResolvedValue({ data: null, error: null })
+      db.rpc.mockResolvedValue({ data: { id: "p", bh_id: "BH-26-020" }, error: null })
+      mockedCreateServiceClient.mockReturnValue(db)
+      const { POST } = await import("../webhooks/auth0/route")
+      await POST(mockRequest(payload, { "x-webhook-secret": TEST_SECRET }))
+      expect(db.rpc).toHaveBeenCalledWith("create_profile_with_bh_id", expect.objectContaining({
+        p_email_verified: expected,
+      }))
+    }
+  })
+
+  it("does not overwrite a stored email with one Auth0 reports as unverified", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({
+      data: { id: "profile-uuid", role: "hacker", email: "old@test.com", full_name: "Name" },
+      error: null,
+    })
+    mockedCreateServiceClient.mockReturnValue(db)
+    const { POST } = await import("../webhooks/auth0/route")
+    await POST(mockRequest(
+      { sub: "auth0|1", email: "new@test.com", email_verified: false },
+      { "x-webhook-secret": TEST_SECRET },
+    ))
+    expect(db.update).not.toHaveBeenCalled()
+  })
+
+  it("returns 400 for a body with the wrong field types", async () => {
+    const { POST } = await import("../webhooks/auth0/route")
+    const res = await POST(mockRequest({ sub: "auth0|1", name: 42 }, { "x-webhook-secret": TEST_SECRET }))
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe("Invalid body")
+  })
+
   it("keeps a member-edited name and never stores an email as the name", async () => {
     const db = buildMockDb()
     db.single.mockResolvedValue({
@@ -304,6 +345,7 @@ describe("POST /api/webhooks/auth0", () => {
       p_email: "new@test.com",
       p_full_name: "New User",
       p_role: "hacker",
+      p_email_verified: false,
     })
   })
 

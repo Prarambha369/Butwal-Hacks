@@ -29,6 +29,8 @@ async function upsertProfile(auth0Sub: string): Promise<string> {
     p_email: email,
     p_full_name: name,
     p_role: "hacker",
+    // Ghost-row claims need a verified address (migration 149).
+    p_email_verified: user?.email_verified === true,
   });
 
   if (error?.code === "23505") {

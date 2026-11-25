@@ -13,6 +13,7 @@ export const GET = withRateLimit(async (
     .from('profiles')
     .select('full_name, bh_id, role')
     .eq('bh_id', bhId)
+    .eq('is_listed', true)
     .single();
 
   if (error || !profile) {

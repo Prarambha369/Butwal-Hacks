@@ -57,6 +57,9 @@ export default async function DashboardLayout({
       p_email: userEmail,
       p_full_name: session?.user?.name || 'New Hacker',
       p_role: initialRole,
+      // Only a verified address may claim a pre-existing (ghost) profile on
+      // that email; otherwise anyone could sign up with it and take the row.
+      p_email_verified: session?.user?.email_verified === true,
     })
 
     if (rpcError?.code === "23505") {
