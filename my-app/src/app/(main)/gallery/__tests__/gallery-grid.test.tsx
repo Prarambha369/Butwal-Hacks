@@ -4,7 +4,7 @@ import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 
-import GalleryGrid from "../gallery-grid";
+import GalleryGrid, { formatGalleryDate, groupByEvent } from "../gallery-grid";
 import type { GalleryPhoto } from "@/lib/gallery-photo";
 
 // The gallery's whole point is that each tile is addressable, so this renders
@@ -36,6 +36,8 @@ const photos: GalleryPhoto[] = [
     url: "https://res.cloudinary.com/demo/image/upload/hack.jpg",
     event: "Hack 2026",
     event_slug: "hack-2026",
+    location: "Butwal, Nepal",
+    caption: "Two hackers squinting at one laptop",
     date: "2026-01-05T10:00:00.000Z",
     span: 1,
     uploader: "Asha K",
@@ -47,6 +49,8 @@ const photos: GalleryPhoto[] = [
     url: "https://res.cloudinary.com/demo/video/upload/daydream.mov",
     event: "Hack 2026",
     event_slug: "hack-2026",
+    location: null,
+    caption: null,
     date: "2026-01-06T10:00:00.000Z",
     span: 1,
     uploader: null,
@@ -92,5 +96,83 @@ describe("GalleryGrid share links", () => {
     expect(hrefs).toEqual([`/gallery/${IMAGE_ID}`, `/gallery/${VIDEO_ID}`]);
     // Videos are addressable too, and no two tiles share a URL.
     expect(new Set(hrefs).size).toBe(photos.length);
+  });
+});
+
+describe("GalleryGrid captions", () => {
+  it("uses the caption as alt text and falls back to the event title", () => {
+    render(
+      <GalleryGrid
+        photos={photos}
+        canDownload={false}
+        totals={{ photos: 1, videos: 1, events: 1 }}
+        hasMore={false}
+        events={["Hack 2026"]}
+      />,
+    );
+
+    expect(document.querySelector("img")?.getAttribute("alt")).toBe(
+      "Two hackers squinting at one laptop",
+    );
+    const labels = Array.from(
+      document.querySelectorAll<HTMLAnchorElement>('a[href^="/gallery/"]'),
+    ).map((a) => a.getAttribute("aria-label"));
+    expect(labels[0]).toBe("Two hackers squinting at one laptop, Hack 2026, photo, Jan 5, 2026");
+    // No caption: the event title stands in, and is not repeated.
+    expect(labels[1]).toBe("Hack 2026, video, Jan 6, 2026");
+  });
+});
+
+describe("formatGalleryDate", () => {
+  it("formats in Nepal time so server and browser agree", () => {
+    // 20:00 UTC on the 16th is already the 17th in Kathmandu (UTC+5:45).
+    expect(formatGalleryDate("2026-01-16T20:00:00Z")).toBe("Jan 17, 2026");
+    expect(formatGalleryDate("2026-01-16T20:00:00Z", "long")).toBe("January 17, 2026");
+  });
+
+  it("returns an empty string for an unparseable value", () => {
+    expect(formatGalleryDate("")).toBe("");
+    expect(formatGalleryDate("not a date")).toBe("");
+  });
+});
+
+describe("groupByEvent", () => {
+  const other: GalleryPhoto = { ...photos[0], id: "other", event: "Daydream", event_slug: "daydream" };
+
+  it("splits consecutive runs by event and keeps flat indexes", () => {
+    const groups = groupByEvent([photos[0], photos[1], other]);
+    expect(groups.map((g) => g.event)).toEqual(["Hack 2026", "Daydream"]);
+    expect(groups[0].items.map((i) => i.index)).toEqual([0, 1]);
+    expect(groups[1].items.map((i) => i.index)).toEqual([2]);
+    expect(groups[1].eventSlug).toBe("daydream");
+  });
+
+  it("gives a returning event its own section with a distinct key", () => {
+    const groups = groupByEvent([photos[0], other, photos[1]]);
+    expect(groups).toHaveLength(3);
+    expect(new Set(groups.map((g) => g.key)).size).toBe(3);
+  });
+
+  it("returns no groups for no photos", () => {
+    expect(groupByEvent([])).toEqual([]);
+  });
+});
+
+describe("GalleryGrid event sections", () => {
+  it("renders one labelled section per event with its date", () => {
+    render(
+      <GalleryGrid
+        photos={photos}
+        canDownload={false}
+        totals={{ photos: 1, videos: 1, events: 1 }}
+        hasMore={false}
+        events={["Hack 2026"]}
+      />,
+    );
+    const sections = document.querySelectorAll("section[aria-labelledby]");
+    expect(sections).toHaveLength(1);
+    const heading = document.getElementById(sections[0].getAttribute("aria-labelledby") as string);
+    expect(heading?.textContent).toBe("Hack 2026");
+    expect(sections[0].querySelector("time")?.textContent).toBe("January 5, 2026");
   });
 });

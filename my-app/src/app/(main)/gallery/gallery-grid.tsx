@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   X, ChevronLeft, ChevronRight, Users, Play, Pause,
   Camera, Video, ImageIcon, Loader2,
-  ExternalLink, Download, LogIn,
+  ExternalLink, Download, LogIn, Share2, Check,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getDiceBearPlaceholder } from "@/lib/utils";
@@ -23,17 +23,80 @@ import {
 import { fetchGalleryPage } from "@/lib/actions/gallery";
 import type { GalleryPhoto, GalleryTotals } from "@/lib/actions/gallery";
 
+// ─── Text helpers ──────────────────────────────────────────────────
+
+/**
+ * Event date, pinned to Nepal time so the server render and the browser agree
+ * (a visitor's own timezone could otherwise shift a late-evening start by a
+ * day and cause a hydration mismatch). Empty when the value is unparseable.
+ */
+export function formatGalleryDate(value: string, month: "short" | "long" = "short"): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
+    month,
+    day: "numeric",
+    year: "numeric",
+    timeZone: "Asia/Kathmandu",
+  });
+}
+
+/** What the item shows: its caption, or the event title when it has none. */
+export function galleryAlt(photo: Pick<GalleryPhoto, "caption" | "event">): string {
+  return photo.caption ?? photo.event;
+}
+
+const GRID_CLASS = "grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 lg:gap-4 xl:grid-cols-4";
+
+export interface GalleryGroup {
+  /** Stable React key: event title plus the index of its first item. */
+  key: string;
+  event: string;
+  eventSlug: string | null;
+  date: string;
+  location: string | null;
+  items: { photo: GalleryPhoto; index: number }[];
+}
+
+/**
+ * Consecutive items of the same event become one section with its own date
+ * header. Each item keeps its index in the flat list, so the lightbox can
+ * still step across section boundaries. Runs are split only where the event
+ * changes, so appending a page extends the last section instead of starting
+ * a new one.
+ */
+export function groupByEvent(photos: GalleryPhoto[]): GalleryGroup[] {
+  const groups: GalleryGroup[] = [];
+  photos.forEach((photo, index) => {
+    const last = groups[groups.length - 1];
+    if (last && last.event === photo.event) {
+      last.items.push({ photo, index });
+      return;
+    }
+    groups.push({
+      key: `${photo.event}-${index}`,
+      event: photo.event,
+      eventSlug: photo.event_slug,
+      date: photo.date,
+      location: photo.location,
+      items: [{ photo, index }],
+    });
+  });
+  return groups;
+}
+
 // ─── Loading skeleton ──────────────────────────────────────────────
-// Same box as a real card (4:3 inside a 1px-padded rounded frame), so tiles
-// swap in without the grid jumping.
+// Same box as a real card (a 4:3 rounded tile), so tiles swap in without the
+// grid jumping.
 
 export function GallerySkeletonTiles({ count }: { count: number }) {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="rounded-2xl border border-border bg-surface p-1" aria-hidden="true">
-          <Skeleton className="w-full aspect-[4/3] rounded-[14px]" />
-        </div>
+        <Skeleton
+          key={i}
+          className="aspect-[4/3] w-full rounded-xl motion-reduce:animate-none"
+        />
       ))}
     </>
   );
@@ -88,8 +151,10 @@ function VideoThumbnail({ url }: { url: string }) {
           playing ? "opacity-0" : "opacity-100"
         }`}
       >
-        <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-          <Play className="w-5 h-5 text-surface-inverse ml-0.5" />
+        {/* Phones have no hover preview and the corner chip already marks the
+            tile as a video, so the badge would only cover the caption. */}
+        <div className="hidden h-12 w-12 items-center justify-center rounded-full bg-black/45 ring-1 ring-white/40 backdrop-blur-sm sm:flex">
+          <Play className="ml-0.5 h-5 w-5 fill-white text-white" aria-hidden="true" />
         </div>
       </div>
     </div>
@@ -104,16 +169,16 @@ function PhotoThumbnail({ photo }: { photo: GalleryPhoto }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <>
-      {!loaded && <Skeleton className="absolute inset-0 rounded-none" />}
+      {!loaded && <Skeleton className="absolute inset-0 rounded-none motion-reduce:animate-none" />}
       <Image
         // Stored URL + loader: each srcset width is a Cloudinary transform
         // served from its CDN, not a round trip through /_next/image.
         src={photo.url}
         loader={cloudinaryImageLoader(photo.optimize, 800)}
-        alt={photo.event}
+        alt={galleryAlt(photo)}
         fill
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-        className={`object-cover transition-[opacity,transform] duration-500 group-hover:scale-105 ${
+        sizes="(max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+        className={`object-cover transition-[opacity,transform] duration-500 ease-out motion-safe:group-hover:scale-[1.04] motion-reduce:transition-none ${
           loaded ? "opacity-100" : "opacity-0"
         }`}
         onLoad={() => setLoaded(true)}
@@ -125,6 +190,16 @@ function PhotoThumbnail({ photo }: { photo: GalleryPhoto }) {
     </>
   );
 }
+
+// ─── Lightbox button styles ────────────────────────────────────────
+// The lightbox is always a dark stage, in light and dark mode alike, so its
+// controls are white-on-black rather than surface tokens. Every control is at
+// least 44px tall (WCAG 2.5.5 target size).
+
+const LIGHTBOX_ACTION =
+  "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 text-sm font-medium text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white motion-reduce:transition-none";
+const LIGHTBOX_ICON =
+  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white/85 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white motion-reduce:transition-none";
 
 // ─── Download control ──────────────────────────────────────────────
 // Best-quality download (stored original bytes via fl_attachment) for
@@ -146,12 +221,8 @@ function DownloadControl({
   if (!canDownload) {
     if (variant === "card") return null;
     return (
-      <Link
-        href="/sign-in"
-        onClick={(e) => e.stopPropagation()}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-primary hover:bg-surface-hover text-xs font-medium transition-all shrink-0"
-      >
-        <LogIn className="w-3.5 h-3.5" />
+      <Link href="/sign-in" onClick={(e) => e.stopPropagation()} className={LIGHTBOX_ACTION}>
+        <LogIn className="h-4 w-4" aria-hidden="true" />
         Sign in to download
       </Link>
     );
@@ -164,9 +235,9 @@ function DownloadControl({
         onClick={(e) => e.stopPropagation()}
         aria-label="Download photo at full quality"
         title="Download full quality"
-        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/50 border border-white/20 text-white/80 hover:text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 [@media(hover:none)]:opacity-100"
+        className="absolute right-2 top-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white/90 ring-1 ring-white/20 backdrop-blur-sm transition-opacity hover:bg-black/75 hover:text-white focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
       >
-        <Download className="w-4 h-4" />
+        <Download className="h-4 w-4" aria-hidden="true" />
       </a>
     );
   }
@@ -175,13 +246,58 @@ function DownloadControl({
       href={cloudinaryDownloadUrl(url)}
       download
       onClick={(e) => e.stopPropagation()}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-primary hover:bg-surface-hover text-xs font-medium transition-all shrink-0"
+      className={LIGHTBOX_ACTION}
     >
-      <Download className="w-3.5 h-3.5" />
+      <Download className="h-4 w-4" aria-hidden="true" />
       Download
     </a>
   );
 }
+
+// ─── Share control ─────────────────────────────────────────────────
+// The lightbox already sits on the item's canonical URL, so a link to it would
+// be a no-op. Native share sheet where the browser has one; otherwise copy the
+// link. If the clipboard is refused too, open the item's own page, which has
+// the full copy/share fallback.
+
+function ShareControl({ id, title, className }: { id: string; title: string; className: string }) {
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const t = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(t);
+  }, [copied]);
+  // Reset when moving to another item.
+  useEffect(() => setCopied(false), [id]);
+
+  const handleClick = () => {
+    const url = `${window.location.origin}/gallery/${id}`;
+    const copy = () =>
+      navigator.clipboard
+        .writeText(url)
+        .then(() => setCopied(true))
+        .catch(() => window.location.assign(`/gallery/${id}`));
+    // share() must run synchronously inside the click to keep user activation.
+    if (typeof navigator.share === "function") {
+      navigator.share({ title, url }).catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        void copy();
+      });
+      return;
+    }
+    void copy();
+  };
+
+  return (
+    <button type="button" onClick={handleClick} className={className}>
+      {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Share2 className="h-4 w-4" aria-hidden="true" />}
+      <span aria-live="polite">{copied ? "Link copied" : "Share"}</span>
+    </button>
+  );
+}
+
+/** Height of the native video control bar plus slack; swipes starting here scrub instead. */
+const VIDEO_CONTROLS_HEIGHT = 96;
 
 // ─── LightboxPhoto (extends GalleryPhoto with nav fields) ──────────
 
@@ -296,165 +412,178 @@ function Lightbox({
     return () => window.removeEventListener("keydown", handleKey);
   }, [onClose, onPrev, onNext]);
 
+  // Swipe left/right on the stage to move between items. The video fills the
+  // stage, so a swipe over it still navigates, except when it starts on the
+  // native control bar along its bottom edge, where a horizontal drag scrubs.
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    if (e.target instanceof HTMLVideoElement) {
+      const box = e.target.getBoundingClientRect();
+      if (t.clientY > box.bottom - VIDEO_CONTROLS_HEIGHT) return;
+    }
+    touchStart.current = { x: t.clientX, y: t.clientY };
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (dx < 0 && hasNext) onNext();
+    if (dx > 0 && hasPrev) onPrev();
+  };
+
+  const date = formatGalleryDate(photo.date, "long");
+  const navButton =
+    "absolute top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white ring-1 ring-white/15 backdrop-blur transition-[opacity,background-color] hover:bg-black/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:pointer-events-none disabled:opacity-0 md:h-12 md:w-12 motion-reduce:transition-none";
+
   return (
+    // Full-bleed: the media gets the whole viewport, with a slim bar above
+    // (position, close) and the details below, so nothing sits on the photo.
     <div
       ref={overlayRef}
       role="dialog"
       aria-modal="true"
-      aria-label={`${photo.event} — ${isVideo ? "video" : "photo"} preview`}
+      aria-label={`${galleryAlt(photo)}: ${isVideo ? "video" : "photo"} preview`}
       tabIndex={-1}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300 outline-none"
+      className="fixed inset-0 z-[100] flex flex-col bg-black text-white outline-none animate-in fade-in duration-200 motion-reduce:animate-none"
     >
-      <div className="absolute inset-0 bg-surface-inverse" onClick={onClose} />
-
-      <div className="relative max-w-6xl w-full max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-300">
-        {/* Top bar */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            {isVideo && (
-              <>
-                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-red/20 text-primary-red text-[10px] font-mono font-bold uppercase tracking-wider">
-                  <Video className="w-3.5 h-3.5" />
-                  Video
-                </span>
-                <button
-                  onClick={toggleVideo}
-                  className="p-1.5 rounded-full bg-surface text-primary hover:bg-surface-hover transition-colors"
-                  aria-label={videoPlaying ? "Pause" : "Play"}
-                >
-                  {videoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                </button>
-              </>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-white/60 hover:text-white transition-colors"
-            aria-label="Close lightbox"
-          >
-            <X size={28} />
-          </button>
-        </div>
-
-        {/* Media container */}
-        <div className="relative w-full flex-1 min-h-0 flex items-center gap-2 md:gap-4">
-          <button
-            onClick={onPrev}
-            disabled={!hasPrev}
-            className="shrink-0 p-2 rounded-full bg-surface text-primary hover:bg-surface-hover transition-all disabled:opacity-20 disabled:cursor-not-allowed z-10"
-            aria-label="Previous"
-          >
-            <ChevronLeft size={24} />
-          </button>
-
-          <div className="relative flex-1 h-[60vh] md:h-[75vh] rounded-2xl overflow-hidden bg-surface-inverse">
-            {isVideo ? (
-              <video
-                // Fresh element per item: no stale playback state or
-                // half-buffered src carried across prev/next.
-                key={photo.id}
-                ref={videoRef}
-                poster={videoPosterUrl(photo.url, 1600) ?? undefined}
-                controls
-                playsInline
-                preload="auto"
-                onLoadedData={markLoaded}
-                onPlay={() => setVideoPlaying(true)}
-                onPause={() => setVideoPlaying(false)}
-                onEnded={() => setVideoPlaying(false)}
-                onError={fallBackToWebmOnDecodeError}
-                className="w-full h-full object-contain"
+      {/* Top bar: position, media type, close */}
+      <div className="flex items-center justify-between gap-2 px-2 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4">
+        <div className="flex min-w-0 items-center gap-2 pl-2">
+          <span className="font-mono text-sm tabular-nums text-white/80" aria-live="polite">
+            {photo.index + 1} / {photo.total}
+          </span>
+          {isVideo && (
+            <>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white">
+                <Video className="h-3.5 w-3.5" aria-hidden="true" />
+                Video
+              </span>
+              <button
+                type="button"
+                onClick={toggleVideo}
+                className={LIGHTBOX_ICON}
+                aria-label={videoPlaying ? "Pause" : "Play"}
               >
-                {/* With <source> children a failed load fires `error` on the
-                    source, not the <video>, so the last one clears the spinner. */}
-                {videoSources(photo.url, 1600).map((s, i, all) => (
-                  <source
-                    key={s.src}
-                    src={s.src}
-                    type={s.type}
-                    onError={i === all.length - 1 ? markLoaded : undefined}
-                  />
-                ))}
-              </video>
-            ) : (
-              <Image
-                key={photo.id}
-                src={photo.url}
-                loader={cloudinaryImageLoader(photo.optimize, 1600)}
-                alt={photo.event}
-                fill
-                className="object-contain"
-                sizes="(max-width: 1024px) 90vw, 80vw"
-                onLoad={markLoaded}
-                onError={(e) => {
-                  markLoaded();
-                  (e.target as HTMLImageElement).src = getDiceBearPlaceholder(photo.id);
-                }}
-              />
-            )}
+                {videoPlaying ? <Pause className="h-5 w-5" aria-hidden="true" /> : <Play className="h-5 w-5" aria-hidden="true" />}
+              </button>
+            </>
+          )}
+        </div>
+        <button type="button" onClick={onClose} className={LIGHTBOX_ICON} aria-label="Close lightbox">
+          <X className="h-6 w-6" aria-hidden="true" />
+        </button>
+      </div>
 
-            {mediaLoading && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
-                <Loader2 className="w-8 h-8 animate-spin text-white/70" />
-              </div>
-            )}
-
-            {/* Bottom caption overlay */}
-            <div className="absolute bottom-0 inset-x-0 p-5 md:p-8 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-lg md:text-xl font-bold text-white truncate">
-                    {photo.event}
-                  </h4>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
-                    <span className="text-white/60 text-xs font-mono">
-                      {new Date(photo.date).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                    {photo.uploader && (
-                      <span className="text-white/50 text-xs">
-                        by {photo.uploader}
-                      </span>
-                    )}
-                    {isVideo && photo.duration && (
-                      <span className="text-primary-red text-xs font-semibold">
-                        {Math.round(photo.duration)}s
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {photo.event_slug && (
-                  <Link
-                    href={`/events/${photo.event_slug}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-primary hover:bg-surface-hover text-xs font-medium transition-all shrink-0"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    View Event
-                  </Link>
-                )}
-                <DownloadControl url={photo.url} isVideo={isVideo} canDownload={canDownload} variant="lightbox" />
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={onNext}
-            disabled={!hasNext}
-            className="shrink-0 p-2 rounded-full bg-surface text-primary hover:bg-surface-hover transition-all disabled:opacity-20 disabled:cursor-not-allowed z-10"
-            aria-label="Next"
-          >
-            <ChevronRight size={24} />
-          </button>
+      {/* Stage: prev/next float over the media so phones do not lose width
+          to two side buttons. A swipe does the same on touch. */}
+      <div className="relative min-h-0 flex-1" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        {/* Keyed per item: each photo fades in on its own instead of the old
+            one being swapped in place. */}
+        <div key={photo.id} className="absolute inset-0 animate-in fade-in duration-300 motion-reduce:animate-none">
+          {isVideo ? (
+            <video
+              // Fresh element per item: no stale playback state or
+              // half-buffered src carried across prev/next.
+              key={photo.id}
+              ref={videoRef}
+              poster={videoPosterUrl(photo.url, 1600) ?? undefined}
+              controls
+              playsInline
+              preload="auto"
+              onLoadedData={markLoaded}
+              onPlay={() => setVideoPlaying(true)}
+              onPause={() => setVideoPlaying(false)}
+              onEnded={() => setVideoPlaying(false)}
+              onError={fallBackToWebmOnDecodeError}
+              className="h-full w-full object-contain"
+            >
+              {/* With <source> children a failed load fires `error` on the
+                  source, not the <video>, so the last one clears the spinner. */}
+              {videoSources(photo.url, 1600).map((s, i, all) => (
+                <source
+                  key={s.src}
+                  src={s.src}
+                  type={s.type}
+                  onError={i === all.length - 1 ? markLoaded : undefined}
+                />
+              ))}
+            </video>
+          ) : (
+            <Image
+              key={photo.id}
+              src={photo.url}
+              loader={cloudinaryImageLoader(photo.optimize, 1600)}
+              alt={galleryAlt(photo)}
+              fill
+              className="object-contain"
+              sizes="100vw"
+              onLoad={markLoaded}
+              onError={(e) => {
+                markLoaded();
+                (e.target as HTMLImageElement).src = getDiceBearPlaceholder(photo.id);
+              }}
+            />
+          )}
         </div>
 
-        {/* Counter */}
-        <p className="text-center text-xs font-mono text-white/40 mt-3">
-          {photo.index + 1} / {photo.total}
-        </p>
+        {mediaLoading && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
+            <Loader2 className="h-8 w-8 animate-spin text-white/70 motion-reduce:animate-none" />
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={onPrev}
+          disabled={!hasPrev}
+          className={`${navButton} left-2 md:left-6`}
+          aria-label="Previous"
+        >
+          <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={!hasNext}
+          className={`${navButton} right-2 md:right-6`}
+          aria-label="Next"
+        >
+          <ChevronRight className="h-6 w-6" aria-hidden="true" />
+        </button>
+      </div>
+
+      {/* Details sit under the media, not over it, so the caption never
+          covers the photo and is readable on any image. */}
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:flex-row md:items-end md:justify-between md:px-6">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-base font-semibold leading-snug text-white md:text-lg">
+            {galleryAlt(photo)}
+          </h2>
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/70 md:text-sm">
+            {photo.caption && <span className="font-semibold text-white/90">{photo.event}</span>}
+            {date && <span className="font-mono">{date}</span>}
+            {photo.location && <span>{photo.location}</span>}
+            {photo.uploader && <span>by {photo.uploader}</span>}
+            {isVideo && photo.duration && (
+              <span className="font-semibold text-white/90">{Math.round(photo.duration)}s</span>
+            )}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ShareControl id={photo.id} title={`${galleryAlt(photo)} · ${photo.event}`} className={LIGHTBOX_ACTION} />
+          {photo.event_slug && (
+            <Link href={`/events/${photo.event_slug}`} onClick={(e) => e.stopPropagation()} className={LIGHTBOX_ACTION}>
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              View event
+            </Link>
+          )}
+          <DownloadControl url={photo.url} isVideo={isVideo} canDownload={canDownload} variant="lightbox" />
+        </div>
       </div>
     </div>
   );
@@ -474,7 +603,8 @@ function GalleryCard({
   canDownload: boolean;
 }) {
   const isVideo = isVideoUrl(photo.url);
-  const date = new Date(photo.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const date = formatGalleryDate(photo.date);
+  const title = galleryAlt(photo);
 
   return (
     // Wrapper keeps valid HTML: the download control is a sibling of the card
@@ -483,31 +613,83 @@ function GalleryCard({
       <Link
         href={`/gallery/${photo.id}`}
         onClick={(event) => onOpen(event, index, photo.id)}
-        aria-label={`${photo.event}, ${isVideo ? "video" : "photo"}, ${date}`}
-        className="block w-full overflow-hidden rounded-2xl border border-border bg-surface text-left transition-shadow hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        aria-label={[title, photo.caption ? photo.event : null, isVideo ? "video" : "photo", date]
+          .filter(Boolean)
+          .join(", ")}
+        // The 4:3 box is fixed before any byte arrives, so nothing shifts
+        // while thumbnails load.
+        className="relative block aspect-[4/3] w-full overflow-hidden rounded-xl bg-muted ring-1 ring-border transition-shadow duration-300 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
       >
-        <div className="p-1">
-          <div className="relative w-full aspect-[4/3] overflow-hidden rounded-[14px]">
-            {isVideo ? <VideoThumbnail url={photo.url} /> : <PhotoThumbnail photo={photo} />}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          </div>
-        </div>
+        {isVideo ? <VideoThumbnail url={photo.url} /> : <PhotoThumbnail photo={photo} />}
 
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 p-3 md:p-4">
-          <h3 className="text-sm font-bold text-white truncate drop-shadow-sm">{photo.event}</h3>
-          <div className="mt-1 flex items-center justify-between gap-2">
-            <span className="text-[11px] font-mono text-white/75 drop-shadow-sm">{date}</span>
-            {isVideo && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white">
-                <Video className="w-3 h-3" />
-                {photo.duration ? `${Math.round(photo.duration)}s` : "Video"}
-              </span>
-            )}
-          </div>
+        {isVideo && (
+          <span className="pointer-events-none absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm sm:text-[11px]">
+            <Video className="h-3 w-3" aria-hidden="true" />
+            {photo.duration ? `${Math.round(photo.duration)}s` : "Video"}
+          </span>
+        )}
+
+        {/* Caption: always shown on touch screens, which have no hover; on
+            pointer devices it rises in on hover or keyboard focus. The
+            section header above already names the event and date. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/45 to-transparent p-2.5 pt-8 transition-[opacity,transform] duration-200 ease-out sm:p-3 sm:pt-10 motion-reduce:transition-none [@media(hover:hover)]:translate-y-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-focus-within:translate-y-0 [@media(hover:hover)]:group-focus-within:opacity-100 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100">
+          <h3 className="line-clamp-2 text-xs font-semibold leading-snug text-white sm:text-sm">{title}</h3>
+          <p className="mt-0.5 truncate font-mono text-[10px] text-white/80 sm:text-[11px]">
+            {photo.caption ? <span className="hidden sm:inline">{photo.event} · </span> : null}
+            {date}
+          </p>
         </div>
       </Link>
       <DownloadControl url={photo.url} isVideo={isVideo} canDownload={canDownload} variant="card" />
     </div>
+  );
+}
+
+// ─── Event section ─────────────────────────────────────────────────
+
+function GallerySection({
+  group,
+  headingId,
+  children,
+}: {
+  group: GalleryGroup;
+  headingId: string;
+  children: React.ReactNode;
+}) {
+  const date = formatGalleryDate(group.date, "long");
+  return (
+    <section aria-labelledby={headingId}>
+      <header className="mb-3 flex items-end justify-between gap-3 border-b border-border pb-3 md:mb-5">
+        <div className="min-w-0 flex-1">
+          <h2 id={headingId} className="text-lg font-bold leading-tight text-primary md:text-2xl">
+            {group.event}
+          </h2>
+          <p className="mt-1 flex min-w-0 items-center gap-x-2 text-xs text-secondary md:text-sm">
+            {date && (
+              <time dateTime={group.date} className="shrink-0 font-mono">
+                {date}
+              </time>
+            )}
+            {date && group.location && <span aria-hidden="true">·</span>}
+            {group.location && (
+              <span className="truncate" title={group.location}>
+                {group.location}
+              </span>
+            )}
+          </p>
+        </div>
+        {group.eventSlug && (
+          <Link
+            href={`/events/${group.eventSlug}`}
+            className="-mr-3 inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full px-3 text-sm font-semibold text-primary-red hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red"
+          >
+            View event
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        )}
+      </header>
+      {children}
+    </section>
   );
 }
 
@@ -667,6 +849,8 @@ export default function GalleryGrid({
     return () => observer.disconnect();
   }, [hasMore, loadError, handleLoadMore]);
 
+  const groups = useMemo(() => groupByEvent(photos), [photos]);
+
   // Build the lightbox photo with nav fields
   const selectedPhoto: LightboxPhoto | null = useMemo(() => {
     if (selectedIdx === null) return null;
@@ -810,7 +994,7 @@ export default function GalleryGrid({
       )}
 
       {filtering ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" aria-busy="true">
+        <div className={GRID_CLASS} aria-busy="true">
           <GallerySkeletonTiles count={8} />
         </div>
       ) : photos.length === 0 && !loadError ? (
@@ -842,19 +1026,25 @@ export default function GalleryGrid({
           )}
         </div>
       ) : (
-        // Row-major grid, not CSS columns: with columns, appending a page
+        // Row-major grids, not CSS columns: with columns, appending a page
         // reflowed every existing tile into a different column.
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {photos.map((photo, idx) => (
-            <GalleryCard
-              key={photo.id}
-              photo={photo}
-              index={idx}
-              onOpen={handleOpen}
-              canDownload={canDownload}
-            />
+        <div className="space-y-10 md:space-y-14">
+          {groups.map((group, groupIdx) => (
+            <GallerySection key={group.key} group={group} headingId={`gallery-section-${groupIdx}`}>
+              <div className={GRID_CLASS}>
+                {group.items.map(({ photo, index }) => (
+                  <GalleryCard
+                    key={photo.id}
+                    photo={photo}
+                    index={index}
+                    onOpen={handleOpen}
+                    canDownload={canDownload}
+                  />
+                ))}
+                {loadingMore && groupIdx === groups.length - 1 && <GallerySkeletonTiles count={4} />}
+              </div>
+            </GallerySection>
           ))}
-          {loadingMore && <GallerySkeletonTiles count={4} />}
         </div>
       )}
 

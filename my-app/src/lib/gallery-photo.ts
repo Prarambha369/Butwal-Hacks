@@ -22,6 +22,15 @@ export type GalleryPhoto = {
   url: string;
   event: string;
   event_slug: string | null;
+  /** Where the event took place, when the event row records it. */
+  location: string | null;
+  /** One-line caption for this item; null means "use the event title". */
+  caption: string | null;
+  /**
+   * When the moment happened: the event's start date. Falls back to the
+   * upload time only for rows whose event has no date. The upload time alone
+   * was wrong for every bulk import (HackDay, 17 Jan, showed as 21 Oct).
+   */
   date: string;
   span: number;
   uploader: string | null;
@@ -34,13 +43,31 @@ export type GalleryPhoto = {
 };
 
 export const PHOTO_SELECT = `
-  id, url, span, optimized_transform, created_at, media_type, duration_seconds,
-  events ( id, title, slug ),
+  id, url, span, optimized_transform, created_at, media_type, duration_seconds, caption,
+  events ( id, title, slug, start_date, location ),
   profiles!photos_uploader_id_fkey ( full_name )
 `;
 
 /** Same columns, but the event embed is an inner join so it can filter rows. */
 export const PHOTO_SELECT_BY_EVENT = PHOTO_SELECT.replace("events (", "events!inner (");
+
+/** Postgres "undefined_column". */
+const UNDEFINED_COLUMN = "42703";
+
+/**
+ * Run a photos read, retrying without `caption` if the column does not exist
+ * yet. Migration 148 adds it; until it has run on a database, the gallery
+ * must keep working rather than fail every read. Remove once 148 is applied
+ * everywhere.
+ */
+export async function selectWithCaptionFallback<T>(
+  select: string,
+  run: (select: string) => PromiseLike<{ data: T; error: { code?: string } | null }>,
+): Promise<{ data: T; error: { code?: string } | null }> {
+  const first = await run(select);
+  if (first.error?.code !== UNDEFINED_COLUMN) return first;
+  return run(select.replace(" caption,", ""));
+}
 
 export function mapPhoto(p: Record<string, unknown>): GalleryPhoto {
   // PostgREST types the embedded event/profile as one-to-many, so they can
@@ -49,6 +76,8 @@ export function mapPhoto(p: Record<string, unknown>): GalleryPhoto {
   const ev = (Array.isArray(p.events) ? p.events[0] : p.events ?? {}) as {
     title?: string;
     slug?: string;
+    start_date?: string | null;
+    location?: string | null;
   };
   const prof = (Array.isArray(p.profiles)
     ? p.profiles[0]
@@ -61,13 +90,17 @@ export function mapPhoto(p: Record<string, unknown>): GalleryPhoto {
     span?: number;
     duration_seconds?: number | null;
     media_type?: string;
+    caption?: string | null;
   };
+  const caption = typeof row.caption === "string" ? row.caption.trim() : "";
   return {
     id: row.id ?? "",
     url: row.url ?? "",
     event: ev.title ?? "Unknown Event",
     event_slug: ev.slug ?? null,
-    date: row.created_at ?? "",
+    location: ev.location?.trim() || null,
+    caption: caption || null,
+    date: ev.start_date ?? row.created_at ?? "",
     span: row.span ?? 1,
     uploader: prof.full_name ?? null,
     optimize: row.optimized_transform ?? null,
@@ -97,17 +130,15 @@ export const getGalleryPhoto = cache(async (id: string): Promise<GalleryPhoto | 
   if (!photoId.safeParse(id).success) return null;
 
   const supabase = createServiceClient();
-  const { data, error } = await supabase
-    .from("photos")
-    .select(PHOTO_SELECT)
-    .eq("id", id)
-    .eq("status", "approved")
-    .maybeSingle();
+  const { data, error } = await selectWithCaptionFallback(PHOTO_SELECT, (select) =>
+    supabase.from("photos").select(select).eq("id", id).eq("status", "approved").maybeSingle(),
+  );
 
   if (error) {
     logger.error("Error fetching gallery photo:", error);
     throw error;
   }
   if (!data) return null;
-  return mapPhoto(data as Record<string, unknown>);
+  // The select string is chosen at runtime, so PostgREST cannot type the row.
+  return mapPhoto(data as unknown as Record<string, unknown>);
 });
