@@ -58,6 +58,8 @@ export default async function WidgetPage({ params, searchParams }: Props) {
       )
     `)
     .eq("bh_id", slugId)
+    // Unlisted (test/internal) accounts are hidden like a missing ID.
+    .eq("is_listed", true)
     .single();
 
   if (error || !profile) notFound();

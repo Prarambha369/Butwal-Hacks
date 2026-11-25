@@ -18,6 +18,7 @@ import {
   findMergeCandidates,
   githubAccountId,
   isMergeCandidate,
+  verifiedMatchEmail,
   linkedAuth0Subjects,
   resolveLinkedIdentitySubjects,
 } from "../account-consolidation";
@@ -365,5 +366,25 @@ describe("resolveLinkedIdentitySubjects", () => {
     mockedGetLinkedIdentitySubjects.mockResolvedValue([]);
 
     await expect(resolveLinkedIdentitySubjects("auth0|primary", null)).resolves.toEqual([]);
+  });
+});
+
+describe("verifiedMatchEmail", () => {
+  it("uses the profile email only when the session verified that same address", () => {
+    expect(verifiedMatchEmail("a@b.com", { email: "A@B.com", email_verified: true })).toBe("a@b.com");
+  });
+
+  it.each([
+    ["unverified", { email: "a@b.com", email_verified: false }],
+    ["verification unknown", { email: "a@b.com" }],
+    ["a different verified address", { email: "c@d.com", email_verified: true }],
+    ["no email (private GitHub, LinkedIn)", { email_verified: true }],
+    ["no session", null],
+  ])("returns null when the session is %s", (_label, user) => {
+    expect(verifiedMatchEmail("a@b.com", user)).toBeNull();
+  });
+
+  it("returns null when the profile has no email", () => {
+    expect(verifiedMatchEmail(null, { email: "a@b.com", email_verified: true })).toBeNull();
   });
 });

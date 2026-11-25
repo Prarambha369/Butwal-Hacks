@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .from("profiles")
     .select("full_name, bh_id")
     .eq("bh_id", slug_id)
+    .eq("is_listed", true)
     .single();
 
   if (!profile) {
@@ -57,6 +58,8 @@ export default async function ProfilePage({ params }: Props) {
       )
     `)
     .eq("bh_id", slug_id)
+    // Unlisted (test/internal) accounts 404 exactly like a missing ID.
+    .eq("is_listed", true)
     .single();
 
   if (error || !profile) {

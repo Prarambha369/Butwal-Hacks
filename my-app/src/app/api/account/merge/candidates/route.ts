@@ -13,6 +13,7 @@ import { withRateLimit } from "@/lib/rate-limiter";
 import { auth0 } from "@/lib/auth0";
 import {
   findMergeCandidates,
+  verifiedMatchEmail,
   githubAccountId,
   resolveLinkedIdentitySubjects,
 } from "@/lib/actions/account-consolidation";
@@ -44,7 +45,7 @@ export const GET = withRateLimit(async () => {
 
     const candidates = await findMergeCandidates(
       currentProfile.id,
-      currentProfile.email,
+      verifiedMatchEmail(currentProfile.email, session.user),
       githubAccountId(currentProfile.linked_accounts),
       // Auth0 is the authority: the profile cache can be empty while the
       // identity is already linked, which hid every merge candidate.

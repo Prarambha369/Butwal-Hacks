@@ -58,6 +58,7 @@ function mockDb(tables: TableRows) {
     const builder = {
       select: vi.fn(() => builder),
       or: vi.fn(() => builder),
+      eq: vi.fn(() => builder),
       range: vi.fn(() => builder),
       then: (resolve: (v: { data: Row[] | null; error: unknown }) => unknown) =>
         Promise.resolve({ data: tables[table] ?? null, error: null }).then(resolve),
@@ -354,6 +355,7 @@ describe("POST /api/search", () => {
           orCalls.push(filter);
           return builder;
         }),
+        eq: vi.fn(() => builder),
         range: vi.fn(() => builder),
         then: (resolve: (v: { data: Row[] | null; error: unknown }) => unknown) =>
           Promise.resolve({ data: null, error: null }).then(resolve),

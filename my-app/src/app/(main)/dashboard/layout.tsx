@@ -1,4 +1,5 @@
 import { auth0 } from "@/lib/auth0"
+import { logger } from "@/lib/logger"
 import { redirect } from "next/navigation"
 import type { Metadata } from "next"
 import { createServiceClient } from "@/utils/supabase"
@@ -56,13 +57,26 @@ export default async function DashboardLayout({
       p_email: userEmail,
       p_full_name: session?.user?.name || 'New Hacker',
       p_role: initialRole,
+      // Only a verified address may claim a pre-existing (ghost) profile on
+      // that email; otherwise anyone could sign up with it and take the row.
+      p_email_verified: session?.user?.email_verified === true,
     })
 
-    if (rpcError) {
+    if (rpcError?.code === "23505") {
+      // Unique violation. If the webhook won the race, the row now exists for
+      // this sub and there is nothing to do. Otherwise the email belongs to
+      // another login method: don't create a second account, explain it.
+      const { data: raced } = await db
+        .from('profiles')
+        .select('id')
+        .eq('auth0_user_id', userId)
+        .maybeSingle()
+      if (!raced) redirect("/account-exists")
+    } else if (rpcError) {
       // Fallback: generate a unique BH-ID client-side to avoid crashing the dashboard
       const fallbackSuffix = crypto.randomUUID().slice(0, 8).toUpperCase();
       const bhId = `BH-${new Date().getFullYear().toString().slice(2)}-${fallbackSuffix}`;
-      await db.from('profiles').insert({
+      const { error: insertError } = await db.from('profiles').insert({
         id: crypto.randomUUID(),
         auth0_user_id: userId,
         slug_id: bhId,
@@ -72,6 +86,7 @@ export default async function DashboardLayout({
         role: initialRole,
         is_claimed: true,
       })
+      if (insertError) logger.error("[dashboard] profile bootstrap failed:", insertError)
     }
   }
 

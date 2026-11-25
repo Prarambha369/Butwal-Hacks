@@ -48,7 +48,9 @@ describe("searchTalent", () => {
     // Markers query: from().select().in().eq() — eq is terminal
     // First eq in profiles is non-terminal → mockImplementationOnce returns db
     // eq in markers is terminal → mockResolvedValue returns data
+    // profiles: .eq(is_claimed) and .eq(is_listed) are non-terminal
     db.eq
+      .mockImplementationOnce(() => db)
       .mockImplementationOnce(() => db)
       .mockResolvedValue({
         data: [
@@ -79,7 +81,9 @@ describe("searchTalent", () => {
       error: null,
     });
     // Markers query: .in() returns db, .eq() is terminal
+    // profiles: .eq(is_claimed) and .eq(is_listed) are non-terminal
     db.eq
+      .mockImplementationOnce(() => db)
       .mockImplementationOnce(() => db)
       .mockResolvedValue({
         data: [

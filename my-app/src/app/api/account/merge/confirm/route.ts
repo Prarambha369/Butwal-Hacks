@@ -45,7 +45,7 @@ export const POST = withRateLimit(async (request: Request) => {
 
     // Execute the merge; mergeProfiles resolves the target from auth0UserId
     // and authorizes the source against the caller's merge candidates.
-    const result = await mergeProfiles(source_profile_id, auth0UserId);
+    const result = await mergeProfiles(source_profile_id, auth0UserId, session.user);
 
     if (!result.success) {
       return NextResponse.json(

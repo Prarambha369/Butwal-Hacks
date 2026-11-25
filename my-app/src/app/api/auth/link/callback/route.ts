@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createServiceClient } from "@/utils/supabase";
+import { auth0 } from "@/lib/auth0";
 import { describeSupabaseError } from "@/lib/supabase-error";
 import { withRateLimit } from "@/lib/rate-limiter";
 import { logger } from "@/lib/logger";
@@ -89,6 +90,20 @@ export const GET = withRateLimit(async (request: Request) => {
     }
 
     const { primaryUserId, provider } = state;
+
+    // The cookie is plain text the browser controls, so it proves nothing
+    // about who the primary user is. Without this check anyone could write
+    // `nonce:<victim sub>:github` into their own cookie, complete OAuth with
+    // their own GitHub, and have it linked into the victim's account (and
+    // then sign in as the victim). The primary is the signed-in session.
+    const session = await auth0.getSession();
+    if (!session?.user?.sub || session.user.sub !== primaryUserId) {
+      logger.warn("[auth/link/callback] Link state does not belong to the signed-in user");
+      cookieStore.delete(linkStateCookieDeleteOptions());
+      return NextResponse.redirect(
+        linkResultRedirect("error", "Please sign in again, then connect the account from your dashboard.")
+      );
+    }
 
     // Clear the state cookie using the SAME path it was set with. Deleting
     // without the path silently no-ops on a path-scoped cookie, which left the

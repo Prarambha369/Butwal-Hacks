@@ -148,6 +148,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_workspace_updated_at ON workspaces;
+-- Re-runnable: the Supabase Preview replay fails on an existing trigger.
+DROP TRIGGER IF EXISTS trg_workspace_timestamp ON workspaces;
 CREATE TRIGGER trg_workspace_timestamp
   BEFORE UPDATE ON workspaces
   FOR EACH ROW
@@ -155,6 +157,7 @@ CREATE TRIGGER trg_workspace_timestamp
 
 -- Auto-update updated_at on task changes
 DROP TRIGGER IF EXISTS trg_task_updated_at ON tasks;
+DROP TRIGGER IF EXISTS trg_task_timestamp ON tasks;
 CREATE TRIGGER trg_task_timestamp
   BEFORE UPDATE ON tasks
   FOR EACH ROW

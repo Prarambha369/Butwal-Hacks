@@ -209,6 +209,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select('bh_id, created_at')
       .eq('is_claimed', true)
       .eq('is_suspended', false)
+      .eq('is_listed', true)
       .not('bh_id', 'is', null)
       .limit(500)
 
