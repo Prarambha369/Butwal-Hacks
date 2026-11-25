@@ -25,6 +25,25 @@ ALTER TABLE feedback ADD COLUMN IF NOT EXISTS page_url   text;
 ALTER TABLE feedback ADD COLUMN IF NOT EXISTS user_agent text;
 ALTER TABLE feedback ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now();
 
+-- Same guard for the two CHECKs declared inline above. Names match the ones
+-- Postgres generates for a fresh CREATE, so both blocks are no-ops wherever
+-- the table was created by this migration.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                 WHERE conrelid = 'public.feedback'::regclass AND conname = 'feedback_category_check') THEN
+    ALTER TABLE public.feedback ADD CONSTRAINT feedback_category_check
+      CHECK (category IN ('bug', 'feature', 'improvement', 'other')) NOT VALID;
+    ALTER TABLE public.feedback VALIDATE CONSTRAINT feedback_category_check;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                 WHERE conrelid = 'public.feedback'::regclass AND conname = 'feedback_message_check') THEN
+    ALTER TABLE public.feedback ADD CONSTRAINT feedback_message_check
+      CHECK (char_length(message) >= 3) NOT VALID;
+    ALTER TABLE public.feedback VALIDATE CONSTRAINT feedback_message_check;
+  END IF;
+END $$;
+
 COMMENT ON TABLE feedback IS 'User-submitted feedback and bug reports from the floating feedback widget';
 COMMENT ON COLUMN feedback.name IS 'Optional display name of the submitter';
 COMMENT ON COLUMN feedback.email IS 'Optional email for follow-up';
