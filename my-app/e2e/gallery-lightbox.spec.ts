@@ -173,15 +173,22 @@ test.describe("Gallery lightbox", () => {
     // horizontal drags (video scrubbing).
     const stage = dialog.getByRole("button", { name: "Next" }).locator("..");
     const swiped = await stage.evaluate((el) => {
-      if (typeof Touch === "undefined") return false;
-      const r = el.getBoundingClientRect();
-      const y = r.top + 8;
-      const at = (x: number) => new Touch({ identifier: 1, target: el, clientX: x, clientY: y });
-      el.dispatchEvent(new TouchEvent("touchstart", { bubbles: true, touches: [at(r.right - 40)], changedTouches: [at(r.right - 40)] }));
-      el.dispatchEvent(new TouchEvent("touchend", { bubbles: true, touches: [], changedTouches: [at(r.left + 40)] }));
-      return true;
+      // WebKit (iPhone emulation included) exposes Touch but throws "Illegal
+      // constructor", so synthetic swipes only work in Chromium.
+      try {
+        const r = el.getBoundingClientRect();
+        const y = r.top + 8;
+        const at = (x: number) => new Touch({ identifier: 1, target: el, clientX: x, clientY: y });
+        const start = at(r.right - 40);
+        const end = at(r.left + 40);
+        el.dispatchEvent(new TouchEvent("touchstart", { bubbles: true, touches: [start], changedTouches: [start] }));
+        el.dispatchEvent(new TouchEvent("touchend", { bubbles: true, touches: [], changedTouches: [end] }));
+        return true;
+      } catch {
+        return false;
+      }
     });
-    test.skip(!swiped, "this engine cannot construct Touch events");
+    test.skip(!swiped, "this engine cannot construct synthetic Touch events (covered in Chromium)");
     await expect.poll(() => counter(page)).toMatch(/^2 \//);
   });
 });
