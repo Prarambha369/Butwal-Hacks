@@ -16,12 +16,14 @@ The disclosure process for security issues in the Butwal Hacks platform, plus a 
 
 ## Quick actions
 
-**Report a vulnerability.** Do not open a public GitHub issue. Email **security@butwalhacks.com** with:
+**Report a vulnerability.** Do not open a public GitHub issue. Email **tech@butwalhacks.com** with:
 
 - a clear description of the vulnerability
 - steps to reproduce; a proof-of-concept or script is preferred
 - the potential impact
 - a suggested fix, if you have one
+
+The same contact is published at [/.well-known/security.txt](https://www.butwalhacks.com/.well-known/security.txt) (RFC 9116, source `my-app/public/.well-known/security.txt`). Its `Expires` field must stay in the future — renew it each year, before 2027-11-25.
 
 ## Reference
 

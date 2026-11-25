@@ -89,7 +89,7 @@ Depending on severity and how often it happens, we may:
 | Purpose | Contact |
 |---------|---------|
 | Content or conduct you want removed | conduct@butwalhacks.com |
-| A security vulnerability | security@butwalhacks.com |
+| A security vulnerability | tech@butwalhacks.com |
 | An appeal of an enforcement decision | legal@butwalhacks.com |
 | Abusive content on our public pages | the report link on the page, or conduct@butwalhacks.com |
 

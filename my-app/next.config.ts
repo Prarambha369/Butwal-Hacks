@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import path from "path";
+import { buildStaticCsp, REPORTING_ENDPOINTS } from "./src/lib/csp";
 
 /**
  * next.config.ts — production Next.js configuration for Butwal Hacks.
@@ -14,59 +15,21 @@ import path from "path";
  *  - Sentry: error monitoring via withSentryConfig wrapper
  */
 
-// ─── Content Security Policy (Enforcement) ───────────────────────
-// Switched to enforcement mode. CSP violations are reported to /api/csp-violation.
-// The report-uri directive allows us to monitor breakage while blocking violations.
-//
-// Domains audited against actual browser-side requests (2026-07-13):
-//   - Removed: googletagmanager.com, google-analytics.com, analytics.google.com (not loaded)
-//   - Removed: api.axiom.co, api.resend.com, api.github.com, api.groq.com (server-only)
-//   - Removed: www.gravatar.com, secure.gravatar.com (no longer generating gravatar URLs)
-//   - Added:   api.cloudinary.com (upload XHR), images.unsplash.com (blog covers)
-//   - Added:   res.cloudinary.com (CDN images), api.dicebear.com (avatar fallbacks)
-//   - Fonts:   'self' only — next/font self-hosts after migration
-//
-// frame-ancestors is set per-route (next to last):
-//   - /widget/*   → frame-ancestors *  (embeddable verification widget)
-//   - /*          → frame-ancestors 'none' (blocks all framing)
-//   - We do NOT use X-Frame-Options because it's a binary header that can't
-//     vary per route alongside CSP. CSP frame-ancestors is the modern standard
-//     with full browser support (>96% global).
+// ─── Content Security Policy ─────────────────────────────────────
+// The static policy below covers CDN-cached pages, API routes and files.
+// Dynamically rendered routes (dashboard, portal, claim) get a per-request
+// nonce policy without 'unsafe-inline' from src/proxy.ts, which replaces this
+// header. Both are built in src/lib/csp.ts — see why static pages keep
+// 'unsafe-inline', the domain audit and the frame-ancestors notes there.
+// Violations are reported to /api/csp-violation (report-uri and report-to).
 
-const isDev = process.env.NODE_ENV === 'development';
+const mainCSP = buildStaticCsp(false)
+const widgetCSP = buildStaticCsp(true)
 
-/**
- * Base CSP without frame-ancestors — appended per-route below.
- *
- * media-src must list Cloudinary. Without it <video>/<audio> fall back to
- * default-src 'self', and every browser refuses the gallery clips while the
- * poster (an <img>, covered by img-src) still paints — so the tile looks fine
- * and the player just never starts. Camera capture uses srcObject, which CSP
- * does not govern.
- */
-const baseCSP = `
-  default-src 'self';
-  script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://auth.butwalhacks.com https://*.posthog.com https://va.vercel-scripts.com;
-  style-src 'self' 'unsafe-inline';
-  img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://api.dicebear.com https://api.qrserver.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://media.licdn.com https://cdn.auth0.com https://s.gravatar.com;
-  font-src 'self';
-  media-src 'self' https://res.cloudinary.com;
-  worker-src 'self' blob:;
-  object-src 'none';
-  base-uri 'self';
-  form-action 'self';
-  upgrade-insecure-requests;
-  connect-src 'self' https://vitals.vercel-insights.com https://auth.butwalhacks.com https://app.butwalhacks.com https://*.posthog.com https://api.cloudinary.com https://*.supabase.co wss://*.supabase.co https://*.ingest.us.sentry.io;
-  report-uri /api/csp-violation;
-`
-
-/** Compress whitespace without changing the directives. */
-function fmt(csp: string): string {
-  return csp.replace(/\s{2,}/g, " ").trim();
+const reportingEndpoints = {
+  key: "Reporting-Endpoints",
+  value: REPORTING_ENDPOINTS,
 }
-
-const mainCSP = `${baseCSP}  frame-ancestors 'none';`
-const widgetCSP = `${baseCSP}  frame-ancestors *;`
 
 // Transport-level headers for every route. These used to live in vercel.json
 // under a /(.*) source, but next.config headers() takes precedence over
@@ -96,18 +59,20 @@ const cspOnlyHeaders = [
   ...securityHeaders,
   {
     key: "Content-Security-Policy",
-    value: fmt(mainCSP),
+    value: mainCSP,
   },
   permissionsPolicy,
+  reportingEndpoints,
 ]
 
 const widgetCspHeaders = [
   ...securityHeaders,
   {
     key: "Content-Security-Policy",
-    value: fmt(widgetCSP),
+    value: widgetCSP,
   },
   permissionsPolicy,
+  reportingEndpoints,
 ]
 
 const nextConfig: NextConfig = {
