@@ -4,6 +4,56 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 
 const CLIENT_KEY = "__supabaseClient__";
 
+/** Delays before each retry of a PGRST303 rejection. */
+const CLOCK_SKEW_RETRY_DELAYS_MS = [750, 1500];
+
+function sleep(ms: number, signal?: AbortSignal | null) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) return reject(signal.reason);
+    const onAbort = () => {
+      clearTimeout(t);
+      reject(signal?.reason);
+    };
+    const t = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+async function isClockSkewRejection(res: Response) {
+  if (res.status !== 401) return false;
+  try {
+    const body: unknown = await res.clone().json();
+    return typeof body === "object" && body !== null &&
+      (body as { code?: unknown }).code === "PGRST303";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * fetch that retries PostgREST's `PGRST303 JWT issued at future`.
+ *
+ * Our keys are static, so the short-lived JWT PostgREST checks is minted
+ * by Supabase's API gateway; when that node's clock runs ahead of
+ * PostgREST's, a request is rejected before it executes. The skew is
+ * sub-second to a few seconds, so waiting briefly and resending succeeds.
+ * Safe for every method: a rejected request never reached the database.
+ * Streamed bodies cannot be replayed, so those are returned as-is.
+ */
+export const skewTolerantFetch: typeof fetch = async (input, init) => {
+  let res = await fetch(input, init);
+  const replayable = init?.body == null || typeof init.body === "string";
+  for (const delay of CLOCK_SKEW_RETRY_DELAYS_MS) {
+    if (!replayable || !(await isClockSkewRejection(res))) return res;
+    await sleep(delay, init?.signal);
+    res = await fetch(input, init);
+  }
+  return res;
+};
+
 declare global {
   interface Window {
     [CLIENT_KEY]: ReturnType<typeof createSupabaseClient>;
@@ -20,7 +70,7 @@ export function createClient() {
     return createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } }
+      { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: skewTolerantFetch } }
     )
   }
 
@@ -28,7 +78,7 @@ export function createClient() {
     window[CLIENT_KEY] = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } }
+      { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: skewTolerantFetch } }
     )
   }
   return window[CLIENT_KEY];
@@ -105,5 +155,5 @@ export function createServiceClient() {
     );
     return createUnconfiguredClient();
   }
-  return createSupabaseClient(url, key);
+  return createSupabaseClient(url, key, { global: { fetch: skewTolerantFetch } });
 }

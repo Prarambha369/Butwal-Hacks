@@ -21,6 +21,7 @@ import { auth0 } from "@/lib/auth0";
 import {
   githubAccountId,
   isMergeCandidate,
+  verifiedMatchEmail,
   resolveLinkedIdentitySubjects,
 } from "@/lib/actions/account-consolidation";
 
@@ -69,7 +70,7 @@ export const POST = withRateLimit(async (request: Request) => {
     // may have its profile data disclosed. 404 hides non-candidates.
     const eligible = await isMergeCandidate(
       currentProfile.id as string,
-      currentProfile.email as string | null,
+      verifiedMatchEmail(currentProfile.email as string | null, session.user),
       githubAccountId(currentProfile.linked_accounts),
       source_profile_id,
       // Same authoritative set the candidates list used, so preview and

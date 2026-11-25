@@ -123,22 +123,115 @@ describe("POST /api/webhooks/auth0", () => {
     expect(res.status).toBe(401)
   })
 
-  it("returns 400 when sub and email are missing", async () => {
+  it("returns 400 when sub is missing", async () => {
     const { POST } = await import("../webhooks/auth0/route")
     const res = await POST(mockRequest({}, { "x-webhook-secret": TEST_SECRET }))
 
     expect(res.status).toBe(400)
     const body = await res.json()
-    expect(body.error).toBe("sub and email are required")
+    expect(body.error).toBe("sub is required")
   })
 
-  it("returns 400 when email is missing but sub is present", async () => {
-    const { POST } = await import("../webhooks/auth0/route")
-    const res = await POST(mockRequest({ sub: "auth0|123" }, { "x-webhook-secret": TEST_SECRET }))
+  it("creates a profile without an email (private GitHub address) instead of rejecting", async () => {
+    // Rejecting this used to leave the member with no profile, and the next
+    // server action minted an email-less duplicate.
+    const db = buildMockDb()
+    db.single.mockResolvedValue({ data: null, error: null })
+    db.rpc.mockResolvedValue({ data: { id: "p1", bh_id: "BH-26-012" }, error: null })
+    mockedCreateServiceClient.mockReturnValue(db)
 
-    expect(res.status).toBe(400)
+    const { POST } = await import("../webhooks/auth0/route")
+    const res = await POST(mockRequest({ sub: "github|123" }, { "x-webhook-secret": TEST_SECRET }))
+
+    expect(res.status).toBe(200)
+    expect(db.rpc).toHaveBeenCalledWith("create_profile_with_bh_id", expect.objectContaining({
+      p_auth0_user_id: "github|123",
+      p_email: null,
+    }))
+  })
+
+  it("does not create a duplicate profile when the email belongs to another login", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({ data: null, error: null })
+    db.rpc.mockResolvedValue({ data: null, error: { code: "23505", message: "duplicate key" } })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const { POST } = await import("../webhooks/auth0/route")
+    const res = await POST(
+      mockRequest({ sub: "github|9", email: "taken@test.com" }, { "x-webhook-secret": TEST_SECRET }),
+    )
+
+    expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.error).toBe("sub and email are required")
+    expect(body.duplicate_email).toBe(true)
+    expect(db.insert).not.toHaveBeenCalled()
+  })
+
+  it("lets only a verified email claim a ghost profile", async () => {
+    // An unverified address must not take over a pre-seeded row (migration 149).
+    for (const [payload, expected] of [
+      [{ sub: "auth0|u1", email: "ghost@test.com" }, false],
+      [{ sub: "auth0|u2", email: "ghost@test.com", email_verified: false }, false],
+      [{ sub: "auth0|u3", email: "ghost@test.com", email_verified: true }, true],
+    ] as const) {
+      const db = buildMockDb()
+      db.single.mockResolvedValue({ data: null, error: null })
+      db.rpc.mockResolvedValue({ data: { id: "p", bh_id: "BH-26-020" }, error: null })
+      mockedCreateServiceClient.mockReturnValue(db)
+      const { POST } = await import("../webhooks/auth0/route")
+      await POST(mockRequest(payload, { "x-webhook-secret": TEST_SECRET }))
+      expect(db.rpc).toHaveBeenCalledWith("create_profile_with_bh_id", expect.objectContaining({
+        p_email_verified: expected,
+      }))
+    }
+  })
+
+  it("does not overwrite a stored email with one Auth0 reports as unverified", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({
+      data: { id: "profile-uuid", role: "hacker", email: "old@test.com", full_name: "Name" },
+      error: null,
+    })
+    mockedCreateServiceClient.mockReturnValue(db)
+    const { POST } = await import("../webhooks/auth0/route")
+    await POST(mockRequest(
+      { sub: "auth0|1", email: "new@test.com", email_verified: false },
+      { "x-webhook-secret": TEST_SECRET },
+    ))
+    expect(db.update).not.toHaveBeenCalled()
+  })
+
+  it("returns 400 for a body with the wrong field types", async () => {
+    const { POST } = await import("../webhooks/auth0/route")
+    const res = await POST(mockRequest({ sub: "auth0|1", name: 42 }, { "x-webhook-secret": TEST_SECRET }))
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe("Invalid body")
+  })
+
+  it("keeps a member-edited name and never stores an email as the name", async () => {
+    const db = buildMockDb()
+    db.single.mockResolvedValue({
+      data: { id: "profile-uuid", role: "hacker", email: "test@test.com", full_name: "Edited Name" },
+      error: null,
+    })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const { POST } = await import("../webhooks/auth0/route")
+    await POST(
+      mockRequest({ sub: "auth0|1", email: "test@test.com", name: "Auth0 Name" }, { "x-webhook-secret": TEST_SECRET }),
+    )
+    expect(db.update).not.toHaveBeenCalled()
+
+    const db2 = buildMockDb()
+    db2.single.mockResolvedValue({ data: null, error: null })
+    db2.rpc.mockResolvedValue({ data: { id: "p2", bh_id: "BH-26-013" }, error: null })
+    mockedCreateServiceClient.mockReturnValue(db2)
+    await POST(
+      mockRequest({ sub: "auth0|2", email: "a@b.com", name: "a@b.com" }, { "x-webhook-secret": TEST_SECRET }),
+    )
+    expect(db2.rpc).toHaveBeenCalledWith("create_profile_with_bh_id", expect.objectContaining({
+      p_full_name: "New Hacker",
+    }))
   })
 
   it("returns 413 when content-length exceeds limit", async () => {
@@ -252,6 +345,7 @@ describe("POST /api/webhooks/auth0", () => {
       p_email: "new@test.com",
       p_full_name: "New User",
       p_role: "hacker",
+      p_email_verified: false,
     })
   })
 

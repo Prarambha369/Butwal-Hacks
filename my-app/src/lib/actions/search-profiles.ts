@@ -47,6 +47,7 @@ export async function searchTalent(
     .from("profiles")
     .select(selectCols)
     .eq("is_claimed", true)
+    .eq("is_listed", true)
     .neq("role", "maintainer")
     .order("created_at", { ascending: false })
     .limit(limit);
