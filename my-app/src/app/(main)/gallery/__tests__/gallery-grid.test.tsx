@@ -4,7 +4,7 @@ import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 
-import GalleryGrid, { formatGalleryDate } from "../gallery-grid";
+import GalleryGrid, { formatGalleryDate, groupByEvent } from "../gallery-grid";
 import type { GalleryPhoto } from "@/lib/gallery-photo";
 
 // The gallery's whole point is that each tile is addressable, so this renders
@@ -133,5 +133,46 @@ describe("formatGalleryDate", () => {
   it("returns an empty string for an unparseable value", () => {
     expect(formatGalleryDate("")).toBe("");
     expect(formatGalleryDate("not a date")).toBe("");
+  });
+});
+
+describe("groupByEvent", () => {
+  const other: GalleryPhoto = { ...photos[0], id: "other", event: "Daydream", event_slug: "daydream" };
+
+  it("splits consecutive runs by event and keeps flat indexes", () => {
+    const groups = groupByEvent([photos[0], photos[1], other]);
+    expect(groups.map((g) => g.event)).toEqual(["Hack 2026", "Daydream"]);
+    expect(groups[0].items.map((i) => i.index)).toEqual([0, 1]);
+    expect(groups[1].items.map((i) => i.index)).toEqual([2]);
+    expect(groups[1].eventSlug).toBe("daydream");
+  });
+
+  it("gives a returning event its own section with a distinct key", () => {
+    const groups = groupByEvent([photos[0], other, photos[1]]);
+    expect(groups).toHaveLength(3);
+    expect(new Set(groups.map((g) => g.key)).size).toBe(3);
+  });
+
+  it("returns no groups for no photos", () => {
+    expect(groupByEvent([])).toEqual([]);
+  });
+});
+
+describe("GalleryGrid event sections", () => {
+  it("renders one labelled section per event with its date", () => {
+    render(
+      <GalleryGrid
+        photos={photos}
+        canDownload={false}
+        totals={{ photos: 1, videos: 1, events: 1 }}
+        hasMore={false}
+        events={["Hack 2026"]}
+      />,
+    );
+    const sections = document.querySelectorAll("section[aria-labelledby]");
+    expect(sections).toHaveLength(1);
+    const heading = document.getElementById(sections[0].getAttribute("aria-labelledby") as string);
+    expect(heading?.textContent).toBe("Hack 2026");
+    expect(sections[0].querySelector("time")?.textContent).toBe("January 5, 2026");
   });
 });

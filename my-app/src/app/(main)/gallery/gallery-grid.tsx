@@ -46,19 +46,57 @@ export function galleryAlt(photo: Pick<GalleryPhoto, "caption" | "event">): stri
   return photo.caption ?? photo.event;
 }
 
-const GRID_CLASS = "grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4";
+const GRID_CLASS = "grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 lg:gap-4 xl:grid-cols-4";
+
+export interface GalleryGroup {
+  /** Stable React key: event title plus the index of its first item. */
+  key: string;
+  event: string;
+  eventSlug: string | null;
+  date: string;
+  location: string | null;
+  items: { photo: GalleryPhoto; index: number }[];
+}
+
+/**
+ * Consecutive items of the same event become one section with its own date
+ * header. Each item keeps its index in the flat list, so the lightbox can
+ * still step across section boundaries. Runs are split only where the event
+ * changes, so appending a page extends the last section instead of starting
+ * a new one.
+ */
+export function groupByEvent(photos: GalleryPhoto[]): GalleryGroup[] {
+  const groups: GalleryGroup[] = [];
+  photos.forEach((photo, index) => {
+    const last = groups[groups.length - 1];
+    if (last && last.event === photo.event) {
+      last.items.push({ photo, index });
+      return;
+    }
+    groups.push({
+      key: `${photo.event}-${index}`,
+      event: photo.event,
+      eventSlug: photo.event_slug,
+      date: photo.date,
+      location: photo.location,
+      items: [{ photo, index }],
+    });
+  });
+  return groups;
+}
 
 // ─── Loading skeleton ──────────────────────────────────────────────
-// Same box as a real card (4:3 inside a 1px-padded rounded frame), so tiles
-// swap in without the grid jumping.
+// Same box as a real card (a 4:3 rounded tile), so tiles swap in without the
+// grid jumping.
 
 export function GallerySkeletonTiles({ count }: { count: number }) {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="rounded-2xl border border-border bg-surface p-1" aria-hidden="true">
-          <Skeleton className="w-full aspect-[4/3] rounded-[14px]" />
-        </div>
+        <Skeleton
+          key={i}
+          className="aspect-[4/3] w-full rounded-xl motion-reduce:animate-none"
+        />
       ))}
     </>
   );
@@ -113,8 +151,8 @@ function VideoThumbnail({ url }: { url: string }) {
           playing ? "opacity-0" : "opacity-100"
         }`}
       >
-        <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-          <Play className="w-4 h-4 sm:w-5 sm:h-5 text-surface-inverse ml-0.5" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/45 ring-1 ring-white/40 backdrop-blur-sm sm:h-12 sm:w-12">
+          <Play className="ml-0.5 h-4 w-4 fill-white text-white sm:h-5 sm:w-5" aria-hidden="true" />
         </div>
       </div>
     </div>
@@ -129,7 +167,7 @@ function PhotoThumbnail({ photo }: { photo: GalleryPhoto }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <>
-      {!loaded && <Skeleton className="absolute inset-0 rounded-none" />}
+      {!loaded && <Skeleton className="absolute inset-0 rounded-none motion-reduce:animate-none" />}
       <Image
         // Stored URL + loader: each srcset width is a Cloudinary transform
         // served from its CDN, not a round trip through /_next/image.
@@ -138,7 +176,7 @@ function PhotoThumbnail({ photo }: { photo: GalleryPhoto }) {
         alt={galleryAlt(photo)}
         fill
         sizes="(max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-        className={`object-cover transition-[opacity,transform] duration-500 group-hover:scale-105 ${
+        className={`object-cover transition-[opacity,transform] duration-500 ease-out motion-safe:group-hover:scale-[1.04] motion-reduce:transition-none ${
           loaded ? "opacity-100" : "opacity-0"
         }`}
         onLoad={() => setLoaded(true)}
@@ -150,6 +188,16 @@ function PhotoThumbnail({ photo }: { photo: GalleryPhoto }) {
     </>
   );
 }
+
+// ─── Lightbox button styles ────────────────────────────────────────
+// The lightbox is always a dark stage, in light and dark mode alike, so its
+// controls are white-on-black rather than surface tokens. Every control is at
+// least 44px tall (WCAG 2.5.5 target size).
+
+const LIGHTBOX_ACTION =
+  "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 text-sm font-medium text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white motion-reduce:transition-none";
+const LIGHTBOX_ICON =
+  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white/85 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white motion-reduce:transition-none";
 
 // ─── Download control ──────────────────────────────────────────────
 // Best-quality download (stored original bytes via fl_attachment) for
@@ -171,12 +219,8 @@ function DownloadControl({
   if (!canDownload) {
     if (variant === "card") return null;
     return (
-      <Link
-        href="/sign-in"
-        onClick={(e) => e.stopPropagation()}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-primary hover:bg-surface-hover text-xs font-medium transition-all shrink-0"
-      >
-        <LogIn className="w-3.5 h-3.5" />
+      <Link href="/sign-in" onClick={(e) => e.stopPropagation()} className={LIGHTBOX_ACTION}>
+        <LogIn className="h-4 w-4" aria-hidden="true" />
         Sign in to download
       </Link>
     );
@@ -189,9 +233,9 @@ function DownloadControl({
         onClick={(e) => e.stopPropagation()}
         aria-label="Download photo at full quality"
         title="Download full quality"
-        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/50 border border-white/20 text-white/80 hover:text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 [@media(hover:none)]:opacity-100"
+        className="absolute right-2 top-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white/90 ring-1 ring-white/20 backdrop-blur-sm transition-opacity hover:bg-black/75 hover:text-white focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
       >
-        <Download className="w-4 h-4" />
+        <Download className="h-4 w-4" aria-hidden="true" />
       </a>
     );
   }
@@ -200,9 +244,9 @@ function DownloadControl({
       href={cloudinaryDownloadUrl(url)}
       download
       onClick={(e) => e.stopPropagation()}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-primary hover:bg-surface-hover text-xs font-medium transition-all shrink-0"
+      className={LIGHTBOX_ACTION}
     >
-      <Download className="w-3.5 h-3.5" />
+      <Download className="h-4 w-4" aria-hidden="true" />
       Download
     </a>
   );
@@ -244,7 +288,7 @@ function ShareControl({ id, title, className }: { id: string; title: string; cla
 
   return (
     <button type="button" onClick={handleClick} className={className}>
-      {copied ? <Check className="w-3.5 h-3.5" aria-hidden="true" /> : <Share2 className="w-3.5 h-3.5" aria-hidden="true" />}
+      {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Share2 className="h-4 w-4" aria-hidden="true" />}
       <span aria-live="polite">{copied ? "Link copied" : "Share"}</span>
     </button>
   );
@@ -385,60 +429,53 @@ function Lightbox({
 
   const date = formatGalleryDate(photo.date, "long");
   const navButton =
-    "absolute top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/55 p-2 text-white backdrop-blur transition-opacity hover:bg-black/75 disabled:pointer-events-none disabled:opacity-0 md:p-3";
-  const actionClass =
-    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-primary hover:bg-surface-hover text-xs font-medium transition-all shrink-0";
+    "absolute top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white ring-1 ring-white/15 backdrop-blur transition-[opacity,background-color] hover:bg-black/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:pointer-events-none disabled:opacity-0 md:h-12 md:w-12 motion-reduce:transition-none";
 
   return (
+    // Full-bleed: the media gets the whole viewport, with a slim bar above
+    // (position, close) and the details below, so nothing sits on the photo.
     <div
       ref={overlayRef}
       role="dialog"
       aria-modal="true"
       aria-label={`${galleryAlt(photo)}: ${isVideo ? "video" : "photo"} preview`}
       tabIndex={-1}
-      className="fixed inset-0 z-[100] flex items-center justify-center md:p-8 animate-in fade-in duration-300 outline-none"
+      className="fixed inset-0 z-[100] flex flex-col bg-black/95 text-white outline-none animate-in fade-in duration-200 motion-reduce:animate-none"
     >
-      <div className="absolute inset-0 bg-surface-inverse" onClick={onClose} />
-
-      <div className="relative flex h-full w-full max-w-6xl flex-col md:h-auto md:max-h-[94vh] animate-in zoom-in-95 duration-300">
-        {/* Top bar: position, media type, close */}
-        <div className="flex items-center justify-between gap-3 px-3 py-2 md:px-0 md:pb-3 md:pt-0">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-xs text-white/70" aria-live="polite">
-              {photo.index + 1} / {photo.total}
-            </span>
-            {isVideo && (
-              <>
-                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-white text-[10px] font-mono font-bold uppercase tracking-wider">
-                  <Video className="w-3.5 h-3.5" aria-hidden="true" />
-                  Video
-                </span>
-                <button
-                  onClick={toggleVideo}
-                  className="p-1.5 rounded-full bg-surface text-primary hover:bg-surface-hover transition-colors"
-                  aria-label={videoPlaying ? "Pause" : "Play"}
-                >
-                  {videoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                </button>
-              </>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-white/70 hover:text-white transition-colors"
-            aria-label="Close lightbox"
-          >
-            <X size={28} />
-          </button>
+      {/* Top bar: position, media type, close */}
+      <div className="flex items-center justify-between gap-2 px-2 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4">
+        <div className="flex min-w-0 items-center gap-2 pl-2">
+          <span className="font-mono text-sm tabular-nums text-white/80" aria-live="polite">
+            {photo.index + 1} / {photo.total}
+          </span>
+          {isVideo && (
+            <>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white">
+                <Video className="h-3.5 w-3.5" aria-hidden="true" />
+                Video
+              </span>
+              <button
+                type="button"
+                onClick={toggleVideo}
+                className={LIGHTBOX_ICON}
+                aria-label={videoPlaying ? "Pause" : "Play"}
+              >
+                {videoPlaying ? <Pause className="h-5 w-5" aria-hidden="true" /> : <Play className="h-5 w-5" aria-hidden="true" />}
+              </button>
+            </>
+          )}
         </div>
+        <button type="button" onClick={onClose} className={LIGHTBOX_ICON} aria-label="Close lightbox">
+          <X className="h-6 w-6" aria-hidden="true" />
+        </button>
+      </div>
 
-        {/* Stage: media fills the width; prev/next float over it so phones
-            do not lose a third of the screen to two side buttons. */}
-        <div
-          className="relative min-h-0 flex-1 overflow-hidden bg-surface-inverse md:h-[70vh] md:flex-none md:rounded-2xl"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
+      {/* Stage: prev/next float over the media so phones do not lose width
+          to two side buttons. A swipe does the same on touch. */}
+      <div className="relative min-h-0 flex-1" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        {/* Keyed per item: each photo fades in on its own instead of the old
+            one being swapped in place. */}
+        <div key={photo.id} className="absolute inset-0 animate-in fade-in duration-300 motion-reduce:animate-none">
           {isVideo ? (
             <video
               // Fresh element per item: no stale playback state or
@@ -454,7 +491,7 @@ function Lightbox({
               onPause={() => setVideoPlaying(false)}
               onEnded={() => setVideoPlaying(false)}
               onError={fallBackToWebmOnDecodeError}
-              className="w-full h-full object-contain"
+              className="h-full w-full object-contain"
             >
               {/* With <source> children a failed load fires `error` on the
                   source, not the <video>, so the last one clears the spinner. */}
@@ -475,7 +512,7 @@ function Lightbox({
               alt={galleryAlt(photo)}
               fill
               className="object-contain"
-              sizes="(max-width: 1024px) 100vw, 80vw"
+              sizes="100vw"
               onLoad={markLoaded}
               onError={(e) => {
                 markLoaded();
@@ -483,58 +520,60 @@ function Lightbox({
               }}
             />
           )}
-
-          {mediaLoading && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
-              <Loader2 className="w-8 h-8 animate-spin text-white/70" />
-            </div>
-          )}
-
-          <button
-            onClick={onPrev}
-            disabled={!hasPrev}
-            className={`${navButton} left-2 md:left-4`}
-            aria-label="Previous"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          <button
-            onClick={onNext}
-            disabled={!hasNext}
-            className={`${navButton} right-2 md:right-4`}
-            aria-label="Next"
-          >
-            <ChevronRight size={24} />
-          </button>
         </div>
 
-        {/* Details sit under the media, not over it, so the caption never
-            covers the photo and is readable on any image. */}
-        <div className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-end md:justify-between md:px-0">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-base font-semibold leading-snug text-white md:text-lg">
-              {galleryAlt(photo)}
-            </h2>
-            <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/65">
-              {photo.caption && <span className="font-semibold text-white/85">{photo.event}</span>}
-              {date && <span className="font-mono">{date}</span>}
-              {photo.location && <span>{photo.location}</span>}
-              {photo.uploader && <span>by {photo.uploader}</span>}
-              {isVideo && photo.duration && (
-                <span className="font-semibold text-white/85">{Math.round(photo.duration)}s</span>
-              )}
-            </p>
+        {mediaLoading && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
+            <Loader2 className="h-8 w-8 animate-spin text-white/70 motion-reduce:animate-none" />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <ShareControl id={photo.id} title={`${galleryAlt(photo)} · ${photo.event}`} className={actionClass} />
-            {photo.event_slug && (
-              <Link href={`/events/${photo.event_slug}`} onClick={(e) => e.stopPropagation()} className={actionClass}>
-                <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-                View event
-              </Link>
+        )}
+
+        <button
+          type="button"
+          onClick={onPrev}
+          disabled={!hasPrev}
+          className={`${navButton} left-2 md:left-6`}
+          aria-label="Previous"
+        >
+          <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={!hasNext}
+          className={`${navButton} right-2 md:right-6`}
+          aria-label="Next"
+        >
+          <ChevronRight className="h-6 w-6" aria-hidden="true" />
+        </button>
+      </div>
+
+      {/* Details sit under the media, not over it, so the caption never
+          covers the photo and is readable on any image. */}
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:flex-row md:items-end md:justify-between md:px-6">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-base font-semibold leading-snug text-white md:text-lg">
+            {galleryAlt(photo)}
+          </h2>
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/70 md:text-sm">
+            {photo.caption && <span className="font-semibold text-white/90">{photo.event}</span>}
+            {date && <span className="font-mono">{date}</span>}
+            {photo.location && <span>{photo.location}</span>}
+            {photo.uploader && <span>by {photo.uploader}</span>}
+            {isVideo && photo.duration && (
+              <span className="font-semibold text-white/90">{Math.round(photo.duration)}s</span>
             )}
-            <DownloadControl url={photo.url} isVideo={isVideo} canDownload={canDownload} variant="lightbox" />
-          </div>
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ShareControl id={photo.id} title={`${galleryAlt(photo)} · ${photo.event}`} className={LIGHTBOX_ACTION} />
+          {photo.event_slug && (
+            <Link href={`/events/${photo.event_slug}`} onClick={(e) => e.stopPropagation()} className={LIGHTBOX_ACTION}>
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              View event
+            </Link>
+          )}
+          <DownloadControl url={photo.url} isVideo={isVideo} canDownload={canDownload} variant="lightbox" />
         </div>
       </div>
     </div>
@@ -568,33 +607,76 @@ function GalleryCard({
         aria-label={[title, photo.caption ? photo.event : null, isVideo ? "video" : "photo", date]
           .filter(Boolean)
           .join(", ")}
-        className="block w-full overflow-hidden rounded-2xl border border-border bg-surface text-left transition-shadow hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        // The 4:3 box is fixed before any byte arrives, so nothing shifts
+        // while thumbnails load.
+        className="relative block aspect-[4/3] w-full overflow-hidden rounded-xl bg-muted ring-1 ring-border transition-shadow duration-300 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
       >
-        <div className="p-1">
-          <div className="relative w-full aspect-[4/3] overflow-hidden rounded-[14px]">
-            {isVideo ? <VideoThumbnail url={photo.url} /> : <PhotoThumbnail photo={photo} />}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          </div>
-        </div>
+        {isVideo ? <VideoThumbnail url={photo.url} /> : <PhotoThumbnail photo={photo} />}
 
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 p-2.5 sm:p-3 md:p-4">
-          <h3 className="line-clamp-2 text-xs font-bold leading-snug text-white drop-shadow-sm sm:text-sm">{title}</h3>
-          <div className="mt-1 flex items-center justify-between gap-2">
-            <span className="truncate text-[10px] font-mono text-white/75 drop-shadow-sm sm:text-[11px]">
-              {photo.caption ? <span className="hidden sm:inline">{photo.event} · </span> : null}
-              {date}
-            </span>
-            {isVideo && (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white">
-                <Video className="w-3 h-3" aria-hidden="true" />
-                {photo.duration ? `${Math.round(photo.duration)}s` : "Video"}
-              </span>
-            )}
-          </div>
+        {isVideo && (
+          <span className="pointer-events-none absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm sm:text-[11px]">
+            <Video className="h-3 w-3" aria-hidden="true" />
+            {photo.duration ? `${Math.round(photo.duration)}s` : "Video"}
+          </span>
+        )}
+
+        {/* Caption: always shown on touch screens, which have no hover; on
+            pointer devices it rises in on hover or keyboard focus. The
+            section header above already names the event and date. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/45 to-transparent p-2.5 pt-8 transition-[opacity,transform] duration-200 ease-out sm:p-3 sm:pt-10 motion-reduce:transition-none [@media(hover:hover)]:translate-y-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-focus-within:translate-y-0 [@media(hover:hover)]:group-focus-within:opacity-100 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100">
+          <h3 className="line-clamp-2 text-xs font-semibold leading-snug text-white sm:text-sm">{title}</h3>
+          <p className="mt-0.5 truncate font-mono text-[10px] text-white/80 sm:text-[11px]">
+            {photo.caption ? <span className="hidden sm:inline">{photo.event} · </span> : null}
+            {date}
+          </p>
         </div>
       </Link>
       <DownloadControl url={photo.url} isVideo={isVideo} canDownload={canDownload} variant="card" />
     </div>
+  );
+}
+
+// ─── Event section ─────────────────────────────────────────────────
+
+function GallerySection({
+  group,
+  headingId,
+  children,
+}: {
+  group: GalleryGroup;
+  headingId: string;
+  children: React.ReactNode;
+}) {
+  const date = formatGalleryDate(group.date, "long");
+  return (
+    <section aria-labelledby={headingId}>
+      <header className="mb-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-border pb-3 md:mb-5">
+        <div className="min-w-0">
+          <h2 id={headingId} className="text-lg font-bold leading-tight text-primary md:text-2xl">
+            {group.event}
+          </h2>
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-secondary md:text-sm">
+            {date && (
+              <time dateTime={group.date} className="font-mono">
+                {date}
+              </time>
+            )}
+            {date && group.location && <span aria-hidden="true">·</span>}
+            {group.location && <span>{group.location}</span>}
+          </p>
+        </div>
+        {group.eventSlug && (
+          <Link
+            href={`/events/${group.eventSlug}`}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-primary-red hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red"
+          >
+            View event
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        )}
+      </header>
+      {children}
+    </section>
   );
 }
 
@@ -753,6 +835,8 @@ export default function GalleryGrid({
     observer.observe(el);
     return () => observer.disconnect();
   }, [hasMore, loadError, handleLoadMore]);
+
+  const groups = useMemo(() => groupByEvent(photos), [photos]);
 
   // Build the lightbox photo with nav fields
   const selectedPhoto: LightboxPhoto | null = useMemo(() => {
@@ -929,19 +1013,25 @@ export default function GalleryGrid({
           )}
         </div>
       ) : (
-        // Row-major grid, not CSS columns: with columns, appending a page
+        // Row-major grids, not CSS columns: with columns, appending a page
         // reflowed every existing tile into a different column.
-        <div className={GRID_CLASS}>
-          {photos.map((photo, idx) => (
-            <GalleryCard
-              key={photo.id}
-              photo={photo}
-              index={idx}
-              onOpen={handleOpen}
-              canDownload={canDownload}
-            />
+        <div className="space-y-10 md:space-y-14">
+          {groups.map((group, groupIdx) => (
+            <GallerySection key={group.key} group={group} headingId={`gallery-section-${groupIdx}`}>
+              <div className={GRID_CLASS}>
+                {group.items.map(({ photo, index }) => (
+                  <GalleryCard
+                    key={photo.id}
+                    photo={photo}
+                    index={index}
+                    onOpen={handleOpen}
+                    canDownload={canDownload}
+                  />
+                ))}
+                {loadingMore && groupIdx === groups.length - 1 && <GallerySkeletonTiles count={4} />}
+              </div>
+            </GallerySection>
           ))}
-          {loadingMore && <GallerySkeletonTiles count={4} />}
         </div>
       )}
 
