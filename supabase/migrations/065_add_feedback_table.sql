@@ -14,6 +14,17 @@ CREATE TABLE IF NOT EXISTS feedback (
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 
+-- Replay guard: on a database where feedback already existed with a
+-- different shape, CREATE TABLE IF NOT EXISTS is a no-op and the COMMENTs
+-- below would fail. These are no-ops when the columns are present.
+ALTER TABLE feedback ADD COLUMN IF NOT EXISTS name       text NOT NULL DEFAULT '';
+ALTER TABLE feedback ADD COLUMN IF NOT EXISTS email      text;
+ALTER TABLE feedback ADD COLUMN IF NOT EXISTS category   text NOT NULL DEFAULT 'bug';
+ALTER TABLE feedback ADD COLUMN IF NOT EXISTS message    text;
+ALTER TABLE feedback ADD COLUMN IF NOT EXISTS page_url   text;
+ALTER TABLE feedback ADD COLUMN IF NOT EXISTS user_agent text;
+ALTER TABLE feedback ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now();
+
 COMMENT ON TABLE feedback IS 'User-submitted feedback and bug reports from the floating feedback widget';
 COMMENT ON COLUMN feedback.name IS 'Optional display name of the submitter';
 COMMENT ON COLUMN feedback.email IS 'Optional email for follow-up';
