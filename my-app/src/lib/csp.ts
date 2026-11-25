@@ -45,11 +45,15 @@ export const CSP_REPORT_PATH = "/api/csp-violation";
 export const CSP_REPORT_GROUP = "csp-endpoint";
 
 /**
- * Routes that get the nonce policy. Every route under these prefixes must be
- * dynamically rendered (their layouts set `dynamic = "force-dynamic"`): a
- * prerendered page here would carry no nonce and its scripts would be blocked.
+ * Routes that get the nonce policy. Every URL matched here must be
+ * dynamically rendered: a prerendered page carries no nonce, so its scripts
+ * would be blocked. That includes 404s — an unmatched URL normally renders the
+ * prerendered global /_not-found page — which is why /dashboard and /portal
+ * have catch-all pages that call notFound() inside their force-dynamic
+ * layouts, and why /claim is matched only as /claim/<token>.
  */
-export const NONCE_ROUTE_PREFIXES = ["/dashboard", "/portal", "/claim"] as const;
+export const NONCE_ROUTE_PREFIXES = ["/dashboard", "/portal"] as const;
+const CLAIM_ROUTE = /^\/claim\/[^/]+$/;
 
 const SCRIPT_HOSTS = [
   "https://auth.butwalhacks.com",
@@ -81,7 +85,10 @@ function join(directives: string[]): string {
 
 /** Whether `pathname` is served with the nonce policy. */
 export function usesNonceCsp(pathname: string): boolean {
-  return NONCE_ROUTE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  return (
+    CLAIM_ROUTE.test(pathname) ||
+    NONCE_ROUTE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+  );
 }
 
 /** A fresh, unguessable nonce (128 bits, base64). */

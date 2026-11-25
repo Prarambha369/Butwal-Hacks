@@ -88,6 +88,9 @@ describe("CSP builders", () => {
     ["/dashboard/hacker", true],
     ["/portal/sponsors", true],
     ["/claim/tok", true],
+    // Not a real route: renders the prerendered 404, which has no nonce.
+    ["/claim", false],
+    ["/claim/a/b", false],
     ["/", false],
     ["/events", false],
     ["/dashboards", false],

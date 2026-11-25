@@ -1,4 +1,5 @@
 import { auth0 } from "@/lib/auth0";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSponsorOpportunities } from "@/lib/actions/sponsor-opportunities";
 import { Plus } from "lucide-react";
@@ -26,13 +27,13 @@ export default async function SponsorOpportunitiesPage() {
             Post jobs, internships, grants, and bounties to attract talent from the community.
           </p>
         </div>
-        <a
+        <Link
           href="/portal/bounties/new"
           className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all"
         >
           <Plus size={16} />
           New Opportunity
-        </a>
+        </Link>
       </div>
 
       <OpportunitiesManager opportunities={opportunities} />

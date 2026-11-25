@@ -1,4 +1,5 @@
 import { auth0 } from "@/lib/auth0";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServiceClient } from "@/utils/supabase";
 import { ArrowLeft } from "lucide-react";
@@ -47,13 +48,13 @@ export default async function EditOpportunityPage({ params }: { params: Promise<
   return (
     <div className="max-w-3xl space-y-8">
       <div>
-        <a
+        <Link
           href="/portal/bounties"
           className="inline-flex items-center gap-1 text-xs text-secondary hover:text-primary transition-colors mb-3"
         >
           <ArrowLeft size={12} />
           Back to Opportunities
-        </a>
+        </Link>
         <h1 className="text-2xl font-bold text-primary">Edit Opportunity</h1>
         <p className="text-secondary text-sm mt-1">Update your listing.</p>
       </div>

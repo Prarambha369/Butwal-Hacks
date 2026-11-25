@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAuthUser } from "@/components/auth-user-provider";
 import {
   GitBranch,
@@ -320,9 +321,9 @@ export function AccountConsolidation() {
           </p>
           <p className="text-sm text-muted-foreground mt-1">
             If you have multiple accounts, link them via the{" "}
-            <a href="/dashboard/hacker/connections" className="text-primary-red hover:underline">
+            <Link href="/dashboard/hacker/connections" className="text-primary-red hover:underline">
               Connected Accounts
-            </a> page.
+            </Link> page.
           </p>
         </div>
       )}
