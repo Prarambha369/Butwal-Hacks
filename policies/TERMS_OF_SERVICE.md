@@ -127,7 +127,7 @@ We may update these Terms. Material changes will be announced in-product, by ema
 |---------|---------|
 | Legal notices, disputes, claims | legal@butwalhacks.com |
 | Privacy and data rights | privacy@butwalhacks.com |
-| Security vulnerabilities | security@butwalhacks.com |
+| Security vulnerabilities | tech@butwalhacks.com |
 | Code of Conduct reports | conduct@butwalhacks.com |
 | Registered address | _To be completed on incorporation. See [LEGAL_ENTITY.md](LEGAL_ENTITY.md#incorporation-checklist)._ |
 

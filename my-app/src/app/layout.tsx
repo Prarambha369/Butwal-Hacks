@@ -26,6 +26,7 @@ import PWARegister from "@/components/pwa-register";
 import { Toaster } from "sonner";
 import AssistantPanel from "@/components/assistant-panel";
 import SafeJsonLd from "@/lib/json-ld";
+import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 import CommandSearch from "@/components/command-search";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import NetworkStatus from "@/components/network-status";
@@ -179,7 +180,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
              defaults to dark. Must run synchronously before first paint. */}
           <script
             dangerouslySetInnerHTML={{
-              __html: `(function(){try{var e=localStorage.getItem("bh-theme");if(e==="dark"||e==="light"){document.documentElement.classList.toggle("dark",e==="dark");return}if(window.matchMedia("(prefers-color-scheme:dark)").matches){document.documentElement.classList.add("dark")}}catch(e){}})()`
+              __html: THEME_INIT_SCRIPT
             }}
           />
           <SafeJsonLd data={jsonLd} />
