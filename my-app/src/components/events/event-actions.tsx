@@ -42,7 +42,8 @@ export function PrimaryEventAction({
   id?: string;
 }) {
   const { phase, status, eventSlug, openConsent } = useEventRegistration();
-  const size = variant === "bar" ? "w-full" : "w-full sm:w-auto sm:min-w-[13rem]";
+  const bar = variant === "bar";
+  const size = bar ? "w-full px-4 text-sm" : "w-full sm:w-auto sm:min-w-[13rem]";
 
   if (phase === null || status === "checking") {
     return (
@@ -81,7 +82,8 @@ export function PrimaryEventAction({
   if (phase === "live") {
     return (
       <a id={id} href={`/api/events/ical?slug=${encodeURIComponent(calendar.slug)}`} className={cn("bh-btn-primary", size)}>
-        <CalendarPlus aria-hidden="true" className="h-4 w-4" /> Add to calendar
+        <CalendarPlus aria-hidden="true" className="h-4 w-4" /> {bar ? "Calendar" : "Add to calendar"}
+        {bar && <span className="sr-only"> (add to calendar)</span>}
       </a>
     );
   }
@@ -94,7 +96,8 @@ export function PrimaryEventAction({
         prefetch={false}
         className={cn("bh-btn-primary", size)}
       >
-        <LogIn aria-hidden="true" className="h-4 w-4" /> Sign in to register
+        <LogIn aria-hidden="true" className="h-4 w-4" /> {bar ? "Sign in" : "Sign in to register"}
+        {bar && <span className="sr-only"> to register</span>}
       </Link>
     );
   }
@@ -113,7 +116,7 @@ export function PrimaryEventAction({
         </>
       ) : (
         <>
-          {status === "error" ? "Try again" : "Register — it's free"}
+          {status === "error" ? "Try again" : bar ? "Register" : "Register — it's free"}
           <ArrowRight aria-hidden="true" className="h-4 w-4" />
         </>
       )}
@@ -282,7 +285,8 @@ export function StickyEventBar({
   return (
     <div
       className={cn(
-        "fixed inset-x-0 z-40 px-3 md:hidden",
+        // pr leaves room for the assistant button (fixed bottom-24 right-4, 56px).
+        "fixed inset-x-0 z-40 pl-3 pr-[4.75rem] md:hidden",
         "bottom-[calc(3.75rem+env(safe-area-inset-bottom))]",
         "transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0",
@@ -296,7 +300,7 @@ export function StickyEventBar({
           <p className="truncate text-sm font-bold text-text-primary">{title}</p>
           <p className="truncate text-xs text-muted-foreground">{dateLabel}</p>
         </div>
-        <div className="w-44 shrink-0">
+        <div className="shrink-0">
           <PrimaryEventAction calendar={calendar} variant="bar" />
         </div>
       </div>
