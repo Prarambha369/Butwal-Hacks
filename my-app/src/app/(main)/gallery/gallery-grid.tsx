@@ -136,11 +136,16 @@ function GalleryLoadError({
   message,
   onRetry,
   secondsLeft,
+  busy,
 }: {
   message: string;
   onRetry: () => void;
   secondsLeft: number;
+  busy: boolean;
 }) {
+  // aria-disabled rather than disabled: a disabled button drops keyboard
+  // focus to the page body, and the visitor would lose their place.
+  const unavailable = busy || secondsLeft > 0;
   return (
     <div className="mt-10 flex flex-col items-center gap-4 rounded-xl border border-border bg-surface p-6 text-center">
       <AlertCircle className="h-6 w-6 text-primary-red" aria-hidden="true" />
@@ -149,12 +154,18 @@ function GalleryLoadError({
       </p>
       <button
         type="button"
-        onClick={onRetry}
-        disabled={secondsLeft > 0}
-        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-surface px-6 text-sm font-bold text-primary transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
+        onClick={() => {
+          if (!unavailable) onRetry();
+        }}
+        aria-disabled={unavailable}
+        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-surface px-6 text-sm font-bold text-primary transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red focus-visible:ring-offset-2 focus-visible:ring-offset-background aria-disabled:cursor-not-allowed aria-disabled:opacity-60 motion-reduce:transition-none"
       >
-        <RotateCw className="h-4 w-4" aria-hidden="true" />
-        {secondsLeft > 0 ? `Try again in ${secondsLeft}s` : "Try again"}
+        {busy ? (
+          <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+        ) : (
+          <RotateCw className="h-4 w-4" aria-hidden="true" />
+        )}
+        {busy ? "Trying again" : secondsLeft > 0 ? `Try again in ${secondsLeft}s` : "Try again"}
       </button>
     </div>
   );
@@ -165,8 +176,8 @@ function GalleryLoadError({
  * WebM; once there is nothing left to fall back to, report the failure so the
  * tile or lightbox can show its Retry state instead of a dead black box.
  */
-function handleVideoError(
-  event: React.SyntheticEvent<HTMLVideoElement>,
+export function handleVideoError(
+  event: { currentTarget: HTMLVideoElement },
   onFail: () => void,
 ): void {
   const video = event.currentTarget;
@@ -215,12 +226,29 @@ function VideoThumbnail({ url, onFail }: { url: string; onFail: () => void }) {
     videoRef.current?.pause();
   }, []);
 
+  const poster = videoPosterUrl(url, 640);
   return (
     <div
       className="relative w-full h-full bg-surface-inverse"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
+      {/* The poster is an <img> under the video rather than the video's
+          poster attribute: a poster attribute that fails to load fires no
+          error event, so the tile could never offer Retry. The video stays
+          transparent until its first frame, then covers it. */}
+      {poster && (
+        // A Cloudinary-derived still at the tile's width; next/image would
+        // only re-optimize it (same reasoning as VideoPoster).
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={poster}
+          alt=""
+          loading="lazy"
+          onError={onFail}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
       <video
         ref={videoRef}
         muted
@@ -230,7 +258,6 @@ function VideoThumbnail({ url, onFail }: { url: string; onFail: () => void }) {
         // metadata on page load. Bytes start on hover.
         preload="none"
         className="absolute inset-0 w-full h-full object-cover"
-        poster={videoPosterUrl(url, 640) ?? undefined}
         onPlaying={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onError={(e) => handleVideoError(e, onFail)}
@@ -906,7 +933,7 @@ export default function GalleryGrid({
   // is re-applied, never retried as the next page of the previous filter.
   const [loadError, setLoadError] = useState<false | "filter" | "page">(false);
   // Stable callbacks (not the object) go into hook deps, so a backoff tick
-  // never re-creates handleLoadMore and re-arms the scroll observer.
+  // never re-creates loadNextPage and re-arms the scroll observer.
   const { fail: backoffFail, succeed: backoffSucceed, secondsLeft: retrySecondsLeft } = useRetryBackoff();
   // Set when a page came back with nothing new (the boundary shifted under
   // a new upload). Auto-loading then stops, so a page that keeps returning
@@ -968,9 +995,12 @@ export default function GalleryGrid({
     if (!loadError && !filtering) {
       pageCacheRef.current.set(filter ?? "", { photos, hasMore });
     }
+    // Retrying the filter that failed keeps its error panel (and the focused
+    // Retry button) in place until the answer arrives.
+    const retryingSame = nextFilter === filter && loadError === "filter";
     setFilter(nextFilter);
     setSelectedIdx(null);
-    setLoadError(false);
+    if (!retryingSame) setLoadError(false);
     // Shareable, reload-safe filter without a server round trip for the shell.
     window.history.replaceState(window.history.state, "", galleryHref(nextFilter));
     const cached = pageCacheRef.current.get(nextFilter ?? "");
@@ -978,6 +1008,8 @@ export default function GalleryGrid({
       setPhotos(cached.photos);
       setHasMore(cached.hasMore);
       setFiltering(false);
+      setLoadError(false);
+      setStalled(false);
       return;
     }
     setFiltering(true);
@@ -987,6 +1019,7 @@ export default function GalleryGrid({
       setPhotos(page.photos);
       setHasMore(page.hasMore);
       setStalled(false);
+      setLoadError(false);
       backoffSucceed();
     } catch {
       if (ticket === requestRef.current) {
@@ -1001,12 +1034,17 @@ export default function GalleryGrid({
     }
   }, [filter, loadError, filtering, photos, hasMore, backoffFail, backoffSucceed]);
 
-  const handleLoadMore = useCallback(async () => {
+  // "auto" is everything the visitor did not ask for by pressing a button:
+  // infinite scroll, and nearing the end in the lightbox. Those never run
+  // after a failure (or a page that added nothing), so only Retry, with its
+  // backoff, can send the next request. A retry keeps the error panel
+  // mounted until it succeeds, so focus stays on the button.
+  const loadNextPage = useCallback(async (mode: "auto" | "manual") => {
     if (loadingMore || filtering || !hasMore) return;
+    if (mode === "auto" && (loadError || stalled)) return;
     const ticket = requestRef.current;
     const pageTicket = ++pageRequestRef.current;
     setLoadingMore(true);
-    setLoadError(false);
     try {
       const next = await fetchGalleryPage(photos.length, filter ?? undefined);
       if (ticket !== requestRef.current) return;
@@ -1016,6 +1054,7 @@ export default function GalleryGrid({
       setPhotos((prev) => [...prev, ...fresh]);
       setHasMore(next.hasMore);
       setStalled(fresh.length === 0);
+      setLoadError(false);
       backoffSucceed();
     } catch {
       if (ticket === requestRef.current) {
@@ -1025,7 +1064,9 @@ export default function GalleryGrid({
     } finally {
       if (pageTicket === pageRequestRef.current) setLoadingMore(false);
     }
-  }, [loadingMore, filtering, hasMore, photos, filter, backoffFail, backoffSucceed]);
+  }, [loadingMore, filtering, hasMore, loadError, stalled, photos, filter, backoffFail, backoffSucceed]);
+  const autoLoadMore = useCallback(() => void loadNextPage("auto"), [loadNextPage]);
+  const manualLoadMore = useCallback(() => void loadNextPage("manual"), [loadNextPage]);
 
   // Infinite scroll: start the next page ~one screen before the end. The
   // button below stays as the keyboard / no-IntersectionObserver fallback.
@@ -1035,12 +1076,12 @@ export default function GalleryGrid({
     const el = sentinelRef.current;
     if (!el || !hasMore || loadError || stalled || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) void handleLoadMore(); },
+      ([entry]) => { if (entry.isIntersecting) autoLoadMore(); },
       { rootMargin: "800px 0px" },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMore, loadError, stalled, handleLoadMore]);
+  }, [hasMore, loadError, stalled, autoLoadMore]);
 
   const groups = useMemo(() => groupByEvent(photos), [photos]);
 
@@ -1074,9 +1115,9 @@ export default function GalleryGrid({
       window.history.pushState({ bhGallery: true }, "", `/gallery/${id}`);
       // Same near-end check as goTo: without IntersectionObserver, opening the
       // last loaded card would otherwise leave Next disabled with more to load.
-      if (index >= photos.length - 3 && hasMore) void handleLoadMore();
+      if (index >= photos.length - 3 && hasMore) autoLoadMore();
     },
-    [photos.length, hasMore, handleLoadMore]
+    [photos.length, hasMore, autoLoadMore]
   );
 
   const goTo = useCallback((next: number) => {
@@ -1085,8 +1126,8 @@ export default function GalleryGrid({
     setSelectedIdx(next);
     window.history.replaceState({ bhGallery: true }, "", `/gallery/${photo.id}`);
     // Reaching the end of what's loaded inside the lightbox pulls the next page.
-    if (next >= photos.length - 3 && hasMore) void handleLoadMore();
-  }, [photos, hasMore, handleLoadMore]);
+    if (next >= photos.length - 3 && hasMore) autoLoadMore();
+  }, [photos, hasMore, autoLoadMore]);
 
   const handlePrev = useCallback(() => {
     if (selectedIdx !== null && selectedIdx > 0) goTo(selectedIdx - 1);
@@ -1238,7 +1279,8 @@ export default function GalleryGrid({
               ? "Couldn't load more media. Check your connection."
               : "Couldn't load media. Check your connection."
           }
-          onRetry={() => (loadError === "page" ? handleLoadMore() : applyFilter(filter))}
+          onRetry={() => (loadError === "page" ? manualLoadMore() : void applyFilter(filter))}
+          busy={loadError === "page" ? loadingMore : filtering}
           secondsLeft={retrySecondsLeft}
         />
       )}
@@ -1248,7 +1290,7 @@ export default function GalleryGrid({
         <div ref={sentinelRef} className="mt-10 flex justify-center">
           <button
             type="button"
-            onClick={handleLoadMore}
+            onClick={manualLoadMore}
             disabled={loadingMore}
             className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-6 py-3 text-sm font-bold text-primary hover:bg-surface-hover transition-colors disabled:opacity-60 disabled:cursor-wait"
           >

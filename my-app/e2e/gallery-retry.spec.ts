@@ -144,11 +144,13 @@ test.describe("Gallery failure states", () => {
       await expect(retry).toHaveText(/Try again in \d+s/);
     });
     expect(second).toBe(1);
-    await expect(retry).toBeDisabled();
+    // aria-disabled, not disabled, so keyboard focus stays on the button.
+    await expect(retry).toHaveAttribute("aria-disabled", "true");
+    await expect(retry).toBeFocused();
 
     // Back online: Retry loads the page and the error goes away.
     blocks.actions = false;
-    await expect(retry).toBeEnabled({ timeout: 10_000 });
+    await expect(retry).toHaveText("Try again", { timeout: 10_000 });
     await retry.click();
     await expect(alert).toBeHidden();
   });

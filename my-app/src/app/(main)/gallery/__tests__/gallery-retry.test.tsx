@@ -4,7 +4,7 @@ import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, cleanup, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 
-import GalleryGrid, { retryDelaySeconds } from "../gallery-grid";
+import GalleryGrid, { handleVideoError, retryDelaySeconds } from "../gallery-grid";
 import type { GalleryPhoto } from "@/lib/gallery-photo";
 import { fetchGalleryPage } from "@/lib/actions/gallery";
 
@@ -117,7 +117,9 @@ describe("GalleryGrid load-more failure", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     const waiting = await screen.findByRole("button", { name: /Try again in 2s/ });
-    expect(waiting).toBeDisabled();
+    expect(waiting).toHaveAttribute("aria-disabled", "true");
+    // Pressing it during the wait sends nothing.
+    fireEvent.click(waiting);
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
@@ -177,5 +179,101 @@ describe("GalleryGrid prefetch", () => {
     const links = container.querySelectorAll("a[data-prefetch]");
     expect(links.length).toBeGreaterThan(PHOTOS.length);
     links.forEach((a) => expect(a).toHaveAttribute("data-prefetch", "false"));
+  });
+});
+
+describe("handleVideoError (WebM fallback from #63 comes first)", () => {
+  function videoWith(currentSrc: string, error: boolean) {
+    const video = document.createElement("video");
+    video.innerHTML =
+      '<source src="a.mp4" type="video/mp4; codecs=avc1.640028"><source src="a.webm" type="video/webm">';
+    Object.defineProperty(video, "currentSrc", { value: currentSrc });
+    Object.defineProperty(video, "error", { value: error ? { code: 3 } : null });
+    Object.defineProperty(video, "paused", { value: true });
+    video.load = vi.fn();
+    return video;
+  }
+
+  it("switches an undecodable MP4 to the WebM without reporting a failure", () => {
+    const video = videoWith("https://res.cloudinary.com/demo/video/upload/a.mp4", true);
+    const onFail = vi.fn();
+    handleVideoError({ currentTarget: video }, onFail);
+    expect(onFail).not.toHaveBeenCalled();
+    expect(video.load).toHaveBeenCalledTimes(1);
+    expect(video.querySelector("source")!.getAttribute("type")).toBe("video/x-undecodable");
+  });
+
+  it("reports a failure once the WebM has failed too", () => {
+    const video = videoWith("https://res.cloudinary.com/demo/video/upload/a.webm", true);
+    const onFail = vi.fn();
+    handleVideoError({ currentTarget: video }, onFail);
+    expect(onFail).toHaveBeenCalledTimes(1);
+    expect(video.load).not.toHaveBeenCalled();
+  });
+
+  it("ignores an error event with no media error", () => {
+    const onFail = vi.fn();
+    handleVideoError({ currentTarget: videoWith("x.mp4", false) }, onFail);
+    expect(onFail).not.toHaveBeenCalled();
+  });
+});
+
+describe("GalleryGrid after a failed page", () => {
+  it("does not load more from the lightbox until Retry is pressed", async () => {
+    mockFetch.mockRejectedValue(new Error("offline"));
+    render(<GalleryGrid photos={PHOTOS} canDownload={false} totals={TOTALS} hasMore />);
+    fireEvent.click(screen.getByRole("button", { name: "Load more" }));
+    await screen.findByRole("button", { name: "Try again" });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    // Opening the last tiles and stepping near the end used to pull the next
+    // page on every move, bypassing the Retry backoff.
+    fireEvent.click(screen.getAllByRole("link", { name: /Photo 2/ })[0], { button: 0 });
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(dialog).toBeInTheDocument();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the Retry button (and its focus) while the retry is in flight", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("offline"));
+    render(<GalleryGrid photos={PHOTOS} canDownload={false} totals={TOTALS} hasMore />);
+    fireEvent.click(screen.getByRole("button", { name: "Load more" }));
+    const retry = await screen.findByRole("button", { name: "Try again" });
+    retry.focus();
+
+    let resolve!: (v: { photos: GalleryPhoto[]; hasMore: boolean }) => void;
+    mockFetch.mockReturnValueOnce(new Promise((r) => { resolve = r; }));
+    fireEvent.click(retry);
+    expect(await screen.findByRole("button", { name: "Trying again" })).toBe(retry);
+    expect(retry).toHaveAttribute("aria-disabled", "true");
+    expect(document.activeElement).toBe(retry);
+    // Pressing it again while busy sends nothing.
+    fireEvent.click(retry);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
+    resolve({ photos: [photo(4)], hasMore: false });
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+  });
+});
+
+describe("GalleryGrid video tile", () => {
+  it("offers Retry when the poster fails, not a blank black box", async () => {
+    const video: GalleryPhoto = {
+      ...photo(5),
+      url: "https://res.cloudinary.com/demo/video/upload/v1/clip.mp4",
+      caption: "Demo clip",
+      media_type: "video",
+    };
+    const { container } = render(
+      <GalleryGrid photos={[video]} canDownload={false} totals={TOTALS} hasMore={false} />,
+    );
+    const poster = container.querySelector('a[href^="/gallery/"] img[alt=""]');
+    expect(poster).not.toBeNull();
+    fireEvent.error(poster!);
+    expect(await screen.findByRole("button", { name: "Retry loading Demo clip" })).toBeInTheDocument();
+    expect(screen.getByText("Couldn't load this video.")).toBeInTheDocument();
   });
 });
