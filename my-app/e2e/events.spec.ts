@@ -39,6 +39,10 @@ async function allowPlainHttpLocalhost(page: Page): Promise<void> {
 }
 
 async function prepare(page: Page, { blockPrefetch = true } = {}): Promise<void> {
+  // A deployed preview shares Vercel's per-IP rate limit with everything else
+  // on this machine; pace remote runs so the matrix does not trip it.
+  const base = process.env.PLAYWRIGHT_BASE_URL ?? "";
+  if (base && !/localhost|127\.0\.0\.1/.test(base)) await page.waitForTimeout(8000);
   // Other pages' RSC prefetches (site header, bottom nav) are irrelevant here
   // and spend the preview's per-IP rate limit; only the request-count test
   // lets them through, because counting them is its job.
@@ -72,7 +76,11 @@ async function signedOut(page: Page): Promise<void> {
 }
 
 /** Slugs of upcoming and past events, read from the list page. */
+let slugCache: { upcoming: string | null; past: string | null } | null = null;
+
 async function findSlugs(page: Page): Promise<{ upcoming: string | null; past: string | null }> {
+  // One list visit per worker, not one per test.
+  if (slugCache) return slugCache;
   await page.goto("/events");
   await expect(page.locator("article").first().or(page.getByText("No upcoming events right now"))).toBeVisible({
     timeout: 20_000,
@@ -84,7 +92,8 @@ async function findSlugs(page: Page): Promise<{ upcoming: string | null; past: s
   const upcoming = await hrefOf('article a[aria-label^="Register:"], article a[aria-label^="View details:"]');
   const past = await hrefOf('article a[aria-label^="See recap:"]');
   const slug = (href: string | null) => href?.match(/^\/events\/([^/#?]+)/)?.[1] ?? null;
-  return { upcoming: slug(upcoming), past: slug(past) };
+  slugCache = { upcoming: slug(upcoming), past: slug(past) };
+  return slugCache;
 }
 
 test.describe("/events list", () => {
@@ -115,9 +124,14 @@ test.describe("/events list", () => {
     await expect(cards.first().or(empty)).toBeVisible({ timeout: 20_000 });
 
     if ((await cards.count()) > 0) {
-      // Every banner box is 16:9 before and after images load (no layout shift).
-      const box = await cards.first().locator("div.aspect-video, div[class*='aspect-video']").first().boundingBox();
-      if (box) expect(Math.abs(box.width / box.height - 16 / 9)).toBeLessThan(0.05);
+      // Grid cards hold a 16:9 banner box before and after images load (no
+      // layout shift). The featured card stretches its banner beside the
+      // details on wide screens, so it is not measured here.
+      const gridBanner = page.locator("ul article > div").first();
+      if ((await gridBanner.count()) > 0) {
+        const box = await gridBanner.boundingBox();
+        if (box) expect(Math.abs(box.width / box.height - 16 / 9)).toBeLessThan(0.05);
+      }
       // One CTA per card, and it is the card's only link.
       const links = await cards.first().locator("a").count();
       expect(links).toBe(1);
@@ -200,7 +214,7 @@ test.describe("/events/<slug> detail", () => {
     const register = page.locator("#register").getByRole("button", { name: /Register — it's free/ });
     await expect(register).toBeVisible();
     await register.click();
-    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Before you register" })).toBeVisible();
     // Never submitted: close it again.
     await page.keyboard.press("Escape");
   });
