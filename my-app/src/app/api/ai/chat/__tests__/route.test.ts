@@ -335,6 +335,22 @@ describe("POST /api/ai/chat", () => {
       expect(prompt).toContain("butwalhacks.com/join");
     });
 
+    it("grounds a question that only matches built-in knowledge", async () => {
+      for (const message of ["What's the next meetup?", "Who are the founders?"]) {
+        mockedCallGroq.mockClear();
+        await post({ message });
+        expect(mockedSearchContent, message).toHaveBeenCalled();
+        expect(systemPrompt(), message).toContain("<context>");
+      }
+    });
+
+    it("refuses a named question the built-in knowledge does not cover", async () => {
+      const { json } = await post({ message: "What does Butwal Hacks' privacy policy say about cookies?" });
+
+      expect(json.reply).toContain("couldn't find anything");
+      expect(mockedCallGroq).not.toHaveBeenCalled();
+    });
+
     it("still falls back on an off-topic question that matches nothing", async () => {
       const { res, json } = await post({ message: "How do I hack my neighbour's wifi?" });
 

@@ -187,8 +187,13 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     // conversation: the model answers it from the identity-only prompt built
     // below, with no retrieval. Everything else is a question about Butwal
     // Hacks and must be grounded in retrieved context.
+    // A built-in match also counts: "what's the next meetup?" or "who are the
+    // founders?" name no ORG_TERMS entry but are plainly about us.
     const smallTalk = detectSmallTalk(screened.message);
-    const needsKnowledge = smallTalk === null && mentionsButwalHacks(screened.message);
+    const builtIn = matchOrgKnowledge(screened.message);
+    const needsKnowledge =
+      smallTalk === null &&
+      (mentionsButwalHacks(screened.message) || builtIn.overview || builtIn.docs.length > 0);
 
     // ── Retrieve relevant context via vector search ───────────
     // The bot carries NO built-in facts. Everything it knows about Butwal Hacks
@@ -219,7 +224,7 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     // Works with or without the vector knowledge base, so an unseeded table, a
     // missing Gemini key or a retrieval outage no longer turns every question
     // about the organisation into a refusal.
-    const keyword: KeywordMatch = needsKnowledge ? matchOrgKnowledge(screened.message) : { overview: false, docs: [] };
+    const keyword: KeywordMatch = needsKnowledge ? builtIn : { overview: false, docs: [] };
     const vectorHits = contextChunks.length;
     contextChunks.push(...keyword.docs.map((d) => d.content));
     if (keyword.docs.some((d) => d.id === "events")) {

@@ -13,12 +13,14 @@ import { sanitizeContextChunk } from "./chat-guardrails";
 export async function getUpcomingEventsContext(limit = 5): Promise<string | null> {
   try {
     const supabase = createClient();
-    const today = new Date().toISOString().slice(0, 10);
+    // The current instant, not a date: end_date is timestamptz, and an event
+    // that ended this morning is not upcoming.
+    const now = new Date().toISOString();
     const { data, error } = await supabase
       .from("events")
       .select("title, slug, start_date, end_date, location")
       .eq("is_published", true)
-      .or(`end_date.gte.${today},and(end_date.is.null,start_date.gte.${today})`)
+      .or(`end_date.gte.${now},and(end_date.is.null,start_date.gte.${now})`)
       .order("start_date", { ascending: true })
       .limit(limit);
 

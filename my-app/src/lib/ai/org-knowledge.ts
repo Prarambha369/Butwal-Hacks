@@ -39,7 +39,7 @@ export interface OrgDoc {
 export const ORG_DOCS: readonly OrgDoc[] = [
   {
     id: "founders",
-    keywords: ["found", "founder", "started", "history", "timeline", "who runs", "who started", "who made", "when did", "daydream", "hackday", "gemini", "mlh", "police", "first event", "past event"],
+    keywords: ["founder", "founded", "co-founder", "who started", "who runs", "history of", "timeline", "daydream", "hackday", "gemini", "mlh", "police", "first event", "past event"],
     content: [
       "Founders: Prarambha Bashyal started the idea in March 2025; Hardik Chapagain and Rabin Chudali joined as co-founders.",
       "In October 2025 the team moved from planning into full in-field operations.",
@@ -50,7 +50,7 @@ export const ORG_DOCS: readonly OrgDoc[] = [
   },
   {
     id: "events",
-    keywords: ["event", "hackathon", "workshop", "meetup", "upcoming", "next", "schedule", "when is", "calendar", "happening"],
+    keywords: ["event", "hackathon", "workshop", "meetup", "upcoming"],
     content: [
       "Butwal Hacks runs free student hackathons, workshops, and meetups in Butwal, Lumbini Province, Nepal — each open to beginners with no registration fee.",
       "Upcoming and past events are listed at https://butwalhacks.com/events, each with its own registration link.",
@@ -84,13 +84,21 @@ export const ORG_DOCS: readonly OrgDoc[] = [
 
 /**
  * Questions that ask about the organisation as a whole ("what is Butwal
- * Hacks?", "tell me about you guys"). They are answered from ORG_OVERVIEW, so
- * they count as a match even though no ORG_DOCS entry is about them.
+ * Hacks?", "tell me about Butwal Hacks"). They are answered from ORG_OVERVIEW,
+ * so they count as a match even though no ORG_DOCS entry is about them.
+ *
+ * Merely naming the organisation is not enough: "what does Butwal Hacks'
+ * privacy policy say about cookies?" is not answered by the overview, and must
+ * still reach the no-match refusal when retrieval finds nothing.
  */
+const ORG_NAME = String.raw`(butwal\s*hacks?|you\s+guys|your\s+(org|organi[sz]ation|community))`;
 const OVERVIEW_PATTERNS: readonly RegExp[] = [
-  /\bbutwal\s*hacks?\b/,
-  /\b(what|who)\s+(is|are)\s+(this|you\s+guys|your\s+(org|organi[sz]ation|team|community))\b/,
-  /\b(mission|about\s+(you|the\s+org|this\s+org)|nonprofit|non-profit)\b/,
+  new RegExp(String.raw`^${ORG_NAME}[\s!.?]*$`),
+  new RegExp(String.raw`\b(what|who)('s|\s+is|\s+are)\s+(the\s+)?${ORG_NAME}[\s!.?]*$`),
+  new RegExp(String.raw`\b(tell\s+me\s+(more\s+)?about|about|explain|describe)\s+${ORG_NAME}[\s!.?]*$`),
+  new RegExp(String.raw`\bwhat\s+(does|do)\s+${ORG_NAME}\s+do\b`),
+  new RegExp(String.raw`\b${ORG_NAME}('s|’s)?\s+(mission|purpose|goal|vision|values)\b`),
+  /\bwhat('s|\s+is)\s+(the|your)\s+(mission|purpose)\b/,
 ];
 
 export interface KeywordMatch {

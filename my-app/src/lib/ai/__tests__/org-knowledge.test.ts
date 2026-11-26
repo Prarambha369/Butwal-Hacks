@@ -22,6 +22,14 @@ describe("built-in org knowledge", () => {
   it("treats a question naming the organisation as an overview question", () => {
     expect(matchOrgKnowledge("What is Butwal Hacks?").overview).toBe(true);
     expect(matchOrgKnowledge("what's butwalhacks").overview).toBe(true);
+    expect(matchOrgKnowledge("Tell me about Butwal Hacks").overview).toBe(true);
+    expect(matchOrgKnowledge("What does Butwal Hacks do?").overview).toBe(true);
+  });
+
+  it("does not treat every mention of the name as an overview question", () => {
+    const m = matchOrgKnowledge("What does Butwal Hacks' privacy policy say about cookies?");
+    expect(m.overview).toBe(false);
+    expect(m.docs).toHaveLength(0);
   });
 
   it("matches the events and joining docs by keyword", () => {
