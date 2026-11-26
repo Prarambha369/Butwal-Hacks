@@ -64,7 +64,13 @@ for (const vp of viewports) {
       for (let attempt = 0; attempt < 2 && !ok; attempt++) {
         if (attempt > 0) await page.waitForTimeout(delay * 3);
         const res = await page.goto(base + p.path, { waitUntil: "load", timeout: 60_000 });
-        ok = Boolean(res?.ok()) && !/vercel\.com/.test(page.url()) && (await page.locator("h1").count()) > 0;
+        // Same host, same path (no redirect to another page), and an h1.
+        const landed = new URL(page.url());
+        ok =
+          Boolean(res?.ok()) &&
+          landed.origin === new URL(base).origin &&
+          landed.pathname === p.path &&
+          (await page.locator("h1").count()) > 0;
       }
       if (!ok) throw new Error(`${p.path} did not load as the event page (rate limit or login); nothing saved`);
       await page.waitForTimeout(1500);

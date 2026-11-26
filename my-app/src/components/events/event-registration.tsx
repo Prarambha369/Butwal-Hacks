@@ -91,8 +91,9 @@ export function EventRegistrationProvider({
         .filter((t) => Number.isFinite(t) && t > now)
         .sort((a, b) => a - b)[0];
       clearTimeout(timer);
-      // setTimeout overflows past ~24.8 days; the visibility check covers that.
-      if (next !== undefined && next - now < 2 ** 31 - 1) timer = setTimeout(update, next - now);
+      // setTimeout overflows past ~24.8 days, so a far boundary is reached in
+      // capped steps: each step just recomputes and schedules the next one.
+      if (next !== undefined) timer = setTimeout(update, Math.min(next - now, 2 ** 31 - 1));
     };
     update();
     const onVisible = () => {

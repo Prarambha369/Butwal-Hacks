@@ -76,12 +76,26 @@ for (const [vpName, vp] of [
     const { ctx, page } = await context({ ...vp, colorScheme: scheme });
     await page.route((u) => u.searchParams.has("_rsc"), (r) => r.abort());
     for (const path of pages) {
-      const res = await page.goto(base + path, { waitUntil: "load", timeout: 60_000 });
+      let res = null;
+      try {
+        res = await page.goto(base + path, { waitUntil: "load", timeout: 60_000 });
+      } catch (error) {
+        console.log(`UNAVAILABLE ${vpName}/${scheme} ${path}: ${error instanceof Error ? error.message.split("\n")[0] : error}`);
+        report.push({ path, vp: vpName, scheme, unavailable: true, error: String(error).slice(0, 200) });
+        continue;
+      }
       await page.waitForTimeout(1500);
       // A 429 or error page does not make goto() throw; never audit it as
       // the event page. Require a 200 and the page's own h1.
+      // Same host and path as requested (no redirect), and an h1: the events
+      // list says "Events"; a detail page's h1 is the event title.
+      const landed = new URL(page.url());
+      const h1 = ((await page.locator("h1").first().textContent().catch(() => "")) ?? "").trim();
       const isEventPage =
-        res?.ok() && !/vercel\.com/.test(page.url()) && (await page.locator("h1").count()) > 0;
+        res?.ok() &&
+        landed.origin === new URL(base).origin &&
+        landed.pathname === path &&
+        (path === "/events" ? h1 === "Events" : h1.length > 0);
       if (!isEventPage) {
         report.push({ path, vp: vpName, scheme, status: res?.status(), unavailable: true });
         console.log(`UNAVAILABLE ${res?.status()} ${vpName}/${scheme} ${path} (not audited)`);

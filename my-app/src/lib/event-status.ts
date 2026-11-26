@@ -156,7 +156,10 @@ export function formatEventBsDate(event: Pick<Timed, "start_date">): string {
  */
 export function isOnlineLocation(location: string | null | undefined): boolean {
   if (!location) return false;
-  return /^\s*(online|virtual|remote|zoom|discord|google meet|microsoft teams)\b/i.test(location);
+  if (!/^\s*(online|virtual|remote|zoom|discord|google meet|microsoft teams)\b/i.test(location)) return false;
+  // "Online via Zoom and in person at Butwal campus" is hybrid: it has a
+  // physical venue, so it keeps directions and the offline JSON-LD mode.
+  return !/\b(in[- ]person|hybrid|on[- ]?site|campus|venue|hall|school|college|university|resort|hotel|office)\b/i.test(location);
 }
 
 /** Google Maps search link for a venue. No API key, no embed, no cost. */
