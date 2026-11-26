@@ -277,3 +277,44 @@ describe("GalleryGrid video tile", () => {
     expect(screen.getByText("Couldn't load this video.")).toBeInTheDocument();
   });
 });
+
+describe("GalleryGrid review follow-ups", () => {
+  it("re-selecting the failed filter chip waits for the backoff like Retry", async () => {
+    mockFetch.mockRejectedValue(new Error("offline"));
+    render(
+      <GalleryGrid photos={PHOTOS} canDownload={false} totals={TOTALS} hasMore={false} events={["Hack 2026", "Jam"]} />,
+    );
+    const chip = screen.getByRole("button", { name: "Jam" });
+    fireEvent.click(chip);
+    await screen.findByRole("button", { name: "Try again" });
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await screen.findByRole("button", { name: /Try again in 2s/ });
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
+    // During the backoff the active chip sends nothing either.
+    fireEvent.click(chip);
+    fireEvent.click(chip);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
+    // A different event is still allowed.
+    mockFetch.mockResolvedValue({ photos: PHOTOS, hasMore: false });
+    fireEvent.click(screen.getByRole("button", { name: "Hack 2026" }));
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(3));
+  });
+
+  it("clears a lightbox failure after stepping away and back once it loads", async () => {
+    render(<GalleryGrid photos={PHOTOS} canDownload={false} totals={TOTALS} hasMore={false} />);
+    fireEvent.click(screen.getAllByRole("link", { name: /Photo 1/ })[0], { button: 0 });
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.error(within(dialog).getByAltText("Photo 1"));
+    expect(await within(dialog).findByRole("alert")).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    // Back on photo 1: a fresh load, not the stale error.
+    expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+    fireEvent.load(within(dialog).getByAltText("Photo 1"));
+    expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+  });
+});

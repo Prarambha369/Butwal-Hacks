@@ -497,7 +497,18 @@ function Lightbox({
   const [attempt, setAttempt] = useState(0);
   const mediaFailed = failedId === photo.id;
   const mediaLoading = loadedId !== photo.id && !mediaFailed;
-  const markLoaded = () => setLoadedId(photo.id);
+  // Moving to another item clears the previous item's failure, so coming
+  // back to it starts a fresh load instead of showing a stale error
+  // (React's "adjust state when a prop changes" pattern, no effect needed).
+  const [shownId, setShownId] = useState(photo.id);
+  if (shownId !== photo.id) {
+    setShownId(photo.id);
+    setFailedId(null);
+  }
+  const markLoaded = () => {
+    setLoadedId(photo.id);
+    setFailedId((id) => (id === photo.id ? null : id));
+  };
   const markFailed = () => setFailedId(photo.id);
   const retryMedia = () => {
     setFailedId(null);
@@ -990,6 +1001,10 @@ export default function GalleryGrid({
   // renders its media instead of an empty grid.
   const applyFilter = useCallback(async (nextFilter: string | null) => {
     if (nextFilter === filter && !loadError) return;
+    // Re-selecting the chip that failed is a retry: it waits for the one in
+    // flight and for the backoff, exactly like the Retry button. Picking a
+    // different event is always allowed.
+    if (nextFilter === filter && (filtering || retrySecondsLeft > 0)) return;
     const ticket = ++requestRef.current;
     // Abandon any in-flight page of the previous filter so its pending state
     // cannot keep this filter's Load more disabled.
@@ -1037,7 +1052,7 @@ export default function GalleryGrid({
     } finally {
       if (ticket === requestRef.current) setFiltering(false);
     }
-  }, [filter, loadError, filtering, photos, hasMore, backoffFail, backoffSucceed]);
+  }, [filter, loadError, filtering, retrySecondsLeft, photos, hasMore, backoffFail, backoffSucceed]);
 
   // "auto" is everything the visitor did not ask for by pressing a button:
   // infinite scroll, and nearing the end in the lightbox. Those never run
@@ -1054,9 +1069,14 @@ export default function GalleryGrid({
       const next = await fetchGalleryPage(photos.length, filter ?? undefined);
       if (ticket !== requestRef.current) return;
       // Dedupe by id in case a new upload shifted the page boundary.
-      const seen = new Set(photos.map((p) => p.id));
-      const fresh = next.photos.filter((p) => !seen.has(p.id));
-      setPhotos((prev) => [...prev, ...fresh]);
+      // Filter against the latest list inside the updater: two responses
+      // resolving from the same render must not append the same rows twice.
+      setPhotos((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        return [...prev, ...next.photos.filter((p) => !seen.has(p.id))];
+      });
+      const known = new Set(photos.map((p) => p.id));
+      const fresh = next.photos.filter((p) => !known.has(p.id));
       setHasMore(next.hasMore);
       setStalled(fresh.length === 0);
       setLoadError(false);

@@ -35,8 +35,12 @@ type Blocks = { actions: boolean; media: boolean; fullSize: boolean };
  */
 async function blockable(context: BrowserContext): Promise<Blocks> {
   const blocks: Blocks = { actions: false, media: false, fullSize: false };
+  // The app's own host: localhost locally, or the preview that
+  // PLAYWRIGHT_BASE_URL points the gallery config at.
+  const baseURL = test.info().project.use.baseURL;
+  const appHosts = new Set(["localhost", "127.0.0.1", ...(baseURL ? [new URL(baseURL).hostname] : [])]);
   await context.route(
-    (url) => ["localhost", "127.0.0.1"].includes(url.hostname),
+    (url) => appHosts.has(url.hostname),
     async (route) => {
       const request = route.request();
       if (blocks.actions && request.method() === "POST" && request.headers()["next-action"]) {
@@ -216,7 +220,8 @@ test.describe("Gallery failure states", () => {
   test("a failed lightbox photo shows its message with Retry under it", async ({ page, context }) => {
     const blocks = await blockable(context);
     test.skip(!(await openGallery(page)), "no approved media in this environment");
-    const photo = page.locator(`${TILE}:has(img)`).first();
+    // Video tiles carry an <img> poster too; this test is about a photo.
+    const photo = page.locator(`${TILE}:has(img):not(:has(video))`).first();
     test.skip((await photo.count()) === 0, "no photos here");
 
     // The grid has loaded; now the lightbox's own full-size request fails.

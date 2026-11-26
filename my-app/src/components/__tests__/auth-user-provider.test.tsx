@@ -4,7 +4,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 
-import { AuthUserProvider, useAuthUser } from "../auth-user-provider";
+import { AuthUserProvider, PROFILE_RETRY_DELAYS_MS, useAuthUser } from "../auth-user-provider";
 
 function Probe() {
   const { user, isLoading } = useAuthUser();
@@ -48,7 +48,7 @@ describe("AuthUserProvider", () => {
     vi.useRealTimers();
   });
 
-  it("treats a network failure or 204 as signed out", async () => {
+  it("treats a 204 as signed out", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(null, { status: 204 })));
     render(
       <AuthUserProvider>
@@ -56,5 +56,45 @@ describe("AuthUserProvider", () => {
       </AuthUserProvider>,
     );
     expect(await screen.findByText("signed-out")).toBeInTheDocument();
+  });
+
+  it("retries a failed probe a fixed number of times, staying in loading", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError("network"))
+      .mockResolvedValueOnce(new Response("boom", { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ sub: "auth0|2" }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <AuthUserProvider>
+        <Probe />
+      </AuthUserProvider>,
+    );
+    // A blip must not show a signed-in visitor the signed-out UI.
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(screen.getByText("loading")).toBeInTheDocument();
+    await vi.advanceTimersByTimeAsync(PROFILE_RETRY_DELAYS_MS[0]);
+    await vi.advanceTimersByTimeAsync(PROFILE_RETRY_DELAYS_MS[1]);
+    expect(await screen.findByText("user:auth0|2")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    vi.useRealTimers();
+  });
+
+  it("gives up after the last retry and settles as signed out", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const fetchMock = vi.fn(async () => new Response("boom", { status: 500 }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <AuthUserProvider>
+        <Probe />
+      </AuthUserProvider>,
+    );
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(await screen.findByText("signed-out")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(PROFILE_RETRY_DELAYS_MS.length + 1);
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(fetchMock).toHaveBeenCalledTimes(PROFILE_RETRY_DELAYS_MS.length + 1);
+    vi.useRealTimers();
   });
 });
