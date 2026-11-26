@@ -148,18 +148,19 @@ export function formatEventBsDate(event: Pick<Timed, "start_date">): string {
 }
 
 /**
- * Online-only venues: the location *starts* with an online word or names a
- * platform ("Online", "Virtual", "Online via Zoom", "Discord"). A physical
- * venue that merely mentions a stream ("Butwal campus (online stream
- * available)") stays physical, so directions and the offline JSON-LD mode
- * remain.
+ * Online-only venues: the location is made of nothing but online words and
+ * platform names ("Online", "Virtual", "Online via Zoom", "Online (Discord)").
+ * Anything else left over — an address, a campus, "in person at …" — means
+ * there is a physical venue, so directions and the offline JSON-LD mode stay.
  */
+const ONLINE_ONLY_WORDS =
+  /\b(online|virtual|remote|via|on|over|and|zoom|discord|google|meet|microsoft|teams|youtube|live|stream(ing)?|event|only)\b/gi;
+
 export function isOnlineLocation(location: string | null | undefined): boolean {
   if (!location) return false;
-  if (!/^\s*(online|virtual|remote|zoom|discord|google meet|microsoft teams)\b/i.test(location)) return false;
-  // "Online via Zoom and in person at Butwal campus" is hybrid: it has a
-  // physical venue, so it keeps directions and the offline JSON-LD mode.
-  return !/\b(in[- ]person|hybrid|on[- ]?site|campus|venue|hall|school|college|university|resort|hotel|office)\b/i.test(location);
+  if (!/\b(online|virtual|remote|zoom|discord|google meet|microsoft teams)\b/i.test(location)) return false;
+  const leftover = location.replace(ONLINE_ONLY_WORDS, "").replace(/[\s()[\],.:;+&/|·-]+/g, "");
+  return leftover.length === 0;
 }
 
 /** Google Maps search link for a venue. No API key, no embed, no cost. */

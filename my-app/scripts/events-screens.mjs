@@ -70,7 +70,11 @@ for (const vp of viewports) {
           Boolean(res?.ok()) &&
           landed.origin === new URL(base).origin &&
           landed.pathname === p.path &&
-          (await page.locator("h1").count()) > 0;
+          // Event-specific markers, not just any h1: a streamed not-found page
+          // can be a 200 with its own heading.
+          (p.name === "events"
+            ? ((await page.locator("h1").first().textContent()) ?? "").trim() === "Events"
+            : (await page.locator("#register").count()) > 0);
       }
       if (!ok) throw new Error(`${p.path} did not load as the event page (rate limit or login); nothing saved`);
       await page.waitForTimeout(1500);

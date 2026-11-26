@@ -95,7 +95,9 @@ for (const [vpName, vp] of [
         res?.ok() &&
         landed.origin === new URL(base).origin &&
         landed.pathname === path &&
-        (path === "/events" ? h1 === "Events" : h1.length > 0);
+        // Event-specific markers: the list's "Events" heading, or the detail
+        // page's #register CTA block (a not-found or error page has neither).
+        (path === "/events" ? h1 === "Events" : h1.length > 0 && (await page.locator("#register").count()) > 0);
       if (!isEventPage) {
         report.push({ path, vp: vpName, scheme, status: res?.status(), unavailable: true });
         console.log(`UNAVAILABLE ${res?.status()} ${vpName}/${scheme} ${path} (not audited)`);

@@ -89,6 +89,8 @@ describe("location helpers", () => {
     expect(isOnlineLocation("Butwal campus (online stream available)")).toBe(false);
     expect(isOnlineLocation("Online via Zoom and in person at Butwal campus")).toBe(false);
     expect(isOnlineLocation("Hybrid: online + Lumbini World School")).toBe(false);
+    expect(isOnlineLocation("Online via Zoom or at 123 Main Street, Butwal")).toBe(false);
+    expect(isOnlineLocation("Online (Google Meet + YouTube live stream)")).toBe(true);
     expect(isOnlineLocation("Arambha Resort, Butwal, Nepal")).toBe(false);
     expect(isOnlineLocation(null)).toBe(false);
   });
