@@ -6,10 +6,9 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   X, ChevronLeft, ChevronRight, Users, Play, Pause,
   Camera, Video, ImageIcon, Loader2,
-  ExternalLink, Download, LogIn, Share2, Check,
+  ExternalLink, Download, LogIn, Share2, Check, AlertCircle, RotateCw,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getDiceBearPlaceholder } from "@/lib/utils";
 import {
   cloudinaryDownloadUrl,
   cloudinaryImageLoader,
@@ -85,6 +84,100 @@ export function groupByEvent(photos: GalleryPhoto[]): GalleryGroup[] {
   return groups;
 }
 
+// ─── Failure handling ──────────────────────────────────────────────
+// Nothing in the gallery retries on its own. A failed request is retried only
+// when the visitor presses a Retry button, and repeated failures back off, so
+// a broken connection or a rate-limited server never turns into a request
+// loop (the edge firewall caps page-path requests per IP per minute, and
+// pagination runs as a server action posted to the page path).
+
+/** Seconds to wait before the next retry after `failures` failures in a row. */
+export function retryDelaySeconds(failures: number): number {
+  if (failures <= 1) return 0;
+  return Math.min(2 ** (failures - 1), 30);
+}
+
+/**
+ * Counts consecutive failures and holds the Retry button disabled for the
+ * backoff delay. `fail()` after an error, `succeed()` after a good response.
+ */
+export function useRetryBackoff() {
+  const failuresRef = useRef(0);
+  const [readyAt, setReadyAt] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
+  const waiting = readyAt > now;
+  useEffect(() => {
+    if (!waiting) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [waiting]);
+  const fail = useCallback(() => {
+    failuresRef.current += 1;
+    const at = Date.now();
+    setNow(at);
+    setReadyAt(at + retryDelaySeconds(failuresRef.current) * 1000);
+  }, []);
+  const succeed = useCallback(() => {
+    failuresRef.current = 0;
+    setReadyAt(0);
+  }, []);
+  const secondsLeft = waiting ? Math.ceil((readyAt - now) / 1000) : 0;
+  return { secondsLeft, fail, succeed };
+}
+
+/**
+ * Error panel for a failed grid request (first page of a filter, or the next
+ * page). It sits where the next items would have appeared, below everything
+ * already loaded, so a visitor who scrolled down sees it in place instead of
+ * having to scroll back to the top. The message is announced politely and the
+ * Retry button comes after it.
+ */
+function GalleryLoadError({
+  message,
+  onRetry,
+  secondsLeft,
+}: {
+  message: string;
+  onRetry: () => void;
+  secondsLeft: number;
+}) {
+  return (
+    <div className="mt-10 flex flex-col items-center gap-4 rounded-xl border border-border bg-surface p-6 text-center">
+      <AlertCircle className="h-6 w-6 text-primary-red" aria-hidden="true" />
+      <p className="text-sm text-primary" role="alert">
+        {message}
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        disabled={secondsLeft > 0}
+        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-surface px-6 text-sm font-bold text-primary transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
+      >
+        <RotateCw className="h-4 w-4" aria-hidden="true" />
+        {secondsLeft > 0 ? `Try again in ${secondsLeft}s` : "Try again"}
+      </button>
+    </div>
+  );
+}
+
+/**
+ * `onError` for a gallery `<video>`: an H.264 decode failure falls back to the
+ * WebM; once there is nothing left to fall back to, report the failure so the
+ * tile or lightbox can show its Retry state instead of a dead black box.
+ */
+function handleVideoError(
+  event: React.SyntheticEvent<HTMLVideoElement>,
+  onFail: () => void,
+): void {
+  const video = event.currentTarget;
+  if (!video.error) return;
+  const canFallBack =
+    /\.mp4(\?|$)/.test(video.currentSrc) &&
+    video.querySelector('source[type^="video/mp4"]') !== null;
+  if (canFallBack) fallBackToWebmOnDecodeError(event);
+  else onFail();
+}
+
 // ─── Loading skeleton ──────────────────────────────────────────────
 // Same box as a real card (a 4:3 rounded tile), so tiles swap in without the
 // grid jumping.
@@ -104,7 +197,7 @@ export function GallerySkeletonTiles({ count }: { count: number }) {
 
 // ─── Video Thumbnail ───────────────────────────────────────────────
 
-function VideoThumbnail({ url }: { url: string }) {
+function VideoThumbnail({ url, onFail }: { url: string; onFail: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
 
@@ -140,10 +233,17 @@ function VideoThumbnail({ url }: { url: string }) {
         poster={videoPosterUrl(url, 640) ?? undefined}
         onPlaying={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
-        onError={fallBackToWebmOnDecodeError}
+        onError={(e) => handleVideoError(e, onFail)}
       >
-        {videoSources(url, 640).map((s) => (
-          <source key={s.src} src={s.src} type={s.type} />
+        {/* With <source> children a failed load fires `error` on the source,
+            not the <video>, so the last one reports the failure. */}
+        {videoSources(url, 640).map((s, i, all) => (
+          <source
+            key={s.src}
+            src={s.src}
+            type={s.type}
+            onError={i === all.length - 1 ? onFail : undefined}
+          />
         ))}
       </video>
       <div
@@ -165,7 +265,7 @@ function VideoThumbnail({ url }: { url: string }) {
 // Pulses until the bytes arrive, then fades in. Replaces the old scroll-reveal
 // wrapper, which kept every tile invisible until it was scrolled into view.
 
-function PhotoThumbnail({ photo }: { photo: GalleryPhoto }) {
+function PhotoThumbnail({ photo, onFail }: { photo: GalleryPhoto; onFail: () => void }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <>
@@ -182,12 +282,36 @@ function PhotoThumbnail({ photo }: { photo: GalleryPhoto }) {
           loaded ? "opacity-100" : "opacity-0"
         }`}
         onLoad={() => setLoaded(true)}
-        onError={(e) => {
-          setLoaded(true);
-          (e.target as HTMLImageElement).src = getDiceBearPlaceholder(photo.id);
-        }}
+        // The card shows its own error state with a Retry button. An avatar
+        // placeholder here used to pass a failed photo off as a real one.
+        onError={onFail}
       />
     </>
+  );
+}
+
+/**
+ * Covers a tile whose media failed: the message first, Retry at the bottom.
+ * Rendered beside the card link, not inside it, because a button nested in a
+ * link is invalid and unreachable by keyboard.
+ */
+function TileError({ label, isVideo, onRetry }: { label: string; isVideo: boolean; onRetry: () => void }) {
+  return (
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-end gap-2 rounded-xl bg-muted p-3 text-center ring-1 ring-border">
+      <AlertCircle className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+      <p className="text-xs font-medium text-primary sm:text-sm" aria-live="polite">
+        Couldn&apos;t load this {isVideo ? "video" : "photo"}.
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        aria-label={`Retry loading ${label}`}
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-surface px-4 text-xs font-bold text-primary transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm motion-reduce:transition-none"
+      >
+        <RotateCw className="h-3.5 w-3.5" aria-hidden="true" />
+        Retry
+      </button>
+    </div>
   );
 }
 
@@ -221,7 +345,7 @@ function DownloadControl({
   if (!canDownload) {
     if (variant === "card") return null;
     return (
-      <Link href="/sign-in" onClick={(e) => e.stopPropagation()} className={LIGHTBOX_ACTION}>
+      <Link href="/sign-in" prefetch={false} onClick={(e) => e.stopPropagation()} className={LIGHTBOX_ACTION}>
         <LogIn className="h-4 w-4" aria-hidden="true" />
         Sign in to download
       </Link>
@@ -335,8 +459,19 @@ function Lightbox({
   // Full-size image/video still loading: show a spinner over the dark stage
   // instead of an empty black box. Reset per item.
   const [loadedId, setLoadedId] = useState<string | null>(null);
-  const mediaLoading = loadedId !== photo.id;
+  // Failed media shows a message with Retry below it. Keyed by item, so
+  // stepping to the next photo clears it; `attempt` remounts the element.
+  const [failedId, setFailedId] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const mediaFailed = failedId === photo.id;
+  const mediaLoading = loadedId !== photo.id && !mediaFailed;
   const markLoaded = () => setLoadedId(photo.id);
+  const markFailed = () => setFailedId(photo.id);
+  const retryMedia = () => {
+    setFailedId(null);
+    setLoadedId(null);
+    setAttempt((n) => n + 1);
+  };
 
   const toggleVideo = useCallback(() => {
     const el = videoRef.current;
@@ -359,7 +494,7 @@ function Lightbox({
       el.muted = true;
       el.play().catch(() => {});
     });
-  }, [isVideo, photo.id]);
+  }, [isVideo, photo.id, attempt]);
 
   // Move focus into the dialog on open and hand it back to the card that
   // opened it on close. Without the restore, closing drops the caret onto the
@@ -484,12 +619,15 @@ function Lightbox({
       <div className="relative min-h-0 flex-1" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         {/* Keyed per item: each photo fades in on its own instead of the old
             one being swapped in place. */}
-        <div key={photo.id} className="absolute inset-0 animate-in fade-in duration-300 motion-reduce:animate-none">
+        <div
+          key={photo.id}
+          className={`absolute inset-0 animate-in fade-in duration-300 motion-reduce:animate-none ${mediaFailed ? "invisible" : ""}`}
+        >
           {isVideo ? (
             <video
-              // Fresh element per item: no stale playback state or
-              // half-buffered src carried across prev/next.
-              key={photo.id}
+              // Fresh element per item (and per retry): no stale playback
+              // state or half-buffered src carried across prev/next.
+              key={`${photo.id}-${attempt}`}
               ref={videoRef}
               poster={videoPosterUrl(photo.url, 1600) ?? undefined}
               controls
@@ -499,23 +637,25 @@ function Lightbox({
               onPlay={() => setVideoPlaying(true)}
               onPause={() => setVideoPlaying(false)}
               onEnded={() => setVideoPlaying(false)}
-              onError={fallBackToWebmOnDecodeError}
+              // WebM fallback first (Firefox without an H.264 decoder, #63);
+              // the failure state only once no source is left.
+              onError={(e) => handleVideoError(e, markFailed)}
               className="h-full w-full object-contain"
             >
               {/* With <source> children a failed load fires `error` on the
-                  source, not the <video>, so the last one clears the spinner. */}
+                  source, not the <video>, so the last one reports it. */}
               {videoSources(photo.url, 1600).map((s, i, all) => (
                 <source
                   key={s.src}
                   src={s.src}
                   type={s.type}
-                  onError={i === all.length - 1 ? markLoaded : undefined}
+                  onError={i === all.length - 1 ? markFailed : undefined}
                 />
               ))}
             </video>
           ) : (
             <Image
-              key={photo.id}
+              key={`${photo.id}-${attempt}`}
               src={photo.url}
               loader={cloudinaryImageLoader(photo.optimize, 1600)}
               alt={galleryAlt(photo)}
@@ -523,13 +663,27 @@ function Lightbox({
               className="object-contain"
               sizes="100vw"
               onLoad={markLoaded}
-              onError={(e) => {
-                markLoaded();
-                (e.target as HTMLImageElement).src = getDiceBearPlaceholder(photo.id);
-              }}
+              onError={markFailed}
             />
           )}
         </div>
+
+        {mediaFailed && (
+          // Centered on the stage, message first and Retry under it. Clear of
+          // the prev/next buttons, which sit on the side edges.
+          <div className="absolute inset-0 flex items-center justify-center px-16">
+            <div className="flex max-w-xs flex-col items-center gap-4 text-center">
+              <AlertCircle className="h-8 w-8 text-white/70" aria-hidden="true" />
+              <p className="text-sm text-white/90 md:text-base" role="alert">
+                Couldn&apos;t load this {isVideo ? "video" : "photo"}. Check your connection.
+              </p>
+              <button type="button" onClick={retryMedia} className={LIGHTBOX_ACTION}>
+                <RotateCw className="h-4 w-4" aria-hidden="true" />
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
 
         {mediaLoading && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
@@ -577,7 +731,7 @@ function Lightbox({
         <div className="flex flex-wrap items-center gap-2">
           <ShareControl id={photo.id} title={`${galleryAlt(photo)} · ${photo.event}`} className={LIGHTBOX_ACTION} />
           {photo.event_slug && (
-            <Link href={`/events/${photo.event_slug}`} onClick={(e) => e.stopPropagation()} className={LIGHTBOX_ACTION}>
+            <Link href={`/events/${photo.event_slug}`} prefetch={false} onClick={(e) => e.stopPropagation()} className={LIGHTBOX_ACTION}>
               <ExternalLink className="h-4 w-4" aria-hidden="true" />
               View event
             </Link>
@@ -605,6 +759,15 @@ function GalleryCard({
   const isVideo = isVideoUrl(photo.url);
   const date = formatGalleryDate(photo.date);
   const title = galleryAlt(photo);
+  // A retry remounts the media element (new key), which makes the browser
+  // request the bytes again. Only on a click: nothing here retries by itself.
+  const [attempt, setAttempt] = useState(0);
+  const [failed, setFailed] = useState(false);
+  const markFailed = useCallback(() => setFailed(true), []);
+  const retry = () => {
+    setFailed(false);
+    setAttempt((n) => n + 1);
+  };
 
   return (
     // Wrapper keeps valid HTML: the download control is a sibling of the card
@@ -612,6 +775,10 @@ function GalleryCard({
     <div className="group relative">
       <Link
         href={`/gallery/${photo.id}`}
+        // No viewport prefetch: a grid of N cards would fire N page-path
+        // requests while scrolling, and the click opens the lightbox in place
+        // anyway, so the prefetched route was never used.
+        prefetch={false}
         onClick={(event) => onOpen(event, index, photo.id)}
         aria-label={[title, photo.caption ? photo.event : null, isVideo ? "video" : "photo", date]
           .filter(Boolean)
@@ -620,7 +787,11 @@ function GalleryCard({
         // while thumbnails load.
         className="relative block aspect-[4/3] w-full overflow-hidden rounded-xl bg-muted ring-1 ring-border transition-shadow duration-300 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
       >
-        {isVideo ? <VideoThumbnail url={photo.url} /> : <PhotoThumbnail photo={photo} />}
+        {isVideo ? (
+          <VideoThumbnail key={attempt} url={photo.url} onFail={markFailed} />
+        ) : (
+          <PhotoThumbnail key={attempt} photo={photo} onFail={markFailed} />
+        )}
 
         {isVideo && (
           <span className="pointer-events-none absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm sm:text-[11px]">
@@ -640,7 +811,11 @@ function GalleryCard({
           </p>
         </div>
       </Link>
-      <DownloadControl url={photo.url} isVideo={isVideo} canDownload={canDownload} variant="card" />
+      {failed ? (
+        <TileError label={title} isVideo={isVideo} onRetry={retry} />
+      ) : (
+        <DownloadControl url={photo.url} isVideo={isVideo} canDownload={canDownload} variant="card" />
+      )}
     </div>
   );
 }
@@ -681,6 +856,8 @@ function GallerySection({
         {group.eventSlug && (
           <Link
             href={`/events/${group.eventSlug}`}
+            // One per section; with many sections these add up on scroll.
+            prefetch={false}
             className="-mr-3 inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full px-3 text-sm font-semibold text-primary-red hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red"
           >
             View event
@@ -728,6 +905,13 @@ export default function GalleryGrid({
   // Which request failed, so "Try again" repeats that request: a failed filter
   // is re-applied, never retried as the next page of the previous filter.
   const [loadError, setLoadError] = useState<false | "filter" | "page">(false);
+  // Stable callbacks (not the object) go into hook deps, so a backoff tick
+  // never re-creates handleLoadMore and re-arms the scroll observer.
+  const { fail: backoffFail, succeed: backoffSucceed, secondsLeft: retrySecondsLeft } = useRetryBackoff();
+  // Set when a page came back with nothing new (the boundary shifted under
+  // a new upload). Auto-loading then stops, so a page that keeps returning
+  // rows already shown cannot become a request loop; Load more still works.
+  const [stalled, setStalled] = useState(false);
   // Every request gets a ticket; a response whose ticket is stale is dropped,
   // so tapping two chips quickly can never leave the first event's photos
   // under the second event's label.
@@ -802,17 +986,20 @@ export default function GalleryGrid({
       if (ticket !== requestRef.current) return;
       setPhotos(page.photos);
       setHasMore(page.hasMore);
+      setStalled(false);
+      backoffSucceed();
     } catch {
       if (ticket === requestRef.current) {
         // Don't leave the previous filter's photos labelled as this one's.
         setPhotos([]);
         setHasMore(false);
         setLoadError("filter");
+        backoffFail();
       }
     } finally {
       if (ticket === requestRef.current) setFiltering(false);
     }
-  }, [filter, loadError, filtering, photos, hasMore]);
+  }, [filter, loadError, filtering, photos, hasMore, backoffFail, backoffSucceed]);
 
   const handleLoadMore = useCallback(async () => {
     if (loadingMore || filtering || !hasMore) return;
@@ -824,30 +1011,36 @@ export default function GalleryGrid({
       const next = await fetchGalleryPage(photos.length, filter ?? undefined);
       if (ticket !== requestRef.current) return;
       // Dedupe by id in case a new upload shifted the page boundary.
-      setPhotos((prev) => {
-        const seen = new Set(prev.map((p) => p.id));
-        return [...prev, ...next.photos.filter((p) => !seen.has(p.id))];
-      });
+      const seen = new Set(photos.map((p) => p.id));
+      const fresh = next.photos.filter((p) => !seen.has(p.id));
+      setPhotos((prev) => [...prev, ...fresh]);
       setHasMore(next.hasMore);
+      setStalled(fresh.length === 0);
+      backoffSucceed();
     } catch {
-      if (ticket === requestRef.current) setLoadError("page");
+      if (ticket === requestRef.current) {
+        setLoadError("page");
+        backoffFail();
+      }
     } finally {
       if (pageTicket === pageRequestRef.current) setLoadingMore(false);
     }
-  }, [loadingMore, filtering, hasMore, photos.length, filter]);
+  }, [loadingMore, filtering, hasMore, photos, filter, backoffFail, backoffSucceed]);
 
   // Infinite scroll: start the next page ~one screen before the end. The
   // button below stays as the keyboard / no-IntersectionObserver fallback.
+  // Never after a failure (the visitor retries with the button, with backoff)
+  // and never after a page that added nothing.
   useEffect(() => {
     const el = sentinelRef.current;
-    if (!el || !hasMore || loadError || typeof IntersectionObserver === "undefined") return;
+    if (!el || !hasMore || loadError || stalled || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) void handleLoadMore(); },
       { rootMargin: "800px 0px" },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMore, loadError, handleLoadMore]);
+  }, [hasMore, loadError, stalled, handleLoadMore]);
 
   const groups = useMemo(() => groupByEvent(photos), [photos]);
 
@@ -980,19 +1173,6 @@ export default function GalleryGrid({
           : `Showing ${photos.length}${hasMore ? "+" : ""} items${filter ? ` from ${filter}` : ""}`}
       </p>
 
-      {loadError && (
-        <div className="mb-6 flex flex-wrap items-center justify-center gap-3 rounded-xl border border-border bg-surface p-4 text-sm text-primary">
-          Couldn&apos;t load media. Check your connection.
-          <button
-            type="button"
-            onClick={() => (loadError === "page" ? handleLoadMore() : applyFilter(filter))}
-            className="rounded-full border border-border px-4 py-1.5 font-semibold hover:bg-surface-hover"
-          >
-            Try again
-          </button>
-        </div>
-      )}
-
       {filtering ? (
         <div className={GRID_CLASS} aria-busy="true">
           <GallerySkeletonTiles count={8} />
@@ -1046,6 +1226,21 @@ export default function GalleryGrid({
             </GallerySection>
           ))}
         </div>
+      )}
+
+      {/* A failed request reports at the bottom, after whatever is already
+          loaded: that is where the visitor is looking when the next page
+          fails, and for a failed filter it sits right under the chips. */}
+      {loadError && (
+        <GalleryLoadError
+          message={
+            loadError === "page"
+              ? "Couldn't load more media. Check your connection."
+              : "Couldn't load media. Check your connection."
+          }
+          onRetry={() => (loadError === "page" ? handleLoadMore() : applyFilter(filter))}
+          secondsLeft={retrySecondsLeft}
+        />
       )}
 
       {/* Pagination: auto-loads near the bottom; the button is the fallback. */}

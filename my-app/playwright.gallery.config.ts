@@ -3,7 +3,8 @@ import video from "./playwright.video.config";
 
 /**
  * The whole gallery in every engine: grid, lightbox, keyboard, swipe
- * (e2e/gallery-lightbox.spec.ts) plus video playback (e2e/gallery-video.spec.ts),
+ * (e2e/gallery-lightbox.spec.ts), failure states and Retry (e2e/gallery-retry.spec.ts)
+ * plus video playback (e2e/gallery-video.spec.ts),
  * on the same Chromium / Firefox / WebKit / iPhone / Pixel matrix.
  *
  *   npx playwright install chromium firefox webkit
@@ -18,7 +19,7 @@ const shareUrl = process.env.VERCEL_SHARE_URL;
 
 export default defineConfig({
   ...video,
-  testMatch: /gallery-(video|lightbox)\.spec\.ts$/,
+  testMatch: /gallery-(video|lightbox|retry)\.spec\.ts$/,
   globalSetup: shareUrl ? "./e2e/vercel-share.setup.ts" : undefined,
   use: { ...video.use, ...(shareUrl ? { storageState: "test-results/.vercel-share.json" } : {}) },
 });
