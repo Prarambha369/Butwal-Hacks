@@ -335,11 +335,25 @@ describe("GalleryGrid ?event= link", () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  it("ignores an event that is not in the gallery", () => {
+  it("ignores an event with no photos and keeps showing everything", async () => {
     window.history.replaceState(null, "", "/gallery?event=Nope");
+    mockFetch.mockResolvedValue({ photos: [], hasMore: false });
     render(
       <GalleryGrid photos={PHOTOS} canDownload={false} totals={TOTALS} hasMore={false} events={["Hack 2026", "Jam"]} />,
     );
-    expect(mockFetch).not.toHaveBeenCalled();
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledWith(0, "Nope"));
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByRole("link", { name: /Photo 1/ }).length).toBeGreaterThan(0);
+    expect(window.location.search).toBe("?event=Nope");
+  });
+
+  it("honours an event missing from the list when it has photos, with one request", async () => {
+    // The event list can be stale, or empty when its read failed.
+    window.history.replaceState(null, "", "/gallery?event=Old");
+    mockFetch.mockResolvedValue({ photos: [photo(9, "Old")], hasMore: false });
+    render(<GalleryGrid photos={PHOTOS} canDownload={false} totals={TOTALS} hasMore={false} events={[]} />);
+    await waitFor(() => expect(screen.queryAllByRole("link", { name: /Photo 1/ })).toHaveLength(0));
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith(0, "Old");
   });
 });

@@ -1064,15 +1064,33 @@ export default function GalleryGrid({
   // ?event= keeps a filtered view shareable and reload-safe. The page is
   // ISR-cached (one HTML for every query string), so the filter is read here
   // on mount rather than on the server. Only a title that exists in the
-  // gallery is honoured; anything else shows everything, as before.
+  // gallery is honoured; anything else shows everything, as before. A title
+  // missing from the event list (which can be stale, or empty if its read
+  // failed) still counts when it has matching photos: that page is probed
+  // once and handed to applyFilter through the page cache, so the filter
+  // costs one request either way.
   const urlFilterAppliedRef = useRef(false);
   useEffect(() => {
     if (urlFilterAppliedRef.current) return;
     urlFilterAppliedRef.current = true;
     const requested = new URLSearchParams(window.location.search).get("event")?.slice(0, 200);
-    if (requested && requested !== filter && events.includes(requested)) {
+    if (!requested || requested === filter) return;
+    if (events.includes(requested)) {
       void applyFilter(requested);
+      return;
     }
+    // Any filter the visitor picks while the probe is in flight bumps the
+    // ticket; their choice wins and the probe result is dropped.
+    const ticket = requestRef.current;
+    void fetchGalleryPage(0, requested)
+      .then((page) => {
+        if (ticket !== requestRef.current || page.photos.length === 0) return;
+        pageCacheRef.current.set(requested, page);
+        void applyFilter(requested);
+      })
+      .catch(() => {
+        // Unknown title and the probe failed: keep showing everything.
+      });
   }, [applyFilter, events, filter]);
 
   // "auto" is everything the visitor did not ask for by pressing a button:

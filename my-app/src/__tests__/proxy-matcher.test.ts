@@ -29,7 +29,7 @@ describe("proxy matcher", () => {
       },
     );
 
-    it.each(["/sign-in", "/auth/login", "/auth/profile", "/dashboard", "/dashboard/hacker", "/portal/sponsors", "/teams/t1", "/orgs/pokhara", "/claim/tok"])(
+    it.each(["/sign-in", "/auth/login", "/auth/profile", "/dashboard", "/dashboard/hacker", "/portal", "/portal/sponsors", "/teams/t1", "/orgs/pokhara", "/claim/tok"])(
       "runs the proxy for %s",
       (path) => {
         expect(matches(host, path)).toBe(true);

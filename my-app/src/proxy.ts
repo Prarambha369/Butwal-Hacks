@@ -261,7 +261,8 @@ async function route(request: NextRequest): Promise<NextResponse> {
  * `NextResponse.next()` — only runs it on the paths `route()` actually acts
  * on there:
  *  - /sign-in and /auth/*            → sign-in redirect, Auth0 handlers
- *  - /dashboard, /portal/*, /teams/*, /orgs/* → redirect to the app host
+ *  - /dashboard, /portal, /portal/*, /teams/*, /orgs/* → app host redirect or
+ *    nonce CSP (usesNonceCsp covers bare /dashboard and /portal)
  *  - /claim/*                        → per-request nonce CSP (usesNonceCsp)
  * Everything else on the marketing host (home, events, gallery, blog, …) is
  * served straight from the CDN with next.config's static headers, exactly
@@ -282,7 +283,7 @@ export const config = {
       missing: [{ type: "header", key: "host", value: "(?:www\\.)?butwalhacks\\.com" }],
     },
     {
-      source: "/(sign-in|auth/.*|dashboard|dashboard/.*|portal/.*|teams/.*|orgs/.*|claim/.*)",
+      source: "/(sign-in|auth/.*|dashboard|dashboard/.*|portal|portal/.*|teams/.*|orgs/.*|claim/.*)",
       has: [{ type: "header", key: "host", value: "(?:www\\.)?butwalhacks\\.com" }],
     },
   ],

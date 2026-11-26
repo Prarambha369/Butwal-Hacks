@@ -2,6 +2,7 @@ import { Calendar } from "lucide-react";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import { fetchGalleryPage, fetchGalleryTotals, fetchGalleryEvents } from "@/lib/actions/gallery";
+import { isBuildPhase } from "@/lib/build-phase";
 import GalleryGrid from "./gallery-grid";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -22,12 +23,16 @@ export type { GalleryPhoto } from "@/lib/actions/gallery";
 
 export default async function GalleryPage() {
   // Totals, first page, and the event list are independent reads; run them
-  // together. A failed page read throws (so the client grid can retry it); on
-  // the server render, degrade to an empty first page rather than taking down
-  // the route.
+  // together. A failed first-page read propagates at runtime, so ISR keeps
+  // serving the last good gallery and retries on the next request instead of
+  // caching an empty grid with no Retry. At build time it degrades to an
+  // empty first page so a deploy never fails on a database blip.
   const emptyPage = { photos: [], hasMore: false };
   const [page, totals, events] = await Promise.all([
-    fetchGalleryPage(0).catch(() => emptyPage),
+    fetchGalleryPage(0).catch((error: unknown) => {
+      if (isBuildPhase()) return emptyPage;
+      throw error;
+    }),
     fetchGalleryTotals(),
     fetchGalleryEvents(),
   ]);

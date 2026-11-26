@@ -60,13 +60,19 @@ export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params
   const supabase = createServiceClient()
 
-  const { data: event } = await supabase
+  const { data: event, error: eventError } = await supabase
     .from("events")
     .select("*")
     .eq("slug", slug)
     .eq("is_published", true)
-    .single()
+    .maybeSingle()
 
+  // A failed read is not a missing event: throwing keeps the last good ISR
+  // page instead of caching a 404 for the revalidate window.
+  if (eventError) {
+    logger.error("Error fetching event:", eventError)
+    throw new Error("Event could not be loaded")
+  }
   if (!event) {
     notFound()
   }
