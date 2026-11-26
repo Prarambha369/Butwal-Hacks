@@ -188,6 +188,8 @@ export async function createEvent(input: CreateEventInput) {
     revalidatePath("/dashboard/organizer/events")
     // The public list is ISR-cached; a published event must appear now.
     revalidatePath("/events")
+    // A visitor may have hit the slug before it existed and cached a 404.
+    if (data.slug) revalidatePath(`/events/${data.slug}`)
     return { success: true, eventId: data.id, slug: data.slug }
   } catch (error) {
     logger.error("Error creating event:", error)
@@ -257,6 +259,7 @@ export async function createChapterEvent(input: CreateChapterEventInput, orgSlug
 
     revalidatePath(`/orgs/${orgSlug}/events`)
     revalidatePath("/events")
+    if (data.slug) revalidatePath(`/events/${data.slug}`)
 
     return { success: true, eventId: data.id, slug: data.slug }
   } catch (error) {

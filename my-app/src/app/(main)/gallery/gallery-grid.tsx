@@ -1070,6 +1070,15 @@ export default function GalleryGrid({
   // once and handed to applyFilter through the page cache, so the filter
   // costs one request either way.
   const urlFilterAppliedRef = useRef(false);
+  // Lifetime guard for the probe below: once the gallery unmounts (the
+  // visitor navigated away), a late probe result must not touch the URL.
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
   useEffect(() => {
     if (urlFilterAppliedRef.current) return;
     urlFilterAppliedRef.current = true;
@@ -1084,7 +1093,7 @@ export default function GalleryGrid({
     const ticket = requestRef.current;
     void fetchGalleryPage(0, requested)
       .then((page) => {
-        if (ticket !== requestRef.current || page.photos.length === 0) return;
+        if (!mountedRef.current || ticket !== requestRef.current || page.photos.length === 0) return;
         pageCacheRef.current.set(requested, page);
         void applyFilter(requested);
       })
