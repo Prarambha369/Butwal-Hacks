@@ -55,7 +55,7 @@ const BlogPostCard = memo(function BlogPostCard({
 
         {/* Title with hover effect */}
         <h2 className="mt-4 text-2xl sm:text-3xl font-bold leading-tight text-primary group-hover:text-primary-red transition-colors duration-300">
-          <Link href={`/blog/${post.slug}`} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red/40 focus-visible:ring-offset-2 rounded-sm">
+          <Link prefetch={false} href={`/blog/${post.slug}`} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-red/40 focus-visible:ring-offset-2 rounded-sm">
             {post.title}
           </Link>
         </h2>
@@ -67,6 +67,7 @@ const BlogPostCard = memo(function BlogPostCard({
 
         {/* Read more link */}
         <Link
+          prefetch={false}
           href={`/blog/${post.slug}`}
           className="mt-5 inline-flex items-center gap-2 text-base font-semibold text-primary hover:text-primary-red transition-colors duration-300 group/link"
         >

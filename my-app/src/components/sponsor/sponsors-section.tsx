@@ -66,6 +66,7 @@ function SponsorCard({ sponsor }: { sponsor: SponsorRow }) {
 
   return (
     <Link
+      prefetch={false}
       href={`/sponsor/${sponsor.id}`}
       className="group relative flex flex-col gap-3 rounded-xl border border-border bg-surface/40 p-5 transition-all hover:border-primary-red/30 hover:bg-surface hover:shadow-sm"
     >

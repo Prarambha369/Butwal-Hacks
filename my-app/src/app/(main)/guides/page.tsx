@@ -44,6 +44,7 @@ export default function GuidesPage() {
         <div className="grid gap-4">
           {guides.map((guide) => (
             <Link
+              prefetch={false}
               key={guide.href}
               href={guide.href}
               className="group rounded-xl border border-border bg-surface p-6 transition-colors hover:border-primary-red/40"

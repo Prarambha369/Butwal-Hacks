@@ -288,6 +288,7 @@ export function MentorDirectoryClient({ mentors }: MentorDirectoryClientProps) {
                     {/* Links */}
                     <div className="flex items-center gap-2 pt-1">
                       <Link
+                        prefetch={false}
                         href={`/p/${mentor.bh_id}`}
                         className="text-[10px] font-bold text-accent-teal hover:underline flex items-center gap-1"
                       >

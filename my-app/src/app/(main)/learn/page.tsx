@@ -102,7 +102,7 @@ export default function LearnPage() {
               <article key={g.title} className="rounded-xl border border-border bg-surface p-6">
                 <h3 className="text-lg font-bold text-primary">{g.title}</h3>
                 <p className="mt-2 text-sm text-secondary">{g.description}</p>
-                <Link href={g.href} className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
+                <Link prefetch={false} href={g.href} className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
                   {g.cta}
                 </Link>
               </article>

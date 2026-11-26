@@ -278,7 +278,7 @@ export default function ProjectGrid() {
                   <div className="p-6 space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="min-w-0">
-                        <Link href={`/projects/${project.id}`} className="text-xl font-bold text-primary group-hover:text-primary-red transition-colors block truncate">
+                        <Link prefetch={false} href={`/projects/${project.id}`} className="text-xl font-bold text-primary group-hover:text-primary-red transition-colors block truncate">
                           {project.title}
                         </Link>
                         <p className="text-xs font-mono text-accent-teal uppercase tracking-wider mt-1">

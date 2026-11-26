@@ -83,7 +83,7 @@ export default function ContributionCard({ project, isOwner }: ContributionCardP
           )}
 
           <div className="flex items-center gap-3 pt-1">
-            <Link 
+            <Link prefetch={false} 
               href={`/projects/${project.id}`}
               className="text-[10px] font-bold text-accent-teal hover:underline flex items-center gap-1"
             >

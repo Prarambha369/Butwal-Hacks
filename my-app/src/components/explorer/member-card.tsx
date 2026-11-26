@@ -37,7 +37,7 @@ export function MemberCard({
     >
       <div className="flex items-start gap-4">
         {/* Avatar */}
-        <Link href={`/p/${member.bhId}`} className="relative w-14 h-14 shrink-0 rounded-full overflow-hidden ring-2 ring-primary-red/20">
+        <Link prefetch={false} href={`/p/${member.bhId}`} className="relative w-14 h-14 shrink-0 rounded-full overflow-hidden ring-2 ring-primary-red/20">
           {member.avatarUrl ? (
             <Image
               src={member.avatarUrl}
@@ -57,7 +57,7 @@ export function MemberCard({
         {/* Content */}
         <div className="min-w-0 flex-1 space-y-2">
           <div>
-            <Link href={`/p/${member.bhId}`}>
+            <Link prefetch={false} href={`/p/${member.bhId}`}>
               <h3 className="text-sm font-bold text-primary truncate group-hover:text-primary-red transition-colors">
                 {member.name}
               </h3>
@@ -113,6 +113,7 @@ export function MemberCard({
 
           <div className="flex items-center gap-2 pt-1">
             <Link
+              prefetch={false}
               href={`/p/${member.bhId}`}
               className="text-[10px] font-bold text-primary-red hover:underline flex items-center gap-1"
             >

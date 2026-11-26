@@ -120,7 +120,7 @@ export default async function TeamsPage() {
                 return (
                   <div key={invite.id} className="bh-card px-5 py-3 border border-status-yellow/20 flex items-center justify-between">
                     <p className="text-sm font-bold text-primary">Invitation to join {team.name}</p>
-                    <Link href={`/teams/${team.id}`} className="text-xs font-bold text-primary-red hover:text-primary-red/70 transition-colors">
+                    <Link prefetch={false} href={`/teams/${team.id}`} className="text-xs font-bold text-primary-red hover:text-primary-red/70 transition-colors">
                       View →
                     </Link>
                   </div>
@@ -169,7 +169,7 @@ export default async function TeamsPage() {
                 <h2 className="text-xl font-bold text-primary flex items-center gap-2">
                   <CalendarDays className="w-5 h-5 text-primary-red" />
                   {event.slug ? (
-                    <Link href={`/events/${event.slug}`} className="hover:text-primary-red transition-colors">
+                    <Link prefetch={false} href={`/events/${event.slug}`} className="hover:text-primary-red transition-colors">
                       {event.title}
                     </Link>
                   ) : (
@@ -189,6 +189,7 @@ export default async function TeamsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {event.teams.map((team) => (
                   <Link
+                    prefetch={false}
                     key={team.id}
                     href={`/teams/${team.id}`}
                     className="bh-card p-5 space-y-3 group hover:border-primary-red/30 transition-all"
