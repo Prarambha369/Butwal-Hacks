@@ -1,16 +1,20 @@
 import { PHASE_PRODUCTION_BUILD } from "next/constants";
 
 /**
- * True while `next build` prerenders pages.
+ * Should an ISR page render its empty fallback when a data read fails, or
+ * throw?
  *
- * ISR pages use this to decide what to do with a failed data read. At build
- * time (CI, a local build without real keys, a database blip during deploy)
- * they render an empty fallback so the build still succeeds; the page then
- * regenerates on the first request after its revalidate window. At runtime
- * they throw instead: a failed regeneration keeps serving the last good page
- * and retries on the next request, instead of caching an empty or 404 page
- * for the whole window.
+ * Throw only at production runtime. There, a throw during regeneration keeps
+ * serving the last good page and retries on the next request, instead of
+ * caching an empty list or a 404 for the whole revalidate window.
+ *
+ * Degrade everywhere else:
+ *  - during `next build` (CI, a local build without real keys, a database
+ *    blip mid-deploy), so the build still succeeds and the page regenerates
+ *    on the first request after its window;
+ *  - in `next dev` / tests, where nothing is cached, so a partial local or CI
+ *    database shows the empty state rather than an error page.
  */
-export function isBuildPhase(): boolean {
-  return process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD;
+export function degradeOnReadError(): boolean {
+  return process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD || process.env.NODE_ENV !== "production";
 }

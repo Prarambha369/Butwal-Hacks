@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 
 import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
+import { degradeOnReadError } from "@/lib/build-phase"
 import { buildPageMetadata } from "@/lib/seo"
 import { initiatives, events as contentEvents, blogPosts, getRelatedByTags } from "@/lib/content"
 import RelatedLinks from "@/components/home/related-links"
@@ -71,7 +72,7 @@ export default async function EventDetailPage({ params }: Props) {
   // page instead of caching a 404 for the revalidate window.
   if (eventError) {
     logger.error("Error fetching event:", eventError)
-    throw new Error("Event could not be loaded")
+    if (!degradeOnReadError()) throw new Error("Event could not be loaded")
   }
   if (!event) {
     notFound()

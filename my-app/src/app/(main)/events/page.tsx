@@ -11,7 +11,7 @@ import { buildPageMetadata } from "@/lib/seo"
 import { SITE_URL } from "@/lib/constants"
 import { initiatives } from "@/lib/content"
 import { logger } from "@/lib/logger"
-import { isBuildPhase } from "@/lib/build-phase"
+import { degradeOnReadError } from "@/lib/build-phase"
 import { partitionEvents } from "@/lib/event-status"
 import Breadcrumbs from "@/components/breadcrumbs"
 import { EventCard, FeaturedEventCard } from "@/components/events/event-card"
@@ -46,9 +46,9 @@ export default async function EventsPage() {
   if (error) {
     logger.error("Error fetching events:", error)
     // At runtime a failed read must not be cached as "no events": throwing
-    // keeps the last good ISR page and retries on the next request. At build
-    // time, render the empty list so a deploy never fails on a DB blip.
-    if (!isBuildPhase()) throw new Error("Events could not be loaded")
+    // keeps the last good ISR page and retries on the next request. During
+    // the build and in dev, render the empty list (see degradeOnReadError).
+    if (!degradeOnReadError()) throw new Error("Events could not be loaded")
   }
 
   const events: PublicEvent[] = (dbEvents || [])
