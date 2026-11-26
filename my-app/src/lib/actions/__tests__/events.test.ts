@@ -22,11 +22,18 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+vi.mock("@/lib/event-banner-verify", () => ({
+  verifyBannerUpload: vi.fn(),
+}));
+
 import { auth0 } from "@/lib/auth0";
 import { createServiceClient } from "@/utils/supabase";
+import { verifyBannerUpload } from "@/lib/event-banner-verify";
 
 const mockedGetSession = auth0.getSession as ReturnType<typeof vi.fn>;
 const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>;
+const mockedVerifyBanner = verifyBannerUpload as ReturnType<typeof vi.fn>;
+const BANNER_URL = "https://res.cloudinary.com/demo/image/upload/v1/butwal-hacks/auth0|12345/banner.jpg";
 
 // ─── Mock Database Builder ───────────────────────────────────────────────────
 
@@ -170,44 +177,74 @@ describe("createEvent", () => {
     expect(insertData.is_published).toBe(false);
   });
 
-  it("passes optional fields when provided", async () => {
+  it("passes optional fields when provided, with the verified banner", async () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileFound(db);
     db.single.mockResolvedValue({ data: { id: "event-1" }, error: null });
+    db.maybeSingle.mockResolvedValueOnce({ data: { role: "organizer" }, error: null });
+    mockedVerifyBanner.mockResolvedValue({
+      ok: true,
+      publicId: "butwal-hacks/auth0|12345/banner",
+      url: BANNER_URL,
+    });
 
     const { createEvent } = await import("../events");
     await createEvent({
       title: "Location Event", description: "With location",
       start_date: "2026-06-01", end_date: "2026-06-02",
       location: "Kathmandu",
-      banner_url: "https://res.cloudinary.com/demo/image/upload/banner.jpg",
+      banner_public_id: "butwal-hacks/auth0|12345/banner",
       is_published: true,
     });
 
+    expect(mockedVerifyBanner).toHaveBeenCalledWith("butwal-hacks/auth0|12345/banner", "auth0|12345");
     const insertData = db.insert.mock.calls[0][0];
     expect(insertData.location).toBe("Kathmandu");
-    expect(insertData.banner_url).toBe("https://res.cloudinary.com/demo/image/upload/banner.jpg");
+    // The URL comes from Cloudinary's answer, never from the client.
+    expect(insertData.banner_url).toBe(BANNER_URL);
+    expect(insertData.banner_public_id).toBe("butwal-hacks/auth0|12345/banner");
     expect(insertData.is_published).toBe(true);
   });
 
-  it("rejects a banner URL from a host outside the image allowlist", async () => {
+  it("refuses a banner that fails verification and writes nothing", async () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileFound(db);
+    db.maybeSingle.mockResolvedValueOnce({ data: { role: "organizer" }, error: null });
+    mockedVerifyBanner.mockResolvedValue({ ok: false, error: "Banners can be at most 5 MB." });
 
     const { createEvent } = await import("../events");
     const result = await createEvent({
       title: "Hostile Banner", description: "",
       start_date: "2026-06-01", end_date: "2026-06-02",
-      banner_url: "https://example.com/banner.jpg",
+      banner_public_id: "someone-else/banner",
     });
 
     expect(result.success).toBe(false);
+    expect(result.error).toBe("Banners can be at most 5 MB.");
     expect(db.insert).not.toHaveBeenCalled();
   });
 
-  it("stores a blank banner URL as null", async () => {
+  it("refuses a banner from a member who is not an organizer, before any Cloudinary lookup", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    setProfileFound(db);
+    db.maybeSingle.mockResolvedValueOnce({ data: { role: "hacker" }, error: null });
+
+    const { createEvent } = await import("../events");
+    const result = await createEvent({
+      title: "Not mine", description: "",
+      start_date: "2026-06-01", end_date: "2026-06-02",
+      banner_public_id: "butwal-hacks/auth0|12345/banner",
+    });
+
+    expect(result).toMatchObject({ success: false, error: "Only event organizers can add a banner." });
+    expect(mockedVerifyBanner).not.toHaveBeenCalled();
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  it("stores no banner when none was uploaded", async () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileFound(db);
@@ -217,10 +254,46 @@ describe("createEvent", () => {
     await createEvent({
       title: "No Banner", description: "",
       start_date: "2026-06-01", end_date: "2026-06-02",
-      banner_url: "",
+      banner_public_id: "",
     });
 
+    expect(mockedVerifyBanner).not.toHaveBeenCalled();
     expect(db.insert.mock.calls[0][0].banner_url).toBeNull();
+    expect(db.insert.mock.calls[0][0].banner_public_id).toBeNull();
+  });
+
+  it("still saves the banner URL when migration 150 has not run", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    setProfileFound(db);
+    mockedVerifyBanner.mockResolvedValue({ ok: true, publicId: "butwal-hacks/auth0|12345/b", url: BANNER_URL });
+    db.maybeSingle.mockResolvedValue({ data: null, error: null });
+    db.maybeSingle.mockResolvedValueOnce({ data: { role: "organizer" }, error: null });
+    // First insert hits a database without the column; the retry succeeds.
+    let inserts = 0;
+    db.insert.mockImplementation(() => {
+      inserts += 1;
+      return db;
+    });
+    db.single.mockImplementation(async () => {
+      if (inserts === 1) {
+        return { data: null, error: { code: "PGRST204", message: "Could not find the 'banner_public_id' column of 'events'" } };
+      }
+      return { data: { id: "event-1", slug: "x" }, error: null };
+    });
+
+    const { createEvent } = await import("../events");
+    const result = await createEvent({
+      title: "Old DB", description: "",
+      start_date: "2026-06-01", end_date: "2026-06-02",
+      banner_public_id: "butwal-hacks/auth0|12345/b",
+    });
+
+    expect(result.success).toBe(true);
+    expect(db.insert).toHaveBeenCalledTimes(2);
+    const retried = db.insert.mock.calls.at(-1)?.[0];
+    expect(retried.banner_url).toBe(BANNER_URL);
+    expect(retried).not.toHaveProperty("banner_public_id");
   });
 });
 

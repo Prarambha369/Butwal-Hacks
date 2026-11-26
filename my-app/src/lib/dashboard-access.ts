@@ -225,3 +225,14 @@ export function organizerRedirect(
 
   return organizerAccess(events, now).active ? null : "/dashboard/hacker";
 }
+
+/**
+ * May this caller upload an event banner at all?
+ *
+ * Organizers and verified maintainers only. This gates the upload signature;
+ * whether the banner may be attached to a *particular* event is decided by the
+ * save action, which compares the event's organizer_id against the caller.
+ */
+export function canUploadEventBanner(subject: AccessSubject): boolean {
+  return subject.role === "organizer" || isMaintainer(subject);
+}

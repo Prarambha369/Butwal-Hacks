@@ -358,3 +358,58 @@ describe("POST /api/events/register", () => {
     expect(body.error).toContain("Profile not found")
   })
 })
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GET /api/events/register — the caller's own registration state
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("GET /api/events/register", () => {
+  const get = (eventId = EVENT_ID) =>
+    new Request(`http://localhost:3000/api/events/register?event_id=${eventId}`)
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockedGetSession.mockResolvedValue({ user: { sub: "auth0|12345" } })
+  })
+
+  it("returns 401 when not signed in, without touching the database", async () => {
+    mockedGetSession.mockResolvedValue(null)
+    const { GET } = await import("../events/register/route")
+    const res = await GET(get())
+    expect(res.status).toBe(401)
+    expect(mockedCreateServiceClient).not.toHaveBeenCalled()
+  })
+
+  it("returns 400 for a missing event id", async () => {
+    const { GET } = await import("../events/register/route")
+    const res = await GET(new Request("http://localhost:3000/api/events/register"))
+    expect(res.status).toBe(400)
+  })
+
+  it("answers for the session's own profile only, never cached", async () => {
+    const db = buildMockDb()
+    db.maybeSingle
+      .mockResolvedValueOnce({ data: { id: "profile-1" }, error: null })
+      .mockResolvedValueOnce({ data: { id: "reg-1" }, error: null })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const { GET } = await import("../events/register/route")
+    const res = await GET(get())
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ registered: true })
+    expect(res.headers.get("Cache-Control")).toBe("private, no-store")
+    expect(db.eq).toHaveBeenCalledWith("auth0_user_id", "auth0|12345")
+    expect(db.eq).toHaveBeenCalledWith("profile_id", "profile-1")
+    expect(db.eq).toHaveBeenCalledWith("event_id", EVENT_ID)
+  })
+
+  it("reports not registered when there is no row (or no profile yet)", async () => {
+    const db = buildMockDb()
+    db.maybeSingle.mockResolvedValueOnce({ data: null, error: null })
+    mockedCreateServiceClient.mockReturnValue(db)
+
+    const { GET } = await import("../events/register/route")
+    const res = await GET(get())
+    expect(await res.json()).toEqual({ registered: false })
+  })
+})

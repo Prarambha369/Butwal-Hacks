@@ -2,6 +2,8 @@ import { v2 as cloudinary } from "cloudinary"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth0 } from "@/lib/auth0"
+import { accessSubjectFor, canUploadEventBanner } from "@/lib/dashboard-access"
+import { BANNER_FORMATS } from "@/lib/event-banner"
 import { encodeCloudinaryMetadata, pickDefinedMetadata } from "@/lib/cloudinary-metadata"
 import { logger } from "@/lib/logger"
 import { withRateLimit } from "@/lib/rate-limiter"
@@ -172,6 +174,24 @@ export const POST = withRateLimit(async (request: Request) => {
       }
     }
 
+    // Event banners: organizers and verified maintainers only. The session
+    // check above authorizes the service-role read of the caller's own role.
+    // Which event a banner lands on is checked again by the save action.
+    if (metadata.entity_type === "event_banner") {
+      const supabase = createServiceClient()
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("auth0_user_id", userId)
+        .maybeSingle()
+      if (!canUploadEventBanner(accessSubjectFor(session.user, profile as { role?: string | null } | null))) {
+        return NextResponse.json(
+          { error: "Only event organizers can upload banners." },
+          { status: 403 },
+        )
+      }
+    }
+
     const timestamp = Math.round(Date.now() / 1000)
     const folder = `butwal-hacks/${userId}`
 
@@ -245,6 +265,13 @@ export const POST = withRateLimit(async (request: Request) => {
         }
       : undefined
 
+    // Banners: Cloudinary itself refuses anything but jpg/png/webp. Signed, so
+    // the browser cannot widen it. No incoming or eager transform: banners are
+    // resized at delivery (w_/q_auto/f_auto), which costs nothing at upload.
+    const bannerParams = metadata.entity_type === "event_banner"
+      ? { allowed_formats: BANNER_FORMATS.join(",") }
+      : undefined
+
     // Build params to sign — include metadata if present
     const paramsToSign: Record<string, string | number> = {
       timestamp,
@@ -252,6 +279,7 @@ export const POST = withRateLimit(async (request: Request) => {
       ...(uploadPreset ? { upload_preset: uploadPreset } : {}),
       ...(transformation ? { transformation } : {}),
       ...videoUploadParams,
+      ...bannerParams,
     }
     // NOTE: resource_type is deliberately NOT signed. Cloudinary takes it from
     // the endpoint path (/v1_1/<cloud>/<resource_type>/upload) and excludes it
@@ -292,6 +320,7 @@ export const POST = withRateLimit(async (request: Request) => {
       ...(transformation ? { transformation } : {}),
       ...(metadataStr ? { metadata: metadataStr } : {}),
       ...(videoUploadParams ? { videoUploadParams } : {}),
+      ...(bannerParams ? { uploadParams: bannerParams } : {}),
     })
   } catch (error) {
     logger.error("Cloudinary signature error:", error)
