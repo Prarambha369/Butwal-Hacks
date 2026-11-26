@@ -24,7 +24,7 @@ const URL_OK = "https://res.cloudinary.com/demo-cloud/image/upload/v1/butwal-hac
  * given rows, `update()` records its payload and resolves to `updateError`.
  */
 function fakeDb(opts: {
-  event: { organizer_id: string; banner_url: string | null; slug: string } | null;
+  event: { organizer_id: string; banner_url: string | null; slug: string; banner_public_id?: string | null } | null;
   role?: string | null;
   updateErrors?: Array<{ code?: string; message?: string } | null>;
 }) {
@@ -115,6 +115,26 @@ describe("updateEventBanner", () => {
     expect(verify).not.toHaveBeenCalled();
     expect(result).toMatchObject({ success: true, removed: true });
     expect(db.updates[0]).toEqual({ banner_url: null, banner_public_id: null });
+  });
+
+  it("treats a re-save of the same banner as unchanged", async () => {
+    verify.mockResolvedValue({ ok: true, publicId: "butwal-hacks/auth0|me/b", url: URL_OK });
+    const db = fakeDb({
+      event: { ...OWNED, banner_url: URL_OK, banner_public_id: "butwal-hacks/auth0|me/b" },
+      role: "organizer",
+    });
+    const result = await updateEventBanner("event-1", "butwal-hacks/auth0|me/b");
+    expect(result).toMatchObject({ success: true, unchanged: true });
+    expect(db.updates).toHaveLength(0);
+  });
+
+  it("fills in a missing public_id when the same banner is saved after migration 150", async () => {
+    verify.mockResolvedValue({ ok: true, publicId: "butwal-hacks/auth0|me/b", url: URL_OK });
+    // Saved through the pre-150 fallback: URL stored, public_id column now null.
+    const db = fakeDb({ event: { ...OWNED, banner_url: URL_OK, banner_public_id: null }, role: "organizer" });
+    const result = await updateEventBanner("event-1", "butwal-hacks/auth0|me/b");
+    expect(result.success).toBe(true);
+    expect(db.updates[0]).toEqual({ banner_url: URL_OK, banner_public_id: "butwal-hacks/auth0|me/b" });
   });
 
   it("retries without banner_public_id on a database that lacks migration 150", async () => {

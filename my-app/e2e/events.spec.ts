@@ -76,23 +76,31 @@ async function signedOut(page: Page): Promise<void> {
 }
 
 /** Slugs of upcoming and past events, read from the list page. */
-let slugCache: { upcoming: string | null; past: string | null } | null = null;
+interface Slugs {
+  /** An event still taking registrations (its card says "Register"). */
+  upcoming: string | null;
+  /** Any not-yet-ended event, including a live one ("View details"). */
+  current: string | null;
+  past: string | null;
+}
+let slugCache: Slugs | null = null;
 
-async function findSlugs(page: Page): Promise<{ upcoming: string | null; past: string | null }> {
+async function findSlugs(page: Page): Promise<Slugs> {
   // One list visit per worker, not one per test.
   if (slugCache) return slugCache;
   await page.goto("/events");
-  await expect(page.locator("article").first().or(page.getByText("No upcoming events right now"))).toBeVisible({
+  await expect(page.locator("article").first().or(page.getByText("No upcoming events right now")).first()).toBeVisible({
     timeout: 20_000,
   });
   const hrefOf = async (selector: string) => {
     const link = page.locator(selector).first();
     return (await link.count()) > 0 ? link.getAttribute("href") : null;
   };
-  const upcoming = await hrefOf('article a[aria-label^="Register:"], article a[aria-label^="View details:"]');
+  const upcoming = await hrefOf('article a[aria-label^="Register:"]');
+  const current = await hrefOf('article a[aria-label^="Register:"], article a[aria-label^="View details:"]');
   const past = await hrefOf('article a[aria-label^="See recap:"]');
   const slug = (href: string | null) => href?.match(/^\/events\/([^/#?]+)/)?.[1] ?? null;
-  slugCache = { upcoming: slug(upcoming), past: slug(past) };
+  slugCache = { upcoming: slug(upcoming), current: slug(current), past: slug(past) };
   return slugCache;
 }
 
@@ -121,7 +129,7 @@ test.describe("/events list", () => {
 
     const cards = page.locator("article");
     const empty = page.getByText("No upcoming events right now");
-    await expect(cards.first().or(empty)).toBeVisible({ timeout: 20_000 });
+    await expect(cards.first().or(empty).first()).toBeVisible({ timeout: 20_000 });
 
     if ((await cards.count()) > 0) {
       // Grid cards hold a 16:9 banner box before and after images load (no
@@ -183,7 +191,7 @@ test.describe("/events/<slug> detail", () => {
 
   test("signed out, upcoming: Sign in to register; breadcrumbs, calendar and meta", async ({ page }) => {
     const { upcoming } = await findSlugs(page);
-    test.skip(!upcoming, "No upcoming event in this database");
+    test.skip(!upcoming, "No event open for registration in this database");
     await signedOut(page);
     await page.goto(`/events/${upcoming}`);
 
@@ -208,7 +216,7 @@ test.describe("/events/<slug> detail", () => {
 
   test("signed in, not registered: Register opens the consent dialog", async ({ page }) => {
     const { upcoming } = await findSlugs(page);
-    test.skip(!upcoming, "No upcoming event in this database");
+    test.skip(!upcoming, "No event open for registration in this database");
     await signedIn(page, false);
     await page.goto(`/events/${upcoming}`);
     const register = page.locator("#register").getByRole("button", { name: /Register — it's free/ });
@@ -221,7 +229,7 @@ test.describe("/events/<slug> detail", () => {
 
   test("signed in, already registered: Registered ✓ and no register button", async ({ page }) => {
     const { upcoming } = await findSlugs(page);
-    test.skip(!upcoming, "No upcoming event in this database");
+    test.skip(!upcoming, "No event open for registration in this database");
     await signedIn(page, true);
     await page.goto(`/events/${upcoming}`);
     await expect(page.locator("#register").getByText("Registered", { exact: false })).toBeVisible();
@@ -241,8 +249,8 @@ test.describe("/events/<slug> detail", () => {
   });
 
   test("keyboard: calendar menu opens with Enter and Escape returns focus", async ({ page }) => {
-    const { upcoming, past } = await findSlugs(page);
-    const slug = upcoming ?? past;
+    const { current, past } = await findSlugs(page);
+    const slug = current ?? past;
     test.skip(!slug, "No published events in this database");
     await signedOut(page);
     await page.goto(`/events/${slug}`);
@@ -258,8 +266,8 @@ test.describe("/events/<slug> detail", () => {
 
   test("phone: the sticky CTA appears once the hero CTA scrolls away", async ({ page, isMobile }) => {
     test.skip(!isMobile, "The sticky bar is mobile-only");
-    const { upcoming, past } = await findSlugs(page);
-    const slug = upcoming ?? past;
+    const { current, past } = await findSlugs(page);
+    const slug = current ?? past;
     test.skip(!slug, "No published events in this database");
     await signedOut(page);
     await page.goto(`/events/${slug}`);

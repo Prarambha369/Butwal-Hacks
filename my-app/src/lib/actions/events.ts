@@ -443,9 +443,11 @@ export async function updateEventBanner(eventId: string, bannerPublicId: string)
     const supabase = createServiceClient()
     const profileId = await resolveProfileId()
 
+    // `*` rather than naming banner_public_id: before migration 150 that
+    // column does not exist and naming it would fail the read.
     const { data: event } = await supabase
       .from("events")
-      .select("organizer_id, banner_url, slug")
+      .select("*")
       .eq("id", eventId)
       .maybeSingle()
 
@@ -471,7 +473,13 @@ export async function updateEventBanner(eventId: string, bannerPublicId: string)
     const banner = await resolveBanner(typeof bannerPublicId === "string" ? bannerPublicId : "")
     if (!banner.ok) return { success: false, error: banner.error }
 
-    if (banner.value.banner_url === (event.banner_url || null)) {
+    // Unchanged only when both stored values already match. A save that went
+    // through the pre-150 fallback stored the URL alone; re-saving the same
+    // banner after the migration must fill in banner_public_id.
+    const storedPublicId = (event as { banner_public_id?: string | null }).banner_public_id
+    const publicIdMatches =
+      storedPublicId === undefined || (storedPublicId ?? null) === banner.value.banner_public_id
+    if (banner.value.banner_url === (event.banner_url || null) && publicIdMatches) {
       return { success: true, unchanged: true, banner_url: banner.value.banner_url }
     }
 

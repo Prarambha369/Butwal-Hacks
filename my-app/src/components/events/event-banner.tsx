@@ -41,8 +41,12 @@ export function EventBanner({
   className,
   zoomOnHover = false,
 }: EventBannerProps) {
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
+  // Remember *which* URL loaded or failed, so a new url (router.refresh after
+  // a banner change) starts from the skeleton instead of stale flags.
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const loaded = url !== null && loadedUrl === url;
+  const failed = url !== null && failedUrl === url;
   const start = new Date(startDate);
   const valid = !Number.isNaN(start.getTime());
 
@@ -59,8 +63,8 @@ export function EventBanner({
             fill
             sizes={sizes}
             priority={priority}
-            onLoad={() => setLoaded(true)}
-            onError={() => setFailed(true)}
+            onLoad={() => setLoadedUrl(url)}
+            onError={() => setFailedUrl(url)}
             className={cn(
               "object-cover transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none",
               loaded ? "opacity-100" : "opacity-0",

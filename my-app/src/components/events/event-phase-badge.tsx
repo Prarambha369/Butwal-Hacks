@@ -10,5 +10,11 @@ import { useEventRegistration } from "./event-registration";
  */
 export function EventPhaseBadge() {
   const { phase } = useEventRegistration();
-  return <EventStatusBadge phase={phase} />;
+  // The phase arrives after mount; a persistent polite status region
+  // announces it once without moving focus.
+  return (
+    <span role="status" className="inline-flex">
+      <EventStatusBadge phase={phase} />
+    </span>
+  );
 }

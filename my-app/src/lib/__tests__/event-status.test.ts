@@ -82,8 +82,11 @@ describe("formatting (Nepal time, identical on server and client)", () => {
 });
 
 describe("location helpers", () => {
-  it("recognises online venues", () => {
+  it("recognises online-only venues, not physical venues that mention a stream", () => {
     expect(isOnlineLocation("Online (Discord)")).toBe(true);
+    expect(isOnlineLocation("Online via Zoom")).toBe(true);
+    expect(isOnlineLocation("Virtual")).toBe(true);
+    expect(isOnlineLocation("Butwal campus (online stream available)")).toBe(false);
     expect(isOnlineLocation("Arambha Resort, Butwal, Nepal")).toBe(false);
     expect(isOnlineLocation(null)).toBe(false);
   });

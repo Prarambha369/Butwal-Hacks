@@ -58,7 +58,15 @@ for (const vp of viewports) {
     await page.route((url) => url.searchParams.has("_rsc"), (route) => route.abort());
     if (args.share) await page.goto(args.share);
     for (const p of pages) {
-      await page.goto(base + p.path, { waitUntil: "load", timeout: 60_000 });
+      // A 429 or the Vercel login page does not make goto() throw. Retry once
+      // after a pause, then fail rather than save it as the page.
+      let ok = false;
+      for (let attempt = 0; attempt < 2 && !ok; attempt++) {
+        if (attempt > 0) await page.waitForTimeout(delay * 3);
+        const res = await page.goto(base + p.path, { waitUntil: "load", timeout: 60_000 });
+        ok = Boolean(res?.ok()) && !/vercel\.com/.test(page.url()) && (await page.locator("h1").count()) > 0;
+      }
+      if (!ok) throw new Error(`${p.path} did not load as the event page (rate limit or login); nothing saved`);
       await page.waitForTimeout(1500);
       const file = `${out}/${prefix}${p.name}-${vp.name}-${scheme}.png`;
       await page.screenshot({ path: file, fullPage: true });

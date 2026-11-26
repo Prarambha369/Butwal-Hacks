@@ -147,10 +147,16 @@ export function formatEventBsDate(event: Pick<Timed, "start_date">): string {
   }
 }
 
-/** A free-text location that names no physical place reads as online. */
+/**
+ * Online-only venues: the location *starts* with an online word or names a
+ * platform ("Online", "Virtual", "Online via Zoom", "Discord"). A physical
+ * venue that merely mentions a stream ("Butwal campus (online stream
+ * available)") stays physical, so directions and the offline JSON-LD mode
+ * remain.
+ */
 export function isOnlineLocation(location: string | null | undefined): boolean {
   if (!location) return false;
-  return /\b(online|virtual|remote|discord|zoom|google meet)\b/i.test(location);
+  return /^\s*(online|virtual|remote|zoom|discord|google meet|microsoft teams)\b/i.test(location);
 }
 
 /** Google Maps search link for a venue. No API key, no embed, no cost. */

@@ -155,7 +155,9 @@ function BodySection({ section, id }: { section: Section; id: string }) {
 
   if (isScheduleHeader(section.header)) {
     const schedule = parseSchedule(section.body);
-    if (schedule.length > 0) {
+    // Timeline only when every line is a time slot; otherwise prose, so a
+    // date line or "Bring your student ID" is never dropped.
+    if (schedule.length > 0 && schedule.length === lines(section.body).length) {
       return (
         <section aria-labelledby={id} className="space-y-6">
           {heading}

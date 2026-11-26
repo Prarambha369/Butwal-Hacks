@@ -14,7 +14,7 @@ import { useAuthUser } from "@/components/auth-user-provider";
 import RegistrationConsentModal, {
   type RegistrationConsent,
 } from "@/components/events/registration-consent-modal";
-import { eventPhase, type EventPhase } from "@/lib/event-status";
+import { CLOSING_SOON_MS, eventPhase, type EventPhase } from "@/lib/event-status";
 
 /**
  * Registration state for one event page, shared by every CTA on it (the hero
@@ -75,10 +75,34 @@ export function EventRegistrationProvider({
   const [message, setMessage] = useState("");
   const [showConsent, setShowConsent] = useState(false);
 
-  // The page is statically cached, so "now" is only known in the browser.
-  // Computed once on mount; the CTA reserves its space until then.
+  // "Now" is only known in the browser; the CTA reserves its space until the
+  // first computation. The phase is recomputed at the next boundary (72h
+  // before start, start, end) with one timer, not polling, and whenever the
+  // tab becomes visible again (timers are throttled in background tabs).
   useEffect(() => {
-    setPhase(eventPhase({ start_date: startDate, end_date: endDate }, Date.now()));
+    const event = { start_date: startDate, end_date: endDate };
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const update = () => {
+      const now = Date.now();
+      setPhase(eventPhase(event, now));
+      const start = Date.parse(startDate);
+      const end = Date.parse(endDate);
+      const next = [start - CLOSING_SOON_MS, start, end + 1]
+        .filter((t) => Number.isFinite(t) && t > now)
+        .sort((a, b) => a - b)[0];
+      clearTimeout(timer);
+      // setTimeout overflows past ~24.8 days; the visibility check covers that.
+      if (next !== undefined && next - now < 2 ** 31 - 1) timer = setTimeout(update, next - now);
+    };
+    update();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") update();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [startDate, endDate]);
 
   const signedIn = Boolean(user);

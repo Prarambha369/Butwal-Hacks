@@ -6,7 +6,7 @@ import { createServiceClient } from "@/utils/supabase"
 export const dynamic = "force-dynamic";
 import { buildPageMetadata } from "@/lib/seo"
 import { auth0 } from "@/lib/auth0"
-import { APP_URL } from "@/lib/constants"
+import { APP_URL, SITE_URL } from "@/lib/constants"
 import { initiatives } from "@/lib/content"
 import { logger } from "@/lib/logger"
 import { partitionEvents } from "@/lib/event-status"
@@ -23,6 +23,10 @@ export const metadata: Metadata = buildPageMetadata({
     "Looking for the next upcoming hackathon in Butwal? Butwal Hacks lists free hackathons for students in Nepal — beginner-friendly events across Lumbini Province with no registration fee.",
   path: "/events",
 })
+
+// A webcal:// link makes calendar apps subscribe (and poll for new events)
+// instead of saving a one-time snapshot of the feed.
+const CALENDAR_SUBSCRIBE_URL = `${SITE_URL.replace(/^https?:\/\//, "webcal://")}/api/events/ical`
 
 export default async function EventsPage() {
   const session = await auth0.getSession();
@@ -87,7 +91,7 @@ export default async function EventsPage() {
                 How to join <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </Link>
             )}
-            <a href="/api/events/ical" className="bh-btn-ghost text-sm">
+            <a href={CALENDAR_SUBSCRIBE_URL} className="bh-btn-ghost text-sm">
               <CalendarPlus aria-hidden="true" className="h-4 w-4" /> Subscribe to calendar
             </a>
           </div>
@@ -121,7 +125,7 @@ export default async function EventsPage() {
                 The next hackathon is being planned. Subscribe to the calendar and it will appear
                 there the moment it is published.
               </p>
-              <a href="/api/events/ical" className="bh-btn-primary text-sm">
+              <a href={CALENDAR_SUBSCRIBE_URL} className="bh-btn-primary text-sm">
                 <CalendarPlus aria-hidden="true" className="h-4 w-4" /> Subscribe to calendar
               </a>
             </div>

@@ -57,4 +57,12 @@ describe("googleCalendarUrl", () => {
     expect(url.searchParams.get("dates")).toBe("20260117T021500Z/20260117T124500Z");
     expect(url.searchParams.get("details")).toContain("https://butwalhacks.com/events/hackday-butwal");
   });
+
+  it("uses the same two-hour fallback as the .ics when there is no end date", () => {
+    const noEnd = { ...EVENT, end_date: null };
+    const google = new URL(googleCalendarUrl(noEnd, "https://butwalhacks.com"));
+    const ics = buildIcsCalendar([noEnd], "https://butwalhacks.com", []);
+    expect(google.searchParams.get("dates")).toBe("20260117T021500Z/20260117T041500Z");
+    expect(ics).toContain("DTEND:20260117T041500Z");
+  });
 });

@@ -105,7 +105,11 @@ export function buildIcsCalendar(
 /** Google Calendar "add event" template link. No API, no cost. */
 export function googleCalendarUrl(event: IcsEvent, siteUrl: string): string {
   const start = toIcsUtc(event.start_date) ?? "";
-  const end = (event.end_date && toIcsUtc(event.end_date)) || start;
+  // Same two-hour fallback as the .ics, so both targets agree.
+  const end =
+    (event.end_date && toIcsUtc(event.end_date)) ||
+    toIcsUtc(new Date(new Date(event.start_date).getTime() + 2 * 3600 * 1000)) ||
+    start;
   const url = event.slug ? `${siteUrl}/events/${event.slug}` : siteUrl;
   const params = new URLSearchParams({
     action: "TEMPLATE",

@@ -78,7 +78,16 @@ for (const [vpName, vp] of [
     for (const path of pages) {
       const res = await page.goto(base + path, { waitUntil: "load", timeout: 60_000 });
       await page.waitForTimeout(1500);
-      if (/vercel\.com/.test(page.url())) throw new Error(`Landed on Vercel login for ${path}`);
+      // A 429 or error page does not make goto() throw; never audit it as
+      // the event page. Require a 200 and the page's own h1.
+      const isEventPage =
+        res?.ok() && !/vercel\.com/.test(page.url()) && (await page.locator("h1").count()) > 0;
+      if (!isEventPage) {
+        report.push({ path, vp: vpName, scheme, status: res?.status(), unavailable: true });
+        console.log(`UNAVAILABLE ${res?.status()} ${vpName}/${scheme} ${path} (not audited)`);
+        await page.waitForTimeout(delay);
+        continue;
+      }
       const violations = await axe(page);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       report.push({ path, vp: vpName, scheme, status: res?.status(), overflow, violations });
