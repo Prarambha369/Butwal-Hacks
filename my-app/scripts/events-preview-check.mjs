@@ -92,6 +92,17 @@ for (const [vpName, vp] of [
   }
 }
 
+writeFileSync(`${out}/report.json`, JSON.stringify(report, null, 2));
+
+/** A state screenshot that fails (rate limit, slow page) is reported, not fatal. */
+async function shot(label, fn) {
+  try {
+    await fn();
+  } catch (error) {
+    console.log(`screenshot ${label} failed: ${error instanceof Error ? error.message.split("\n")[0] : error}`);
+  }
+}
+
 // 2. Phone: sticky CTA after scrolling (viewport shot, not full page), and
 //    the Registered state (signed-in answers mocked; nothing is written).
 {
@@ -104,14 +115,14 @@ for (const [vpName, vp] of [
   await page.screenshot({ path: `${out}/sticky-phone-signed-out.png` });
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(500);
-  await page.locator("#register").screenshot({ path: `${out}/cta-phone-signed-out.png` });
+  await shot("signed-out", () => page.locator("#register").screenshot({ path: `${out}/cta-phone-signed-out.png` }));
   await page.waitForTimeout(delay);
 
   await page.route("**/auth/profile", (r) => r.fulfill({ json: { sub: "auth0|e2e-fake-user", name: "E2E" } }));
   await page.route(/\/api\/events\/register\?event_id=/, (r) => r.fulfill({ json: { registered: false } }));
   await page.goto(base + "/events/cyberutsav-lumbini", { waitUntil: "load" });
   await page.waitForTimeout(2000);
-  await page.locator("#register").screenshot({ path: `${out}/cta-phone-register.png` });
+  await shot("register", () => page.locator("#register").screenshot({ path: `${out}/cta-phone-register.png` }));
   await page.evaluate(() => window.scrollTo(0, 1400));
   await page.waitForTimeout(800);
   await page.screenshot({ path: `${out}/sticky-phone-register.png` });
@@ -121,7 +132,7 @@ for (const [vpName, vp] of [
   await page.route(/\/api\/events\/register\?event_id=/, (r) => r.fulfill({ json: { registered: true } }));
   await page.goto(base + "/events/cyberutsav-lumbini", { waitUntil: "load" });
   await page.waitForTimeout(2000);
-  await page.locator("#register").screenshot({ path: `${out}/cta-phone-registered.png` });
+  await shot("registered", () => page.locator("#register").screenshot({ path: `${out}/cta-phone-registered.png` }));
   await ctx.close();
 }
 
