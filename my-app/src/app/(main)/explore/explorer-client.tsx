@@ -247,7 +247,9 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
                 )}
               >
                 {cfg.label}
-                <span className={cn("ml-1.5 font-mono font-medium", role === r ? "opacity-70" : "text-muted-foreground/70")}>
+                {/* Same color as the label: the old 70% opacity put the
+                    12px count at 2.7:1, under the 4.5:1 AA minimum. */}
+                <span className="ml-1.5 font-mono font-medium">
                   {r === "All" ? counts.all : counts[r]}
                 </span>
               </button>
