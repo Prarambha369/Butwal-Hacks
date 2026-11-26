@@ -38,7 +38,16 @@ async function allowPlainHttpLocalhost(page: Page): Promise<void> {
   );
 }
 
-async function prepare(page: Page): Promise<void> {
+async function prepare(page: Page, { blockPrefetch = true } = {}): Promise<void> {
+  // Other pages' RSC prefetches (site header, bottom nav) are irrelevant here
+  // and spend the preview's per-IP rate limit; only the request-count test
+  // lets them through, because counting them is its job.
+  if (blockPrefetch) {
+    await page.route(
+      (url) => url.searchParams.has("_rsc") && !url.pathname.startsWith("/events"),
+      (route) => route.abort(),
+    );
+  }
   await page.addInitScript(() => {
     try {
       localStorage.setItem("bh:cookie-consent", "denied");
@@ -79,7 +88,9 @@ async function findSlugs(page: Page): Promise<{ upcoming: string | null; past: s
 }
 
 test.describe("/events list", () => {
-  test.beforeEach(async ({ page }) => prepare(page));
+  test.beforeEach(async ({ page }, info) =>
+    prepare(page, { blockPrefetch: !info.title.startsWith("renders the hierarchy") }),
+  );
 
   test("renders the hierarchy (or the empty state) without overflow", async ({ page, baseURL }, info) => {
     // Page-path requests for one visit: the document plus any RSC/prefetch

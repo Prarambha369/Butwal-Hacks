@@ -21,6 +21,8 @@ const base = (args.base ?? "http://localhost:3000").replace(/\/$/, "");
 const out = args.out ?? "/tmp/events-screens";
 const slug = args.slug ?? "hackday-butwal";
 const prefix = args.prefix ?? "";
+// Pause between page loads: previews share Vercel's per-IP rate limit.
+const delay = Number(args.delay ?? 5000);
 mkdirSync(out, { recursive: true });
 
 const viewports = [
@@ -51,6 +53,9 @@ for (const vp of viewports) {
       }
     });
     const page = await context.newPage();
+    // The site header prefetches its own links; they are not what is being
+    // captured and only spend the rate limit.
+    await page.route((url) => url.searchParams.has("_rsc"), (route) => route.abort());
     if (args.share) await page.goto(args.share);
     for (const p of pages) {
       await page.goto(base + p.path, { waitUntil: "load", timeout: 60_000 });
@@ -58,6 +63,7 @@ for (const vp of viewports) {
       const file = `${out}/${prefix}${p.name}-${vp.name}-${scheme}.png`;
       await page.screenshot({ path: file, fullPage: true });
       console.log(file);
+      await page.waitForTimeout(delay);
     }
     await context.close();
   }

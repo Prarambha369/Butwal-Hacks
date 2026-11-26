@@ -3,6 +3,7 @@ import {
   ArrowRight,
   CalendarDays,
   Camera,
+  CheckCircle2,
   ExternalLink,
   FolderGit2,
   Globe,
@@ -156,7 +157,7 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
   const judgeSection = sections.find((s) => isJudgeHeader(s.header));
   const sponsorSection = sections.find((s) => isSponsorHeader(s.header));
   const aboutSection = sections.find((s) => s.header === "About");
-  const otherSections = sections.filter(
+  const remaining = sections.filter(
     (s) =>
       s.header !== "About" &&
       !isScheduleHeader(s.header) &&
@@ -164,6 +165,10 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
       !isJudgeHeader(s.header) &&
       !isSponsorHeader(s.header),
   );
+  // Organizers write one-line facts as emoji lines ("👥 Teams of 3 …") with
+  // nothing under them. Those are highlights, not section headings.
+  const highlights = remaining.filter((s) => !s.body.trim()).map((s) => headingText(s.header));
+  const otherSections = remaining.filter((s) => s.body.trim());
 
   const dateLabel = formatEventDateRange(event);
   const timeLabel = formatEventTimeRange(event);
@@ -275,6 +280,23 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
               <div className="space-y-5 text-[1.0625rem] leading-[1.75] text-text-body">
                 <Prose text={aboutSection.body} />
               </div>
+            </section>
+          )}
+
+          {highlights.length > 0 && (
+            <section aria-labelledby="highlights" className="space-y-5">
+              <SectionHeading id="highlights">At a glance</SectionHeading>
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {highlights.map((text, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 rounded-xl border border-border bg-surface px-4 py-3.5 text-base font-medium text-text-primary"
+                  >
+                    <CheckCircle2 aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-primary-red" />
+                    {text}
+                  </li>
+                ))}
+              </ul>
             </section>
           )}
 
