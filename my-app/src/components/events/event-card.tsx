@@ -5,6 +5,7 @@ import { EventStatusBadge } from "./event-status-badge";
 import type { PublicEvent } from "./event-types";
 import {
   eventPhase,
+  formatEventBsDate,
   formatEventDateRange,
   formatEventTimeRange,
   isOnlineLocation,
@@ -37,7 +38,10 @@ function Facts({ event, size = "sm" }: { event: PublicEvent; size?: "sm" | "lg" 
           <time dateTime={event.start_date} className="font-medium text-text-body">
             {formatEventDateRange(event)}
           </time>
-          <span className="block text-xs tabular-nums">{formatEventTimeRange(event)}</span>
+          <span className="block text-xs tabular-nums">
+            {formatEventTimeRange(event)}
+            {formatEventBsDate(event) && <> · {formatEventBsDate(event)}</>}
+          </span>
         </dd>
       </div>
       {event.location && (
@@ -87,6 +91,12 @@ export function EventCard({
           {event.title}
         </Heading>
         <Facts event={event} />
+        {/* Plain text on purpose: answer engines quote "Free" and the
+            summary straight off the card. */}
+        <p className="line-clamp-2 text-sm leading-relaxed text-text-body">
+          <span className="font-semibold text-text-primary">Free, no registration fee.</span>
+          {event.description && <> {event.description.split(/\n/)[0]}</>}
+        </p>
         <div className="mt-auto pt-1">
           <Link
             href={action.href}

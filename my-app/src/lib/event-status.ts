@@ -1,3 +1,5 @@
+import { adToBs, BS_MONTH_NAMES } from "@/lib/nepali-date";
+
 /**
  * Event timing, derived from dates only.
  *
@@ -127,6 +129,22 @@ export function formatEventTimeRange(event: Timed): string {
   if (Number.isNaN(start.getTime())) return "";
   if (Number.isNaN(end.getTime())) return `${timeFmt.format(start)} NPT`;
   return `${timeFmt.format(start)} – ${timeFmt.format(end)} NPT`;
+}
+
+/**
+ * The start date in Bikram Sambat ("Magh 1, 2083 BS"). adToBs works on the
+ * Nepal calendar day, so server and browser agree. Empty outside the
+ * converter's supported range.
+ */
+export function formatEventBsDate(event: Pick<Timed, "start_date">): string {
+  const start = new Date(event.start_date);
+  if (Number.isNaN(start.getTime())) return "";
+  try {
+    const bs = adToBs(start);
+    return `${BS_MONTH_NAMES[bs.month - 1]} ${bs.day}, ${bs.year} BS`;
+  } catch {
+    return "";
+  }
 }
 
 /** A free-text location that names no physical place reads as online. */

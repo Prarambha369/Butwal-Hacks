@@ -182,6 +182,7 @@ describe("createEvent", () => {
     const db = mockSupabase();
     setProfileFound(db);
     db.single.mockResolvedValue({ data: { id: "event-1" }, error: null });
+    db.maybeSingle.mockResolvedValueOnce({ data: { role: "organizer" }, error: null });
     mockedVerifyBanner.mockResolvedValue({
       ok: true,
       publicId: "butwal-hacks/auth0|12345/banner",
@@ -210,6 +211,7 @@ describe("createEvent", () => {
     setAuthenticated();
     const db = mockSupabase();
     setProfileFound(db);
+    db.maybeSingle.mockResolvedValueOnce({ data: { role: "organizer" }, error: null });
     mockedVerifyBanner.mockResolvedValue({ ok: false, error: "Banners can be at most 5 MB." });
 
     const { createEvent } = await import("../events");
@@ -221,6 +223,24 @@ describe("createEvent", () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("Banners can be at most 5 MB.");
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  it("refuses a banner from a member who is not an organizer, before any Cloudinary lookup", async () => {
+    setAuthenticated();
+    const db = mockSupabase();
+    setProfileFound(db);
+    db.maybeSingle.mockResolvedValueOnce({ data: { role: "hacker" }, error: null });
+
+    const { createEvent } = await import("../events");
+    const result = await createEvent({
+      title: "Not mine", description: "",
+      start_date: "2026-06-01", end_date: "2026-06-02",
+      banner_public_id: "butwal-hacks/auth0|12345/banner",
+    });
+
+    expect(result).toMatchObject({ success: false, error: "Only event organizers can add a banner." });
+    expect(mockedVerifyBanner).not.toHaveBeenCalled();
     expect(db.insert).not.toHaveBeenCalled();
   });
 
@@ -248,6 +268,7 @@ describe("createEvent", () => {
     setProfileFound(db);
     mockedVerifyBanner.mockResolvedValue({ ok: true, publicId: "butwal-hacks/auth0|12345/b", url: BANNER_URL });
     db.maybeSingle.mockResolvedValue({ data: null, error: null });
+    db.maybeSingle.mockResolvedValueOnce({ data: { role: "organizer" }, error: null });
     // First insert hits a database without the column; the retry succeeds.
     let inserts = 0;
     db.insert.mockImplementation(() => {

@@ -15,6 +15,7 @@ import { EVENT_FAQS } from "@/lib/event-faq";
 import { displayPhotoUrl, isVideoUrl, videoPosterUrl } from "@/lib/cloudinary-url";
 import { googleCalendarUrl } from "@/lib/event-ics";
 import {
+  formatEventBsDate,
   formatEventDateRange,
   formatEventTimeRange,
   isOnlineLocation,
@@ -99,7 +100,6 @@ export function headingText(header: string): string {
 const isScheduleHeader = (h: string) => /schedule|agenda/i.test(h) || /⏰/.test(h);
 const isPrizeHeader = (h: string) => /prize|track/i.test(h) || /🏆/.test(h);
 const isJudgeHeader = (h: string) => /judge/i.test(h) || /👨‍⚖️/.test(h) || /⚖/.test(h);
-const isSponsorHeader = (h: string) => /sponsor/i.test(h) || /🤝/.test(h);
 
 // Schedule lines: "08:00 – 08:25  Title" or "After Event (Jan 18)  ..."
 export function parseSchedule(body: string): { time: string; title: string }[] {
@@ -149,26 +149,81 @@ function SectionHeading({ id, children }: { id: string; children: React.ReactNod
   );
 }
 
+function BodySection({ section, id }: { section: Section; id: string }) {
+  const title = headingText(section.header);
+  const heading = <SectionHeading id={id}>{title}</SectionHeading>;
+
+  if (isScheduleHeader(section.header)) {
+    const schedule = parseSchedule(section.body);
+    if (schedule.length > 0) {
+      return (
+        <section aria-labelledby={id} className="space-y-6">
+          {heading}
+          <ol className="relative border-l border-border">
+            {schedule.map((item, i) => (
+              <li key={i} className="relative pb-6 pl-6 last:pb-0">
+                <span aria-hidden="true" className="absolute -left-[5px] top-2 h-2.5 w-2.5 rounded-full border-2 border-background bg-primary-red" />
+                <p className="font-mono text-sm font-bold tabular-nums text-primary-red">{item.time}</p>
+                <p className="mt-0.5 text-base font-medium text-text-primary">{item.title}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      );
+    }
+  }
+
+  if (isPrizeHeader(section.header)) {
+    return (
+      <section aria-labelledby={id} className="space-y-6">
+        {heading}
+        <ul className="divide-y divide-border rounded-xl border border-border bg-surface">
+          {lines(section.body).map((line, i) => (
+            <li key={i} className="px-5 py-4 text-base text-text-body">
+              {line}
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
+
+  if (isJudgeHeader(section.header)) {
+    return (
+      <section aria-labelledby={id} className="space-y-6">
+        {heading}
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {lines(section.body).map((line, i) => (
+            <li key={i} className="rounded-xl border border-border bg-surface px-5 py-4 text-base font-semibold text-text-primary">
+              {line}
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
+
+  // About-style prose: sponsors, format, rules, anything else.
+  return (
+    <section aria-labelledby={id} className="space-y-5">
+      {heading}
+      <div className="space-y-5 text-[1.0625rem] leading-[1.75] text-text-body">
+        <Prose text={section.body} />
+      </div>
+    </section>
+  );
+}
+
 export default function EventDetailContent({ event, photos = [] }: Props) {
   const sections = parseSections(event.description ?? "");
-  const scheduleSection = sections.find((s) => isScheduleHeader(s.header));
-  const schedule = scheduleSection ? parseSchedule(scheduleSection.body) : [];
-  const prizeSection = sections.find((s) => isPrizeHeader(s.header));
-  const judgeSection = sections.find((s) => isJudgeHeader(s.header));
-  const sponsorSection = sections.find((s) => isSponsorHeader(s.header));
   const aboutSection = sections.find((s) => s.header === "About");
-  const remaining = sections.filter(
-    (s) =>
-      s.header !== "About" &&
-      !isScheduleHeader(s.header) &&
-      !isPrizeHeader(s.header) &&
-      !isJudgeHeader(s.header) &&
-      !isSponsorHeader(s.header),
-  );
   // Organizers write one-line facts as emoji lines ("👥 Teams of 3 …") with
-  // nothing under them. Those are highlights, not section headings.
-  const highlights = remaining.filter((s) => !s.body.trim()).map((s) => headingText(s.header));
-  const otherSections = remaining.filter((s) => s.body.trim());
+  // nothing under them. Those are highlights, not section headings, whatever
+  // words they contain. Every other section renders, in the author's order.
+  const highlights = sections
+    .filter((s) => s.header !== "About" && !s.body.trim())
+    .map((s) => headingText(s.header));
+  const bodySections = sections.filter((s) => s.header !== "About" && s.body.trim());
 
   const dateLabel = formatEventDateRange(event);
   const timeLabel = formatEventTimeRange(event);
@@ -215,7 +270,10 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
                     <time dateTime={event.start_date} className="font-semibold text-text-primary">
                       {dateLabel}
                     </time>
-                    <span className="block text-sm text-muted-foreground tabular-nums">{timeLabel}</span>
+                    <span className="block text-sm text-muted-foreground tabular-nums">
+                      {timeLabel}
+                      {formatEventBsDate(event) && <> · {formatEventBsDate(event)}</>}
+                    </span>
                   </dd>
                 </div>
                 {event.location && (
@@ -300,70 +358,9 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
             </section>
           )}
 
-          {otherSections.map((s, i) => (
-            <section key={`${s.header}-${i}`} aria-labelledby={`section-${i}`} className="space-y-5">
-              <SectionHeading id={`section-${i}`}>{headingText(s.header)}</SectionHeading>
-              <div className="space-y-5 text-[1.0625rem] leading-[1.75] text-text-body">
-                <Prose text={s.body} />
-              </div>
-            </section>
+          {bodySections.map((s, i) => (
+            <BodySection key={`${s.header}-${i}`} section={s} id={`section-${i}`} />
           ))}
-
-          {scheduleSection && (
-            <section aria-labelledby="schedule" className="space-y-6">
-              <SectionHeading id="schedule">{headingText(scheduleSection.header)}</SectionHeading>
-              {schedule.length > 0 ? (
-                <ol className="relative border-l border-border">
-                  {schedule.map((item, i) => (
-                    <li key={i} className="relative pb-6 pl-6 last:pb-0">
-                      <span aria-hidden="true" className="absolute -left-[5px] top-2 h-2.5 w-2.5 rounded-full border-2 border-background bg-primary-red" />
-                      <p className="font-mono text-sm font-bold tabular-nums text-primary-red">{item.time}</p>
-                      <p className="mt-0.5 text-base font-medium text-text-primary">{item.title}</p>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <div className="space-y-5 text-[1.0625rem] leading-[1.75] text-text-body">
-                  <Prose text={scheduleSection.body} />
-                </div>
-              )}
-            </section>
-          )}
-
-          {prizeSection && (
-            <section aria-labelledby="prizes" className="space-y-6">
-              <SectionHeading id="prizes">{headingText(prizeSection.header)}</SectionHeading>
-              <ul className="divide-y divide-border rounded-xl border border-border bg-surface">
-                {lines(prizeSection.body).map((line, i) => (
-                  <li key={i} className="px-5 py-4 text-base text-text-body">
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {judgeSection && (
-            <section aria-labelledby="judges" className="space-y-6">
-              <SectionHeading id="judges">{headingText(judgeSection.header)}</SectionHeading>
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {lines(judgeSection.body).map((line, i) => (
-                  <li key={i} className="rounded-xl border border-border bg-surface px-5 py-4 text-base font-semibold text-text-primary">
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {sponsorSection && (
-            <section aria-labelledby="sponsors" className="space-y-5">
-              <SectionHeading id="sponsors">{headingText(sponsorSection.header)}</SectionHeading>
-              <div className="space-y-5 text-[1.0625rem] leading-[1.75] text-text-body">
-                <Prose text={sponsorSection.body} />
-              </div>
-            </section>
-          )}
 
           {event.location && !online && (
             <section aria-labelledby="location" className="space-y-5">

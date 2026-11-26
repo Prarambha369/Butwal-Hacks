@@ -9,7 +9,7 @@ import { notifyEventCreated } from "@/lib/discord";
 import { SITE_URL } from "@/lib/constants";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import { auth0 } from "@/lib/auth0";
-import { accessSubjectFor, isMaintainer } from "@/lib/dashboard-access";
+import { accessSubjectFor, canUploadEventBanner, isMaintainer } from "@/lib/dashboard-access";
 import { verifyBannerUpload } from "@/lib/event-banner-verify";
 
 interface CreateEventInput {
@@ -103,6 +103,17 @@ async function resolveBanner(
   if (trimmed === "") return { ok: true, value: { banner_url: null, banner_public_id: null } }
   const session = await auth0.getSession()
   if (!session?.user?.sub) return { ok: false, error: "Sign in to upload a banner." }
+  // Same gate as the upload signature, checked before the Admin API lookup so
+  // a signed-in member cannot spend that quota through this action.
+  const supabase = createServiceClient()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("auth0_user_id", session.user.sub)
+    .maybeSingle()
+  if (!canUploadEventBanner(accessSubjectFor(session.user, profile as { role?: string | null } | null))) {
+    return { ok: false, error: "Only event organizers can add a banner." }
+  }
   const verified = await verifyBannerUpload(trimmed, session.user.sub)
   if (!verified.ok) return verified
   return { ok: true, value: { banner_url: verified.url, banner_public_id: verified.publicId } }

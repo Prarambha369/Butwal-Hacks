@@ -39,7 +39,7 @@ export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
           <span key={i} className="flex items-center gap-1">
             {i > 0 && <ChevronRight className="w-3 h-3 opacity-40" />}
             {item.href ? (
-              <Link href={item.href} className="hover:text-primary transition-colors">
+              <Link href={item.href} prefetch={false} className="hover:text-primary transition-colors">
                 {item.label}
               </Link>
             ) : (
@@ -57,7 +57,7 @@ export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
 
   return (
     <nav aria-label="Breadcrumb" className={cn("flex items-center gap-1 text-xs font-medium text-secondary", className)}>
-      <Link href="/" className="hover:text-primary transition-colors" aria-label="Home">
+      <Link href="/" prefetch={false} className="hover:text-primary transition-colors" aria-label="Home">
         <Home className="w-3.5 h-3.5" />
       </Link>
       {segments.map((segment, i) => {
@@ -71,7 +71,7 @@ export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
             {isLast ? (
               <span className="text-primary">{label}</span>
             ) : (
-              <Link href={href} className="hover:text-primary transition-colors">
+              <Link href={href} prefetch={false} className="hover:text-primary transition-colors">
                 {label}
               </Link>
             )}

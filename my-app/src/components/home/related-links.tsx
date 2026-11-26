@@ -35,6 +35,9 @@ export default function RelatedLinks({
           <Link
             key={link.href}
             href={link.href}
+            // Related cards sit below the fold on detail pages; prefetching
+            // each one spends the per-IP page-request budget for nothing.
+            prefetch={false}
             className="group rounded-xl border border-border bg-surface p-5 transition-all duration-200 hover:shadow-sm hover:border-border/80"
           >
             {/* Cover image */}
