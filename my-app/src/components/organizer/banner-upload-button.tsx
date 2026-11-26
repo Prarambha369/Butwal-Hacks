@@ -105,6 +105,7 @@ export function BannerUploadButton({
       <CloudinaryUpload
         label="Upload banner"
         replaceLabel="Replace banner"
+        removeLabel="Remove banner"
         entityType="event_banner"
         currentImage={shownUrl ?? undefined}
         accept={BANNER_ACCEPT}

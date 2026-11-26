@@ -289,6 +289,7 @@ export function StickyEventBar({
       )}
       aria-hidden={!visible}
       inert={!visible}
+      data-testid="sticky-event-bar"
     >
       <div className="mx-auto flex max-w-lg items-center gap-3 rounded-2xl border border-border bg-surface p-2.5 pl-4 shadow-[var(--bh-shadow-lg)]">
         <div className="min-w-0 flex-1">

@@ -60,6 +60,8 @@ interface CloudinaryUploadProps {
   hint?: string;
   /** Compact mode's button label once an image exists. */
   replaceLabel?: string;
+  /** Compact mode's accessible name for the remove button. */
+  removeLabel?: string;
 }
 
 interface UploadProgress {
@@ -223,6 +225,7 @@ export function CloudinaryUpload({
   validateFile,
   hint,
   replaceLabel = "Replace photo",
+  removeLabel = "Remove photo",
 }: CloudinaryUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -414,7 +417,7 @@ export function CloudinaryUpload({
               type="button"
               onClick={() => onUpload?.("")}
               className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-surface/5 hover:bg-primary-red/10 text-secondary hover:text-primary-red text-xs font-medium transition-colors"
-              aria-label="Remove photo"
+              aria-label={removeLabel}
             >
               <X className="w-3.5 h-3.5" /> Remove
             </button>
