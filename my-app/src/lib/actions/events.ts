@@ -8,6 +8,9 @@ import { resolveProfileId } from "@/lib/profile-resolver";
 import { notifyEventCreated } from "@/lib/discord";
 import { SITE_URL } from "@/lib/constants";
 import { slugify, uniqueSlug } from "@/lib/slug";
+import { auth0 } from "@/lib/auth0";
+import { accessSubjectFor, isMaintainer } from "@/lib/dashboard-access";
+import { verifyBannerUpload } from "@/lib/event-banner-verify";
 
 interface CreateEventInput {
   title: string
@@ -15,7 +18,8 @@ interface CreateEventInput {
   start_date: string
   end_date: string
   location?: string | null
-  banner_url?: string | null
+  /** Cloudinary public_id from the banner uploader; verified server-side. */
+  banner_public_id?: string | null
   is_published?: boolean
   /** Organizer override. Falls back to a slug derived from the title. */
   slug?: string | null
@@ -79,30 +83,56 @@ async function resolveEventSlug(
   })
 }
 
-const BANNER_URL_PREFIX = "https://res.cloudinary.com/"
-const BANNER_REJECTED = "Banner uploads must come from the uploader below."
+/**
+ * Resolve a caller-supplied banner public_id into the stored columns.
+ *
+ * The client never supplies a URL: an arbitrary URL is attacker-chosen
+ * content on a public page. It supplies the public_id its signed upload
+ * returned, and verifyBannerUpload() checks with Cloudinary that the asset
+ * exists in the caller's own upload folder, is jpg/png/webp and is at most
+ * 5 MB, then returns the delivery URL Cloudinary reports.
+ * Blank or missing means "no banner".
+ */
+async function resolveBanner(
+  publicId: string | null | undefined,
+): Promise<
+  | { ok: true; value: { banner_url: string | null; banner_public_id: string | null } }
+  | { ok: false; error: string }
+> {
+  const trimmed = (publicId ?? "").trim()
+  if (trimmed === "") return { ok: true, value: { banner_url: null, banner_public_id: null } }
+  const session = await auth0.getSession()
+  if (!session?.user?.sub) return { ok: false, error: "Sign in to upload a banner." }
+  const verified = await verifyBannerUpload(trimmed, session.user.sub)
+  if (!verified.ok) return verified
+  return { ok: true, value: { banner_url: verified.url, banner_public_id: verified.publicId } }
+}
 
 /**
- * Normalize a caller-supplied banner URL.
- *
- * Banners render through next/image, so a host outside the configured image
- * allowlist breaks the event hero, and an arbitrary URL is attacker-chosen
- * content on a public page. Only the uploader's Cloudinary URLs are accepted.
- * Blank or missing means "no banner" and becomes null.
+ * `events.banner_public_id` arrives with migration 150. A preview or a
+ * database that has not run it yet rejects the column (42703 from Postgres,
+ * PGRST204 from PostgREST's schema cache); the write is retried without it so
+ * the banner itself still saves. The public pages only ever read banner_url.
  */
-function normalizeBannerUrl(
-  value: string | null | undefined,
-): { ok: true; value: string | null } | { ok: false } {
-  const trimmed = (value ?? "").trim()
-  if (trimmed === "") return { ok: true, value: null }
-  return trimmed.startsWith(BANNER_URL_PREFIX) ? { ok: true, value: trimmed } : { ok: false }
+function withoutBannerPublicId<T extends Record<string, unknown>>(row: T): Omit<T, "banner_public_id"> {
+  return Object.fromEntries(
+    Object.entries(row).filter(([key]) => key !== "banner_public_id"),
+  ) as Omit<T, "banner_public_id">
+}
+
+function isMissingBannerColumn(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false
+  return (
+    (error.code === "42703" || error.code === "PGRST204") &&
+    (error.message ?? "").includes("banner_public_id")
+  )
 }
 
 // ponytail: Looks up profile UUID from Auth0 user ID to satisfy organizer_id FK
 export async function createEvent(input: CreateEventInput) {
   try {
-    const banner = normalizeBannerUrl(input.banner_url)
-    if (!banner.ok) return { success: false, error: BANNER_REJECTED }
+    const banner = await resolveBanner(input.banner_public_id)
+    if (!banner.ok) return { success: false, error: banner.error }
 
     const supabase = createServiceClient()
     const profileId = await resolveProfileId()
@@ -118,23 +148,23 @@ export async function createEvent(input: CreateEventInput) {
       }
     }
 
-    const { data, error } = await supabase
-      .from("events")
-      .insert({
+    const row = {
         title: sanitizeString(input.title, 200),
         slug,
         description: sanitizeString(input.description, 2000),
         start_date: input.start_date,
         end_date: input.end_date,
         location: input.location ?? null,
-        banner_url: banner.value,
+        ...banner.value,
         is_published: input.is_published ?? false,
         organizer_id: profileId,
-      })
-      .select("id, slug")
-      .single()
+      }
+    let { data, error } = await supabase.from("events").insert(row).select("id, slug").single()
+    if (isMissingBannerColumn(error)) {
+      ;({ data, error } = await supabase.from("events").insert(withoutBannerPublicId(row)).select("id, slug").single())
+    }
 
-    if (error) throw error
+    if (error || !data) throw error ?? new Error("Event was not created")
 
     announceEvent({
       title: input.title,
@@ -162,7 +192,8 @@ interface CreateChapterEventInput {
   start_date: string
   end_date: string
   location?: string | null
-  banner_url?: string | null
+  /** Cloudinary public_id from the banner uploader; verified server-side. */
+  banner_public_id?: string | null
   is_published?: boolean
   /** Organizer override. Falls back to a slug derived from the title. */
   slug?: string | null
@@ -170,8 +201,8 @@ interface CreateChapterEventInput {
 
 export async function createChapterEvent(input: CreateChapterEventInput, orgSlug: string) {
   try {
-    const banner = normalizeBannerUrl(input.banner_url)
-    if (!banner.ok) return { success: false, error: BANNER_REJECTED }
+    const banner = await resolveBanner(input.banner_public_id)
+    if (!banner.ok) return { success: false, error: banner.error }
 
     const supabase = createServiceClient()
     const profileId = await resolveProfileId()
@@ -184,24 +215,24 @@ export async function createChapterEvent(input: CreateChapterEventInput, orgSlug
       }
     }
 
-    const { data, error } = await supabase
-      .from("events")
-      .insert({
+    const row = {
         title: sanitizeString(input.title, 200),
         slug,
         description: sanitizeString(input.description, 2000),
         start_date: input.start_date,
         end_date: input.end_date,
         location: input.location ?? null,
-        banner_url: banner.value,
+        ...banner.value,
         is_published: input.is_published ?? false,
         organizer_id: profileId,
         chapter_id: input.chapterId,
-      })
-      .select("id, slug")
-      .single()
+      }
+    let { data, error } = await supabase.from("events").insert(row).select("id, slug").single()
+    if (isMissingBannerColumn(error)) {
+      ;({ data, error } = await supabase.from("events").insert(withoutBannerPublicId(row)).select("id, slug").single())
+    }
 
-    if (error) throw error
+    if (error || !data) throw error ?? new Error("Event was not created")
 
     announceEvent({
       title: input.title,
@@ -382,16 +413,22 @@ export async function closeEvent(eventId: string) {
 /**
  * Change an event's banner after creation.
  *
- * Authorization is explicit: `createServiceClient()` bypasses RLS, so without
- * the ownership check below this would be a public endpoint that can rewrite
- * any event's banner. The caller must own the event or be a verified
- * maintainer.
+ * Authorization is explicit and comes first: `createServiceClient()` bypasses
+ * RLS, so without the ownership check below this would be a public endpoint
+ * that can rewrite any event's banner. The caller must own the event or be a
+ * verified maintainer (role AND a verified staff address from the session,
+ * via the shared predicate -- not the stored profile email).
  *
- * An empty string clears the banner (removes it). A Cloudinary URL replaces
- * it. Other values are rejected.
+ * `bannerPublicId` is the Cloudinary public_id the signed upload returned; an
+ * empty string removes the banner. The id is verified with Cloudinary
+ * (caller's own folder, jpg/png/webp, at most 5 MB) and the stored URL comes
+ * from Cloudinary, never from the client.
  */
-export async function updateEventBanner(eventId: string, bannerUrl: string) {
+export async function updateEventBanner(eventId: string, bannerPublicId: string) {
   try {
+    const session = await auth0.getSession()
+    if (!session?.user) return { success: false, error: "Sign in to change the banner." }
+
     const supabase = createServiceClient()
     const profileId = await resolveProfileId()
 
@@ -399,7 +436,7 @@ export async function updateEventBanner(eventId: string, bannerUrl: string) {
       .from("events")
       .select("organizer_id, banner_url, slug")
       .eq("id", eventId)
-      .single()
+      .maybeSingle()
 
     if (!event) {
       return { success: false, error: "Event not found." }
@@ -407,15 +444,12 @@ export async function updateEventBanner(eventId: string, bannerUrl: string) {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, email")
+      .select("role")
       .eq("id", profileId)
-      .single()
+      .maybeSingle()
 
-    const email = profile?.email ?? ""
-    const isMaintainer =
-      profile?.role === "maintainer" && email.toLowerCase().endsWith("@butwalhacks.com")
-
-    if (!isMaintainer && event.organizer_id !== profileId) {
+    const staff = isMaintainer(accessSubjectFor(session.user, profile))
+    if (!staff && event.organizer_id !== profileId) {
       logger.warn("[events] banner change refused: not the organizer", {
         event_id: eventId,
         actor: profileId,
@@ -423,25 +457,25 @@ export async function updateEventBanner(eventId: string, bannerUrl: string) {
       return { success: false, error: "Only the event organizer can change its banner." }
     }
 
-    // Only accept a Cloudinary URL or an explicit empty-string removal.
-    const banner = normalizeBannerUrl(bannerUrl)
-    if (!banner.ok) {
-      return { success: false, error: BANNER_REJECTED }
-    }
-    const trimmed = banner.value ?? ""
+    const banner = await resolveBanner(typeof bannerPublicId === "string" ? bannerPublicId : "")
+    if (!banner.ok) return { success: false, error: banner.error }
 
-    if (trimmed === event.banner_url) {
-      return { success: true, unchanged: true }
+    if (banner.value.banner_url === (event.banner_url || null)) {
+      return { success: true, unchanged: true, banner_url: banner.value.banner_url }
     }
 
-    const { error } = await supabase
-      .from("events")
-      .update({ banner_url: trimmed || null })
-      .eq("id", eventId)
-
+    let { error } = await supabase.from("events").update(banner.value).eq("id", eventId)
+    if (isMissingBannerColumn(error)) {
+      ;({ error } = await supabase
+        .from("events")
+        .update({ banner_url: banner.value.banner_url })
+        .eq("id", eventId))
+    }
     if (error) throw error
 
     revalidatePath("/dashboard/organizer/events")
+    // The organizer page this is called from, so its preview updates too.
+    revalidatePath(`/dashboard/organizer/events/${eventId}`)
     revalidatePath("/events")
     // The public detail route is /events/[slug] (statically prerendered), not /events/[id].
     if (event.slug) {
@@ -450,15 +484,12 @@ export async function updateEventBanner(eventId: string, bannerUrl: string) {
 
     return {
       success: true,
-      banner_url: trimmed || null,
-      removed: trimmed === "",
+      banner_url: banner.value.banner_url,
+      removed: banner.value.banner_url === null,
     }
   } catch (error) {
     logger.error("Error updating event banner:", error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to update banner",
-    }
+    return { success: false, error: "Could not save the banner. Try again." }
   }
 }
 

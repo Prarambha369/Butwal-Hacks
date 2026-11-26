@@ -206,10 +206,11 @@ export default async function EventDetailsPage({
               <h2 className="text-base font-bold text-primary">Banner</h2>
             </div>
             <p className="text-xs text-muted-foreground">
-              The banner shown on the event card. Upload a 16:9 image, or remove the current one.
+              Shown on the event card in /events and as the hero and share image on the event page.
             </p>
             <BannerUploadButton
               eventId={event_id}
+              eventTitle={event.title}
               currentBannerUrl={event.banner_url}
             />
           </div>

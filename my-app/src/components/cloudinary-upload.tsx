@@ -47,6 +47,19 @@ interface CloudinaryUploadProps {
    * only remove it and never replace it.
    */
   compact?: boolean;
+
+  /** `accept` for the file input. Defaults to any image. */
+  accept?: string;
+  /**
+   * Replaces the default 10 MB / image-type check, and also runs on the
+   * cropped output (re-encoding a PNG crop can make it larger than the
+   * original). Return a message to refuse the file, or null to accept it.
+   */
+  validateFile?: (file: { type: string; size: number }) => string | null;
+  /** Replaces the "16:9 — crop after select" hint under the drop zone. */
+  hint?: string;
+  /** Compact mode's button label once an image exists. */
+  replaceLabel?: string;
 }
 
 interface UploadProgress {
@@ -114,7 +127,7 @@ async function attemptUpload(
     throw new Error(err.error || "Failed to get upload signature");
   }
 
-  const { signature, timestamp, cloudName, apiKey, folder, uploadPreset, transformation, metadata: metadataStr, videoUploadParams } = await res.json();
+  const { signature, timestamp, cloudName, apiKey, folder, uploadPreset, transformation, metadata: metadataStr, videoUploadParams, uploadParams } = await res.json();
 
   const formData = new FormData();
   formData.append("file", blob);
@@ -129,6 +142,13 @@ async function attemptUpload(
   // Signed server-side: .mp4 storage + eager playback renditions for video.
   if (videoUploadParams && typeof videoUploadParams === "object") {
     for (const [key, value] of Object.entries(videoUploadParams as Record<string, unknown>)) {
+      if (typeof value === "string") formData.append(key, value);
+    }
+  }
+
+  // Signed server-side: per-entity upload restrictions (banners: allowed_formats).
+  if (uploadParams && typeof uploadParams === "object") {
+    for (const [key, value] of Object.entries(uploadParams as Record<string, unknown>)) {
       if (typeof value === "string") formData.append(key, value);
     }
   }
@@ -199,6 +219,10 @@ export function CloudinaryUpload({
   externalFile,
   onOpenCamera,
   compact = false,
+  accept = "image/*",
+  validateFile,
+  hint,
+  replaceLabel = "Replace photo",
 }: CloudinaryUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -225,6 +249,18 @@ export function CloudinaryUpload({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (validateFile) {
+      const problem = validateFile(file);
+      if (problem) {
+        setUploadError(null);
+        onError?.(problem);
+        if (inputRef.current) inputRef.current.value = "";
+        return;
+      }
+      setCropFile(file);
+      return;
+    }
 
     // Client-side file size validation
     if (file.size > MAX_FILE_SIZE) {
@@ -277,8 +313,14 @@ export function CloudinaryUpload({
 
   const handleCropConfirm = useCallback((croppedBlob: Blob) => {
     setCropFile(null);
+    const problem = validateFile?.({ type: croppedBlob.type, size: croppedBlob.size });
+    if (problem) {
+      onError?.(problem);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
     startUpload(croppedBlob);
-  }, [startUpload]);
+  }, [startUpload, validateFile, onError]);
 
   const handleRetry = useCallback(() => {
     if (pendingBlobRef.current) {
@@ -313,7 +355,7 @@ export function CloudinaryUpload({
 
   return (
     <div className="space-y-2">
-      <input ref={inputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+      <input ref={inputRef} type="file" accept={accept} onChange={handleFileChange} className="hidden" aria-label={label} data-testid="cloudinary-file-input" />
       {currentImage && !compact ? (
         <div className="relative w-full h-32 rounded-xl overflow-hidden border border-border">
           <Image src={currentImage} alt="Uploaded" fill className="object-cover" />
@@ -351,7 +393,7 @@ export function CloudinaryUpload({
             {uploading
               ? `Uploading ${uploadProgress}%`
               : currentImage
-                ? "Replace photo"
+                ? replaceLabel
                 : label}
           </button>
 
@@ -475,7 +517,7 @@ export function CloudinaryUpload({
                 <span className="text-xs font-medium">{label}</span>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface/10 border border-border text-[10px] text-secondary font-mono">
                   <CropIcon className="w-3 h-3" />{" "}
-                  {entityType === "avatar" || entityType === "sponsor_logo" ? "1:1" : "16:9"} — crop after select
+                  {hint ?? `${entityType === "avatar" || entityType === "sponsor_logo" ? "1:1" : "16:9"} — crop after select`}
                 </span>
               </button>
             )}

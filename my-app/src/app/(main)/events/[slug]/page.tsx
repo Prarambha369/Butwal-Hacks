@@ -1,7 +1,5 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, Users, FolderGit2, Camera } from "lucide-react"
 
 import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
@@ -13,6 +11,8 @@ import { EVENT_FAQS } from "@/lib/event-faq";
 import SafeJsonLd from "@/lib/json-ld";
 import { eventJsonLd, faqPageJsonLd } from "@/lib/schema";
 import { SITE_URL } from "@/lib/constants";
+import { socialCardUrl } from "@/lib/cloudinary-url";
+import { isOnlineLocation } from "@/lib/event-status";
 import { t } from "@/lib/i18n"
 import type { Locale } from "@/lib/i18n"
 
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supabase = createServiceClient()
   const { data: event } = await supabase
     .from("events")
-    .select("title, description, location")
+    .select("title, description, location, banner_url")
     .eq("slug", slug)
     .eq("is_published", true)
     .single()
@@ -42,10 +42,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? `Register for ${event.title} in ${event.location}. Join the hackathon, meet fellow builders, and ship something real.`
     : `Register for ${event.title}. Join the hackathon and build with fellow students in Nepal.`
 
+  // The banner becomes the share card, cropped by Cloudinary to the 1200×630
+  // Open Graph / Twitter size. Without a banner, the site default applies.
+  const card = event.banner_url ? socialCardUrl(event.banner_url) : null
+
   return buildPageMetadata({
     title: event.title,
     description: event.description?.slice(0, 160) || fallbackDescription,
     path: `/events/${slug}`,
+    ...(card
+      ? { image: { url: card.url, alt: `${event.title} banner`, width: card.width, height: card.height } }
+      : {}),
   })
 }
 
@@ -72,8 +79,7 @@ export default async function EventDetailPage({ params }: Props) {
     start_date: event.start_date,
     end_date: event.end_date,
     location: event.location,
-    banner_url: event.banner_url,
-    is_published: event.is_published,
+    banner_url: event.banner_url?.trim() ? event.banner_url : null,
   }
 
   // Approved photos for this event (powers the gallery preview on the page).
@@ -111,6 +117,9 @@ export default async function EventDetailPage({ params }: Props) {
           url: eventUrl,
           image: eventData.banner_url,
           locationName: eventData.location,
+          attendanceMode: isOnlineLocation(eventData.location)
+            ? "OnlineEventAttendanceMode"
+            : "OfflineEventAttendanceMode",
           // DB events are free by default (no registration fee, PRODUCT.md), so
           // the offer is priced explicitly rather than left for Google to infer.
           price: "0",
@@ -121,45 +130,7 @@ export default async function EventDetailPage({ params }: Props) {
           below is the same three questions rather than a parallel copy. */}
       <SafeJsonLd data={faqPageJsonLd(EVENT_FAQS, eventUrl)} />
 
-      {/* Back link */}
-      <div className="mx-auto max-w-6xl px-4 pt-6">
-        <Link
-          href="/events"
-          className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-primary transition-colors group"
-        >
-          <ArrowLeft className="w-3 h-3 transition-transform group-hover:-translate-x-0.5" />
-          {t('action.view_all_events', locale)}
-        </Link>
-      </div>
-
       <EventDetailContent event={eventData} photos={photos} />
-
-      {/* Explore this event: its teams, projects, and photos. */}
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface p-4">
-          <span className="mr-1 font-mono text-[10px] uppercase text-muted-foreground">
-            Explore this event
-          </span>
-          <Link
-            href="/teams"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-primary hover:bg-surface-hover transition-all"
-          >
-            <Users className="w-3.5 h-3.5" /> Teams
-          </Link>
-          <Link
-            href={`/events/${slug}/projects`}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-primary hover:bg-surface-hover transition-all"
-          >
-            <FolderGit2 className="w-3.5 h-3.5" /> Projects
-          </Link>
-          <Link
-            href="/gallery"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-primary hover:bg-surface-hover transition-all"
-          >
-            <Camera className="w-3.5 h-3.5" /> Photos
-          </Link>
-        </div>
-      </div>
 
       {/* Related links: initiatives + blog posts tagged to this event */}
       <div className="mx-auto max-w-6xl px-4 pb-16">

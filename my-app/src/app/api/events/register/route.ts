@@ -37,6 +37,58 @@ const registerSchema = z
   })
   .refine((d) => d.event_id.length > 0, { message: 'Invalid event ID' });
 
+const statusQuerySchema = z
+  .string()
+  .transform((v) => sanitizeUuid(v) ?? '')
+  .refine((v) => v.length > 0, { message: 'Invalid event ID' });
+
+/**
+ * GET /api/events/register?event_id=<uuid> → { registered: boolean }
+ *
+ * The caller's own registration state, so the public event page (which stays
+ * statically cached and never reads the session itself) can show
+ * "Registered ✓" instead of offering a second registration. Read-only, scoped
+ * to the session's profile: it can only ever answer for the person asking.
+ */
+export const GET = withRateLimit(async (request: Request) => {
+  try {
+    const session = await auth0.getSession();
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const parsed = statusQuerySchema.safeParse(new URL(request.url).searchParams.get('event_id') ?? '');
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+
+    // Authorization is the session check above; the query is pinned to the
+    // session's own profile, so the service-role read cannot reach anyone else.
+    const supabase = createServiceClient();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('auth0_user_id', session.user.sub)
+      .maybeSingle();
+
+    let registered = false;
+    if (profile) {
+      const { data: row, error } = await supabase
+        .from('event_registrations')
+        .select('id')
+        .eq('event_id', parsed.data)
+        .eq('profile_id', profile.id)
+        .maybeSingle();
+      if (error) throw error;
+      registered = row !== null;
+    }
+
+    return NextResponse.json(
+      { registered },
+      { headers: { 'Cache-Control': 'private, no-store' } },
+    );
+  } catch (err) {
+    logger.error('[api/events/register GET]', err);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}, "frequent");
+
 export const POST = withSentrySpan("POST /api/events/register", withRateLimit(async (request: Request) => {
   try {
     const session = await auth0.getSession();

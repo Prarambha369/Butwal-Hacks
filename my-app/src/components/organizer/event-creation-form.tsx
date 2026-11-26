@@ -10,6 +10,7 @@ import { useAuthUser } from '@/components/auth-user-provider';
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { Button } from '@/components/ui/button';
 import { CloudinaryUpload } from '@/components/cloudinary-upload';
+import { BANNER_ACCEPT, bannerFileError } from '@/lib/event-banner';
 import { SlugField } from '@/components/organizer/slug-field';
 
 export default function EventCreationForm() {
@@ -21,12 +22,16 @@ export default function EventCreationForm() {
     start_date: '',
     end_date: '',
     location: '',
-    banner_url: '',
+    // The public_id from the banner upload; the server verifies it and stores
+    // the delivery URL. bannerPreview is only for showing it here.
+    banner_public_id: '',
     is_published: false,
     // Empty means "derive it from the title" -- see SlugField.
     slug: '',
   });
 
+  const [bannerPreview, setBannerPreview] = useState('');
+  const [bannerError, setBannerError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,12 +148,30 @@ export default function EventCreationForm() {
             <ImageIcon className="w-4 h-4" /> Event Banner
           </label>
           <CloudinaryUpload
-            onUpload={(url) => setFormData({ ...formData, banner_url: url })}
+            onUploadResult={({ url, publicId }) => {
+              setBannerError(null);
+              setBannerPreview(url);
+              setFormData((prev) => ({ ...prev, banner_public_id: publicId }));
+            }}
+            onUpload={(url) => {
+              // The preview's remove button reports an empty URL.
+              if (url === '') {
+                setBannerPreview('');
+                setFormData((prev) => ({ ...prev, banner_public_id: '' }));
+              }
+            }}
+            onError={setBannerError}
             label="Upload Banner Image"
-            currentImage={formData.banner_url}
+            currentImage={bannerPreview || undefined}
             entityType="event_banner"
             uploaderAuth0Id={user?.sub}
+            accept={BANNER_ACCEPT}
+            validateFile={bannerFileError}
+            hint="16:9 · JPG, PNG or WebP · up to 5 MB"
           />
+          {bannerError && (
+            <p role="alert" className="text-xs font-medium text-status-red">{bannerError}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-3 p-4 rounded-lg bg-surface-hover border border-border">

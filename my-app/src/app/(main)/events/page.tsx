@@ -8,10 +8,14 @@ import { buildPageMetadata } from "@/lib/seo"
 import { auth0 } from "@/lib/auth0"
 import { APP_URL } from "@/lib/constants"
 import { initiatives } from "@/lib/content"
+import { logger } from "@/lib/logger"
+import { partitionEvents } from "@/lib/event-status"
 import Breadcrumbs from "@/components/breadcrumbs"
-import EventsFilter from "@/components/events/events-filter"
-import type { EventItem } from "@/components/events/events-filter"
-import { ArrowRight, CalendarDays, FlaskConical } from "lucide-react"
+import { EventCard, FeaturedEventCard } from "@/components/events/event-card"
+import { PastEvents } from "@/components/events/past-events"
+import type { PublicEvent } from "@/components/events/event-types"
+import { Ballu } from "@/components/mascot/ballu"
+import { ArrowRight, CalendarPlus, FlaskConical } from "lucide-react"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Upcoming Hackathons in Butwal, Nepal",
@@ -26,91 +30,117 @@ export default async function EventsPage() {
 
   const supabase = createServiceClient()
 
-  const { data: dbEvents } = await supabase
+  // Published events only, filtered in the query. The list used to fetch
+  // drafts too and hide them in the browser, which shipped unpublished
+  // titles and descriptions to every visitor.
+  const { data: dbEvents, error } = await supabase
     .from("events")
-    .select("id, title, slug, description, start_date, end_date, location, banner_url, is_published")
+    .select("id, title, slug, description, start_date, end_date, location, banner_url")
+    .eq("is_published", true)
     .order("start_date", { ascending: false })
+  if (error) logger.error("Error fetching events:", error)
 
-  const events: EventItem[] = (dbEvents || []).map((e) => ({
-    id: e.id,
-    title: e.title,
-    slug: e.slug || "",
-    description: e.description,
-    start_date: e.start_date,
-    end_date: e.end_date,
-    location: e.location,
-    banner_url: e.banner_url,
-    is_published: e.is_published,
-  }))
+  const events: PublicEvent[] = (dbEvents || [])
+    .filter((e) => Boolean(e.slug))
+    .map((e) => ({
+      id: e.id,
+      title: e.title,
+      slug: e.slug as string,
+      description: e.description,
+      start_date: e.start_date,
+      end_date: e.end_date,
+      location: e.location,
+      banner_url: e.banner_url?.trim() ? e.banner_url : null,
+    }))
+
+  // The server's clock decides upcoming vs past. This page renders per
+  // request, so the split is current and identical on the client (no
+  // "everything looks upcoming until hydration" flash).
+  // eslint-disable-next-line react-hooks/purity -- per-request server render
+  const now = Date.now()
+  const { featured, upcoming, past } = partitionEvents(events, now)
 
   return (
-    <main className="min-h-dvh bg-background">
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+    <div className="min-h-dvh bg-background">
+      <section className="mx-auto max-w-6xl px-4 pt-10 pb-16 sm:pt-14 sm:pb-20">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Events" }]} />
 
-        <div className="flex items-start gap-4 mb-2">
-          <div className="p-3 rounded-lg bg-primary-red/10 shrink-0">
-            <CalendarDays className="w-6 h-6 text-primary-red" />
-          </div>
+        <header className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <div>
-            <h1 className="text-5xl font-black tracking-tight text-primary sm:text-6xl">Events</h1>
-            <p className="mt-2 text-muted-foreground max-w-2xl">
+            <h1 className="text-5xl font-extrabold tracking-[-0.035em] text-text-primary sm:text-6xl">
+              Events
+            </h1>
+            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-text-body sm:text-lg">
               Butwal Hacks runs upcoming free student hackathons, workshops, and meetups in Butwal,
               Lumbini Province, Nepal — each open to beginners with no registration fee. Every
               published event, with its date, venue, and registration link, is listed below; open
               one to see the full schedule and sign up.
             </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              {isSignedIn ? (
-                <>
-                  <Link
-                    href={`${APP_URL}/dashboard/hacker`}
-                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
-                  >
-                    Your Dashboard <ArrowRight className="w-4 h-4" />
-                  </Link>
-                  <a
-                    href="/api/events/ical"
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all active:scale-95"
-                  >
-                    Sync Calendar <CalendarDays className="w-4 h-4" />
-                  </a>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href={`${APP_URL}/auth/login?screen_hint=signup`}
-                    className="inline-flex items-center gap-2 rounded-full bg-bh-red-action px-5 py-2.5 text-sm font-bold text-white hover:bg-deep-red transition-all active:scale-95"
-                  >
-                    Join an Event <ArrowRight className="w-4 h-4" />
-                  </Link>
-                  <Link
-                    href="/join"
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all active:scale-95"
-                  >
-                    How to join <ArrowRight className="w-4 h-4" />
-                  </Link>
-                  <a
-                    href="/api/events/ical"
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold text-primary hover:bg-surface-hover transition-all active:scale-95"
-                  >
-                    Sync Calendar <CalendarDays className="w-4 h-4" />
-                  </a>
-                </>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {isSignedIn ? (
+              <Link href={`${APP_URL}/dashboard/hacker`} prefetch={false} className="bh-btn-secondary text-sm">
+                Your dashboard <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            ) : (
+              <Link href="/join" prefetch={false} className="bh-btn-secondary text-sm">
+                How to join <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            )}
+            <a href="/api/events/ical" className="bh-btn-ghost text-sm">
+              <CalendarPlus aria-hidden="true" className="h-4 w-4" /> Subscribe to calendar
+            </a>
+          </div>
+        </header>
+
+        <section aria-labelledby="upcoming-heading" className="mt-12">
+          <h2 id="upcoming-heading" className="sr-only">Upcoming events</h2>
+          {featured ? (
+            <div className="space-y-10">
+              <FeaturedEventCard event={featured} now={now} />
+              {upcoming.length > 0 && (
+                <div>
+                  <h3 className="mb-5 text-xl font-bold tracking-[-0.015em] text-text-primary">
+                    Also coming up
+                  </h3>
+                  <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {upcoming.map((event) => (
+                      <li key={event.id} className="flex">
+                        <EventCard event={event} now={now} headingLevel={4} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
-          </div>
-        </div>
+          ) : (
+            <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border bg-surface px-6 py-14 text-center">
+              <Ballu emotion="question" size={64} />
+              <p className="text-xl font-bold text-text-primary">No upcoming events right now</p>
+              <p className="max-w-[46ch] text-sm leading-relaxed text-muted-foreground">
+                The next hackathon is being planned. Subscribe to the calendar and it will appear
+                there the moment it is published.
+              </p>
+              <a href="/api/events/ical" className="bh-btn-primary text-sm">
+                <CalendarPlus aria-hidden="true" className="h-4 w-4" /> Subscribe to calendar
+              </a>
+            </div>
+          )}
+        </section>
 
-        <div className="mt-12">
-          <div className="mb-6 flex items-baseline justify-between gap-3">
-            <h2 className="text-xl font-black tracking-tight text-primary">Events</h2>
-            <p className="text-xs font-mono uppercase tracking-[0.12em] text-muted-foreground">
-              Upcoming &amp; past
-            </p>
-          </div>
-          <EventsFilter events={events} />
-        </div>
+        {past.length > 0 && (
+          <section aria-labelledby="past-heading" className="mt-16 border-t border-border pt-12">
+            <div className="mb-6 flex items-baseline justify-between gap-3">
+              <h2 id="past-heading" className="text-2xl font-extrabold tracking-[-0.02em] text-text-primary">
+                Past events
+              </h2>
+              <p className="text-sm text-muted-foreground tabular-nums">
+                {past.length} {past.length === 1 ? "event" : "events"}
+              </p>
+            </div>
+            <PastEvents events={past} now={now} />
+          </section>
+        )}
 
         {/* Ongoing initiatives — a secondary section, deliberately placed
             after the event list so the calendar leads. Detail pages live at
@@ -136,6 +166,7 @@ export default async function EventsPage() {
               <Link
                 key={initiative.slug}
                 href={`/initiatives/${initiative.slug}`}
+                prefetch={false}
                 className="group flex flex-col rounded-xl border border-border bg-surface p-5 transition-colors hover:border-primary-red/40"
               >
                 <span className="w-fit rounded-full bg-status-blue/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-status-blue">
@@ -154,6 +185,6 @@ export default async function EventsPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }
