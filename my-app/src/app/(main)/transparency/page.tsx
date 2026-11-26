@@ -93,6 +93,7 @@ export default async function TransparencyPage({
                 .filter((y) => y <= new Date().getFullYear())
                 .map((y) => (
                   <Link
+                    prefetch={false}
                     key={y}
                     href={`/transparency?view=report&year=${y}`}
                     className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${

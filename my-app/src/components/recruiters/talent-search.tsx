@@ -173,6 +173,7 @@ export default function TalentSearch({ initialResults, markerTypes }: TalentSear
 
               {/* View Profile */}
               <Link
+                prefetch={false}
                 href={`/p/${hacker.slug_id}`}
                 className="flex items-center justify-between w-full px-4 py-2 rounded-lg bg-surface-hover border border-border text-xs font-medium text-secondary hover:text-primary hover:bg-surface-hover hover:border-primary-red/30 transition-all group/link"
               >

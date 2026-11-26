@@ -37,6 +37,7 @@ export default function PoliciesPage() {
           {PUBLISHED_POLICIES.map((policy) => (
             <li key={policy.slug}>
               <Link
+                prefetch={false}
                 href={`/policies/${policy.slug}`}
                 className="font-semibold text-primary underline hover:no-underline"
               >

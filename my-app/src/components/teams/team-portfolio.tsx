@@ -124,7 +124,7 @@ export default function TeamPortfolio({ teamId }: TeamPortfolioProps) {
           </h3>
           <div className="space-y-4">
             {members.map(member => (
-              <Link 
+              <Link prefetch={false} 
                 key={member?.id} 
                 href={`/p/${member?.bh_id}`}
                 className="flex items-center gap-4 p-4 rounded-lg bg-surface-hover border border-border hover:bg-surface-hover transition-all group"
@@ -177,7 +177,7 @@ export default function TeamPortfolio({ teamId }: TeamPortfolioProps) {
                         </span>
                       ))}
                     </div>
-                    <Link 
+                    <Link prefetch={false} 
                       href={`/projects/${project.id}`}
                       className="p-2 rounded-lg bg-bh-red-action text-white hover:bg-deep-red transition-all"
                     >

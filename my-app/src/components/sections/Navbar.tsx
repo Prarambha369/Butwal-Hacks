@@ -169,7 +169,7 @@ export default function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Left: Logo */}
           <div className="flex items-center gap-3 shrink-0">
-            <Link href="/" className="flex items-center gap-3 group min-h-[44px]">
+            <Link prefetch={false} href="/" className="flex items-center gap-3 group min-h-[44px]">
               <Image
                 src="/favicon.svg"
                 alt="Butwal Hacks"
@@ -189,6 +189,7 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
+                prefetch={false}
                 key={link.name}
                 href={link.href}
                 className="px-3 py-2 text-sm font-medium text-text-secondary rounded-md transition-all hover:bg-surface-hover hover:text-primary"
@@ -295,6 +296,7 @@ export default function Navbar() {
         <div className="flex flex-col p-4 pb-8 gap-1 bh-pb-safe">
           {navLinks.map((link) => (
             <Link
+              prefetch={false}
               key={link.name}
               href={link.href}
               onClick={() => setIsOpen(false)}

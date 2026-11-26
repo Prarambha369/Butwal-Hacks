@@ -129,6 +129,7 @@ export default function ProjectQuickView({ project, onClose }: ProjectQuickViewP
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Link
+                prefetch={false}
                 href={`/projects/${project.id}`}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-bh-red-action text-white text-sm font-bold hover:bg-deep-red transition-all active:scale-[0.97]"
               >
@@ -136,6 +137,7 @@ export default function ProjectQuickView({ project, onClose }: ProjectQuickViewP
                 Full Details
               </Link>
               <Link
+                prefetch={false}
                 href={`/projects/${project.id}/edit`}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-surface-hover border border-border text-primary text-sm font-medium hover:bg-surface-hover/80 transition-all active:scale-[0.97]"
               >

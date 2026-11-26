@@ -283,7 +283,7 @@ export default function AnnualReportVisualization({ year }: ReportVisualizationP
                 )}
               >
                 <div className="flex-1 min-w-0">
-                  <Link href={`/p/${entry.bh_id}`} className="text-sm font-bold text-primary hover:text-primary-red transition-colors truncate block">
+                  <Link prefetch={false} href={`/p/${entry.bh_id}`} className="text-sm font-bold text-primary hover:text-primary-red transition-colors truncate block">
                     {entry.full_name}
                   </Link>                  <span className="text-[10px] font-mono text-muted-foreground">{entry.bh_id} · {entry.marker_title}</span>
                 </div>

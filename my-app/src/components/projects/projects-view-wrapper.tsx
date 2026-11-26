@@ -96,6 +96,7 @@ export default function ProjectsViewWrapper({
                 </div>
                 <div className="flex gap-2">
                   <Link
+                    prefetch={false}
                     href={`/projects/${project.id}`}
                     className="p-2 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-colors"
                     title="View project detail"
@@ -103,6 +104,7 @@ export default function ProjectsViewWrapper({
                     <Eye size={16} />
                   </Link>
                   <Link
+                    prefetch={false}
                     href={`/dashboard/projects/${project.id}/edit`}
                     className="p-2 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary-red transition-colors"
                     title="Edit project"

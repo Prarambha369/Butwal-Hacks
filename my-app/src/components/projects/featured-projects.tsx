@@ -78,6 +78,7 @@ export default async function FeaturedProjects() {
                 {project.description}
               </p>
               <Link
+                prefetch={false}
                 href={`/projects/${project.id}`}
                 className="block w-full py-2 rounded-lg bg-surface-hover border border-border text-center text-xs font-bold hover:bg-surface-hover transition-colors"
               >

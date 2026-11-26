@@ -25,6 +25,7 @@ export default function TestimonialForm() {
     return (
       <div className="mx-auto mt-10 max-w-2xl text-center">
         <Link
+          prefetch={false}
           href="/sign-in?returnTo=/explore"
           className="text-sm font-semibold text-primary-red hover:text-deep-red transition-colors"
         >

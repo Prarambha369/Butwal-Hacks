@@ -247,7 +247,9 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
                 )}
               >
                 {cfg.label}
-                <span className={cn("ml-1.5 font-mono font-medium", role === r ? "opacity-70" : "text-muted-foreground/70")}>
+                {/* Same color as the label: the old 70% opacity put the
+                    12px count at 2.7:1, under the 4.5:1 AA minimum. */}
+                <span className="ml-1.5 font-mono font-medium">
                   {r === "All" ? counts.all : counts[r]}
                 </span>
               </button>
@@ -341,6 +343,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
             The directory fills up as members create their BH-IDs. Claim yours and you&apos;ll be at the top.
           </p>
           <Link
+            prefetch={false}
             href="/dashboard/hacker"
             className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary-red/10 text-primary-red text-xs font-bold hover:bg-primary-red/20 transition-all"
           >

@@ -71,6 +71,7 @@ export default function FestivalsIndex() {
                 return (
                   <li key={f.slug}>
                     <Link
+                      prefetch={false}
                       href={`/festivals/${f.slug}`}
                       className="bh-card-interactive flex items-center gap-4 p-4"
                     >

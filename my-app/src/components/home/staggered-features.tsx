@@ -76,6 +76,7 @@ export default function StaggeredFeatures() {
             const Icon = feature.icon
             return (
               <Link
+                prefetch={false}
                 key={feature.titleKey}
                 href={feature.href}
                 className={`group bh-play-hover relative overflow-hidden rounded-xl border border-border bg-surface p-6 md:p-7 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-primary-red/30 ${feature.span}`}
@@ -107,6 +108,7 @@ export default function StaggeredFeatures() {
         {/* Blog cross-link — tool talk continues in build stories */}
         <div className="mt-8 flex justify-center">
           <Link
+            prefetch={false}
             href="/blog"
             className="group inline-flex items-center gap-2 font-mono text-xs font-semibold text-muted-foreground transition-colors hover:text-primary-red"
           >
