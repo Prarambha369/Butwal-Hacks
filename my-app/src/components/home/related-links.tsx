@@ -33,7 +33,6 @@ export default function RelatedLinks({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {links.map((link) => (
           <Link
-            prefetch={false}
             key={link.href}
             href={link.href}
             // Related cards sit below the fold on detail pages; prefetching
