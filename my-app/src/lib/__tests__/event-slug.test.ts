@@ -28,7 +28,9 @@ describe("event creation writes a slug", () => {
       src.indexOf("export async function createEvent"),
       src.indexOf("export async function createChapterEvent"),
     );
-    expect(body).toMatch(/from\("events"\)[\s\S]*?\.insert\(\{[\s\S]*?slug,/);
+    // The row is built once (so the migration-150 retry can reuse it) and
+    // then inserted; either way the inserted object must carry `slug`.
+    expect(body).toMatch(/const row = \{[\s\S]*?\bslug,[\s\S]*?from\("events"\)\.insert\(row\)/);
   });
 
   it("inserts slug in createChapterEvent", () => {
@@ -36,7 +38,9 @@ describe("event creation writes a slug", () => {
       src.indexOf("export async function createChapterEvent"),
       src.indexOf("export async function updateEventSlug"),
     );
-    expect(body).toMatch(/from\("events"\)[\s\S]*?\.insert\(\{[\s\S]*?slug,/);
+    // The row is built once (so the migration-150 retry can reuse it) and
+    // then inserted; either way the inserted object must carry `slug`.
+    expect(body).toMatch(/const row = \{[\s\S]*?\bslug,[\s\S]*?from\("events"\)\.insert\(row\)/);
   });
 
   it("routes both create paths through the slug resolver", () => {

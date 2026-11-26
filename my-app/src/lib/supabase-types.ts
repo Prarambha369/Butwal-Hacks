@@ -37,6 +37,8 @@ export interface BHEvent {
   end_date: string
   location: string | null
   banner_url: string | null
+  /** Cloudinary public_id of the banner (migration 150). */
+  banner_public_id?: string | null
   is_published: boolean
   created_at: string
 }

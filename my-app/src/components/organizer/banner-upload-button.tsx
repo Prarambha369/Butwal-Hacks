@@ -1,101 +1,141 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { X, Loader2 } from "lucide-react";
+import { ImageIcon, Loader2 } from "lucide-react";
 import { CloudinaryUpload } from "@/components/cloudinary-upload";
 import { updateEventBanner } from "@/lib/actions/events";
+import {
+  BANNER_ACCEPT,
+  BANNER_RECOMMENDED,
+  bannerFileError,
+  bannerLoader,
+  isCloudinaryImage,
+} from "@/lib/event-banner";
 import { cn } from "@/lib/utils";
 
 interface BannerUploadButtonProps {
   eventId: string;
+  eventTitle?: string;
   currentBannerUrl: string | null;
   className?: string;
 }
 
+/**
+ * Upload, replace or remove an event's banner.
+ *
+ * Flow: pick a JPG/PNG/WebP (≤ 5 MB) → crop to 16:9 → signed upload to the
+ * caller's Cloudinary folder → `updateEventBanner(eventId, public_id)`, which
+ * re-checks ownership and the asset server-side → refresh, so this page and
+ * the public pages show the new banner.
+ *
+ * Before this, a successful save never refreshed the page (the action
+ * revalidated a different path), so the old banner stayed on screen and the
+ * upload looked broken; and once a banner existed there was no way to replace
+ * it, only remove it.
+ */
 export function BannerUploadButton({
   eventId,
+  eventTitle,
   currentBannerUrl,
   className,
 }: BannerUploadButtonProps) {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [removing, setRemoving] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [, startTransition] = useTransition();
+  // Shown immediately after a save, before the refreshed server props arrive.
+  const [localUrl, setLocalUrl] = useState<string | null | undefined>(undefined);
+  const shownUrl = localUrl === undefined ? currentBannerUrl : localUrl;
 
-  const handleUpload = useCallback(
-    async (url: string) => {
+  const save = useCallback(
+    async (publicId: string) => {
       setError(null);
+      setStatus(null);
+      setSaving(true);
       try {
-        const result = await updateEventBanner(eventId, url);
+        const result = await updateEventBanner(eventId, publicId);
         if (!result.success) {
-          setError(result.error ?? "Could not save banner");
+          setError(result.error ?? "Could not save the banner.");
+          return;
         }
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Could not save banner",
-        );
+        const url = "banner_url" in result ? (result.banner_url ?? null) : null;
+        setLocalUrl(publicId === "" ? null : url);
+        setStatus(publicId === "" ? "Banner removed." : "Banner saved. It now shows on the event page.");
+        startTransition(() => router.refresh());
+      } catch {
+        setError("Could not save the banner. Try again.");
       } finally {
-        // no-op: CloudinaryUpload shows its own upload progress
+        setSaving(false);
       }
     },
-    [eventId],
+    [eventId, router],
   );
 
-  const handleRemove = useCallback(async () => {
-    if (!currentBannerUrl) return;
-    setRemoving(true);
-    setError(null);
-    try {
-      const result = await updateEventBanner(eventId, "");
-      if (!result.success) {
-        setError(result.error ?? "Could not remove banner");
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not remove banner",
-      );
-    } finally {
-      setRemoving(false);
-    }
-  }, [eventId, currentBannerUrl]);
+  const alt = eventTitle ? `${eventTitle} banner` : "Event banner";
 
   return (
-    <div className={cn("space-y-2", className)}>
-      {currentBannerUrl && (
-        <div className="relative w-full h-24 rounded-xl overflow-hidden border border-border">
+    <div className={cn("space-y-3", className)}>
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-muted">
+        {shownUrl ? (
           <Image
-            src={currentBannerUrl}
-            alt="Current event banner"
+            src={shownUrl}
+            alt={alt}
             fill
+            sizes="(max-width: 768px) 100vw, 360px"
             className="object-cover"
+            {...(isCloudinaryImage(shownUrl) ? { loader: bannerLoader } : {})}
           />
-          <button
-            type="button"
-            disabled={removing}
-            onClick={handleRemove}
-            className="absolute top-2 right-2 p-1 rounded-full bg-background/80 text-primary hover:bg-background/90 transition-colors disabled:opacity-50"
-            title="Remove banner"
-          >
-            {removing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <X className="w-4 h-4" />
-            )}
-          </button>
-        </div>
-      )}
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-muted-foreground">
+            <ImageIcon className="h-6 w-6" aria-hidden="true" />
+            <span className="text-xs font-medium">No banner yet</span>
+          </div>
+        )}
+        {saving && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/70">
+            <Loader2 className="h-6 w-6 animate-spin text-primary motion-reduce:animate-none" aria-hidden="true" />
+            <span className="sr-only">Saving banner</span>
+          </div>
+        )}
+      </div>
 
       <CloudinaryUpload
         label="Upload banner"
+        replaceLabel="Replace banner"
+        removeLabel="Remove banner"
         entityType="event_banner"
-        currentImage={currentBannerUrl ?? undefined}
-        onUpload={handleUpload}
-        onError={setError}
-        compact={false}
+        currentImage={shownUrl ?? undefined}
+        accept={BANNER_ACCEPT}
+        validateFile={bannerFileError}
+        onUploadResult={({ publicId }) => void save(publicId)}
+        // Compact mode's Remove calls onUpload(""); uploads go through onUploadResult.
+        onUpload={(url) => {
+          if (url === "") void save("");
+        }}
+        onError={(message) => {
+          setStatus(null);
+          setError(message);
+        }}
+        compact
       />
 
-      {error && (
-        <p className="text-xs text-primary-red font-medium">{error}</p>
-      )}
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        16:9, ideally {BANNER_RECOMMENDED}px. JPG, PNG or WebP, up to 5 MB. You can crop
+        after choosing a file; keep text away from the edges so it survives smaller cards.
+      </p>
+
+      <div aria-live="polite" className="min-h-[1rem]">
+        {error ? (
+          <p role="alert" className="text-xs font-medium text-status-red">
+            {error}
+          </p>
+        ) : status ? (
+          <p className="text-xs font-medium text-status-green">{status}</p>
+        ) : null}
+      </div>
     </div>
   );
 }
