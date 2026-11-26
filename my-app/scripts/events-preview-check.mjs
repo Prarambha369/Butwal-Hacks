@@ -58,7 +58,6 @@ async function context(opts) {
 async function axe(page) {
   await page.addScriptTag({ path: require.resolve("axe-core/axe.min.js") });
   return page.evaluate(async () => {
-    // eslint-disable-next-line no-undef
     const r = await window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] });
     return r.violations
       .filter((v) => v.impact === "critical" || v.impact === "serious")
