@@ -80,6 +80,7 @@ export function ExploreHero({ totalMembers, totalBuilders, totalProjects, totalE
               repeated here. */}
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Link
+              prefetch={false}
               href="/auth/login?screen_hint=signup"
               className="bh-btn-primary text-sm"
             >

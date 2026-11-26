@@ -102,6 +102,7 @@ export default function Footer() {
                 {group.links.map((link) => (
                   <li key={link.nameKey}>
                     <Link
+                      prefetch={false}
                       href={link.href}
                       className="inline-flex min-h-[44px] items-center text-sm text-muted-foreground hover:text-primary-red transition-colors"
                     >
@@ -138,19 +139,19 @@ export default function Footer() {
             </div>
           </div>
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-1 sm:gap-2 text-[11px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">
-            <Link href="/legal/privacy" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
+            <Link prefetch={false} href="/legal/privacy" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.privacy', locale)}
             </Link>
-            <Link href="/legal/terms" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
+            <Link prefetch={false} href="/legal/terms" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.terms', locale)}
             </Link>
-            <Link href="/cookie-policy" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
+            <Link prefetch={false} href="/cookie-policy" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.cookies', locale)}
             </Link>
-            <Link href="/policies" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
+            <Link prefetch={false} href="/policies" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.policies', locale)}
             </Link>
-            <Link href="/sitemap" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
+            <Link prefetch={false} href="/sitemap" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 hover:text-primary-red transition-colors">
               {t('footer.sitemap', locale)}
             </Link>
           </div>

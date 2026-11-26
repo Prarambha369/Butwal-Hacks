@@ -102,6 +102,7 @@ function ProjectCard({
 
   return (
     <Link
+      prefetch={false}
       href={`/projects/${project.id}`}
       className={`bh-card-interactive overflow-hidden group flex flex-col ${className || ''}`}
     >

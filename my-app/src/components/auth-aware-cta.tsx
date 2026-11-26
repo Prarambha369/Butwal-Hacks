@@ -69,6 +69,7 @@ export default function AuthAwareCta({
   if (!user) {
     return (
       <Link
+        prefetch={false}
         href={`/sign-in?returnTo=${encodeURIComponent(returnTo)}`}
         className={cn(baseClasses, variantClasses, className)}
       >
@@ -92,6 +93,7 @@ export default function AuthAwareCta({
 
   return (
     <Link
+      prefetch={false}
       href={actionHref}
       className={cn(baseClasses, variantClasses, className)}
     >

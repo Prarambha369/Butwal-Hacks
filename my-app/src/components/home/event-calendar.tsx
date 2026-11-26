@@ -254,6 +254,7 @@ export default function EventCalendar({ events = [] }: { events?: CalendarEvent[
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
           <h2 id="bh-calendar-heading" className="text-2xl font-bold">
             <Link
+              prefetch={false}
               href="/calendar"
               aria-label={t("home.calendar.open_full", locale)}
               className="transition-colors hover:text-primary-red"
@@ -453,6 +454,7 @@ function EventLinks({ dayEvents, locale }: { dayEvents: CalendarEvent[]; locale:
       <span className="sr-only">{dayEvents.length} event{dayEvents.length === 1 ? "" : "s"}</span>
       {first.slug ? (
         <Link
+          prefetch={false}
           href={`/events/${first.slug}`}
           className="block truncate text-[10px] font-bold text-primary hover:text-primary-red transition-colors min-h-[32px] sm:min-h-0 flex items-center"
         >
@@ -465,6 +467,7 @@ function EventLinks({ dayEvents, locale }: { dayEvents: CalendarEvent[]; locale:
       )}
       {dayEvents.length > 1 && (
         <Link
+          prefetch={false}
           href="/events"
           className="block text-[9px] font-mono text-muted-foreground hover:text-primary-red transition-colors"
         >
@@ -487,6 +490,7 @@ function FestivalLinks({ festivals, locale }: { festivals: FestivalEntry[]; loca
       </div>
       <span className="sr-only">{festivals.length} festival{festivals.length === 1 ? "" : "s"}</span>
       <Link
+        prefetch={false}
         href={`/festivals/${first.slug}`}
         className="block truncate text-[10px] font-bold text-status-yellow hover:opacity-80 transition-opacity min-h-[32px] sm:min-h-0 flex items-center"
       >
@@ -494,6 +498,7 @@ function FestivalLinks({ festivals, locale }: { festivals: FestivalEntry[]; loca
       </Link>
       {festivals.length > 1 && (
         <Link
+          prefetch={false}
           href="/festivals"
           className="block text-[9px] font-mono text-muted-foreground hover:text-status-yellow transition-colors"
         >
@@ -604,7 +609,7 @@ function AdGrid({ date, byAdDay, festivalsByAd, holidaysByAd, today, weekdays, l
       {!hasAny && (
         <p className="mt-3 text-center text-xs text-muted-foreground">
           {t("home.calendar.empty", locale)}{" "}
-          <Link href="/events" className="font-bold text-primary-red hover:underline">
+          <Link prefetch={false} href="/events" className="font-bold text-primary-red hover:underline">
             {t("action.view_all_events", locale)}
           </Link>
         </p>
@@ -698,7 +703,7 @@ function BsGrid({ bsView, byBsDay, festivalsByBs, holidaysByBs, today, weekdays,
       {!hasAny && (
         <p className="mt-3 text-center text-xs text-muted-foreground">
           {t("home.calendar.empty", locale)}{" "}
-          <Link href="/events" className="font-bold text-primary-red hover:underline">
+          <Link prefetch={false} href="/events" className="font-bold text-primary-red hover:underline">
             {t("action.view_all_events", locale)}
           </Link>
         </p>

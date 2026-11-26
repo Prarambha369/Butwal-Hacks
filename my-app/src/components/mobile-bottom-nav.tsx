@@ -50,6 +50,10 @@ export default function MobileBottomNav() {
             const Icon = item.icon;
             return (
               <Link
+                // On every page of the site: prefetching its tabs (two of
+                // which redirect signed-out visitors to the login route)
+                // spent page-path requests on each visit for nothing.
+                prefetch={false}
                 key={item.href}
                 href={item.href}
                 className={cn(

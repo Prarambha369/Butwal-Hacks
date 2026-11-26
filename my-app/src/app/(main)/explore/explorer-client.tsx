@@ -341,6 +341,7 @@ export function ExplorerClient({ members }: { members: ExplorerMember[] }) {
             The directory fills up as members create their BH-IDs. Claim yours and you&apos;ll be at the top.
           </p>
           <Link
+            prefetch={false}
             href="/dashboard/hacker"
             className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary-red/10 text-primary-red text-xs font-bold hover:bg-primary-red/20 transition-all"
           >
