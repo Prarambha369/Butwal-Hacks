@@ -2,17 +2,20 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { createServiceClient } from "@/utils/supabase"
 
-// Fetches events from Supabase + checks Auth0 session at request time.
-export const dynamic = "force-dynamic";
+// ISR: the list is the same for every visitor. Publishing, editing or
+// deleting an event calls revalidatePath("/events") (lib/actions/events.ts),
+// so changes show immediately; the 5-minute timer keeps the upcoming/past
+// split current as dates pass. The signed-in CTA is a client component.
+export const revalidate = 300;
 import { buildPageMetadata } from "@/lib/seo"
-import { auth0 } from "@/lib/auth0"
-import { APP_URL, SITE_URL } from "@/lib/constants"
+import { SITE_URL } from "@/lib/constants"
 import { initiatives } from "@/lib/content"
 import { logger } from "@/lib/logger"
 import { partitionEvents } from "@/lib/event-status"
 import Breadcrumbs from "@/components/breadcrumbs"
 import { EventCard, FeaturedEventCard } from "@/components/events/event-card"
 import { PastEvents } from "@/components/events/past-events"
+import { EventsHeaderCta } from "@/components/events/events-header-cta"
 import type { PublicEvent } from "@/components/events/event-types"
 import { Ballu } from "@/components/mascot/ballu"
 import { ArrowRight, CalendarPlus, FlaskConical } from "lucide-react"
@@ -29,9 +32,6 @@ export const metadata: Metadata = buildPageMetadata({
 const CALENDAR_SUBSCRIBE_URL = `${SITE_URL.replace(/^https?:\/\//, "webcal://")}/api/events/ical`
 
 export default async function EventsPage() {
-  const session = await auth0.getSession();
-  const isSignedIn = !!session?.user;
-
   const supabase = createServiceClient()
 
   // Published events only, filtered in the query. The list used to fetch
@@ -57,10 +57,10 @@ export default async function EventsPage() {
       banner_url: e.banner_url?.trim() ? e.banner_url : null,
     }))
 
-  // The server's clock decides upcoming vs past. This page renders per
-  // request, so the split is current and identical on the client (no
-  // "everything looks upcoming until hydration" flash).
-  // eslint-disable-next-line react-hooks/purity -- per-request server render
+  // The server's clock decides upcoming vs past at render time, and `now` is
+  // passed down so the client renders the same split (no hydration flash).
+  // With ISR the render is at most `revalidate` seconds old.
+  // eslint-disable-next-line react-hooks/purity -- server render, revalidated every 5 min
   const now = Date.now()
   const { featured, upcoming, past } = partitionEvents(events, now)
 
@@ -82,15 +82,7 @@ export default async function EventsPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            {isSignedIn ? (
-              <Link href={`${APP_URL}/dashboard/hacker`} prefetch={false} className="bh-btn-secondary text-sm">
-                Your dashboard <ArrowRight aria-hidden="true" className="h-4 w-4" />
-              </Link>
-            ) : (
-              <Link href="/join" prefetch={false} className="bh-btn-secondary text-sm">
-                How to join <ArrowRight aria-hidden="true" className="h-4 w-4" />
-              </Link>
-            )}
+            <EventsHeaderCta />
             <a href={CALENDAR_SUBSCRIBE_URL} className="bh-btn-ghost text-sm">
               <CalendarPlus aria-hidden="true" className="h-4 w-4" /> Subscribe to calendar
             </a>

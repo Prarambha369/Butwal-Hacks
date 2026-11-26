@@ -28,8 +28,11 @@ const SENTRY_DSN = process.env.SENTRY_DSN;
 Sentry.init({
   dsn: SENTRY_DSN,
 
-  // Performance tracing for server-side operations
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.25 : 0.0,
+  // Performance tracing for server-side operations. Kept low: every sampled
+  // transaction is built, serialised and sent from the function, which is
+  // billed Active CPU on the Hobby plan (4 h/month). Errors are unaffected —
+  // they are always captured regardless of this rate.
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.05 : 0.0,
 
   // Instrument outgoing HTTP requests (fetch, etc.) for downstream span visibility.
   // Captures calls to Supabase, Groq, Cloudinary, Auth0, GitHub, Resend, etc.

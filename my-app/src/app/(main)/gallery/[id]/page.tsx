@@ -2,11 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Download, ExternalLink, LogIn } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 
-import { auth0 } from "@/lib/auth0";
 import {
-  cloudinaryDownloadUrl,
   displayPhotoUrl,
   isVideoUrl,
   socialCardUrl,
@@ -16,6 +14,7 @@ import { VideoPlayer } from "@/components/gallery/video-tile";
 import { getGalleryPhoto } from "@/lib/gallery-photo";
 import { buildPageMetadata } from "@/lib/seo";
 import ShareButtons from "./share-buttons";
+import DownloadButton from "./download-button";
 
 /**
  * Canonical per-photo page.
@@ -34,7 +33,14 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
+// ISR: nothing here depends on the visitor (the download gate is a client
+// component), so each photo is rendered on first request and then served
+// from the CDN. An empty generateStaticParams makes the route ISR instead of
+// per-request; photos are rendered on demand, never at build time.
 export const revalidate = 60;
+export async function generateStaticParams(): Promise<{ id: string }[]> {
+  return [];
+}
 
 /** Long date, or null when the stored value is missing/unparseable. */
 function formatLongDate(value: string): string | null {
@@ -105,10 +111,6 @@ export default async function GalleryPhotoPage({ params }: Props) {
   const shareUrl = `${SITE_URL}/gallery/${photo.id}`;
   const shareTitle = `${photo.event} — ${kind} · Butwal Hacks`;
 
-  // Download gate: same rule as the grid. Signed-in viewers get the original
-  // bytes via fl_attachment; everyone else gets a sign-in link.
-  const session = await auth0.getSession().catch(() => null);
-
   return (
     <main className="min-h-dvh bg-background pt-28 pb-20 px-6 md:px-20">
       <div className="mx-auto max-w-4xl">
@@ -171,22 +173,7 @@ export default async function GalleryPhotoPage({ params }: Props) {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {!isVideo &&
-              (session?.user ? (
-                <a
-                  href={cloudinaryDownloadUrl(photo.url)}
-                  download
-                  className="bh-btn-secondary"
-                >
-                  <Download className="h-4 w-4" aria-hidden="true" />
-                  Download
-                </a>
-              ) : (
-                <Link href="/sign-in" className="bh-btn-secondary">
-                  <LogIn className="h-4 w-4" aria-hidden="true" />
-                  Sign in to download
-                </Link>
-              ))}
+            {!isVideo && <DownloadButton url={photo.url} />}
 
             {photo.event_slug && (
               <Link

@@ -185,3 +185,9 @@ export default async function ChapterDetailPage({ params }: Props) {
     </main>
   )
 }
+
+// An empty list makes this dynamic segment ISR instead of per-request:
+// pages are rendered on demand, never at build time.
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  return [];
+}

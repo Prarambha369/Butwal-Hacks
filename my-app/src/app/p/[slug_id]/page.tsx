@@ -81,3 +81,9 @@ export default async function ProfilePage({ params }: Props) {
     </main>
   );
 }
+
+// An empty list makes this dynamic segment ISR instead of per-request:
+// pages are rendered on demand, never at build time.
+export async function generateStaticParams(): Promise<{ slug_id: string }[]> {
+  return [];
+}

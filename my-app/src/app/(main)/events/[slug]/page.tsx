@@ -164,3 +164,13 @@ export default async function EventDetailPage({ params }: Props) {
     </>
   )
 }
+
+// ISR: rendered on first request, then served from the CDN and refreshed
+// in the background at most every 300 seconds. Nothing here depends on the
+// visitor, so a per-request render was pure server CPU.
+export const revalidate = 300;
+// An empty list makes this dynamic segment ISR instead of per-request:
+// pages are rendered on demand, never at build time.
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  return [];
+}

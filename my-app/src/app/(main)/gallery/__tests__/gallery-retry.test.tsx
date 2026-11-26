@@ -53,6 +53,9 @@ let observers: Array<{ cb: IntersectionObserverCallback }> = [];
 beforeEach(() => {
   observers = [];
   mockFetch.mockReset();
+  // The grid reads ?event= on mount; a filter a previous test put in the URL
+  // (via replaceState) must not leak into the next render.
+  window.history.replaceState(null, "", "/gallery");
   vi.stubGlobal(
     "IntersectionObserver",
     class {
@@ -316,5 +319,27 @@ describe("GalleryGrid review follow-ups", () => {
     expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
     fireEvent.load(within(dialog).getByAltText("Photo 1"));
     expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+  });
+});
+
+describe("GalleryGrid ?event= link", () => {
+  // The page is ISR-cached, so the server no longer reads ?event=; the grid
+  // applies it on mount.
+  it("applies a known event from the URL on mount", async () => {
+    window.history.replaceState(null, "", "/gallery?event=Jam");
+    mockFetch.mockResolvedValue({ photos: [photo(4, "Jam")], hasMore: false });
+    render(
+      <GalleryGrid photos={PHOTOS} canDownload={false} totals={TOTALS} hasMore={false} events={["Hack 2026", "Jam"]} />,
+    );
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledWith(0, "Jam"));
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores an event that is not in the gallery", () => {
+    window.history.replaceState(null, "", "/gallery?event=Nope");
+    render(
+      <GalleryGrid photos={PHOTOS} canDownload={false} totals={TOTALS} hasMore={false} events={["Hack 2026", "Jam"]} />,
+    );
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 });

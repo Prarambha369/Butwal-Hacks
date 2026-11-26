@@ -21,6 +21,7 @@ import {
 // import both from one place rather than through `./page`.
 import { fetchGalleryPage } from "@/lib/actions/gallery";
 import type { GalleryPhoto, GalleryTotals } from "@/lib/actions/gallery";
+import { useAuthUser } from "@/components/auth-user-provider";
 
 // ─── Text helpers ──────────────────────────────────────────────────
 
@@ -921,19 +922,25 @@ function galleryHref(filter: string | null): string {
 
 export default function GalleryGrid({
   photos: initialPhotos,
-  canDownload,
+  canDownload: canDownloadProp,
   totals,
   hasMore: initialHasMore,
   events: initialEvents,
   initialFilter = null,
 }: {
   photos: GalleryPhoto[];
-  canDownload: boolean;
+  /** Override for tests; otherwise derived from the client session probe. */
+  canDownload?: boolean;
   totals: GalleryTotals;
   hasMore: boolean;
   events?: string[];
   initialFilter?: string | null;
 }) {
+  // The page is ISR-cached and identical for every visitor, so the download
+  // gate is read on the client (the shared /auth/profile probe) instead of
+  // making the server render per request to read the session cookie.
+  const { user } = useAuthUser();
+  const canDownload = canDownloadProp ?? !!user;
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [filter, setFilter] = useState<string | null>(initialFilter);
 
@@ -1053,6 +1060,20 @@ export default function GalleryGrid({
       if (ticket === requestRef.current) setFiltering(false);
     }
   }, [filter, loadError, filtering, retrySecondsLeft, photos, hasMore, backoffFail, backoffSucceed]);
+
+  // ?event= keeps a filtered view shareable and reload-safe. The page is
+  // ISR-cached (one HTML for every query string), so the filter is read here
+  // on mount rather than on the server. Only a title that exists in the
+  // gallery is honoured; anything else shows everything, as before.
+  const urlFilterAppliedRef = useRef(false);
+  useEffect(() => {
+    if (urlFilterAppliedRef.current) return;
+    urlFilterAppliedRef.current = true;
+    const requested = new URLSearchParams(window.location.search).get("event")?.slice(0, 200);
+    if (requested && requested !== filter && events.includes(requested)) {
+      void applyFilter(requested);
+    }
+  }, [applyFilter, events, filter]);
 
   // "auto" is everything the visitor did not ask for by pressing a button:
   // infinite scroll, and nearing the end in the lightbox. Those never run
