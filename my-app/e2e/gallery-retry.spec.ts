@@ -195,6 +195,24 @@ test.describe("Gallery failure states", () => {
     await expect(tile.locator("img")).toBeVisible();
   });
 
+  test("a video tile whose poster fails offers Retry, not a blank box", async ({ page, context }) => {
+    await blockable(context);
+    // Only video deliveries fail; photos load as usual. Registered after
+    // blockable(): the newest matching route wins.
+    await context.route(
+      (url) => url.hostname === "res.cloudinary.com" && url.pathname.includes("/video/upload/"),
+      (route) => route.abort("failed"),
+    );
+    test.skip(!(await openGallery(page)), "no approved media in this environment");
+    const video = page.locator('a[href^="/gallery/"][aria-label*="video"]').first();
+    test.skip((await video.count()) === 0, "no videos here");
+
+    await video.scrollIntoViewIfNeeded();
+    const tile = video.locator("xpath=..");
+    await expect(tile.getByText("Couldn't load this video.")).toBeVisible();
+    await expect(tile.getByRole("button", { name: /^Retry loading / })).toBeVisible();
+  });
+
   test("a failed lightbox photo shows its message with Retry under it", async ({ page, context }) => {
     const blocks = await blockable(context);
     test.skip(!(await openGallery(page)), "no approved media in this environment");

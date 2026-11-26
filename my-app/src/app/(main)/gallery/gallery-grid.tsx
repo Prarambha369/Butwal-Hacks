@@ -242,6 +242,11 @@ function VideoThumbnail({ url, onFail }: { url: string; onFail: () => void }) {
         // only re-optimize it (same reasoning as VideoPoster).
         // eslint-disable-next-line @next/next/no-img-element
         <img
+          // A server-rendered image can fail before hydration attaches
+          // onError; a broken image is `complete` with no natural width.
+          ref={(img) => {
+            if (img?.complete && img.naturalWidth === 0) onFail();
+          }}
           src={poster}
           alt=""
           loading="lazy"
