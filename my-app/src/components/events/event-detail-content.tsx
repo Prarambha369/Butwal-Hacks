@@ -315,7 +315,7 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
               <div id="register" className="mt-8 scroll-mt-24 space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
                   {externalUrl ? (
-                    <ExternalRegisterAction href={externalUrl} id="register-cta" />
+                    <ExternalRegisterAction href={externalUrl} calendar={calendar} id="register-cta" />
                   ) : (
                     <PrimaryEventAction calendar={calendar} id="register-cta" />
                   )}

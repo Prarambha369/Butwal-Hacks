@@ -128,15 +128,17 @@ export function PrimaryEventAction({
 /**
  * The primary action for an event whose registration a partner runs
  * (lib/external-registration.ts). Rendered on the server as a plain external
- * link, so the static export carries it; after the event it becomes the
- * recap link like the in-site action.
+ * link, so the static export carries it; once the event starts it becomes
+ * "Add to calendar", and after it the recap link, like the in-site action.
  */
 export function ExternalRegisterAction({
   href,
+  calendar,
   variant = "hero",
   id,
 }: {
   href: string;
+  calendar: CalendarTarget;
   variant?: "hero" | "bar";
   id?: string;
 }) {
@@ -148,6 +150,16 @@ export function ExternalRegisterAction({
     return (
       <a id={id} href="#recap" className={cn("bh-btn-primary", size)}>
         See recap <ArrowRight aria-hidden="true" className="h-4 w-4" />
+      </a>
+    );
+  }
+
+  // Registration closes when the event starts, as for in-site events.
+  if (phase === "live") {
+    return (
+      <a id={id} href={`/api/events/ical?slug=${encodeURIComponent(calendar.slug)}`} className={cn("bh-btn-primary", size)}>
+        <CalendarPlus aria-hidden="true" className="h-4 w-4" /> {bar ? "Calendar" : "Add to calendar"}
+        {bar && <span className="sr-only"> (add to calendar)</span>}
       </a>
     );
   }
@@ -341,7 +353,7 @@ export function StickyEventBar({
         </div>
         <div className="shrink-0">
           {externalUrl ? (
-            <ExternalRegisterAction href={externalUrl} variant="bar" />
+            <ExternalRegisterAction href={externalUrl} calendar={calendar} variant="bar" />
           ) : (
             <PrimaryEventAction calendar={calendar} variant="bar" />
           )}
