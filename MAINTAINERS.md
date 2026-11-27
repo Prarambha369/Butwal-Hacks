@@ -2,7 +2,7 @@
 
 > Deploy, rollback, environment variables, and incident notes. Assumes access to the Cloudflare account, the Vercel project, the Auth0 tenant, the Supabase project, and the GitHub repository.
 
-**Hosting at a glance:** `butwalhacks.com` and `www` are a static site on Cloudflare Workers static assets (Worker `butwal-hacks-site`), rebuilt hourly. `app.butwalhacks.com` is the Next.js app on Vercel, **paused until 26 December 2026**. Until then the static site shows an "Under maintenance" page on every app path plus a banner; to end it, set `APP_MAINTENANCE` to `null` in `my-app/src/lib/app-maintenance.ts` and merge. Full detail: [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
+**Hosting at a glance:** the marketing site is static on Cloudflare Pages (project `butwal-hacks-site`) at `https://www.butwalhacks.com`, deployed on every push to `main`; the apex forwards to `www` at Porkbun, which manages DNS. `app.butwalhacks.com` is the Next.js app on Vercel, **paused until 26 December 2026**. Until then the static site shows an "Under maintenance" page on every app path plus a banner; to end it, set `APP_MAINTENANCE` to `null` in `my-app/src/lib/app-maintenance.ts` and merge. Full detail: [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
 
 This is a **single-maintainer** handbook. There is no on-call rotation and no duty roster; if that changes, restore the full apparatus here. It documents what exists so the next maintainer can verify it — it does not describe a team that does not exist yet.
 
@@ -34,11 +34,11 @@ It is not an org chart and not an incident-command manual. Everything here is ve
 supabase db push --db-url "$SUPABASE_DB_URL"
 
 # 2. Merge to main: deploy.yml ships the app to Vercel, and static-site.yml
-#    rebuilds and deploys the static marketing site to Cloudflare
+#    rebuilds and deploys the static marketing site to Cloudflare Pages
 git push origin main
 
 # 3. Verify
-curl -s -o /dev/null -w '%{http_code}\n' https://butwalhacks.com/
+curl -s -o /dev/null -w '%{http_code}\n' https://www.butwalhacks.com/
 curl -s -o /dev/null -w '%{http_code}\n' https://app.butwalhacks.com/
 ```
 
@@ -75,7 +75,7 @@ CI-only variables (e.g. `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`) are documented alon
 
 `.github/workflows/deploy.yml` runs three jobs in order on every push to `main`: verify (typecheck, lint, test), migrate, then deploy.
 
-`.github/workflows/static-site.yml` builds the static marketing site (`my-app/scripts/build-static.mjs`) and deploys it with `wrangler deploy -c wrangler.static.jsonc` on every push to `main`, hourly (`17 * * * *`) so new events, photos and posts appear, and on demand (Actions → Static site → Run workflow). It needs repository secrets `CLOUDFLARE_API_TOKEN` (Workers Scripts: Edit), `CLOUDFLARE_ACCOUNT_ID`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` and `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`, and the variable `STATIC_SITE_TARGET=production` (anything else deploys the `workers.dev` preview). Without the first two secrets it skips itself. A failed build never publishes: the last good deploy keeps serving.
+`.github/workflows/static-site.yml` builds the static marketing site (`my-app/scripts/build-static.mjs`) and deploys it with `wrangler pages deploy` to the Pages project `butwal-hacks-site` on every push to `main` and on demand (Actions → Static site → Run workflow). There is no scheduled rebuild: run it by hand after content changes made in the app. It needs the repository secrets `CLOUDFLARE_API_TOKEN` (Pages: Edit only), `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` and `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`, and the variables `CLOUDFLARE_ACCOUNT_ID` and `STATIC_SITE_TARGET=production` (anything else deploys the noindexed preview branch). Without the token, account ID or service-role key it skips itself. A failed build never deploys: the last good deployment keeps serving.
 
 **Migration transport must be a direct or session-pooler `SUPABASE_DB_URL`.** A transaction-pooler URL cannot run DDL. A failed migrate job leaves the Vercel deploy green while the app hits schema errors on fresh deploys — check the deploy workflow logs whenever a route starts erroring after a deploy.
 
@@ -97,7 +97,7 @@ CI-only variables (e.g. `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`) are documented alon
 **After merge**
 
 - [ ] Deploy workflow is green end to end, not just the Vercel job
-- [ ] Static site workflow is green and `https://butwalhacks.com` shows the change
+- [ ] Static site workflow is green and `https://www.butwalhacks.com` shows the change
 - [ ] Homepage loads at `https://butwalhacks.com`
 - [ ] Sign-in flow completes; at least one dashboard loads
 - [ ] Sentry shows no new error cluster in the first five minutes
@@ -105,11 +105,11 @@ CI-only variables (e.g. `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`) are documented alon
 
 ### Rollback
 
-#### Marketing site (Cloudflare)
+#### Marketing site (Cloudflare Pages)
 
-1. `cd my-app && npx wrangler deployments list -c wrangler.static.jsonc` to find the last good version.
-2. `npx wrangler rollback <version-id> -c wrangler.static.jsonc`, or Workers → `butwal-hacks-site` → Deployments → Rollback.
-3. Verify at `https://butwalhacks.com`.
+1. Cloudflare dashboard → Workers & Pages → `butwal-hacks-site` → Deployments.
+2. Pick the last good production deployment → Rollback (instant).
+3. Verify at `https://www.butwalhacks.com`.
 
 To move the marketing domains back to Vercel entirely, follow [docs/CLOUDFLARE.md → Rollback](docs/CLOUDFLARE.md#rollback).
 
@@ -171,4 +171,4 @@ Add new patterns to `.gitignore` at the repo root.
 - [docs/SECRET_ROTATION_RUNBOOK.md](docs/SECRET_ROTATION_RUNBOOK.md) — rotating an exposed credential
 - [docs/reports/2026-09-security-remediation.md](docs/reports/2026-10-security-remediation.md) — the P0/P1 authorization defects that were fixed
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — engineering reference
-- [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md) — the static marketing site: build, hourly rebuild, maintenance mode, rollback
+- [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md) — the static marketing site: build, Pages deploy, DNS, maintenance mode, rollback

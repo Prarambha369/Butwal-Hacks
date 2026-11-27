@@ -1,29 +1,25 @@
 name: Static site
 
-# Rebuilds the static marketing site (butwalhacks.com on Cloudflare Workers
-# static assets) and deploys it. Data pages (events, gallery, chapters, blog)
-# are rendered at build time from Supabase, so this is how they stay fresh:
+# Builds the static marketing site and deploys it to Cloudflare Pages
+# (project butwal-hacks-site; canonical https://www.butwalhacks.com, the apex
+# forwards to www at the registrar). Data pages (events, gallery, chapters,
+# blog) are rendered at build time from Supabase, so this is how they update:
 #   - every push to main (code and copy changes),
-#   - hourly (new events, photos and posts made in the app),
-#   - on demand: Actions → Static site → Run workflow, or a
-#     repository_dispatch "static-site-rebuild" event.
-# GitHub Actions is free for public repositories; a run takes ~3 minutes.
+#   - on demand: Actions → Static site → Run workflow, after content edits
+#     made in the app.
+# GitHub Actions is free for public repositories; a run takes ~5 minutes.
 #
 # Never runs on pull_request: the build reads Supabase with the service-role
 # key, and this repository is public.
 #
-# Until cutover it deploys the PREVIEW Worker (butwal-hacks-site-preview,
-# noindex). Set the repository variable STATIC_SITE_TARGET=production at
-# cutover to deploy butwal-hacks-site instead. See docs/CLOUDFLARE.md.
+# With the repository variable STATIC_SITE_TARGET=production it deploys the
+# production branch (main); otherwise the noindexed preview branch. See
+# docs/CLOUDFLARE.md.
 
 on:
   push:
     branches: [main]
-  schedule:
-    - cron: "17 * * * *"
   workflow_dispatch:
-  repository_dispatch:
-    types: [static-site-rebuild]
 
 concurrency:
   group: static-site
@@ -37,7 +33,7 @@ jobs:
     name: Build and deploy
     if: github.repository == 'Prarambha369/Butwal-Hacks'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       TARGET: ${{ vars.STATIC_SITE_TARGET == 'production' && 'production' || 'preview' }}
     steps:
@@ -45,10 +41,11 @@ jobs:
         id: check
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "CLOUDFLARE_API_TOKEN or SUPABASE_SERVICE_ROLE_KEY is not set; skipping (owner action, see docs/CLOUDFLARE.md)."
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID or SUPABASE_SERVICE_ROLE_KEY is not set; skipping (owner action, see docs/CLOUDFLARE.md)."
             echo "ready=false" >> "$GITHUB_OUTPUT"
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
@@ -81,20 +78,22 @@ jobs:
           NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ vars.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN }}
         run: |
           if [ "$TARGET" = "production" ]; then
-            node scripts/build-static.mjs
+            node scripts/build-static.mjs --site-url https://www.butwalhacks.com
           else
-            node scripts/build-static.mjs --noindex --site-url https://butwal-hacks-site-preview.butwalhacks.workers.dev
+            node scripts/build-static.mjs --noindex --site-url https://preview.butwal-hacks-site.pages.dev
           fi
 
-      - name: Deploy
+      - name: Deploy to Cloudflare Pages
         if: steps.check.outputs.ready == 'true'
         working-directory: my-app
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if [ "$TARGET" = "production" ]; then
-            npx wrangler deploy -c wrangler.static.jsonc
-          else
-            npx wrangler deploy -c wrangler.static.jsonc --env preview
-          fi
+          BRANCH=preview
+          if [ "$TARGET" = "production" ]; then BRANCH=main; fi
+          npx wrangler pages deploy ../.static-build/out \
+            --project-name butwal-hacks-site \
+            --branch "$BRANCH" \
+            --commit-hash "$GITHUB_SHA" \
+            --commit-message "${GITHUB_SHA::7} (${{ github.event_name }})"

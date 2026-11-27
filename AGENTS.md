@@ -91,7 +91,7 @@ Butwal-Hacks/
   supabase/migrations/     # SQL migrations, sequentially numbered
   scripts/                 # Operational scripts
   docs/                    # Engineering documentation and diagrams
-  .github/workflows/       # CI, app deploy, static-site rebuild, keep-alive
+  .github/workflows/       # CI, app deploy, static-site deploy (Pages), keep-alive
   vercel.json              # App (Vercel) deployment config and cron schedules
 ```
 
@@ -118,7 +118,7 @@ Butwal-Hacks/
 
 ### Hosting
 
-- `butwalhacks.com` and `www` are a **static export** on Cloudflare Workers static assets (Worker `butwal-hacks-site`, Free plan, no Worker code). `.github/workflows/static-site.yml` rebuilds it on push to `main` and hourly.
+- The marketing site is a **static export** on Cloudflare Pages (project `butwal-hacks-site`, Free plan) at `https://www.butwalhacks.com`; the apex forwards to `www` at Porkbun, which is the only DNS manager. `.github/workflows/static-site.yml` rebuilds and deploys it with `wrangler pages deploy` on push to `main` and on demand.
 - `app.butwalhacks.com` is the Next.js app on Vercel (project `butwal-hacks`). It is **paused until 26 December 2026**; while `APP_MAINTENANCE` in `src/lib/app-maintenance.ts` is set, the static site serves an "Under maintenance" page on every app path and a banner on every page. Set it to `null` to end maintenance.
 - A marketing page must export statically: no `"use server"` module anywhere in its import graph (read through `src/lib/public-reads/`, write through an API route called with `appUrl()`), and no `searchParams`, `cookies()` or `headers()` at render time. Run `npm run static:build` (needs Supabase read env in the shell) when you touch one.
 - A page that needs a session belongs to the app: add it to `APP_PREFIXES` and `STATIC_EXCLUDED_ROUTE_DIRS` in `src/lib/static-site.ts`.

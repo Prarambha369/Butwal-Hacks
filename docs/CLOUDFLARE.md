@@ -1,6 +1,6 @@
 # Static marketing site on Cloudflare
 
-> How butwalhacks.com is built as a fully static site and served from Cloudflare Workers static assets (Free plan), while the app stays on Vercel at app.butwalhacks.com. Covers the route split, the build, the hourly rebuild, what it costs, and the cutover and rollback steps. Owned by the core maintainers. Security contact: tech@butwalhacks.com.
+> How the marketing site is built as a fully static site and served from Cloudflare Pages (Free plan) at www.butwalhacks.com, while the app stays on Vercel at app.butwalhacks.com. Covers the route split, the build, the rebuild workflow, DNS, what it costs, and rollback. Owned by the core maintainers. Security contact: tech@butwalhacks.com.
 
 ## Contents
 
@@ -10,7 +10,7 @@
 - [Keeping data pages fresh](#keeping-data-pages-fresh)
 - [Free-plan impact](#free-plan-impact)
 - [Preview](#preview)
-- [Cutover](#cutover)
+- [Domains and DNS](#domains-and-dns)
 - [Rollback](#rollback)
 - [Changing the split](#changing-the-split)
 - [Troubleshooting](#troubleshooting)
@@ -19,7 +19,7 @@
 
 | Host | Serves | Runs on |
 |------|--------|---------|
-| `butwalhacks.com`, `www.butwalhacks.com` | Marketing pages: home, events and event pages, gallery and photo pages, about, blog, chapters, policies, legal, learn, docs, explore, projects list, support | Cloudflare Workers **static assets** (Worker `butwal-hacks-site`). No Worker script, so no per-request code and no CPU time |
+| `www.butwalhacks.com` (canonical); `butwalhacks.com` forwards to it at the registrar | Marketing pages: home, events and event pages, gallery and photo pages, about, blog, chapters, policies, legal, learn, docs, explore, projects list, support | Cloudflare **Pages** project `butwal-hacks-site` (direct upload, `butwal-hacks-site.pages.dev`). Static files only: no per-request code and no CPU time |
 | `app.butwalhacks.com` | Auth, dashboards, portal, every `/api/*` route, certificates and verification, profiles (`/p`), widgets, `/teams`, `/transparency`, project detail pages, sponsor pages, claim and sign-in | Vercel project `butwal-hacks` |
 
 The single source of truth is [`my-app/src/lib/static-site.ts`](../my-app/src/lib/static-site.ts):
@@ -62,74 +62,80 @@ node scripts/build-static.mjs [--app-origin URL] [--site-url URL] [--noindex]
 2. Deletes the app-only route directories and `src/proxy.ts`.
 3. Runs `next build` with `BUILD_TARGET=static`, which turns on `output: "export"` and the Cloudinary image loader in `next.config.ts`. Detail pages (events, chapters, gallery photos) list every public row in `generateStaticParams` ([`lib/static-params.ts`](../my-app/src/lib/static-params.ts)); on Vercel the same functions return `[]` and the pages stay ISR.
 4. Fails the build if a page reports that Supabase is not configured, and `degradeOnReadError()` is off for this target, so a failed read fails the build instead of publishing an empty page. The last good deploy keeps serving.
-5. Writes `_redirects` and `_headers` into `.static-build/out` and checks the file count against the Free limit.
+5. Writes `_redirects` and `_headers` into `.static-build/out` and checks them against the Pages limits: 20,000 files, and 2,000 static plus 100 dynamic redirect rules (the site uses about 50).
 
 The output is about 1,000 pages and 6,000 to 7,000 files. Server-only values are never inlined into client bundles. Before any manual deploy, scan the output for the service-role key, secret key and JWT secret values and do not deploy on a match.
 
-`my-app/wrangler.static.jsonc` is assets-only (no `main`), with `html_handling: auto-trailing-slash` and `not_found_handling: 404-page`. It has no routes or custom domains; those are attached at cutover.
+Pages serves `/about` from `about.html`, redirects `/about/` to `/about`, and serves the exported `404.html` with a 404 status for unknown paths. There is no wrangler config file; the deploy passes everything on the command line:
+
+```bash
+npx wrangler pages deploy ../.static-build/out --project-name butwal-hacks-site --branch main
+```
 
 ## Keeping data pages fresh
 
-[`.github/workflows/static-site.yml`](../.github/workflows/static-site.yml) rebuilds and deploys:
+[`.github/workflows/static-site.yml`](../.github/workflows/static-site.yml) builds and deploys with `wrangler pages deploy`:
 
 - on every push to `main`;
-- hourly (`17 * * * *`), for new events, photos and posts made in the app;
-- on demand (Actions → Static site → Run workflow, or a `repository_dispatch` of type `static-site-rebuild`).
+- on demand: Actions → Static site → Run workflow.
 
-It never runs on `pull_request`, because the build reads Supabase with the service-role key and the repository is public. Until the repository variable `STATIC_SITE_TARGET` is `production`, it deploys the preview Worker.
+There is no scheduled rebuild. Events, photos and posts created in the app appear on the static site after the next push to `main` or a manual run. While the app is paused, nothing new is created there anyway.
 
-Repository secrets it needs (owner action):
+It never runs on `pull_request`, because the build reads Supabase with the service-role key and the repository is public. With `STATIC_SITE_TARGET=production` it deploys the Pages production branch (`main`, served at `www.butwalhacks.com`); otherwise it deploys the noindexed `preview` branch.
 
-| Secret | Value |
-|--------|-------|
-| `CLOUDFLARE_API_TOKEN` | API token with **Account → Workers Scripts: Edit** on the Butwal Hacks account (nothing else) |
-| `CLOUDFLARE_ACCOUNT_ID` | The Cloudflare account ID |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service-role key, used only for build-time reads |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public Supabase values |
-| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Public Cloudinary values |
+What it needs (set in the repository):
 
-Repository variables: `NEXT_PUBLIC_POSTHOG_HOST`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, and `STATIC_SITE_TARGET` (set at cutover). Without the first two secrets the workflow skips itself.
+| Name | Kind | Value |
+|------|------|-------|
+| `CLOUDFLARE_API_TOKEN` | Secret | Account API token scoped to **Cloudflare Pages: Edit** only |
+| `SUPABASE_SERVICE_ROLE_KEY` | Secret | Service-role key, used only for build-time reads |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Secrets | Public Supabase values |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Secrets | Public Cloudinary values |
+| `CLOUDFLARE_ACCOUNT_ID` | Variable | The Cloudflare account ID |
+| `STATIC_SITE_TARGET` | Variable | `production` to deploy `www`; anything else deploys the preview |
+| `NEXT_PUBLIC_POSTHOG_HOST`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | Variables | Optional; analytics on the static site |
 
-Edits made in the app show on the static site at the next hourly rebuild, up to about an hour later. To publish sooner, run the workflow by hand.
+Without the token, the account ID or the service-role key, the workflow skips itself. A failed build never deploys, so the last good deployment keeps serving.
 
 ## Free-plan impact
 
 | Item | Cost |
 |------|------|
-| Cloudflare static asset requests | Free and unlimited on Workers Free; no Worker invocation, no CPU time |
-| Cloudflare asset storage | About 7,000 files per version, under the 20,000-file Free limit; each file well under 25 MiB |
-| GitHub Actions | About 4 minutes per run. Hourly plus pushes is about 3,000 minutes a month, free on a public repository |
+| Cloudflare Pages requests and bandwidth | Free and unlimited for static files |
+| Cloudflare Pages builds | None used: the build runs in GitHub Actions and is uploaded directly (Free allows 500 builds a month, which direct uploads do not count against) |
+| Cloudflare Pages files | About 6,200 files per deployment, under the 20,000-file Free limit; each file well under 25 MiB |
+| GitHub Actions | About 5 minutes per run, only on pushes to `main` and manual runs; free on a public repository |
 | Vercel Hobby | Every marketing page view, ISR render, image optimisation and proxy run for butwalhacks.com leaves Vercel. What remains is the app host, plus small cached API reads from marketing pages (`/api/site-content` is ISR; `/api/metrics` is cached for a day) |
 
 ## Preview
 
-`https://butwal-hacks-site-preview.butwalhacks.workers.dev` (Worker `butwal-hacks-site-preview`, `noindex`):
+The `preview` branch of the Pages project, at `https://preview.butwal-hacks-site.pages.dev` (noindexed). Every deployment also gets its own `https://<hash>.butwal-hacks-site.pages.dev` URL.
 
 ```bash
 cd my-app
-node scripts/build-static.mjs --noindex --site-url https://butwal-hacks-site-preview.butwalhacks.workers.dev
-npx wrangler deploy -c wrangler.static.jsonc --env preview
+npm run static:deploy:preview   # build with --noindex, then wrangler pages deploy --branch preview
 ```
 
-Known preview limits: browser calls to the app from `workers.dev` are cross-site. The session cookie is not sent, so the page shows signed-out, and CORS is refused unless `CORS_EXTRA_ORIGINS` on Vercel lists the preview origin. Pages, redirects and headers are fully testable.
+Known preview limits: browser calls to the app from `pages.dev` are cross-site. The session cookie is not sent, so the page shows signed-out, and CORS is refused unless `CORS_EXTRA_ORIGINS` on Vercel lists the preview origin. Pages, redirects and headers are fully testable.
 
-## Cutover
+## Domains and DNS
 
-Owner's call. Nothing here is done automatically.
+DNS for `butwalhacks.com` is managed at **Porkbun** only. Nothing in this repository or in Cloudflare changes it.
 
-1. Merge the PR, so `app.butwalhacks.com` serves the CORS headers, `/api/gallery`, `/api/site-content`, `/api/feedback` and `/api/testimonials`, and keeps the app paths in `isAppPath()`.
-2. Add the repository secrets and variables above, run the workflow once, and check the preview.
-3. Confirm `app.butwalhacks.com` is a working domain on the Vercel project, and that Auth0's allowed callback, logout and web origin URLs include `https://app.butwalhacks.com`. Sign-in starts on the app host after cutover.
-4. Set `STATIC_SITE_TARGET=production` and run the workflow, which deploys `butwal-hacks-site`.
-5. DNS (zone on Cloudflare):
-   - In Workers → `butwal-hacks-site` → Settings → Domains & Routes, add custom domains `butwalhacks.com` and `www.butwalhacks.com`. Cloudflare creates the records and certificates. First remove the existing apex and `www` records that point at Vercel, or the custom domain cannot be added.
-   - Leave `app.butwalhacks.com` pointing at Vercel (CNAME `cname.vercel-dns.com`, DNS only).
-   - Remove `butwalhacks.com` and `www` from the Vercel project's domains, so Vercel stops issuing certificates for them.
-6. Check: `/`, an event page, `/gallery`, `/dashboard` (should redirect to the app), sign-in and sign-out, and the CSP and HSTS headers.
+| Name | Record at Porkbun | Serves |
+|------|-------------------|--------|
+| `www` | CNAME `butwal-hacks-site.pages.dev` | The static site (custom domain `www.butwalhacks.com` on the Pages project; Cloudflare issues its certificate once the CNAME resolves) |
+| `@` (apex) | Porkbun URL forwarding, permanent (301) to `https://www.butwalhacks.com`, with **Include the requested URI path** turned on, so `butwalhacks.com/events/x` lands on `www.butwalhacks.com/events/x` | Redirect only; the apex is not added to Pages |
+| `app` | CNAME to Vercel (unchanged) | The app |
+
+Mail (MX, SPF, DKIM, DMARC for Zoho, Resend and SES) and every other record stay as they are.
+
+To check the custom domain: Cloudflare dashboard → Workers & Pages → `butwal-hacks-site` → Custom domains, or `GET /accounts/{account_id}/pages/projects/butwal-hacks-site/domains`. Its status moves from `pending` to `active` once the `www` CNAME resolves.
 
 ## Rollback
 
-Point the apex and `www` back at Vercel: remove the custom domains from `butwal-hacks-site`, recreate the Vercel records (A `76.76.21.21` for the apex, CNAME `cname.vercel-dns.com` for `www`), and re-add both domains to the Vercel project. The Vercel build still contains every marketing page, so nothing else changes. Set `STATIC_SITE_TARGET` back to `preview`.
+- **A bad deploy:** Workers & Pages → `butwal-hacks-site` → Deployments → pick the last good production deployment → Rollback. Rollbacks are instant.
+- **Back to Vercel for the marketing site:** at Porkbun, point `www` back at Vercel (CNAME `cname.vercel-dns.com`) and set the apex forward or A record to Vercel, then re-add both domains to the Vercel project. The Vercel build still contains every marketing page. This only helps once the Vercel account is unpaused.
 
 ## Changing the split
 
@@ -145,4 +151,6 @@ Point the apex and `www` back at Vercel: remove the custom domains from `butwal-
 | `Page with dynamic segment is missing generateStaticParams` | A new dynamic marketing route | Add it to `lib/static-params.ts`, or move it to the app |
 | Build refuses to start | Supabase URL or service key missing from the environment | Export them in the shell or CI step; `.env` files are skipped on purpose |
 | Marketing page shows signed-out on the real domain | Session cookie not on `Domain=butwalhacks.com` | Check `APP_BASE_URL` on Vercel is the `butwalhacks.com` app origin |
+| `www.butwalhacks.com` shows a certificate or 522 error | The Pages custom domain is still `pending` | Check the `www` CNAME at Porkbun points at `butwal-hacks-site.pages.dev`, then wait for the domain to turn `active` |
+| `wrangler pages deploy` fails with an authentication error | The token lacks Pages: Edit, or `CLOUDFLARE_ACCOUNT_ID` is wrong | Fix the secret or variable and run the workflow again |
 | Browser console shows CORS errors from the static site | Origin not in `lib/cors.ts` | Production origins are built in; add previews through `CORS_EXTRA_ORIGINS` on Vercel |

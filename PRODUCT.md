@@ -71,7 +71,7 @@ A youth technology initiative in Butwal, Nepal: ORCID-style credential verificat
 | Email | Resend | Transactional mail |
 | Analytics | Vercel Analytics and PostHog | Traffic plus behavioral funnels |
 | Error monitoring | Sentry | Production error tracking |
-| Hosting | Cloudflare Workers static assets and Vercel | `butwalhacks.com` is a static export on Cloudflare (free, rebuilt hourly); `app.butwalhacks.com` runs on Vercel, paused until 26 Dec 2026 with an "Under maintenance" notice on the static site |
+| Hosting | Cloudflare Pages and Vercel | `www.butwalhacks.com` is a static export on Cloudflare Pages (free, deployed on every push to `main`); `app.butwalhacks.com` runs on Vercel, paused until 26 Dec 2026 with an "Under maintenance" notice on the static site |
 | Funding | Open Collective | Transparent community funding; Stripe is not used |
 | CSS | Tailwind CSS v4 | `@theme` directives plus a custom `@layer utilities` |
 
@@ -190,7 +190,7 @@ Audited against the tree. Four items previously listed as backlog had already sh
 | SQL migrations under `supabase/migrations/` | Version controlled, repeatable, reviewable in a PR |
 | Open Collective over Stripe | Transparent community funding with no payment processing on the platform |
 | PostHog for analytics | Vercel Analytics for traffic, PostHog for behavioral funnel tracking |
-| Static marketing site on Cloudflare | The public site is static files on Workers static assets, so traffic costs no server CPU; only the app runs on Vercel. See [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md) |
+| Static marketing site on Cloudflare | The public site is static files on Cloudflare Pages, so traffic costs no server CPU; only the app runs on Vercel. See [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md) |
 
 ## Troubleshooting
 

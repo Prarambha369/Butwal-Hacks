@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 /**
  * CORS for the handful of app routes the static marketing site calls from the
  * browser (docs/CLOUDFLARE.md). The marketing pages are served from
- * butwalhacks.com on Cloudflare; the app stays on app.butwalhacks.com.
+ * www.butwalhacks.com on Cloudflare Pages; the app stays on app.butwalhacks.com.
  *
  * Exact-origin allowlist only, never a wildcard with credentials. The session
  * cookie is shared across butwalhacks.com subdomains, so an allowlisted
@@ -11,7 +11,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * origin gets no CORS headers and the browser blocks the read, exactly as
  * before this module existed.
  *
- * CORS_EXTRA_ORIGINS (comma-separated) adds origins such as a workers.dev
+ * CORS_EXTRA_ORIGINS (comma-separated) adds origins such as a pages.dev
  * preview of the static site. It is a server env var, never exposed.
  */
 const MARKETING_ORIGINS = ["https://butwalhacks.com", "https://www.butwalhacks.com"];
