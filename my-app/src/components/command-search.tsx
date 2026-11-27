@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/language-provider"
 import { t } from "@/lib/i18n"
+import { APP_CREDENTIALS, appUrl } from "@/lib/app-origin"
 
 // ponytail: native <dialog> with showModal/close. No cmdk/kbar deps, no custom backdrop div.
 // Search queries go through /api/search (service_role) instead of direct Supabase
@@ -91,8 +92,9 @@ export default function CommandSearch() {
     setLoading(true)
 
     try {
-      const res = await fetch("/api/search", {
+      const res = await fetch(appUrl("/api/search"), {
         method: "POST",
+        credentials: APP_CREDENTIALS,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ q: q.trim() }),
       })

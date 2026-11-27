@@ -15,7 +15,7 @@ export const GET = withRateLimit(async (req: NextRequest) => {
     const page = parseInt(u.searchParams.get("page") ?? "", 10) || 1;
     const per_page = parseInt(u.searchParams.get("per_page") ?? "", 10) || 20;
 
-    const { getPublicOpportunities } = await import("@/lib/actions/sponsor-opportunities");
+    const { getPublicOpportunities } = await import("@/lib/public-reads/opportunities");
     const result = await getPublicOpportunities({ is_bounty: true, page, per_page });
 
     return NextResponse.json(result, {

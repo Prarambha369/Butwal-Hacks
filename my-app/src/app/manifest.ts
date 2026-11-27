@@ -1,5 +1,8 @@
 import type { MetadataRoute } from 'next'
 
+// Explicit so the static marketing export (scripts/build-static.mjs) can emit it.
+export const dynamic = 'force-static'
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Butwal Hacks',

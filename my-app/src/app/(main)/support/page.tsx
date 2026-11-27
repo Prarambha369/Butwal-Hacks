@@ -5,7 +5,7 @@ import Link from "next/link"
 import { BarChart3, Mail, MapPin, Target, ShieldCheck, UsersRound } from "lucide-react"
 import { buildPageMetadata } from "@/lib/seo"
 import { SponsorForm } from "./sponsor-form"
-import { getPublicOpportunities } from "@/lib/actions/sponsor-opportunities"
+import { getPublicOpportunities } from "@/lib/public-reads/opportunities"
 import OpportunitySections, { type OpportunityWithSponsor } from "@/components/sponsor/opportunity-sections"
 import SponsorsSection from "@/components/sponsor/sponsors-section"
 

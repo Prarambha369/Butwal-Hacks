@@ -1,5 +1,5 @@
 import TestimonialCarousel, { type CarouselTestimonial } from "@/components/testimonials-carousel"
-import { getApprovedTestimonials } from "@/lib/actions/testimonials"
+import { getApprovedTestimonials } from "@/lib/public-reads/testimonials"
 
 /**
  * TestimonialsSection — real community voices only.

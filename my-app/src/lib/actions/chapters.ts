@@ -4,60 +4,9 @@ import { createServiceClient } from '@/utils/supabase';
 import { logger } from '@/lib/logger';
 import { requireMaintainer } from '@/lib/actions/admin';
 import { revalidatePath } from 'next/cache';
+import { COLUMNS, type ChapterRow } from '@/lib/public-reads/chapters';
 
-export interface ChapterRow {
-  id: string;
-  slug: string;
-  name: string;
-  school: string;
-  lead_name: string;
-  city: string;
-  district: string;
-  status: 'active' | 'forming' | 'inactive';
-  established: string;
-  member_count: number;
-  description: string;
-  highlights: string[];
-  whatsapp: string | null;
-  sort_order: number;
-  is_active: boolean;
-}
-
-const COLUMNS =
-  'id, slug, name, school, lead_name, city, district, status, established, member_count, description, highlights, whatsapp, sort_order, is_active';
-
-/** Public list: active chapters, maintainer-ordered. Empty when unavailable. */
-export async function getActiveChapters(): Promise<ChapterRow[]> {
-  const supabase = createServiceClient();
-  const { data, error } = await supabase
-    .from('chapters')
-    .select(COLUMNS)
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true })
-    .order('created_at', { ascending: true });
-  if (error) {
-    // The public page is a coming-soon state, so an unavailable table
-    // means no chapters to show — never a fabricated list.
-    logger.error('Error fetching chapters:', error);
-    return [];
-  }
-  return (data ?? []) as ChapterRow[];
-}
-
-/** Single chapter by slug. Returns null when absent or unreadable. */
-export async function getChapterBySlug(slug: string): Promise<ChapterRow | null> {
-  const supabase = createServiceClient();
-  const { data, error } = await supabase
-    .from('chapters')
-    .select(COLUMNS)
-    .eq('slug', slug)
-    .eq('is_active', true)
-    .single();
-  if (error || !data) {
-    return null;
-  }
-  return data as ChapterRow;
-}
+export type { ChapterRow } from '@/lib/public-reads/chapters';
 
 /** Full list for the maintainer editor. */
 export async function getAllChapters(): Promise<ChapterRow[]> {

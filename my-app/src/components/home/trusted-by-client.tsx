@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/components/language-provider";
-import { t } from "@/lib/i18n";import type { Partner } from "@/lib/actions/partners";
+import { t } from "@/lib/i18n";import type { Partner } from "@/lib/public-reads/partners";
 
 const CLOUDINARY_CLOUD_NAME = typeof process !== "undefined" ? (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "") : "";
 

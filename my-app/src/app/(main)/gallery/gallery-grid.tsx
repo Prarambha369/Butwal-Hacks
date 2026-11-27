@@ -17,10 +17,10 @@ import {
   videoPosterUrl,
   videoSources,
 } from "@/lib/cloudinary-url";
-// Server actions live in `lib`; the page's types are re-exported there, so
-// import both from one place rather than through `./page`.
-import { fetchGalleryPage } from "@/lib/actions/gallery";
-import type { GalleryPhoto, GalleryTotals } from "@/lib/actions/gallery";
+// Pages come from GET /api/gallery (not a server action, so the static
+// marketing export can include this page); types are re-exported there too.
+import { fetchGalleryPage } from "@/lib/gallery-client";
+import type { GalleryPhoto, GalleryTotals } from "@/lib/gallery-client";
 import { useAuthUser } from "@/components/auth-user-provider";
 
 // ─── Text helpers ──────────────────────────────────────────────────

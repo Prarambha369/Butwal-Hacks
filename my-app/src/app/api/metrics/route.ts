@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/utils/supabase";
 import { withRateLimit } from "@/lib/rate-limiter";
+import { withPublicCors } from "@/lib/cors";
 import { logger } from "@/lib/logger";
 
 /**
@@ -15,7 +16,8 @@ import { logger } from "@/lib/logger";
  */
 export const revalidate = 86400; // 24 hours
 
-export const GET = withRateLimit(async () => {
+// Public counts, read cross-origin by the static marketing site.
+export const GET = withPublicCors(withRateLimit(async () => {
   try {
     const db = createServiceClient();
 
@@ -66,4 +68,4 @@ export const GET = withRateLimit(async () => {
       { status: 500 },
     );
   }
-}, "frequent");
+}, "frequent"));

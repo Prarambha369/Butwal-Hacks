@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { Metadata } from 'next';
 import { buildPageMetadata } from '@/lib/seo';
 import { blogPosts, events, getRelatedByTags } from '@/lib/content';
-import { getPublishedPost, getPublishedPosts } from '@/lib/actions/blog';
+import { getPublishedPost, getPublishedPosts } from '@/lib/public-reads/blog';
 import SafeJsonLd from '@/lib/json-ld';
 import { blogPostingJsonLd } from '@/lib/schema';
 import { SITE_URL } from '@/lib/constants';

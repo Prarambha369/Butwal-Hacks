@@ -25,7 +25,7 @@ vi.mock("next/link", () => ({
 }));
 
 // The grid imports server actions for paging; nothing here triggers a fetch.
-vi.mock("@/lib/actions/gallery", () => ({ fetchGalleryPage: vi.fn() }));
+vi.mock("@/lib/gallery-client", () => ({ fetchGalleryPage: vi.fn() }));
 
 const IMAGE_ID = "3f6c2f0e-5c2b-4c47-9d3f-0e9b3a6f1a2c";
 const VIDEO_ID = "9a1d4c0b-1f2e-4a3b-8c4d-5e6f7a8b9c0d";

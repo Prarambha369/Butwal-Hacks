@@ -20,7 +20,7 @@ vi.mock("next/cache", () => ({
 }));
 
 import { createServiceClient } from "@/utils/supabase";
-import { getPublishedPost, getPublishedPosts } from "@/lib/actions/blog";
+import { getPublishedPost, getPublishedPosts } from "@/lib/public-reads/blog";
 
 const mockedCreateServiceClient = createServiceClient as ReturnType<typeof vi.fn>;
 

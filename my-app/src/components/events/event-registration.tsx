@@ -15,6 +15,7 @@ import RegistrationConsentModal, {
   type RegistrationConsent,
 } from "@/components/events/registration-consent-modal";
 import { CLOSING_SOON_MS, eventPhase, type EventPhase } from "@/lib/event-status";
+import { APP_CREDENTIALS, appUrl } from "@/lib/app-origin";
 
 /**
  * Registration state for one event page, shared by every CTA on it (the hero
@@ -111,8 +112,9 @@ export function EventRegistrationProvider({
   useEffect(() => {
     if (!signedIn) return;
     const controller = new AbortController();
-    fetch(`/api/events/register?event_id=${encodeURIComponent(eventId)}`, {
+    fetch(appUrl(`/api/events/register?event_id=${encodeURIComponent(eventId)}`), {
       signal: controller.signal,
+      credentials: APP_CREDENTIALS,
       cache: "no-store",
     })
       .then(async (res) => {
@@ -143,8 +145,9 @@ export function EventRegistrationProvider({
       setBusy(true);
       setError("");
       try {
-        const res = await fetch("/api/events/register", {
+        const res = await fetch(appUrl("/api/events/register"), {
           method: "POST",
+          credentials: APP_CREDENTIALS,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             event_id: eventId,

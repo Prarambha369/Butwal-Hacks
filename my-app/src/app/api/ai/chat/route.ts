@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { withRateLimit } from "@/lib/rate-limiter";
+import { corsPreflight, withCors } from "@/lib/cors";
 import { searchContent, isRagEnabled } from "@/lib/ai/embeddings";
 import { callGroq, GROQ_TEXT_MODEL } from "@/lib/ai/groq-client";
 import { screenUserMessage, sanitizeContextChunk } from "@/lib/ai/chat-guardrails";
@@ -141,7 +142,10 @@ const CONVERSATIONAL_SYSTEM_PROMPT = [
  * conversation, and go to the model with an identity-only prompt that forbids
  * stating any fact about us.
  */
-export const POST = withRateLimit(async (req: NextRequest) => {
+// Called cross-origin by the static marketing site (lib/cors.ts).
+export const OPTIONS = corsPreflight;
+
+export const POST = withCors(withRateLimit(async (req: NextRequest) => {
   try {
     const { message, history } = await req.json() as {
       message: string;
@@ -348,4 +352,4 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     logger.error("[bh-bot] Unexpected error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-});
+}));

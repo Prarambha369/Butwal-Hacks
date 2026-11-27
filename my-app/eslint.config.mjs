@@ -17,5 +17,5 @@ export default defineConfig([
       "react-hooks/immutability": "warn",
     },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "public/sw.js"]),
+  globalIgnores([".next/**", ".open-next/**", ".wrangler/**", "out/**", "build/**", "next-env.d.ts", "public/sw.js"]),
 ])

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { sanitizeUuid } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { withRateLimit } from '@/lib/rate-limiter';
+import { corsPreflight, withCors } from '@/lib/cors';
 import { withSentrySpan } from '@/lib/sentry-span';
 import { POLICY_VERSION } from '@/lib/policy-registry';
 
@@ -50,7 +51,10 @@ const statusQuerySchema = z
  * "Registered ✓" instead of offering a second registration. Read-only, scoped
  * to the session's profile: it can only ever answer for the person asking.
  */
-export const GET = withRateLimit(async (request: Request) => {
+// Called cross-origin by the static marketing site (lib/cors.ts).
+export const OPTIONS = corsPreflight;
+
+export const GET = withCors(withRateLimit(async (request: Request) => {
   try {
     const session = await auth0.getSession();
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -87,9 +91,9 @@ export const GET = withRateLimit(async (request: Request) => {
     logger.error('[api/events/register GET]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}, "frequent");
+}, "frequent"));
 
-export const POST = withSentrySpan("POST /api/events/register", withRateLimit(async (request: Request) => {
+export const POST = withCors(withSentrySpan("POST /api/events/register", withRateLimit(async (request: Request) => {
   try {
     const session = await auth0.getSession();
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -187,4 +191,4 @@ export const POST = withSentrySpan("POST /api/events/register", withRateLimit(as
     logger.error('[api/events/register]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}, "user_action"));
+}, "user_action")));

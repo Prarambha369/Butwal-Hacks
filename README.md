@@ -115,7 +115,9 @@ Values live in Vercel and GitHub repository secrets in production; see [MAINTAIN
 
 Auth0 owns identity. Supabase stores relational data through the Service Role Key, which bypasses RLS and is server-side only. Cloudinary handles media through pre-signed upload signatures. Every mutation route validates with Zod, checks the Auth0 session, and passes through Upstash rate limiting.
 
-`my-app/src/proxy.ts` is the single entry point for both Auth0 session enforcement and subdomain routing.
+`my-app/src/proxy.ts` is the single entry point for both Auth0 session enforcement and subdomain routing on the app host.
+
+**Hosting.** `butwalhacks.com` and `www` are a fully static export served from Cloudflare Workers static assets (Worker `butwal-hacks-site`), with no per-request code. `app.butwalhacks.com` (auth, dashboards, the API, certificates, profiles) runs on Vercel. The app is **paused until 26 December 2026**: meanwhile the static site serves an "Under maintenance" page on every app path and shows a site-wide banner (`my-app/src/lib/app-maintenance.ts`; set `APP_MAINTENANCE` to `null` to end it). Data pages are rebuilt hourly by `.github/workflows/static-site.yml`. Details: [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
 
 ![Login and profile sync sequence diagram: the browser signs in through Auth0, proxy.ts validates the session and reads the profile from Supabase, and the Auth0 Post-Login Action fires a webhook that upserts the profile row.](docs/images/auth-flow.png)
 
@@ -151,7 +153,7 @@ All five must pass before a PR is opened. See [AGENTS.md](AGENTS.md) for the ful
 | Error tracking | Sentry |
 | Payments | Open Collective |
 | AI | Groq (team matching, chatbot, certificate OCR) |
-| Hosting | Vercel |
+| Hosting | Cloudflare Workers static assets (`butwalhacks.com`, `www`); Vercel (`app.butwalhacks.com`) |
 
 ### By the numbers
 
@@ -167,7 +169,7 @@ Counts as of the commit that last touched this table.
 | Database migrations | 101 |
 | Unit and integration test files | 117 |
 | End-to-end specs | 6 |
-| Tests | 1767 |
+| Tests | 2142 |
 | Roles | 5 |
 | Design tokens | 35 |
 
@@ -180,7 +182,7 @@ Butwal-Hacks/
   scripts/        # Operational scripts
   docs/           # Architecture, runbooks, audits in reports/, diagrams
   .github/        # Workflows, issue templates, PR template, CONTRIBUTING, SECURITY, CoC
-  vercel.json     # Deploy config and cron schedules
+  vercel.json     # App (Vercel) deploy config and cron schedules
 ```
 
 Full map: [AGENTS.md → Repository layout](AGENTS.md#repository-layout).

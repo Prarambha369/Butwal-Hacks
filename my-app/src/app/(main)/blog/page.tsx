@@ -5,7 +5,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { PenLine } from "lucide-react"
 import { BlogContent } from "@/components/blog/blog-content"
-import { getPublishedPosts } from "@/lib/actions/blog"
+import { getPublishedPosts } from "@/lib/public-reads/blog"
 import { buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({

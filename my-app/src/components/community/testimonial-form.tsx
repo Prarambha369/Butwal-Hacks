@@ -6,7 +6,7 @@ import { Star } from "lucide-react";
 import { useAuthUser } from "@/components/auth-user-provider";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
-import { submitTestimonial } from "@/lib/actions/events";
+import { APP_CREDENTIALS, appUrl } from "@/lib/app-origin";
 
 /**
  * TestimonialForm — signed-in members share a few words.
@@ -39,9 +39,21 @@ export default function TestimonialForm() {
     e.preventDefault();
     setSending(true);
     setError(null);
-    const res = await submitTestimonial({ quote, rating });
+    let res: { ok: boolean; error?: string };
+    try {
+      const response = await fetch(appUrl("/api/testimonials"), {
+        method: "POST",
+        credentials: APP_CREDENTIALS,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quote, rating }),
+      });
+      const body = (await response.json().catch(() => ({}))) as { error?: string };
+      res = { ok: response.ok, error: body.error };
+    } catch {
+      res = { ok: false };
+    }
     setSending(false);
-    if (res.success) {
+    if (res.ok) {
       setDone(true);
       setQuote("");
       setRating(null);

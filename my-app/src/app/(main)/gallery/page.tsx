@@ -1,7 +1,7 @@
 import { Calendar } from "lucide-react";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
-import { fetchGalleryPage, fetchGalleryTotals, fetchGalleryEvents } from "@/lib/actions/gallery";
+import { fetchGalleryPage, fetchGalleryTotals, fetchGalleryEvents } from "@/lib/public-reads/gallery";
 import { degradeOnReadError } from "@/lib/build-phase";
 import GalleryGrid from "./gallery-grid";
 
@@ -19,7 +19,7 @@ export const metadata: Metadata = buildPageMetadata({
 // would force a full server render (and three Supabase reads) per request.
 export const revalidate = 300;
 
-export type { GalleryPhoto } from "@/lib/actions/gallery";
+export type { GalleryPhoto } from "@/lib/public-reads/gallery";
 
 export default async function GalleryPage() {
   // Totals, first page, and the event list are independent reads; run them

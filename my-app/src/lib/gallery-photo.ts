@@ -6,10 +6,8 @@ import { logger } from "@/lib/logger";
 /**
  * Single approved gallery photo, keyed by id.
  *
- * This lives outside `lib/actions/gallery.ts` because that module is marked
- * `"use server"`, and a server-action module can only export async functions —
- * the row mapper and the column list are plain values. The grid and the
- * per-photo page share them here so there is one mapping of the embedded
+ * Shared by the gallery reads (`lib/public-reads/gallery.ts`) and the
+ * per-photo page, which share the row mapper and the column list here so there is one mapping of the embedded
  * event/profile rows instead of two that drift.
  *
  * `cache()` dedupes the read within a request: generateMetadata and the page

@@ -6,7 +6,7 @@ import "@testing-library/jest-dom/vitest";
 
 import GalleryGrid, { handleVideoError, retryDelaySeconds } from "../gallery-grid";
 import type { GalleryPhoto } from "@/lib/gallery-photo";
-import { fetchGalleryPage } from "@/lib/actions/gallery";
+import { fetchGalleryPage } from "@/lib/gallery-client";
 
 // Failure states of the gallery: where Retry appears, that nothing retries on
 // its own, and that repeated failures back off. e2e/gallery-retry.spec.ts
@@ -26,7 +26,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("@/lib/actions/gallery", () => ({ fetchGalleryPage: vi.fn() }));
+vi.mock("@/lib/gallery-client", () => ({ fetchGalleryPage: vi.fn() }));
 
 const mockFetch = vi.mocked(fetchGalleryPage);
 

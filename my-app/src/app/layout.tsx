@@ -33,6 +33,7 @@ import NetworkStatus from "@/components/network-status";
 import MobileBottomNav from "@/components/mobile-bottom-nav";
 import SwipeNavigator from "@/components/swipe-navigator";
 import CookieConsentBanner from "@/components/cookie-consent-banner";
+import AppMaintenanceBanner from "@/components/app-maintenance-banner";
 
 const baseUrl = SITE_URL;
 
@@ -204,6 +205,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthUserProvider>
             <PostHogProvider>
             <div id="app-content" tabIndex={-1} className="relative flex min-h-dvh flex-col overflow-x-hidden outline-none">
+              <AppMaintenanceBanner />
               <LanguageProvider>{children}</LanguageProvider>
             </div>
             </PostHogProvider>
@@ -218,8 +220,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
              was premature for MVP scale. Components render directly instead.) */}
         <MobileBottomNav />
         <SwipeNavigator />
-        <Analytics />
-        <SpeedInsights />
+        {/* Vercel Analytics/Speed Insights load from /_vercel/*, which only
+             exists on Vercel. VERCEL is set at build time there and nowhere
+             else, so Cloudflare builds drop both (PostHog stays). */}
+        {process.env.VERCEL === "1" && <Analytics />}
+        {process.env.VERCEL === "1" && <SpeedInsights />}
         <PWARegister />
         <PWAInstallPrompt />
         <NetworkStatus />

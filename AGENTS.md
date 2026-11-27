@@ -10,6 +10,7 @@
 - [Reference](#reference)
   - [Repository layout](#repository-layout)
   - [Key files](#key-files)
+  - [Hosting](#hosting)
   - [Access control](#access-control)
   - [TypeScript](#typescript)
   - [API routes](#api-routes)
@@ -90,8 +91,8 @@ Butwal-Hacks/
   supabase/migrations/     # SQL migrations, sequentially numbered
   scripts/                 # Operational scripts
   docs/                    # Engineering documentation and diagrams
-  .github/workflows/       # CI, deploy, keep-alive
-  vercel.json              # Deployment config and cron schedules
+  .github/workflows/       # CI, app deploy, static-site rebuild, keep-alive
+  vercel.json              # App (Vercel) deployment config and cron schedules
 ```
 
 ### Key files
@@ -109,7 +110,20 @@ Butwal-Hacks/
 | `src/lib/i18n.ts` | English and Nepali strings |
 | `src/lib/policy-registry.ts` | The policy set, the policy version, and the consent contract |
 | `src/lib/policy-content.ts` | Reads the canonical policy markdown off disk (server-only) |
+| `src/lib/static-site.ts` | Static marketing site vs app split: app paths, excluded routes, `_redirects`, `_headers` |
+| `src/lib/app-maintenance.ts` | `APP_MAINTENANCE` flag: app paths show "Under maintenance" on the static site until 26 Dec 2026 |
+| `src/lib/public-reads/` | Public reads for marketing pages (plain server modules, `server-only`) |
+| `scripts/build-static.mjs` | Builds the static export for Cloudflare (`npm run static:build`) |
 | `src/app/globals.css` | All 35 `--bh-*` design tokens and the `bh-*` utilities |
+
+### Hosting
+
+- `butwalhacks.com` and `www` are a **static export** on Cloudflare Workers static assets (Worker `butwal-hacks-site`, Free plan, no Worker code). `.github/workflows/static-site.yml` rebuilds it on push to `main` and hourly.
+- `app.butwalhacks.com` is the Next.js app on Vercel (project `butwal-hacks`). It is **paused until 26 December 2026**; while `APP_MAINTENANCE` in `src/lib/app-maintenance.ts` is set, the static site serves an "Under maintenance" page on every app path and a banner on every page. Set it to `null` to end maintenance.
+- A marketing page must export statically: no `"use server"` module anywhere in its import graph (read through `src/lib/public-reads/`, write through an API route called with `appUrl()`), and no `searchParams`, `cookies()` or `headers()` at render time. Run `npm run static:build` (needs Supabase read env in the shell) when you touch one.
+- A page that needs a session belongs to the app: add it to `APP_PREFIXES` and `STATIC_EXCLUDED_ROUTE_DIRS` in `src/lib/static-site.ts`.
+
+Detail: [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
 
 ### Access control
 
@@ -185,7 +199,7 @@ Rate limit tiers: `public_form` 5/60s, `sensitive` 3/60s, `user_action` 5/60s, `
 
 - Mock Supabase with `vi.mock("@/utils/supabase")`. Tests never touch a real database.
 - Auth-dependent E2E tests use `skipInCI()`.
-- Current baseline: 1709 tests across 115 unit and integration files, plus 6 Playwright specs.
+- Current baseline: 2142 tests across 140 unit and integration files, plus 6 Playwright specs.
 
 ### Commits
 
@@ -229,6 +243,7 @@ refactor: extract rate limiter into lib/
 - [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) — the human-facing contributor guide
 - [DESIGN.md](DESIGN.md) — visual system reference
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — architecture, ADRs, and engineering detail
+- [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md) — the static marketing site on Cloudflare, maintenance mode, cutover and rollback
 - [MAINTAINERS.md](MAINTAINERS.md) — deploy, rollback, environment variables, incident notes
 - [.github/SECURITY.md](.github/SECURITY.md) — vulnerability reporting
 - [PRODUCT.md](PRODUCT.md) — product identity and direction

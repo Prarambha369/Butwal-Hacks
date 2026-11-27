@@ -162,7 +162,7 @@ describe("getPublicOpportunities", () => {
       error: null,
     });
 
-    const { getPublicOpportunities } = await import("../sponsor-opportunities");
+    const { getPublicOpportunities } = await import("../../public-reads/opportunities");
     const result = await getPublicOpportunities({ page: 1, per_page: 10 });
 
     expect(result.data).toHaveLength(1);
@@ -176,7 +176,7 @@ describe("getPublicOpportunities", () => {
     db.eq.mockResolvedValueOnce({ count: 0, error: null });
     db.range.mockResolvedValue({ data: null, error: null });
 
-    const { getPublicOpportunities } = await import("../sponsor-opportunities");
+    const { getPublicOpportunities } = await import("../../public-reads/opportunities");
     const result = await getPublicOpportunities();
 
     expect(result.data).toEqual([]);

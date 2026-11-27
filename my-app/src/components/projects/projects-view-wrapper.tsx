@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import ProjectDatabaseTable from "./project-database-table"
 import type { ProjectListItem } from "@/lib/actions/projects"
-import DeleteProjectButton from "@/app/(main)/dashboard/hacker/projects/delete-button"
+import DeleteProjectButton from "@/components/projects/delete-project-button"
 import GitHubSyncButton from "@/components/dashboard/github-sync-button"
 import { EmptyState } from "@/components/ui/empty-state"
 

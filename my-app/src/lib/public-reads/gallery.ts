@@ -1,5 +1,4 @@
-"use server";
-
+import "server-only";
 import { unstable_cache } from "next/cache";
 import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
@@ -10,6 +9,12 @@ export type { GalleryPhoto } from "@/lib/gallery-photo";
 
 /**
  * Paged reads for the public event gallery.
+ *
+ * Plain server module, not server actions (it used to be
+ * lib/actions/gallery.ts): the gallery page reads it at
+ * render time and the grid pages through GET /api/gallery
+ * (lib/gallery-client.ts), so no server action sits in the page's import
+ * graph and the static marketing export can include it.
  *
  * The gallery used to be a single unbounded read that was silently capped at
  * 100 rows. Because the visible counts ("N photos", "M videos", "K events")

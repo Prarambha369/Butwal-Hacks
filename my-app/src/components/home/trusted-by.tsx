@@ -1,4 +1,4 @@
-import { getActivePartners } from "@/lib/actions/partners";
+import { getActivePartners } from "@/lib/public-reads/partners";
 import TrustedByClient from "./trusted-by-client";
 
 /**

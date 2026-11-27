@@ -45,7 +45,7 @@ describe("partners", () => {
       error: null,
     });
 
-    const { getActivePartners } = await import("../partners");
+    const { getActivePartners } = await import("../../public-reads/partners");
     const list = await getActivePartners();
     expect(list).toHaveLength(1);
     expect(list[0].name).toBe("GitHub Education");
