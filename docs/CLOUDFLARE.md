@@ -131,8 +131,8 @@ Vercel stores most values as *Sensitive*, so `vercel env pull` cannot export the
 |----------|----------------|-----------------------|
 | Worker requests | 100,000/day | Static files (`/_next/static`, `/public`) are served by the assets binding and do not count as Worker invocations |
 | CPU | 10 ms/request | Cache interception answers ISR/SSG hits before the Next.js server loads; only uncached dynamic routes render |
-| Script size | 3 MiB compressed | Checked on every deploy (wrangler prints the gzip size); Vercel Analytics and Speed Insights are dropped from Cloudflare builds |
-| KV | 100k reads, 1k writes/day | Incremental cache only; the Cache API regional cache absorbs repeat reads on a custom domain; writes happen only when a page regenerates |
+| Script size | 3 MiB compressed | **Not met yet: 3.83 MiB.** See [Script size](#script-size) |
+| KV | 100k reads, 1k writes/day | Incremental cache only; the Cache API regional cache absorbs repeat reads on a custom domain. **Risk:** each ISR regeneration is one write, and pages with `revalidate = 60` can regenerate up to 1,440 times a day per path. See [Caching and ISR](#caching-and-isr) |
 | D1 | 5M reads, 100k writes/day | Tag cache for `revalidatePath`/`revalidateTag` |
 | Cron triggers | 5/account | Two used (production only) |
 | Images | — | No Cloudflare Images; Cloudinary resizes |
@@ -140,6 +140,19 @@ Vercel stores most values as *Sensitive*, so `vercel env pull` cannot export the
 The Cache API is a no-op on `*.workers.dev`, so the preview Worker reads KV on every cached hit. That is fine at preview traffic. On the custom domain the regional cache takes over.
 
 Pages marked `force-dynamic` (for example `/events`, `/gallery`, `/teams`, every dashboard route) render on each request and are the main CPU cost. Moving the public ones to ISR is the biggest lever if the 10 ms limit is hit.
+
+## Script size
+
+Workers Free rejects a script over 3 MiB gzipped. Run `npx wrangler deploy --dry-run --env preview` after `npm run cf:build` to get the number. Measured on 2026-11-27:
+
+| Step | gzip |
+|------|------|
+| Turbopack, Sentry Node build | 7.24 MiB |
+| Sentry swapped for its workerd build | 4.59 MiB |
+| + `minify: true` in wrangler.jsonc | 4.02 MiB |
+| + webpack instead of Turbopack for the Worker build | 3.83 MiB (3,923 KiB; the limit is 3,072 KiB) |
+
+What is left is spread out: the Next.js server runtime (~1 MiB), about 300 per-route bundles, and the Node `proxy.ts`, which OpenNext bundles twice (~0.75 MiB together). Further options, largest first: rewrite `proxy.ts` as Edge `middleware.ts`, split the app across two Workers, keep recharts and posthog out of SSR, replace the Cloudinary SDK with Web Crypto signing, and move PDF generation out of the Worker.
 
 ## Images
 
@@ -159,7 +172,9 @@ Each distinct width Cloudinary generates counts as a transformation against the 
 - **Tag cache:** D1 (`NEXT_TAG_CACHE_D1`), so server actions that call `revalidatePath` invalidate pages.
 - **Queue:** in-memory, with `WORKER_SELF_REFERENCE` for background revalidation.
 
-`opennextjs-cloudflare deploy` seeds KV with the prerendered pages and creates the D1 table on each deploy.
+`opennextjs-cloudflare deploy` seeds KV with the prerendered pages and creates the D1 table on each deploy. Seeding writes one key per prerendered page, so it also spends the daily 1,000-write KV budget.
+
+**KV write budget.** Every ISR regeneration is a KV write. Pages with `revalidate = 60` (`/explore`, `/sponsors`, `/gallery/[id]`, `/p/[slug_id]`, and more after PR #70) can each regenerate up to 1,440 times a day per path once crawlers find them. When KV refuses a write, the page is still served but re-renders on the next request, which costs CPU instead. Before cutover, lengthen those intervals to an hour or more and rely on the `revalidatePath` calls the server actions already make for freshness.
 
 ## Cron jobs
 
