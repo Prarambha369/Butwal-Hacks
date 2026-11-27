@@ -131,7 +131,8 @@ Vercel stores most values as *Sensitive*, so `vercel env pull` cannot export the
 |----------|----------------|-----------------------|
 | Worker requests | 100,000/day | Static files (`/_next/static`, `/public`) are served by the assets binding and do not count as Worker invocations |
 | CPU | 10 ms/request | Cache interception answers ISR/SSG hits before the Next.js server loads; only uncached dynamic routes render |
-| Script size | 3 MiB compressed | **Not met yet: 3.83 MiB.** See [Script size](#script-size) |
+| Script size | 64 MiB uncompressed (no gzip limit since 2026-09-04) | About 16 MiB; `npm run cf:build` fails above 64 MiB. See [Script size](#script-size) |
+| Startup | 1 s to parse and run global scope | Minified bundle; Sentry's workerd build instead of its Node build |
 | KV | 100k reads, 1k writes/day | Incremental cache only; the Cache API regional cache absorbs repeat reads on a custom domain. **Risk:** each ISR regeneration is one write, and pages with `revalidate = 60` can regenerate up to 1,440 times a day per path. See [Caching and ISR](#caching-and-isr) |
 | D1 | 5M reads, 100k writes/day | Tag cache for `revalidatePath`/`revalidateTag` |
 | Cron triggers | 5/account | Two used (production only) |
@@ -143,16 +144,19 @@ Pages marked `force-dynamic` (for example `/events`, `/gallery`, `/teams`, every
 
 ## Script size
 
-Workers Free rejects a script over 3 MiB gzipped. Run `npx wrangler deploy --dry-run --env preview` after `npm run cf:build` to get the number. Measured on 2026-11-27:
+The only Worker size limit is 64 MiB **uncompressed**, on Free and Paid alike. Cloudflare removed the old 3 MiB (Free) / 10 MiB (Paid) gzip limits on 2026-09-04 ([changelog](https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/)), so older guides that quote 3 MiB are out of date. `npm run cf:build` reads wrangler's dry-run `Total Upload` and fails above 64 MiB, warning above 32 MiB.
 
-| Step | gzip |
-|------|------|
-| Turbopack, Sentry Node build | 7.24 MiB |
-| Sentry swapped for its workerd build | 4.59 MiB |
-| + `minify: true` in wrangler.jsonc | 4.02 MiB |
-| + webpack instead of Turbopack for the Worker build | 3.83 MiB (3,923 KiB; the limit is 3,072 KiB) |
+Size still affects cold starts (1 s budget to parse global scope). Measured on 2026-11-27, uncompressed / gzip:
 
-What is left is spread out: the Next.js server runtime (~1 MiB), about 300 per-route bundles, and the Node `proxy.ts`, which OpenNext bundles twice (~0.75 MiB together). Further options, largest first: rewrite `proxy.ts` as Edge `middleware.ts`, split the app across two Workers, keep recharts and posthog out of SSR, replace the Cloudinary SDK with Web Crypto signing, and move PDF generation out of the Worker.
+| Build | Size |
+|-------|------|
+| Turbopack, Sentry Node build, not minified | 35.6 MiB / 7.24 MiB |
+| Sentry swapped for its workerd build | 23.7 MiB / 4.59 MiB |
+| + `minify: true` in wrangler.jsonc (shipped) | 16.4 MiB / 4.02 MiB |
+
+A two-Worker split was tried and dropped: each Worker carries its own copy of the Next.js server runtime and the proxy, so the API/dashboard half alone was 3.4 MiB gzip, and the split added a second secret set and a cross-Worker hop for no size benefit.
+
+`npx wrangler check startup --env preview` measured about 490 ms of local startup on 2026-11-27, almost all of it V8 parsing and compiling the 16 MiB script rather than app code. That is inside the 1 s budget, but bundle growth eats directly into it, so re-run the check after adding large dependencies. Levers, largest first: rewrite the Node `proxy.ts` as Edge `middleware.ts` (OpenNext bundles the Node proxy twice), keep recharts and posthog out of SSR, replace the Cloudinary SDK with Web Crypto signing, and move PDF generation out of the Worker.
 
 ## Images
 

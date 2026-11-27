@@ -30,12 +30,4 @@ const config = defineCloudflareConfig({
   enableCacheInterception: true,
 });
 
-const openNextConfig = {
-  ...config,
-  // webpack instead of Turbopack for the Worker build: Turbopack copies shared
-  // modules into many server chunks (3.83 vs 4.02 MiB gzipped after minify).
-  // `next dev` and Vercel builds still use Turbopack.
-  buildCommand: "npx next build --webpack",
-};
-
-export default openNextConfig;
+export default config;

@@ -13,10 +13,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "audit:ui": "node scripts/audit-ui.mjs",
-    "cf:build": "BUILD_TARGET=cloudflare opennextjs-cloudflare build",
-    "cf:preview": "npm run cf:build && opennextjs-cloudflare preview",
-    "cf:deploy": "npm run cf:build && opennextjs-cloudflare deploy",
-    "cf:deploy:preview": "npm run cf:build && opennextjs-cloudflare deploy --env preview",
+    "cf:build": "node scripts/cf.mjs build",
+    "cf:preview": "node scripts/cf.mjs build && opennextjs-cloudflare preview",
+    "cf:deploy": "node scripts/cf.mjs deploy",
+    "cf:deploy:preview": "node scripts/cf.mjs deploy --env preview",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {

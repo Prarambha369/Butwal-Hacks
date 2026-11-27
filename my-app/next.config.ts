@@ -121,19 +121,6 @@ const nextConfig: NextConfig = {
       : {}),
   },
 
-  // Same Sentry swap as turbopack.resolveAlias above, for the webpack build
-  // that the Cloudflare target uses (see open-next.config.ts).
-  webpack: (config, { isServer }) => {
-    if (isCloudflareBuild && isServer) {
-      config.resolve ??= {}
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        "@sentry/nextjs$": path.resolve(process.cwd(), SENTRY_WORKERD_ENTRY),
-      }
-    }
-    return config
-  },
-
   experimental: {
     // Agent-driven upgrades stay on security releases only.
     agentUpgrade: "security",

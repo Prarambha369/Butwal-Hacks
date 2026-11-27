@@ -21,8 +21,8 @@
     "head_sampling_rate": 1
   },
   "upload_source_maps": true,
-  // Workers Free caps the script at 3 MiB gzipped; minifying the OpenNext
-  // bundle is part of fitting under it.
+  // A smaller script parses faster, which keeps cold starts well inside the
+  // 1 s startup budget (the only size limit is 64 MiB uncompressed).
   "minify": true,
   // Non-secret runtime vars. DEPLOY_ENV drives isProduction() in
   // src/lib/utils.ts (Vercel used VERCEL_ENV for the same check).
