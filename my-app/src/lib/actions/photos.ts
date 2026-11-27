@@ -190,6 +190,10 @@ export async function setPhotoStatus(photoId: string, status: 'approved' | 'reje
   }
   revalidatePath('/gallery');
   revalidatePath('/');
+  // ISR pages that show this photo: its own page and the event pages' photo
+  // strip (the event slug is not loaded here; moderation is rare).
+  revalidatePath(`/gallery/${photoId}`);
+  revalidatePath('/events/[slug]', 'page');
   return { success: true };
 }
 
@@ -223,6 +227,10 @@ export async function setPhotoCover(photoId: string) {
   }
   revalidatePath('/gallery');
   revalidatePath('/');
+  // ISR pages that show this photo: its own page and the event pages' photo
+  // strip (the event slug is not loaded here; moderation is rare).
+  revalidatePath(`/gallery/${photoId}`);
+  revalidatePath('/events/[slug]', 'page');
   return { success: true };
 }
 
@@ -243,5 +251,9 @@ export async function deletePhoto(photoId: string) {
   }
   revalidatePath('/gallery');
   revalidatePath('/');
+  // ISR pages that show this photo: its own page and the event pages' photo
+  // strip (the event slug is not loaded here; moderation is rare).
+  revalidatePath(`/gallery/${photoId}`);
+  revalidatePath('/events/[slug]', 'page');
   return { success: true };
 }

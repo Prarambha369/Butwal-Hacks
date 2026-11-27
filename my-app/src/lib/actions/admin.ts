@@ -120,6 +120,11 @@ export async function revokeTrustMarker(markerId: string, reason: string) {
 
   revalidatePath('/dashboard/maintainer/trust-override');
   revalidatePath('/dashboard/maintainer/users');
+  // Public pages showing the marker are ISR-cached: the verification page
+  // and every profile page (the profile's slug is not known here, and this
+  // is a rare maintainer action, so the whole route is refreshed).
+  revalidatePath(`/verify/${markerId}`);
+  revalidatePath('/p/[slug_id]', 'page');
   return { success: true };
 }
 
@@ -148,6 +153,11 @@ export async function reinstateTrustMarker(markerId: string) {
 
   revalidatePath('/dashboard/maintainer/trust-override');
   revalidatePath('/dashboard/maintainer/users');
+  // Public pages showing the marker are ISR-cached: the verification page
+  // and every profile page (the profile's slug is not known here, and this
+  // is a rare maintainer action, so the whole route is refreshed).
+  revalidatePath(`/verify/${markerId}`);
+  revalidatePath('/p/[slug_id]', 'page');
   return { success: true };
 }
 

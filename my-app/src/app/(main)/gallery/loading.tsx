@@ -1,8 +1,8 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { GallerySkeletonTiles } from "./gallery-grid";
 
-// The gallery is force-dynamic (Supabase at request time). Without this the
-// visitor stares at the previous page until every query returns.
+// Shown while the gallery renders (first request after a revalidation, or a
+// client navigation before the RSC payload arrives).
 export default function GalleryLoading() {
   return (
     <main className="min-h-dvh bg-background pt-28 pb-20 px-6 md:px-20" aria-busy="true">

@@ -62,6 +62,8 @@ const photos: GalleryPhoto[] = [
 
 // ScrollReveal observes each tile; happy-dom has no IntersectionObserver.
 beforeEach(() => {
+  // The grid reads ?event= on mount; keep each test's URL clean.
+  window.history.replaceState(null, "", "/gallery");
   vi.stubGlobal(
     "IntersectionObserver",
     class {

@@ -255,8 +255,36 @@ async function route(request: NextRequest): Promise<NextResponse> {
   return NextResponse.next();
 }
 
+/**
+ * Where the proxy runs. Every match is a billed function invocation, so the
+ * marketing host — where most traffic lands and nearly every path is a plain
+ * `NextResponse.next()` — only runs it on the paths `route()` actually acts
+ * on there:
+ *  - /sign-in and /auth/*            → sign-in redirect, Auth0 handlers
+ *  - /dashboard, /portal, /portal/*, /teams/*, /orgs/* → app host redirect or
+ *    nonce CSP (usesNonceCsp covers bare /dashboard and /portal)
+ *  - /claim/*                        → per-request nonce CSP (usesNonceCsp)
+ * Everything else on the marketing host (home, events, gallery, blog, …) is
+ * served straight from the CDN with next.config's static headers, exactly
+ * what the proxy's pass-through returned before.
+ *
+ * Every other host (app., calendar., chapter subdomains, localhost, preview
+ * URLs) keeps the full matcher, so their routing is unchanged.
+ *
+ * Next.js anchors `has`/`missing` values (^…$), so the host pattern matches
+ * only the apex and www hosts. The values must stay inline literals: Next
+ * analyses `config` statically and ignores variables.
+ */
 export const config = {
   matcher: [
-    "/((?!_next|api/|trpc/|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    {
+      source:
+        "/((?!_next|api/|trpc/|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+      missing: [{ type: "header", key: "host", value: "(?:www\\.)?butwalhacks\\.com" }],
+    },
+    {
+      source: "/(sign-in|auth/.*|dashboard|dashboard/.*|portal|portal/.*|teams/.*|orgs/.*|claim/.*)",
+      has: [{ type: "header", key: "host", value: "(?:www\\.)?butwalhacks\\.com" }],
+    },
   ],
 };

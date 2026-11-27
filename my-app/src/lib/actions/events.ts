@@ -186,6 +186,10 @@ export async function createEvent(input: CreateEventInput) {
     })
 
     revalidatePath("/dashboard/organizer/events")
+    // The public list is ISR-cached; a published event must appear now.
+    revalidatePath("/events")
+    // A visitor may have hit the slug before it existed and cached a 404.
+    if (data.slug) revalidatePath(`/events/${data.slug}`)
     return { success: true, eventId: data.id, slug: data.slug }
   } catch (error) {
     logger.error("Error creating event:", error)
@@ -254,6 +258,8 @@ export async function createChapterEvent(input: CreateChapterEventInput, orgSlug
     })
 
     revalidatePath(`/orgs/${orgSlug}/events`)
+    revalidatePath("/events")
+    if (data.slug) revalidatePath(`/events/${data.slug}`)
 
     return { success: true, eventId: data.id, slug: data.slug }
   } catch (error) {
@@ -362,7 +368,7 @@ export async function closeEvent(eventId: string) {
     // 2. Verify user is organizer of the event
     const { data: event, error: eventError } = await supabase
       .from("events")
-      .select("organizer_id")
+      .select("organizer_id, slug")
       .eq("id", eventId)
       .single();
 
@@ -411,6 +417,9 @@ export async function closeEvent(eventId: string) {
     if (statusError) throw statusError;
 
     revalidatePath(`/dashboard/organizer/events/${eventId}`);
+    // The public list and detail page are ISR-cached; closing unpublishes.
+    revalidatePath("/events");
+    if (event.slug) revalidatePath(`/events/${event.slug}`);
     return { success: true, issuedCount: attendees?.length || 0 };
   } catch (error) {
     logger.error("Error closing event:", error);

@@ -129,5 +129,6 @@ export async function applyOptimization(photoId: string, recipe: OptimizeRecipe 
   }
   revalidatePath('/gallery');
   revalidatePath('/');
+  revalidatePath(`/gallery/${photoId}`);
   return { success: true };
 }

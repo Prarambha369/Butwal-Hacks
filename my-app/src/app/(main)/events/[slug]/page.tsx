@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 
 import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
+import { degradeOnReadError } from "@/lib/build-phase"
 import { buildPageMetadata } from "@/lib/seo"
 import { initiatives, events as contentEvents, blogPosts, getRelatedByTags } from "@/lib/content"
 import RelatedLinks from "@/components/home/related-links"
@@ -60,13 +61,19 @@ export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params
   const supabase = createServiceClient()
 
-  const { data: event } = await supabase
+  const { data: event, error: eventError } = await supabase
     .from("events")
     .select("*")
     .eq("slug", slug)
     .eq("is_published", true)
-    .single()
+    .maybeSingle()
 
+  // A failed read is not a missing event: throwing keeps the last good ISR
+  // page instead of caching a 404 for the revalidate window.
+  if (eventError) {
+    logger.error("Error fetching event:", eventError)
+    if (!degradeOnReadError()) throw new Error("Event could not be loaded")
+  }
   if (!event) {
     notFound()
   }
@@ -163,4 +170,14 @@ export default async function EventDetailPage({ params }: Props) {
       </div>
     </>
   )
+}
+
+// ISR: rendered on first request, then served from the CDN and refreshed
+// in the background at most every 300 seconds. Nothing here depends on the
+// visitor, so a per-request render was pure server CPU.
+export const revalidate = 300;
+// An empty list makes this dynamic segment ISR instead of per-request:
+// pages are rendered on demand, never at build time.
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  return [];
 }

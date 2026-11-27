@@ -1,8 +1,8 @@
 import { Calendar } from "lucide-react";
-import { auth0 } from "@/lib/auth0";
 import { buildPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import { fetchGalleryPage, fetchGalleryTotals, fetchGalleryEvents } from "@/lib/actions/gallery";
+import { degradeOnReadError } from "@/lib/build-phase";
 import GalleryGrid from "./gallery-grid";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -11,50 +11,34 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/gallery",
 });
 
-// This page fetches photos from Supabase at request time — must be server-rendered.
-export const dynamic = "force-dynamic";
+// ISR: the page is the same for every visitor, so it is rendered once and
+// served from the CDN. Approving, deleting or re-optimising a photo calls
+// revalidatePath("/gallery") (lib/actions/photos.ts, photo-optimize.ts); the
+// timer is only a backstop. The ?event= filter and the download gate are read
+// on the client by GalleryGrid — reading searchParams or the session here
+// would force a full server render (and three Supabase reads) per request.
+export const revalidate = 300;
 
 export type { GalleryPhoto } from "@/lib/actions/gallery";
 
-export default async function GalleryPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ event?: string | string[] }>;
-}) {
-  // ?event= makes a filtered view shareable and reload-safe. Only a title that
-  // actually exists in the gallery is honoured; anything else shows everything.
-  const { event: rawEvent } = await searchParams;
-  const requested = typeof rawEvent === "string" ? rawEvent.slice(0, 200) : null;
-
+export default async function GalleryPage() {
   // Totals, first page, and the event list are independent reads; run them
-  // together. The first page is fetched once, already filtered — the old code
-  // always fetched the unfiltered page too and threw it away.
-  // A failed page read throws (so the client grid can retry it); on the server
-  // render, degrade to an empty first page rather than taking down the route.
+  // together. A failed first-page read propagates at runtime, so ISR keeps
+  // serving the last good gallery and retries on the next request instead of
+  // caching an empty grid with no Retry. During the build and in dev it
+  // degrades to an empty first page (see degradeOnReadError).
   const emptyPage = { photos: [], hasMore: false };
-  const [requestedPage, totals, events] = await Promise.all([
-    fetchGalleryPage(0, requested ?? undefined).catch(() => emptyPage),
+  const [page, totals, events] = await Promise.all([
+    fetchGalleryPage(0).catch((error: unknown) => {
+      if (degradeOnReadError()) return emptyPage;
+      throw error;
+    }),
     fetchGalleryTotals(),
     fetchGalleryEvents(),
   ]);
-  // Matching rows prove the event exists even when the cached event list
-  // predates its first approved photo; the list is for the filter chips.
-  const initialFilter =
-    requested &&
-    (requestedPage.photos.length > 0 || events.some((e) => e.title === requested))
-      ? requested
-      : null;
-  // Only an unknown ?event= value needs a second read (rare: a stale link).
-  const page =
-    requested && !initialFilter
-      ? await fetchGalleryPage(0).catch(() => emptyPage)
-      : requestedPage;
   const photos = page.photos;
   const galleryEmpty =
     photos.length === 0 && totals.photos + totals.videos === 0;
-
-  // Download gate: only signed-in users get full-quality file URLs.
-  const session = await auth0.getSession().catch(() => null);
 
   return (
     <main className="min-h-dvh bg-background pt-28 pb-20 px-6 md:px-20">
@@ -88,11 +72,9 @@ export default async function GalleryPage({
         ) : (
           <GalleryGrid
             photos={photos}
-            canDownload={!!session?.user}
             totals={totals}
             hasMore={page.hasMore}
             events={events.map((e) => e.title)}
-            initialFilter={initialFilter}
           />
         )}
       </div>
