@@ -88,14 +88,14 @@ What it needs (set in the repository):
 | Name | Kind | Value |
 |------|------|-------|
 | `CLOUDFLARE_API_TOKEN` | Secret | Account API token scoped to **Cloudflare Pages: Edit** only |
-| `SUPABASE_SERVICE_ROLE_KEY` | Secret | Service-role key, used only for build-time reads |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Secrets | Public Supabase values |
-| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Secrets | Public Cloudinary values |
+| `STATIC_SUPABASE_URL`, `STATIC_SUPABASE_ANON_KEY` | Secrets | The **production** Supabase project's URL and anon key (the project Vercel production uses) |
+| `STATIC_SUPABASE_SERVICE_ROLE_KEY` | Secret | That project's service-role key, used only for build-time reads; never shipped to the browser |
+| `STATIC_CLOUDINARY_CLOUD_NAME`, `STATIC_CLOUDINARY_UPLOAD_PRESET` | Secrets | Public Cloudinary values (falls back to `NEXT_PUBLIC_CLOUDINARY_*`) |
 | `CLOUDFLARE_ACCOUNT_ID` | Variable | The Cloudflare account ID |
 | `STATIC_SITE_TARGET` | Variable | `production` to deploy `www`; anything else deploys the preview |
 | `NEXT_PUBLIC_POSTHOG_HOST`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | Variables | Optional; analytics on the static site |
 
-Without the token, the account ID or the service-role key, the workflow skips itself. A failed build never deploys, so the last good deployment keeps serving.
+The `STATIC_*` Supabase secrets are separate on purpose: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` point CI and the tests at a non-production database, and a build against that database fails (missing tables and columns). Without the token, the account ID or any `STATIC_SUPABASE_*` secret, the workflow skips itself. A failed build never deploys, so the last good deployment keeps serving.
 
 ## Free-plan impact
 
