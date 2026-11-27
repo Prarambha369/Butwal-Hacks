@@ -8,7 +8,7 @@ const event = (slug: string) =>
 
 describe("externalRegistrationUrl", () => {
   it("sends CyberUtsav Lumbini to CyberUtsav's registration site", () => {
-    expect(externalRegistrationUrl("cyberutsav-lumbini")).toBe("https://registration.cyberutsav.com/");
+    expect(externalRegistrationUrl("cyberutsav-lumbini")).toBe("https://registration.cyberutsav.com/butwal");
   });
   it("is null for in-site events and inherited keys", () => {
     expect(externalRegistrationUrl("hackday-butwal")).toBeNull();
@@ -21,7 +21,7 @@ describe("cardAction", () => {
   it("links the CyberUtsav card straight out while registration is open", () => {
     expect(cardAction(event("cyberutsav-lumbini"), "open")).toEqual({
       label: "Register",
-      href: "https://registration.cyberutsav.com/",
+      href: "https://registration.cyberutsav.com/butwal",
       external: true,
     });
   });
