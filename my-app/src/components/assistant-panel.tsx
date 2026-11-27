@@ -7,8 +7,8 @@ import { Ballu, type BalluEmotion } from "@/components/mascot/ballu";
 import { parsePolicyMarkdown } from "@/lib/policy-markdown";
 import PolicyMarkdown, { renderInline } from "@/components/policy-markdown";
 import { useAuthUser } from "@/components/auth-user-provider";
-import { submitFeedback } from "@/lib/actions/feedback";
 import { cn } from "@/lib/utils";
+import { APP_CREDENTIALS, appUrl } from "@/lib/app-origin";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -186,8 +186,9 @@ export default function AssistantPanel({
     setChatInput("");
     setChatLoading(true);
     try {
-      const res = await fetch("/api/ai/chat", {
+      const res = await fetch(appUrl("/api/ai/chat"), {
         method: "POST",
+        credentials: APP_CREDENTIALS,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
@@ -222,12 +223,15 @@ export default function AssistantPanel({
     if (msgText.trim().length < 3) { toast.error("Please enter at least 3 characters."); return; }
     setMsgSubmitting(true);
     try {
-      const result = await submitFeedback({
-        category: "other",
-        message: msgText.trim(),
-        ...(user?.sub ? { auth0_id: user.sub } : {}),
+      // POST /api/feedback records the signed-in user from the session.
+      const res = await fetch(appUrl("/api/feedback"), {
+        method: "POST",
+        credentials: APP_CREDENTIALS,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category: "other", message: msgText.trim() }),
       });
-      if (result.success) {
+      const result = (await res.json().catch(() => ({}))) as { error?: string };
+      if (res.ok) {
         setMsgSubmitted(true);
         setTimeout(() => {
           setMsgSubmitted(false);

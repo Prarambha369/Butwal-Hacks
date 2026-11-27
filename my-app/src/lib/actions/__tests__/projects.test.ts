@@ -612,7 +612,7 @@ describe("getFeaturedProjects", () => {
       error: null,
     });
 
-    const { getFeaturedProjects } = await import("../projects");
+    const { getFeaturedProjects } = await import("../../public-reads/projects");
     const result = await getFeaturedProjects();
 
     expect(result).toHaveLength(3);
@@ -626,7 +626,7 @@ describe("getFeaturedProjects", () => {
     db.limit.mockReturnValue(db);
     db.abortSignal.mockResolvedValue({ data: [], error: null });
 
-    const { getFeaturedProjects } = await import("../projects");
+    const { getFeaturedProjects } = await import("../../public-reads/projects");
     await getFeaturedProjects(5);
 
     expect(db.limit).toHaveBeenCalledWith(5);
@@ -639,7 +639,7 @@ describe("getFeaturedProjects", () => {
     db.limit.mockReturnValue(db);
     db.abortSignal.mockResolvedValue({ data: null, error: { message: "DB error" } });
 
-    const { getFeaturedProjects } = await import("../projects");
+    const { getFeaturedProjects } = await import("../../public-reads/projects");
     const result = await getFeaturedProjects();
 
     expect(result).toEqual([]);

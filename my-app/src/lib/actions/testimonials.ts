@@ -5,22 +5,9 @@ import { logger } from '@/lib/logger';
 import { sanitizeString } from '@/lib/validation';
 import { revalidatePath } from 'next/cache';
 import { requireMaintainer } from '@/lib/actions/admin';
+import type { ModeratedTestimonial } from '@/lib/public-reads/testimonials';
 
-export interface ModeratedTestimonial {
-  id: string;
-  event_id: string | null;
-  profile_id: string | null;
-  rating: number | null;
-  comment: string | null;
-  status: string;
-  is_featured: boolean;
-  author_type: string;
-  source: string | null;
-  guest_name: string | null;
-  guest_title: string | null;
-  created_at: string;
-  profile: { full_name: string | null; bh_id: string | null; avatar_url: string | null } | null;
-}
+export type { ModeratedTestimonial } from '@/lib/public-reads/testimonials';
 
 function revalidateAll() {
   // Testimonials render on /explore. /community 308s there (see the
@@ -47,23 +34,6 @@ export async function getTestimonialQueue(): Promise<ModeratedTestimonial[]> {
     const rank = (s: string) => (s === 'pending' ? 0 : s === 'approved' ? 1 : 2);
     return rank(a.status) - rank(b.status);
   });
-}
-
-/** Public approved list for display (featured first, then newest). */
-export async function getApprovedTestimonials(limit = 12): Promise<ModeratedTestimonial[]> {
-  const supabase = createServiceClient();
-  const { data, error } = await supabase
-    .from('event_reviews')
-    .select('id, event_id, profile_id, rating, comment, status, is_featured, author_type, source, guest_name, guest_title, created_at, profile:profiles(full_name, bh_id, avatar_url)')
-    .eq('status', 'approved')
-    .order('is_featured', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(limit);
-  if (error) {
-    logger.error('Error fetching approved testimonials:', error);
-    return [];
-  }
-  return (data ?? []) as unknown as ModeratedTestimonial[];
 }
 
 export async function setTestimonialStatus(id: string, status: 'approved' | 'rejected' | 'pending') {

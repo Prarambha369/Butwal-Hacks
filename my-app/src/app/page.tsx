@@ -16,7 +16,7 @@ import CalendarErrorBoundary from '@/components/home/calendar-error-boundary';
 import TrustedBy from '@/components/home/trusted-by';
 import ContactCTA from '@/components/sections/ContactCTA';
 import Footer from '@/components/sections/Footer';
-import { getFeaturedProjects } from '@/lib/actions/projects';
+import { getFeaturedProjects } from '@/lib/public-reads/projects';
 import { createServiceClient } from '@/utils/supabase';
 import { buildPageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';

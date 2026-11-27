@@ -3,20 +3,24 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
-import { getPublicSiteContent, type LocalizedText } from "@/lib/actions/site-content";
+import { appUrl } from "@/lib/app-origin";
+import type { LocalizedText } from "@/lib/site-content-keys";
 
 type SiteContentMap = Record<string, LocalizedText | null>;
 
 /**
- * One request per page load, shared by every useSiteContent caller. Each
- * server action is a POST to the page path (which the edge firewall counts
- * toward its per-IP page-request limit), and one call per key sent four per
- * homepage visit. A failed read is not retried automatically: the fallback
- * copy stays, and the next full page load asks again.
+ * One request per page load, shared by every useSiteContent caller, to the
+ * cached GET /api/site-content (on the app origin from the static marketing
+ * site). It replaced a server action, which was a POST to the page path that
+ * the edge firewall counted toward its per-IP page-request limit and that a
+ * static export cannot include. A failed read is not retried automatically:
+ * the fallback copy stays, and the next full page load asks again.
  */
 let contentRequest: Promise<SiteContentMap> | null = null;
 function loadSiteContent(): Promise<SiteContentMap> {
-  contentRequest ??= getPublicSiteContent().catch(() => ({}));
+  contentRequest ??= fetch(appUrl("/api/site-content"))
+    .then((res) => (res.ok ? (res.json() as Promise<SiteContentMap>) : {}))
+    .catch(() => ({}));
   return contentRequest;
 }
 

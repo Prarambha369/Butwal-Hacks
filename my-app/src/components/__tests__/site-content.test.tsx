@@ -4,14 +4,13 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 
-const { getPublicSiteContent } = vi.hoisted(() => ({
-  getPublicSiteContent: vi.fn(async () => ({
-    "hero.title": { en: "Edited title", ne: "शीर्षक" },
-    "hero.subtext": null,
-  })),
-}));
+const content = {
+  "hero.title": { en: "Edited title", ne: "शीर्षक" },
+  "hero.subtext": null,
+};
+const fetchMock = vi.fn(async (_url: string) => new Response(JSON.stringify(content), { status: 200 }));
+vi.stubGlobal("fetch", fetchMock);
 
-vi.mock("@/lib/actions/site-content", () => ({ getPublicSiteContent }));
 vi.mock("@/components/language-provider", () => ({ useLanguage: () => ({ locale: "en" }) }));
 vi.mock("@/lib/i18n", () => ({ t: (key: string) => `fallback:${key}` }));
 
@@ -34,11 +33,12 @@ describe("useSiteContent", () => {
     await waitFor(() => expect(screen.getByText("Edited title")).toBeInTheDocument());
     expect(screen.getByText("fallback:home.hero.subtext")).toBeInTheDocument();
     expect(screen.getByText("fallback:home.contact.final.title")).toBeInTheDocument();
-    expect(getPublicSiteContent).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith("/api/site-content");
 
     // A later mount (a client navigation back) reuses the same response.
     render(<Show k="hero.title" />);
     await waitFor(() => expect(screen.getAllByText("Edited title")).toHaveLength(2));
-    expect(getPublicSiteContent).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Award, ExternalLink } from "lucide-react";
-import { getVerifiedProjects } from "@/lib/actions/projects";
+import { getVerifiedProjects } from "@/lib/public-reads/projects";
 import { cn, cloudinaryUrl } from "@/lib/utils";
 
 /**

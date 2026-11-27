@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { RoseSpinner } from '@/components/ui/rose-loader';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
+import { APP_CREDENTIALS, appUrl } from '@/lib/app-origin';
 
 interface LikeButtonProps {
   projectId: string;
@@ -69,11 +70,17 @@ export default function LikeButton({ projectId, initialLikes = 0 }: LikeButtonPr
     setLikes(prevLiked ? prevCount - 1 : prevCount + 1);
 
     try {
-      const { toggleProjectLike } = await import('@/lib/actions/projects');
-      const result = await toggleProjectLike(projectId);
-      if (result.success) {
-        toast.success(prevLiked ? 'Removed like' : 'Project liked!');
+      // POST /api/projects/like (on the app origin from the static site).
+      const res = await fetch(appUrl('/api/projects/like'), {
+        method: 'POST',
+        credentials: APP_CREDENTIALS,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_id: projectId }),
+      });
+      if (!res.ok) {
+        throw new Error(res.status === 401 ? 'Sign in to like projects' : 'Failed to like project');
       }
+      toast.success(prevLiked ? 'Removed like' : 'Project liked!');
     } catch (error: unknown) {
       // revert optimistic update
       setIsLiked(prevLiked);
