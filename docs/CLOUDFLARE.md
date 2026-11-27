@@ -125,7 +125,7 @@ DNS for `butwalhacks.com` is managed at **Porkbun** only. Nothing in this reposi
 | Name | Record at Porkbun | Serves |
 |------|-------------------|--------|
 | `www` | CNAME `butwal-hacks-site.pages.dev` | The static site (custom domain `www.butwalhacks.com` on the Pages project; Cloudflare issues its certificate once the CNAME resolves) |
-| `@` (apex) | Porkbun URL forwarding, 301 to `https://www.butwalhacks.com` | Redirect only; the apex is not added to Pages |
+| `@` (apex) | Porkbun URL forwarding, permanent (301) to `https://www.butwalhacks.com`, with **Include the requested URI path** turned on, so `butwalhacks.com/events/x` lands on `www.butwalhacks.com/events/x` | Redirect only; the apex is not added to Pages |
 | `app` | CNAME to Vercel (unchanged) | The app |
 
 Mail (MX, SPF, DKIM, DMARC for Zoho, Resend and SES) and every other record stay as they are.
