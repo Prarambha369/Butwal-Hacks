@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createServiceClient } from "@/utils/supabase";
 import { logger } from "@/lib/logger";
 import { withRateLimit } from "@/lib/rate-limiter";
+import { corsPreflight, withCors } from "@/lib/cors";
 import { scoreText, searchStatic, suggestNearMisses } from "@/lib/search-index";
 import { SEARCH_TERM_PATTERN } from "@/lib/validation";
 
@@ -47,7 +48,10 @@ const searchSchema = z.object({
   limit: z.coerce.number().int().min(1).max(20).default(8),
 });
 
-export const POST = withRateLimit(async (req: NextRequest) => {
+// Called cross-origin by the static marketing site (lib/cors.ts).
+export const OPTIONS = corsPreflight;
+
+export const POST = withCors(withRateLimit(async (req: NextRequest) => {
   try {
     const body = await req.json().catch(() => ({}));
     const parsed = searchSchema.safeParse(body);
@@ -149,4 +153,4 @@ export const POST = withRateLimit(async (req: NextRequest) => {
     logger.error("[api/search] Unexpected error:", err);
     return NextResponse.json({ results: [], suggestions: [] }, { status: 500 });
   }
-}, "frequent");
+}, "frequent"));

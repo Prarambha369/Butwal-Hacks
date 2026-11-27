@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
+import { appUrl } from "@/lib/app-origin";
 
 interface Stats {
   total_hackers: number;
@@ -74,7 +75,7 @@ export default function LiveStatsCounter() {
 
   useEffect(() => {
     let mounted = true;
-    fetch("/api/metrics")
+    fetch(appUrl("/api/metrics"))
       .then((res) => {
         if (!res.ok) throw new Error("Failed");
         return res.json();

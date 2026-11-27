@@ -29,6 +29,11 @@ function buildMockDb() {
   };
 }
 
+/** Builds a keep-alive request with no credentials (the GitHub workflow ping). */
+function plainRequest(): NextRequest {
+  return new Request("http://localhost:3000/api/keep-alive") as unknown as NextRequest;
+}
+
 /** Builds a keep-alive request carrying a cron bearer secret. */
 function mockRequestWithBearer(token: string): NextRequest {
   return new Request("http://localhost:3000/api/keep-alive", {
@@ -53,7 +58,7 @@ describe("GET /api/keep-alive", () => {
     vi.stubEnv("KEEP_ALIVE_SECRET", "test-cron-secret");
     mockedGetSession.mockResolvedValue(null);
     const { GET } = await import("../keep-alive/route");
-    const res = await GET();
+    const res = await GET(plainRequest());
     const body = await res.json();
 
     expect(res.status).toBe(401);
@@ -69,7 +74,7 @@ describe("GET /api/keep-alive", () => {
     mockedCreateServiceClient.mockReturnValue(db);
 
     const { GET } = await import("../keep-alive/route");
-    const res = await GET();
+    const res = await GET(plainRequest());
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -113,7 +118,7 @@ describe("GET /api/keep-alive", () => {
     mockedCreateServiceClient.mockReturnValue(db);
 
     const { GET } = await import("../keep-alive/route");
-    const res = await GET();
+    const res = await GET(plainRequest());
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -129,7 +134,7 @@ describe("GET /api/keep-alive", () => {
     mockedCreateServiceClient.mockReturnValue(db);
 
     const { GET } = await import("../keep-alive/route");
-    const res = await GET();
+    const res = await GET(plainRequest());
     const body = await res.json();
 
     expect(res.status).toBe(500);
@@ -147,7 +152,7 @@ describe("GET /api/keep-alive", () => {
     mockedCreateServiceClient.mockReturnValue(db);
 
     const { GET } = await import("../keep-alive/route");
-    const res = await GET();
+    const res = await GET(plainRequest());
     const body = await res.json();
 
     expect(res.status).toBe(500);

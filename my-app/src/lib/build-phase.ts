@@ -14,7 +14,12 @@ import { PHASE_PRODUCTION_BUILD } from "next/constants";
  *    on the first request after its window;
  *  - in `next dev` / tests, where nothing is cached, so a partial local or CI
  *    database shows the empty state rather than an error page.
+ *
+ * Never in the static marketing export (BUILD_TARGET=static): there the build
+ * IS the publish, so a degraded page would go live and stay until the next
+ * rebuild. Throwing fails the build and the last good deploy keeps serving.
  */
 export function degradeOnReadError(): boolean {
+  if (process.env.BUILD_TARGET === "static") return false;
   return process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD || process.env.NODE_ENV !== "production";
 }

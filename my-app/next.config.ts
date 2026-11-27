@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import path from "path";
-import { buildStaticCsp, REPORTING_ENDPOINTS } from "./src/lib/csp";
+import { pageHeaders } from "./src/lib/security-headers";
+import { SITE_REDIRECTS } from "./src/lib/site-redirects";
 
 /**
  * next.config.ts — production Next.js configuration for Butwal Hacks.
@@ -11,73 +12,22 @@ import { buildStaticCsp, REPORTING_ENDPOINTS } from "./src/lib/csp";
  *  - images.remotePatterns: whitelist for external images (CDN, avatars)
  *  - Security headers: CSP (per-route frame-ancestors), HSTS,
  *    X-Content-Type-Options, Referrer-Policy, Permissions-Policy.
- *    All owned by this file — see securityHeaders below.
+ *    Defined in src/lib/security-headers.ts, shared with the static site.
+ *  - Redirects: src/lib/site-redirects.ts, shared with the static site.
  *  - Sentry: error monitoring via withSentryConfig wrapper
+ *
+ * BUILD_TARGET=static (scripts/build-static.mjs only) switches to a static
+ * export of the marketing pages for Cloudflare: no headers()/redirects()
+ * (they become _headers/_redirects files) and a Cloudinary image loader.
+ * Vercel builds, `next dev` and tests never set it.
  */
 
-// ─── Content Security Policy ─────────────────────────────────────
-// The static policy below covers CDN-cached pages, API routes and files.
-// Dynamically rendered routes (dashboard, portal, claim) get a per-request
-// nonce policy without 'unsafe-inline' from src/proxy.ts, which replaces this
-// header. Both are built in src/lib/csp.ts — see why static pages keep
-// 'unsafe-inline', the domain audit and the frame-ancestors notes there.
-// Violations are reported to /api/csp-violation (report-uri and report-to).
-
-const mainCSP = buildStaticCsp(false)
-const widgetCSP = buildStaticCsp(true)
-
-const reportingEndpoints = {
-  key: "Reporting-Endpoints",
-  value: REPORTING_ENDPOINTS,
-}
-
-// Transport-level headers for every route. These used to live in vercel.json
-// under a /(.*) source, but next.config headers() takes precedence over
-// vercel.json for overlapping sources, so that block was shadowed and
-// nosniff/referrer-policy never reached production. One owner, one rule.
-const securityHeaders = [
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload",
-  },
-  {
-    key: "X-Content-Type-Options",
-    value: "nosniff",
-  },
-  {
-    key: "Referrer-Policy",
-    value: "strict-origin-when-cross-origin",
-  },
-]
-
-const permissionsPolicy = {
-  key: "Permissions-Policy",
-  value: "camera=(self), microphone=(), geolocation=()",
-}
-
-const cspOnlyHeaders = [
-  ...securityHeaders,
-  {
-    key: "Content-Security-Policy",
-    value: mainCSP,
-  },
-  permissionsPolicy,
-  reportingEndpoints,
-]
-
-const widgetCspHeaders = [
-  ...securityHeaders,
-  {
-    key: "Content-Security-Policy",
-    value: widgetCSP,
-  },
-  permissionsPolicy,
-  reportingEndpoints,
-]
+const isStaticExport = process.env.BUILD_TARGET === "static"
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  ...(isStaticExport ? { output: "export" as const } : {}),
   // Pin the Turbopack root to the workspace root (repo root — one level up
   // from this app dir). npm workspaces hoists `next` to the repo-root
   // node_modules, so without an explicit root Turbopack can mis-infer (e.g.
@@ -95,6 +45,11 @@ const nextConfig: NextConfig = {
 
 
   images: {
+    // Static export has no image optimiser; Cloudinary/Unsplash size images
+    // through their URL params instead (src/lib/image-loader.ts).
+    ...(isStaticExport
+      ? { loader: "custom" as const, loaderFile: "./src/lib/image-loader.ts" }
+      : {}),
     dangerouslyAllowSVG: true,
     remotePatterns: [
       {
@@ -138,55 +93,24 @@ const nextConfig: NextConfig = {
   },
   // ─── Consolidation redirects (permanent, SEO-safe) ───
   // Merged routes keep their link equity: old URLs 308 to canonical homes.
+  // Static export cannot serve redirects or headers; the static build writes
+  // them to _redirects and _headers instead (src/lib/static-site.ts).
   async redirects() {
-    return [
-      // /events/list was a near-duplicate of /events (which already has
-      // upcoming/past tabs) and leaked DRAFT events publicly.
-      { source: "/events/list", destination: "/events", permanent: true },
-      // /programs/* folded into initiatives (single completed instance).
-      { source: "/programs/annual-hackathon", destination: "/initiatives/hackathon", permanent: true },
-      { source: "/programs", destination: "/initiatives", permanent: true },
-      // /philosophy folded into /about#philosophy (the definition of us).
-      { source: "/philosophy", destination: "/about#philosophy", permanent: true },
-      // /profile/[bh_id] was byte-identical to /p/[slug_id] (same query,
-      // same component). /p wins: shorter, ISR-cached, per-profile SEO.
-      // NOTE: single named param only — a :path* wildcard corrupts Next's
-      // generated route types (routes.d.ts) on this version.
-      { source: "/profile/:bh_id", destination: "/p/:bh_id", permanent: true },
-      // /community folded into /explore (directory, platforms, and the
-      // sole testimonials surface all moved there).
-      { source: "/community", destination: "/explore", permanent: true },
-      // /initiatives list folded into /events#initiatives (detail pages
-      // at /initiatives/[slug] stay).
-      { source: "/initiatives", destination: "/events#initiatives", permanent: true },
-      // /donors folded into /partners#donors (single recognition wall).
-      { source: "/donors", destination: "/partners#donors", permanent: true },
-      // /opportunities folded into /support#opportunities (listings live
-      // on the sponsor page now).
-      { source: "/opportunities", destination: "/support#opportunities", permanent: true },
-      // /annual-report folded into /transparency?view=report (tab).
-      { source: "/annual-report", destination: "/transparency?view=report", permanent: true },
-      // Auth stubs consolidated: one /sign-in entry (mode + returnTo
-      // passthrough) in front of Auth0 Universal Login.
-      { source: "/login", destination: "/sign-in", permanent: true },
-      { source: "/sign-up", destination: "/sign-in?mode=signup", permanent: true },
-      // /resources + /docs index folded into /learn (docs subpages stay).
-      { source: "/resources", destination: "/learn#resources", permanent: true },
-      { source: "/docs", destination: "/learn#guides", permanent: true },
-    ]
+    return isStaticExport ? [] : SITE_REDIRECTS
   },
   async headers() {
+    if (isStaticExport) return []
     return [
       // Catch-all first, /widget second. Later rules win for duplicate keys, so
       // the widget's permissive frame-ancestors must come after the catch-all
       // or the catch-all's 'none' overrides it and widgets cannot be embedded.
       {
         source: "/:path*",
-        headers: cspOnlyHeaders,
+        headers: pageHeaders(false),
       },
       {
         source: "/widget/:path*",
-        headers: widgetCspHeaders,
+        headers: pageHeaders(true),
       },
     ]
   },

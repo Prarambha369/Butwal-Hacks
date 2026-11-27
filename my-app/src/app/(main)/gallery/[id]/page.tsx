@@ -12,6 +12,7 @@ import {
 import { SITE_URL } from "@/lib/constants";
 import { VideoPlayer } from "@/components/gallery/video-tile";
 import { getGalleryPhoto } from "@/lib/gallery-photo";
+import { galleryPhotoParams } from "@/lib/static-params";
 import { buildPageMetadata } from "@/lib/seo";
 import ShareButtons from "./share-buttons";
 import DownloadButton from "./download-button";
@@ -39,7 +40,8 @@ type Props = {
 // per-request; photos are rendered on demand, never at build time.
 export const revalidate = 60;
 export async function generateStaticParams(): Promise<{ id: string }[]> {
-  return [];
+  // Still [] on Vercel; the static marketing export lists every approved photo.
+  return galleryPhotoParams();
 }
 
 /** Long date, or null when the stored value is missing/unparseable. */

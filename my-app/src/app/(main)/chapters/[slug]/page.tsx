@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation"
+import { chapterSlugParams } from "@/lib/static-params"
 import Link from "next/link"
 import { MapPin, Users, Calendar, ArrowLeft, MessageSquare, ExternalLink, GraduationCap, User } from "lucide-react"
 
-import { getActiveChapters, getChapterBySlug } from "@/lib/actions/chapters"
+import { getActiveChapters, getChapterBySlug } from "@/lib/public-reads/chapters"
 import { buildPageMetadata } from "@/lib/seo"
 import Breadcrumbs from "@/components/breadcrumbs"
 import RelatedLinks from "@/components/home/related-links"
@@ -188,6 +189,8 @@ export default async function ChapterDetailPage({ params }: Props) {
 
 // An empty list makes this dynamic segment ISR instead of per-request:
 // pages are rendered on demand, never at build time.
+// [] on Vercel (rendered on demand); every active chapter in the static
+// marketing export (lib/static-params.ts).
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  return [];
+  return chapterSlugParams();
 }

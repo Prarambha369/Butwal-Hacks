@@ -12,6 +12,11 @@ build/
 # Vercel
 .vercel
 
+# Static marketing site build (scripts/build-static.mjs) and wrangler state
+.static-build/
+.static-build-meta.mjs
+.wrangler/
+
 # Environment variables (all env files)
 .env
 .env*.local
@@ -124,3 +129,6 @@ agent/
 skills-lock.json
 # Agent tooling config (contains MCP credentials; per-developer, not shared).
 opencode.json
+
+# OpenNext build output (can embed bundled env values)
+.open-next/

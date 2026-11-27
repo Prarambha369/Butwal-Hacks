@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { User } from "@auth0/nextjs-auth0/types";
+import { APP_CREDENTIALS, appUrl } from "@/lib/app-origin";
 
 type AuthUser = { user: User | null | undefined; isLoading: boolean };
 
@@ -17,7 +18,7 @@ type Probe = { kind: "user"; user: User } | { kind: "signed-out" } | { kind: "fa
 
 async function probeProfile(): Promise<Probe> {
   try {
-    const res = await fetch(PROFILE_ROUTE, { credentials: "same-origin" });
+    const res = await fetch(appUrl(PROFILE_ROUTE), { credentials: APP_CREDENTIALS });
     // 401 (and 204 on newer SDKs) is the route's answer for "no session".
     if (res.status === 401 || res.status === 204) return { kind: "signed-out" };
     if (!res.ok) return { kind: "failed" };

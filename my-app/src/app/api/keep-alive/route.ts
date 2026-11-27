@@ -21,14 +21,14 @@ export const dynamic = "force-dynamic"
  *   of failing with 401. The response only exposes an aggregate row count,
  *   matching the sensitivity of the public /api/health endpoint.
  */
-export async function GET(req?: NextRequest) {
+export async function GET(req: NextRequest) {
   const start = Date.now()
   // Tracked outside try so the catch block can tailor error detail to the caller.
   let authorized = false
 
   try {
     const cronSecret = process.env.KEEP_ALIVE_SECRET || process.env.CRON_SECRET || ""
-    const authHeader = req?.headers.get("authorization") ?? ""
+    const authHeader = req.headers.get("authorization") ?? ""
     const bearer = authHeader.replace(/^Bearer\s+/i, "")
     const hasValidCronSecret = Boolean(cronSecret && bearer && bearer === cronSecret)
 

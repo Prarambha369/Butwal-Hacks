@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { eventSlugParams } from "@/lib/static-params"
 
 import { createServiceClient } from "@/utils/supabase"
 import { logger } from "@/lib/logger"
@@ -178,6 +179,8 @@ export default async function EventDetailPage({ params }: Props) {
 export const revalidate = 300;
 // An empty list makes this dynamic segment ISR instead of per-request:
 // pages are rendered on demand, never at build time.
+// [] on Vercel (rendered on demand); every published event in the static
+// marketing export (lib/static-params.ts).
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  return [];
+  return eventSlugParams();
 }

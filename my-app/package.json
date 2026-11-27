@@ -12,7 +12,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "audit:ui": "node scripts/audit-ui.mjs"
+    "audit:ui": "node scripts/audit-ui.mjs",
+    "static:build": "node scripts/build-static.mjs",
+    "static:deploy:preview": "node scripts/build-static.mjs --noindex --site-url https://butwal-hacks-site-preview.butwalhacks.workers.dev && wrangler deploy -c wrangler.static.jsonc --env preview"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.30.0",
@@ -59,12 +61,14 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "^16.1.6",
     "happy-dom": "^20.10.6",
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
     "typescript": "^5",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "wrangler": "^4.168.0"
   }
 }

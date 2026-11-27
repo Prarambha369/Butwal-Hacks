@@ -1,0 +1,100 @@
+name: Static site
+
+# Rebuilds the static marketing site (butwalhacks.com on Cloudflare Workers
+# static assets) and deploys it. Data pages (events, gallery, chapters, blog)
+# are rendered at build time from Supabase, so this is how they stay fresh:
+#   - every push to main (code and copy changes),
+#   - hourly (new events, photos and posts made in the app),
+#   - on demand: Actions → Static site → Run workflow, or a
+#     repository_dispatch "static-site-rebuild" event.
+# GitHub Actions is free for public repositories; a run takes ~3 minutes.
+#
+# Never runs on pull_request: the build reads Supabase with the service-role
+# key, and this repository is public.
+#
+# Until cutover it deploys the PREVIEW Worker (butwal-hacks-site-preview,
+# noindex). Set the repository variable STATIC_SITE_TARGET=production at
+# cutover to deploy butwal-hacks-site instead. See docs/CLOUDFLARE.md.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [static-site-rebuild]
+
+concurrency:
+  group: static-site
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build and deploy
+    if: github.repository == 'Prarambha369/Butwal-Hacks'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TARGET: ${{ vars.STATIC_SITE_TARGET == 'production' && 'production' || 'preview' }}
+    steps:
+      - name: Check secrets
+        id: check
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "CLOUDFLARE_API_TOKEN or SUPABASE_SERVICE_ROLE_KEY is not set; skipping (owner action, see docs/CLOUDFLARE.md)."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.check.outputs.ready == 'true'
+      - uses: actions/setup-node@v4.4.0
+        if: steps.check.outputs.ready == 'true'
+        with:
+          node-version: 22
+      - uses: actions/cache@v4
+        if: steps.check.outputs.ready == 'true'
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+      - if: steps.check.outputs.ready == 'true'
+        run: npm install
+
+      - name: Build static site
+        if: steps.check.outputs.ready == 'true'
+        working-directory: my-app
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+          NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ vars.NEXT_PUBLIC_POSTHOG_HOST }}
+          NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ vars.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN }}
+        run: |
+          if [ "$TARGET" = "production" ]; then
+            node scripts/build-static.mjs
+          else
+            node scripts/build-static.mjs --noindex --site-url https://butwal-hacks-site-preview.butwalhacks.workers.dev
+          fi
+
+      - name: Deploy
+        if: steps.check.outputs.ready == 'true'
+        working-directory: my-app
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ "$TARGET" = "production" ]; then
+            npx wrangler deploy -c wrangler.static.jsonc
+          else
+            npx wrangler deploy -c wrangler.static.jsonc --env preview
+          fi

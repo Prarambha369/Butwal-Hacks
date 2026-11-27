@@ -218,8 +218,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
              was premature for MVP scale. Components render directly instead.) */}
         <MobileBottomNav />
         <SwipeNavigator />
-        <Analytics />
-        <SpeedInsights />
+        {/* Vercel Analytics/Speed Insights load from /_vercel/*, which only
+             exists on Vercel. VERCEL is set at build time there and nowhere
+             else, so Cloudflare builds drop both (PostHog stays). */}
+        {process.env.VERCEL === "1" && <Analytics />}
+        {process.env.VERCEL === "1" && <SpeedInsights />}
         <PWARegister />
         <PWAInstallPrompt />
         <NetworkStatus />

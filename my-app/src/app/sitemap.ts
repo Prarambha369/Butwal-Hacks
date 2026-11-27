@@ -5,6 +5,10 @@ import { blogPosts, initiatives, events } from '@/lib/content'
 import { ALL_FESTIVALS } from '@/lib/festivals'
 import { PUBLISHED_POLICIES } from '@/lib/policy-registry'
 
+// Explicit so the static marketing export (scripts/build-static.mjs) can emit
+// it; on Vercel metadata routes were already static by default.
+export const dynamic = 'force-static'
+
 const siteUrl = SITE_URL
 const today = new Date()
 

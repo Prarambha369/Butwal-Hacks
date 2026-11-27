@@ -1,6 +1,9 @@
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/constants'
 
+// Explicit so the static marketing export (scripts/build-static.mjs) can emit it.
+export const dynamic = 'force-static'
+
 // Shared by every group: a crawler obeys only the most specific group that
 // names it, so a named AI-bot group without these would be allowed into
 // /api, /dashboard and the other private routes.

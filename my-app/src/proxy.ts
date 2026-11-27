@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { PORTAL_ROLES } from "@/lib/dashboard-access";
 import { buildNonceCsp, generateNonce, usesNonceCsp } from "@/lib/csp";
+import { applyCors } from "@/lib/cors";
+import { isAppPath } from "@/lib/static-site";
 import {
   handleLocalDev,
   redirectSignIn,
@@ -143,6 +145,9 @@ function forwardRequestHeaders(
  */
 export default async function proxy(request: NextRequest) {
   const response = await route(request);
+  // The static marketing site reads the session from here cross-origin
+  // (components/auth-user-provider.tsx); allowlisted origins only.
+  if (request.nextUrl.pathname === "/auth/profile") applyCors(request, response);
   if (!usesNonceCsp(request.nextUrl.pathname)) return response;
 
   const nonce = generateNonce();
@@ -204,7 +209,13 @@ async function route(request: NextRequest): Promise<NextResponse> {
       return NextResponse.next();
     }
 
-    if (isExactRouteMatch(pathname, MARKETING_ROUTES) || isRouteInSet(pathname, MARKETING_PREFIXES)) {
+    // Paths the static marketing site hands to the app (profiles, trust
+    // markers, widgets, project pages: lib/static-site.ts) must render here;
+    // bouncing them to the marketing host would loop once it is static.
+    if (
+      !isAppPath(pathname) &&
+      (isExactRouteMatch(pathname, MARKETING_ROUTES) || isRouteInSet(pathname, MARKETING_PREFIXES))
+    ) {
       return redirectToDomain(request, "main");
     }
 
