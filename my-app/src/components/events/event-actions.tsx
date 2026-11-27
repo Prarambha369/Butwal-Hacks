@@ -7,6 +7,7 @@ import {
   CalendarPlus,
   Check,
   ChevronDown,
+  ExternalLink,
   Link2,
   LogIn,
   Share2,
@@ -121,6 +122,42 @@ export function PrimaryEventAction({
         </>
       )}
     </button>
+  );
+}
+
+/**
+ * The primary action for an event whose registration a partner runs
+ * (lib/external-registration.ts). Rendered on the server as a plain external
+ * link, so the static export carries it; after the event it becomes the
+ * recap link like the in-site action.
+ */
+export function ExternalRegisterAction({
+  href,
+  variant = "hero",
+  id,
+}: {
+  href: string;
+  variant?: "hero" | "bar";
+  id?: string;
+}) {
+  const { phase } = useEventRegistration();
+  const bar = variant === "bar";
+  const size = bar ? "w-full px-4 text-sm" : "w-full sm:w-auto sm:min-w-[13rem]";
+
+  if (phase === "past") {
+    return (
+      <a id={id} href="#recap" className={cn("bh-btn-primary", size)}>
+        See recap <ArrowRight aria-hidden="true" className="h-4 w-4" />
+      </a>
+    );
+  }
+
+  return (
+    <a id={id} href={href} target="_blank" rel="noopener noreferrer" className={cn("bh-btn-primary", size)}>
+      Register
+      <ExternalLink aria-hidden="true" className="h-4 w-4" />
+      <span className="sr-only"> (opens in a new tab)</span>
+    </a>
   );
 }
 
@@ -263,11 +300,13 @@ export function StickyEventBar({
   dateLabel,
   calendar,
   watchId,
+  externalUrl = null,
 }: {
   title: string;
   dateLabel: string;
   calendar: CalendarTarget;
   watchId: string;
+  externalUrl?: string | null;
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -301,7 +340,11 @@ export function StickyEventBar({
           <p className="truncate text-xs text-muted-foreground">{dateLabel}</p>
         </div>
         <div className="shrink-0">
-          <PrimaryEventAction calendar={calendar} variant="bar" />
+          {externalUrl ? (
+            <ExternalRegisterAction href={externalUrl} variant="bar" />
+          ) : (
+            <PrimaryEventAction calendar={calendar} variant="bar" />
+          )}
         </div>
       </div>
     </div>

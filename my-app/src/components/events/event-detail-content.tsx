@@ -22,12 +22,14 @@ import {
   mapSearchUrl,
 } from "@/lib/event-status";
 import { SITE_URL } from "@/lib/constants";
+import { externalRegistrationUrl } from "@/lib/external-registration";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { EventBanner } from "./event-banner";
 import { EventPhaseBadge } from "./event-phase-badge";
 import { PhotoTile } from "./photo-tile";
 import {
   AddToCalendarMenu,
+  ExternalRegisterAction,
   FocusRegisterOnHash,
   PrimaryEventAction,
   RegistrationMessage,
@@ -236,6 +238,9 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
     slug: event.slug,
     googleUrl: googleCalendarUrl(event, SITE_URL),
   };
+  // Partner-run registration (CyberUtsav): link straight out instead of the
+  // app's sign-in + consent flow, which the static site cannot serve.
+  const externalUrl = externalRegistrationUrl(event.slug);
 
   return (
     <EventRegistrationProvider
@@ -309,7 +314,11 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
 
               <div id="register" className="mt-8 scroll-mt-24 space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
-                  <PrimaryEventAction calendar={calendar} id="register-cta" />
+                  {externalUrl ? (
+                    <ExternalRegisterAction href={externalUrl} id="register-cta" />
+                  ) : (
+                    <PrimaryEventAction calendar={calendar} id="register-cta" />
+                  )}
                   <AddToCalendarMenu calendar={calendar} />
                   <ShareEventButton title={event.title} url={pageUrl} />
                 </div>
@@ -451,7 +460,7 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
         </section>
       </div>
 
-      <StickyEventBar title={event.title} dateLabel={dateLabel} calendar={calendar} watchId="register" />
+      <StickyEventBar title={event.title} dateLabel={dateLabel} calendar={calendar} watchId="register" externalUrl={externalUrl} />
     </EventRegistrationProvider>
   );
 }

@@ -13,10 +13,45 @@ import {
   type EventPhase,
 } from "@/lib/event-status";
 import { cn } from "@/lib/utils";
+import { externalRegistrationUrl } from "@/lib/external-registration";
+
+/** Card CTA: an in-site Link, or a new-tab anchor for partner registration. */
+function CardLink({
+  action,
+  className,
+  ariaLabel,
+  children,
+}: {
+  action: { href: string; external?: boolean };
+  className: string;
+  ariaLabel: string;
+  children: React.ReactNode;
+}) {
+  if (action.external) {
+    return (
+      <a href={action.href} target="_blank" rel="noopener noreferrer" aria-label={`${ariaLabel} (opens in a new tab)`} className={className}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={action.href} prefetch={false} aria-label={ariaLabel} className={className}>
+      {children}
+    </Link>
+  );
+}
 
 /** The one action a card offers, by phase. */
-export function cardAction(event: PublicEvent, phase: EventPhase): { label: string; href: string } {
-  if (registrationOpen(phase)) return { label: "Register", href: `/events/${event.slug}#register` };
+export function cardAction(
+  event: PublicEvent,
+  phase: EventPhase,
+): { label: string; href: string; external?: boolean } {
+  if (registrationOpen(phase)) {
+    // Partner-run registration (lib/external-registration.ts) links straight out.
+    const external = externalRegistrationUrl(event.slug);
+    if (external) return { label: "Register", href: external, external: true };
+    return { label: "Register", href: `/events/${event.slug}#register` };
+  }
   if (phase === "past") return { label: "See recap", href: `/events/${event.slug}#recap` };
   return { label: "View details", href: `/events/${event.slug}` };
 }
@@ -98,10 +133,9 @@ export function EventCard({
           {event.description && <> {event.description.split(/\n/)[0]}</>}
         </p>
         <div className="mt-auto pt-1">
-          <Link
-            href={action.href}
-            prefetch={false}
-            aria-label={`${action.label}: ${event.title}`}
+          <CardLink
+            action={action}
+            ariaLabel={`${action.label}: ${event.title}`}
             className={cn(
               "after:absolute after:inset-0 after:content-['']",
               phase === "past" ? "bh-btn-secondary" : "bh-btn-primary",
@@ -110,7 +144,7 @@ export function EventCard({
           >
             {action.label}
             <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" />
-          </Link>
+          </CardLink>
         </div>
       </div>
     </article>
@@ -149,15 +183,14 @@ export function FeaturedEventCard({ event, now }: { event: PublicEvent; now: num
           </p>
         )}
         <div className="mt-auto pt-1">
-          <Link
-            href={action.href}
-            prefetch={false}
-            aria-label={`${action.label}: ${event.title}`}
+          <CardLink
+            action={action}
+            ariaLabel={`${action.label}: ${event.title}`}
             className="bh-btn-primary w-full after:absolute after:inset-0 after:content-[''] sm:w-auto"
           >
             {action.label}
             <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" />
-          </Link>
+          </CardLink>
         </div>
       </div>
     </article>
