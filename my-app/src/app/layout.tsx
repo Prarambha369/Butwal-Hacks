@@ -33,6 +33,7 @@ import NetworkStatus from "@/components/network-status";
 import MobileBottomNav from "@/components/mobile-bottom-nav";
 import SwipeNavigator from "@/components/swipe-navigator";
 import CookieConsentBanner from "@/components/cookie-consent-banner";
+import AppMaintenanceBanner from "@/components/app-maintenance-banner";
 
 const baseUrl = SITE_URL;
 
@@ -204,6 +205,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthUserProvider>
             <PostHogProvider>
             <div id="app-content" tabIndex={-1} className="relative flex min-h-dvh flex-col overflow-x-hidden outline-none">
+              <AppMaintenanceBanner />
               <LanguageProvider>{children}</LanguageProvider>
             </div>
             </PostHogProvider>

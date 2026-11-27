@@ -124,7 +124,13 @@ const headers = site.staticHeadersFile({ appOrigin, noindex });
 const longLine = headers.split("\n").find((l) => l.length > HEADER_LINE_LIMIT);
 if (longLine) fail(`_headers line over ${HEADER_LINE_LIMIT} characters: ${longLine.slice(0, 60)}…`);
 fs.writeFileSync(path.join(outDir, "_headers"), headers);
+// BUILD_TARGET=static here too, so lib/app-maintenance.ts applies to _redirects
+// exactly as it did to the pages (banner and maintenance page).
+process.env.BUILD_TARGET = "static";
 fs.writeFileSync(path.join(outDir, "_redirects"), site.staticRedirectsFile(appOrigin));
+if (site.isAppMaintenance() && !fs.existsSync(path.join(outDir, "maintenance.html"))) {
+  fail("app maintenance is on but the export has no maintenance.html");
+}
 
 // ── 5. Free-plan checks ─────────────────────────────────────────────────
 let files = 0;

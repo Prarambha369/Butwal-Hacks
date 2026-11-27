@@ -68,6 +68,28 @@ describe("staticRedirectsFile", () => {
   });
 });
 
+describe("staticRedirectsFile during app maintenance", () => {
+  const rules = staticRedirectsFile(APP, { maintenance: true })
+    .split("\n")
+    .filter((l) => l && !l.startsWith("#"));
+
+  it("never sends a visitor to the app origin", () => {
+    expect(rules.some((r) => r.includes(APP))).toBe(false);
+  });
+
+  it("serves the maintenance page in place for every app path", () => {
+    for (const p of APP_PREFIXES) {
+      expect(rules).toContain(`${p} /maintenance 200`);
+      expect(rules).toContain(`${p}/* /maintenance 200`);
+    }
+    expect(rules).toContain("/projects/:id /maintenance 200");
+  });
+
+  it("keeps the consolidation redirects", () => {
+    for (const r of SITE_REDIRECTS) expect(rules).toContain(`${r.source} ${r.destination} 308`);
+  });
+});
+
 describe("staticHeadersFile", () => {
   it("applies the security headers to every path and reports CSP to the app", () => {
     const file = staticHeadersFile({ appOrigin: APP });
