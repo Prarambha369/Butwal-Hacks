@@ -8,7 +8,7 @@
  */
 export const EXTERNAL_REGISTRATION_URLS: Readonly<Record<string, string>> = {
   // CyberUtsav 3.0, Lumbini chapter: registration is on CyberUtsav's own site.
-  "cyberutsav-lumbini": "https://registration.cyberutsav.com/",
+  "cyberutsav-lumbini": "https://registration.cyberutsav.com/butwal",
 };
 
 /** The partner registration URL for an event, or null if it registers in-site. */

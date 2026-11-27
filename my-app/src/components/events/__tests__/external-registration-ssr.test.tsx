@@ -22,7 +22,7 @@ const base = {
   banner_url: null,
 };
 const NOW = Date.parse("2026-11-28T00:00:00Z");
-const EXTERNAL = /<a[^>]*href="https:\/\/registration\.cyberutsav\.com\/"[^>]*>/g;
+const EXTERNAL = /<a[^>]*href="https:\/\/registration\.cyberutsav\.com\/butwal"[^>]*>/g;
 
 // The static export ships whatever the server renders. The CyberUtsav CTA must
 // be in that HTML (not resolved later on the client), open in a new tab, and
