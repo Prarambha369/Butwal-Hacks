@@ -10,7 +10,6 @@ import {
   exchangeCodeForTokens,
   linkIdentity,
   getProviderDisplayName,
-  identitySubject,
   subjectToUserId,
   Auth0UserError,
 } from "@/lib/auth0-management";
@@ -259,5 +258,3 @@ function decodeJwtPayload(token: string): Record<string, unknown> {
     throw new Error("Failed to read the provider's token.");
   }
 }
-
-export { identitySubject };

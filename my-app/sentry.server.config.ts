@@ -25,6 +25,13 @@ import * as Sentry from "@sentry/nextjs";
 
 const SENTRY_DSN = process.env.SENTRY_DSN;
 
+// On Cloudflare Workers builds @sentry/nextjs resolves to its fetch-based
+// workerd build (see next.config.ts), which has no httpIntegration. Looked up
+// by name because a static reference to a missing export fails that build.
+const httpIntegration = (Sentry as unknown as Record<string, unknown>)["httpIntegration"] as
+  | typeof Sentry.httpIntegration
+  | undefined;
+
 Sentry.init({
   dsn: SENTRY_DSN,
 
@@ -33,9 +40,7 @@ Sentry.init({
 
   // Instrument outgoing HTTP requests (fetch, etc.) for downstream span visibility.
   // Captures calls to Supabase, Groq, Cloudinary, Auth0, GitHub, Resend, etc.
-  integrations: [
-    Sentry.httpIntegration(),
-  ],
+  integrations: httpIntegration ? [httpIntegration()] : [],
 
   environment: process.env.NODE_ENV ?? "development",
 });

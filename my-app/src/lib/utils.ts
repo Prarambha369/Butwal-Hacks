@@ -6,10 +6,12 @@ export { twMerge as cn } from "tailwind-merge"
  * `NODE_ENV` is "production" for preview builds too, so it is not enough on its
  * own: a preview must never be treated as production when the question is
  * whether to fail closed on missing security configuration. Both variables are
- * required.
+ * required. Vercel sets VERCEL_ENV; on Cloudflare Workers DEPLOY_ENV comes from
+ * `vars` in wrangler.jsonc ("production" top level, "preview" in env.preview).
  */
 export function isProduction(): boolean {
-  return process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === "production";
+  if (process.env.NODE_ENV !== "production") return false;
+  return process.env.VERCEL_ENV === "production" || process.env.DEPLOY_ENV === "production";
 }
 
 /**

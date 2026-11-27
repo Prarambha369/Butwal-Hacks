@@ -1,0 +1,72 @@
+// Cloudflare Workers config for Butwal Hacks (Workers Free plan).
+// Built by `npm run cf:build` (OpenNext), deployed by `npm run cf:deploy`.
+// Secrets are never in this file: set them with `wrangler secret put` or
+// `wrangler secret bulk`. See docs/CLOUDFLARE.md.
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "butwal-hacks",
+  "main": "worker.ts",
+  "compatibility_date": "2026-11-20",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // Free plan: workers.dev only until cutover. No routes or custom domains
+  // are declared here; the owner adds the custom domain at cutover.
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "upload_source_maps": true,
+  // Workers Free caps the script at 3 MiB gzipped; minifying the OpenNext
+  // bundle is part of fitting under it.
+  "minify": true,
+  // Non-secret runtime vars. DEPLOY_ENV drives isProduction() in
+  // src/lib/utils.ts (Vercel used VERCEL_ENV for the same check).
+  "vars": { "DEPLOY_ENV": "production" },
+  // Replaces the two Vercel crons in vercel.json (see worker.ts). Workers
+  // Free allows 5 cron triggers per account.
+  "triggers": {
+    "crons": ["0 6 * * *", "17 7 * * *"]
+  },
+  "services": [
+    // Lets ISR revalidation call back into this Worker.
+    { "binding": "WORKER_SELF_REFERENCE", "service": "butwal-hacks" }
+  ],
+  "kv_namespaces": [
+    { "binding": "NEXT_INC_CACHE_KV", "id": "680d0ba3bc6041838e4e696c0f04755a" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "NEXT_TAG_CACHE_D1",
+      "database_name": "butwal-hacks-tag-cache",
+      "database_id": "9980cb06-f55a-4b73-b1f0-fbe118c726e0"
+    }
+  ],
+  "env": {
+    // `npm run cf:deploy:preview` → Worker "butwal-hacks-preview" on
+    // butwal-hacks-preview.butwalhacks.workers.dev. Own cache stores, no crons.
+    "preview": {
+      "workers_dev": true,
+      "preview_urls": false,
+      "vars": { "DEPLOY_ENV": "preview" },
+      "triggers": { "crons": [] },
+      "services": [
+        { "binding": "WORKER_SELF_REFERENCE", "service": "butwal-hacks-preview" }
+      ],
+      "kv_namespaces": [
+        { "binding": "NEXT_INC_CACHE_KV", "id": "f66435cc5dd740c88caa1f8fe43b1444" }
+      ],
+      "d1_databases": [
+        {
+          "binding": "NEXT_TAG_CACHE_D1",
+          "database_name": "butwal-hacks-preview-tag-cache",
+          "database_id": "f4d32e12-a904-4b8f-8a6b-1ba74839086e"
+        }
+      ]
+    }
+  }
+}

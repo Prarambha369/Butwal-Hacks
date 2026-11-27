@@ -12,6 +12,11 @@ build/
 # Vercel
 .vercel
 
+# Cloudflare Workers (OpenNext build output, wrangler local state, local secrets)
+.open-next/
+.wrangler/
+.dev.vars*
+
 # Environment variables (all env files)
 .env
 .env*.local

@@ -13,7 +13,12 @@
     "typecheck": "cd my-app && npm run typecheck",
     "seed:kb": "cd my-app && node ../scripts/seed-knowledge-base.mjs",
     "prepare": "[ -d .git ] && git config core.hooksPath .husky/ || true",
-    "audit:ui": "cd my-app && npm run audit:ui"
+    "audit:ui": "cd my-app && npm run audit:ui",
+    "cf:build": "cd my-app && npm run cf:build",
+    "cf:preview": "cd my-app && npm run cf:preview",
+    "cf:deploy": "cd my-app && npm run cf:deploy",
+    "cf:deploy:preview": "cd my-app && npm run cf:deploy:preview",
+    "cf:typegen": "cd my-app && npm run cf:typegen"
   },
   "overrides": {
     "postcss": "^8.5.19",

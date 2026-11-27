@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import path from "path";
+import { existsSync } from "fs";
 import { buildStaticCsp, REPORTING_ENDPOINTS } from "./src/lib/csp";
 
 /**
@@ -22,6 +23,23 @@ import { buildStaticCsp, REPORTING_ENDPOINTS } from "./src/lib/csp";
 // header. Both are built in src/lib/csp.ts — see why static pages keep
 // 'unsafe-inline', the domain audit and the frame-ancestors notes there.
 // Violations are reported to /api/csp-violation (report-uri and report-to).
+
+// ─── Build target ────────────────────────────────────────────────
+// The cf:* scripts (OpenNext → Cloudflare Workers) set BUILD_TARGET=cloudflare.
+// Vercel builds, `next dev` and tests leave it unset and behave as before.
+// See docs/CLOUDFLARE.md.
+const isCloudflareBuild = process.env.BUILD_TARGET === "cloudflare"
+// npm workspaces hoist @sentry/nextjs to the repo root; fall back to the app.
+const sentryDir = [
+  path.resolve(process.cwd(), "../node_modules/@sentry/nextjs"),
+  path.resolve(process.cwd(), "node_modules/@sentry/nextjs"),
+].find((dir) => existsSync(dir)) ?? "node_modules/@sentry/nextjs"
+const sentryBuild = (file: string) => {
+  const rel = path.relative(process.cwd(), path.join(sentryDir, file))
+  return rel.startsWith(".") ? rel : `./${rel}`
+}
+const SENTRY_CLIENT_ENTRY = sentryBuild("build/esm/index.client.js")
+const SENTRY_WORKERD_ENTRY = sentryBuild("build/esm/edge/index.js")
 
 const mainCSP = buildStaticCsp(false)
 const widgetCSP = buildStaticCsp(true)
@@ -85,6 +103,35 @@ const nextConfig: NextConfig = {
   // compile anything, since deps outside the inferred root are blocked.
   turbopack: {
     root: path.resolve(process.cwd(), ".."),
+    // Cloudflare Workers builds only. Server code would otherwise get
+    // @sentry/nextjs's Node build (OpenTelemetry + Node HTTP hooks), which
+    // Turbopack copied into five server chunks (~7 MB) and which assumes Node.
+    // Sentry ships a fetch-based build for workerd under its `workerd` export
+    // condition, but Turbopack does not apply that condition, so point the
+    // server import at it directly. The browser keeps the client build.
+    ...(isCloudflareBuild
+      ? {
+          resolveAlias: {
+            "@sentry/nextjs": {
+              browser: SENTRY_CLIENT_ENTRY,
+              default: SENTRY_WORKERD_ENTRY,
+            },
+          },
+        }
+      : {}),
+  },
+
+  // Same Sentry swap as turbopack.resolveAlias above, for the webpack build
+  // that the Cloudflare target uses (see open-next.config.ts).
+  webpack: (config, { isServer }) => {
+    if (isCloudflareBuild && isServer) {
+      config.resolve ??= {}
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        "@sentry/nextjs$": path.resolve(process.cwd(), SENTRY_WORKERD_ENTRY),
+      }
+    }
+    return config
   },
 
   experimental: {
@@ -95,6 +142,12 @@ const nextConfig: NextConfig = {
 
 
   images: {
+    // On Cloudflare Workers there is no free image optimiser, so a custom
+    // loader hands sizing to Cloudinary/Unsplash via their URL params.
+    // See src/lib/image-loader.ts.
+    ...(isCloudflareBuild
+      ? { loader: "custom" as const, loaderFile: "./src/lib/image-loader.ts" }
+      : {}),
     dangerouslyAllowSVG: true,
     remotePatterns: [
       {

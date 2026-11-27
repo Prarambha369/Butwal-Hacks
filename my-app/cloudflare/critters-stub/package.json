@@ -1,0 +1,8 @@
+{
+  "name": "critters",
+  "version": "0.0.0-stub",
+  "private": true,
+  "description": "Build-time stub. Next's runtime has an optional require(\"critters\") (only used by experimental.optimizeCss, which is off). The OpenNext Node.js middleware bundler cannot leave it unresolved, so this empty module satisfies it without bundling the real package. See docs/CLOUDFLARE.md.",
+  "main": "index.js",
+  "license": "MIT"
+}
