@@ -127,20 +127,47 @@ Vercel stores most values as *Sensitive*, so `vercel env pull` cannot export the
 
 ## Free-plan budget
 
-| Resource | Free allowance | How we stay inside it |
-|----------|----------------|-----------------------|
-| Worker requests | 100,000/day | Static files (`/_next/static`, `/public`) are served by the assets binding and do not count as Worker invocations |
-| CPU | 10 ms/request | Cache interception answers ISR/SSG hits before the Next.js server loads; only uncached dynamic routes render |
-| Script size | 64 MiB uncompressed (no gzip limit since 2026-09-04) | About 16 MiB; `npm run cf:build` fails above 64 MiB. See [Script size](#script-size) |
-| Startup | 1 s to parse and run global scope | Minified bundle; Sentry's workerd build instead of its Node build |
-| KV | 100k reads, 1k writes/day | Incremental cache only; the Cache API regional cache absorbs repeat reads on a custom domain. **Risk:** each ISR regeneration is one write, and pages with `revalidate = 60` can regenerate up to 1,440 times a day per path. See [Caching and ISR](#caching-and-isr) |
+> **The app does not fit Workers Free today.** The blocker is CPU, not size. See [CPU on the preview](#cpu-on-the-preview).
+
+| Resource | Free allowance | Status |
+|----------|----------------|--------|
+| Worker requests | 100,000/day | Fine. Static files (`/_next/static`, `/public`) are served by the assets binding and are free and unlimited |
+| CPU | 10 ms/request | **Does not fit.** Cache hits use 4–13 ms; anything that renders uses 20 ms to 1.8 s, and Cloudflare answers repeated overruns with 503 (error 1102) |
+| Script size | 64 MiB uncompressed (no gzip limit since 2026-09-04) | Fine: 16.4 MiB; `npm run cf:build` fails above 64 MiB. See [Script size](#script-size) |
+| Startup | 1 s to parse and run global scope | Fits: Cloudflare reported 579 ms on deploy |
+| KV | 100k reads, 1k writes/day | Tight. Every deploy seeds about 280 keys (so roughly three deploys a day), and each ISR regeneration is one more write; `revalidate = 60` pages can regenerate up to 1,440 times a day per path. See [Caching and ISR](#caching-and-isr) |
 | D1 | 5M reads, 100k writes/day | Tag cache for `revalidatePath`/`revalidateTag` |
 | Cron triggers | 5/account | Two used (production only) |
 | Images | — | No Cloudflare Images; Cloudinary resizes |
 
 The Cache API is a no-op on `*.workers.dev`, so the preview Worker reads KV on every cached hit. That is fine at preview traffic. On the custom domain the regional cache takes over.
 
-Pages marked `force-dynamic` (for example `/events`, `/gallery`, `/teams`, every dashboard route) render on each request and are the main CPU cost. Moving the public ones to ISR is the biggest lever if the 10 ms limit is hit.
+### CPU on the preview
+
+Measured with Workers Observability on `butwal-hacks-preview` on 2026-11-27 (Supabase secrets only, no Auth0), CPU per request:
+
+| Request | CPU | Outcome |
+|---------|-----|---------|
+| Proxy-only redirect (`/sign-in`) | 2 ms | OK |
+| Cache HIT, small (`/robots.txt`) | 4–9 ms | OK |
+| Cache HIT, page (`/about`) | 6–13 ms | Mostly OK |
+| STALE ISR page (`/`, 111 KB) | ~10 ms then killed | Mostly 503 |
+| Rendered pages and API routes (`/events`, `/gallery`, `/dashboard`, `/api/health`, `/api/events/ical`) | 20 ms to 1.8 s | Mostly 503 once Cloudflare starts enforcing |
+| First hit on a fresh isolate | 150 ms to 1.8 s | Tolerated occasionally |
+
+Why the usual levers don't close the gap:
+
+- **ISR does not help on Free.** An expired ISR page is served stale while a background re-render runs. That re-render is a full render (>10 ms), so it gets killed, the page never refreshes, and every request keeps paying for the attempt. `/` showed exactly this (`x-opennext-cache: STALE`).
+- **A narrower proxy matcher** saves at most ~2 ms per request.
+- **The custom-domain regional cache** saves a KV read, which is I/O time, not CPU.
+
+The only requests that fit with headroom are the ones the assets binding serves without running the Worker. Options for the owner:
+
+1. **Workers Paid** (USD 5/month): 30 s CPU default, and everything here works as built.
+2. **Serve public pages as static assets** (prerendered HTML copied into the assets directory, security headers moved to `_headers`), keeping the Worker for auth, dashboards and APIs. This is a substantial change and those dynamic routes would still exceed 10 ms.
+3. **Stay on Vercel** and keep this branch for later.
+
+Dashboard and API numbers were taken without Auth0 secrets (those routes fail early with 500), so with Auth0 they would cost more, not less.
 
 ## Script size
 
@@ -156,7 +183,7 @@ Size still affects cold starts (1 s budget to parse global scope). Measured on 2
 
 A two-Worker split was tried and dropped: each Worker carries its own copy of the Next.js server runtime and the proxy, so the API/dashboard half alone was 3.4 MiB gzip, and the split added a second secret set and a cross-Worker hop for no size benefit.
 
-`npx wrangler check startup --env preview` measured about 490 ms of local startup on 2026-11-27, almost all of it V8 parsing and compiling the 16 MiB script rather than app code. That is inside the 1 s budget, but bundle growth eats directly into it, so re-run the check after adding large dependencies. Levers, largest first: rewrite the Node `proxy.ts` as Edge `middleware.ts` (OpenNext bundles the Node proxy twice), keep recharts and posthog out of SSR, replace the Cloudinary SDK with Web Crypto signing, and move PDF generation out of the Worker.
+`npx wrangler check startup --env preview` measured about 490 ms of local startup on 2026-11-27 (Cloudflare reported 579 ms on deploy), almost all of it V8 parsing and compiling the 16 MiB script rather than app code. That is inside the 1 s budget, but bundle growth eats directly into it, so re-run the check after adding large dependencies. Levers, largest first: rewrite the Node `proxy.ts` as Edge `middleware.ts` (OpenNext bundles the Node proxy twice), keep recharts and posthog out of SSR, replace the Cloudinary SDK with Web Crypto signing, and move PDF generation out of the Worker.
 
 ## Images
 
@@ -200,15 +227,17 @@ The preview Worker has no crons.
 
 ## Cutover from Vercel
 
-Do these in order. Nothing here is automated.
+Do these in order. Nothing here is automated. Step 0 decides whether to cut over at all.
 
+0. **CPU plan:** resolve [CPU on the preview](#cpu-on-the-preview) first, either by moving to Workers Paid or by serving public pages as static assets. On Free as built, most page and API requests return 503.
 1. **Secrets:** load every server secret on the production Worker (`wrangler secret bulk`, see above), with `APP_BASE_URL=https://butwalhacks.com`.
 2. **Build env:** build with the production `NEXT_PUBLIC_*` values and the Supabase server keys in the process env, then `npm run cf:deploy`.
 3. **Auth0 (dashboard):** add `https://butwalhacks.com/auth/callback`, `https://app.butwalhacks.com/auth/callback` and `https://calendar.butwalhacks.com/auth/callback` to Allowed Callback URLs if not already there (they are, while the hostnames stay the same). For the preview, add `https://butwal-hacks-preview.butwalhacks.workers.dev/auth/callback` to Allowed Callback URLs and the bare origin to Allowed Logout URLs and Allowed Web Origins.
 4. **DNS:** move the `butwalhacks.com` nameservers to Cloudflare (or, if the zone is already on Cloudflare, remove the Vercel records). Then add Custom Domains on the `butwal-hacks` Worker for `butwalhacks.com`, `www`, `app`, `calendar` and the chapter subdomains. Custom Domains are free.
 5. **Webhooks:** point Auth0 and Open Collective webhooks at the same paths (the hostname does not change, so usually nothing to do).
-6. **Watch:** Workers dashboard → `butwal-hacks` → Observability for errors and CPU time for 24 hours.
-7. **Vercel:** keep the project paused but not deleted for at least two weeks.
+6. **Close the workers.dev door:** once the custom domains work, set `"workers_dev": false` in `wrangler.jsonc` and redeploy. On `*.workers.dev` none of the hostname rules in `src/proxy.ts` match, so pages rely only on their own guards there.
+7. **Watch:** Workers dashboard → `butwal-hacks` → Observability for errors and CPU time for 24 hours.
+8. **Vercel:** keep the project paused but not deleted for at least two weeks.
 
 ## Rollback to Vercel
 

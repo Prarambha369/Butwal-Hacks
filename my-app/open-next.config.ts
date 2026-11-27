@@ -25,8 +25,9 @@ const config = defineCloudflareConfig({
   incrementalCache: withRegionalCache(kvIncrementalCache, { mode: "long-lived" }),
   tagCache: d1NextTagCache,
   queue: memoryQueue,
-  // Serve cached ISR/SSG responses before the Next.js server is even loaded,
-  // which is what keeps cached page hits well under the 10 ms CPU limit.
+  // Serve cached ISR/SSG responses before the Next.js server is even loaded.
+  // Measured on the preview: a cache HIT costs 4-13 ms CPU, at the edge of the
+  // Free plan's 10 ms; anything that renders costs 20 ms to 1.8 s.
   enableCacheInterception: true,
 });
 
