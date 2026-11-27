@@ -71,7 +71,7 @@ A youth technology initiative in Butwal, Nepal: ORCID-style credential verificat
 | Email | Resend | Transactional mail |
 | Analytics | Vercel Analytics and PostHog | Traffic plus behavioral funnels |
 | Error monitoring | Sentry | Production error tracking |
-| Hosting | Vercel | Subdomain routing via `proxy.ts` |
+| Hosting | Cloudflare Workers static assets and Vercel | `butwalhacks.com` is a static export on Cloudflare (free, rebuilt hourly); `app.butwalhacks.com` runs on Vercel, paused until 26 Dec 2026 with an "Under maintenance" notice on the static site |
 | Funding | Open Collective | Transparent community funding; Stripe is not used |
 | CSS | Tailwind CSS v4 | `@theme` directives plus a custom `@layer utilities` |
 
@@ -169,7 +169,6 @@ Audited against the tree. Four items previously listed as backlog had already sh
 
 | Item | What is missing |
 |------|-----------------|
-| Subdomain routing enforcement in production | `proxy.ts` resolves the host, but `vercel.json` declares no domains, so the marketing and app split is not enforced at the edge |
 | Open Collective payout integration | The verified webhook writes to `sponsor_opportunities` while `/portal/payouts` reads `sponsor_payouts`, and nothing inserts into that table. The reader and the writer are wired to different tables |
 | Discord Bot | `src/lib/discord.ts` exists and a webhook proxy references it, but there is no bot process, gateway connection, or notification consumer. Treat it as a library, not a shipped bot |
 | Multi-chapter localization | `src/lib/i18n.ts` carries roughly 450 Nepali strings consumed by 23 components, but chapter-scoped content is not translated |
@@ -191,6 +190,7 @@ Audited against the tree. Four items previously listed as backlog had already sh
 | SQL migrations under `supabase/migrations/` | Version controlled, repeatable, reviewable in a PR |
 | Open Collective over Stripe | Transparent community funding with no payment processing on the platform |
 | PostHog for analytics | Vercel Analytics for traffic, PostHog for behavioral funnel tracking |
+| Static marketing site on Cloudflare | The public site is static files on Workers static assets, so traffic costs no server CPU; only the app runs on Vercel. See [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md) |
 
 ## Troubleshooting
 
@@ -198,7 +198,7 @@ Audited against the tree. Four items previously listed as backlog had already sh
 |---------|--------------|-----|
 | A new route has no clear home | It does not fit one of the nine zones | Re-scope it, or add it to an existing zone |
 | `/portal/payouts` always renders empty | The Open Collective webhook writes to a different table than the page reads | See the open roadmap item above |
-| Subdomain behaves like the app in production | `vercel.json` declares no domains, so the edge does not enforce the split | Add the domains in the Vercel project |
+| `butwalhacks.com/dashboard` shows "Under maintenance" | The app is paused until 26 Dec 2026 (`APP_MAINTENANCE` in `my-app/src/lib/app-maintenance.ts`) | Expected; set the flag to `null` when the app is back |
 | A maintainer sees a redirect loop | Auth0 email is not `@butwalhacks.com` | Maintainer access fails closed on both role and verified email |
 
 ## See also

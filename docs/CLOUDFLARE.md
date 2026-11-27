@@ -5,6 +5,7 @@
 ## Contents
 
 - [The split](#the-split)
+- [App maintenance mode](#app-maintenance-mode)
 - [How the static build works](#how-the-static-build-works)
 - [Keeping data pages fresh](#keeping-data-pages-fresh)
 - [Free-plan impact](#free-plan-impact)
@@ -33,6 +34,18 @@ A request for an app path on the static site gets a redirect to `app.butwalhacks
 The few things a marketing page does in the browser go to the app with `fetch(appUrl(...), { credentials: APP_CREDENTIALS })` ([`lib/app-origin.ts`](../my-app/src/lib/app-origin.ts)): the session probe, chat, search, live stats, event registration, gallery paging (`GET /api/gallery`), homepage copy (`GET /api/site-content`), feedback (`POST /api/feedback`), testimonials (`POST /api/testimonials`) and project likes (`POST /api/projects/like`). On Vercel `NEXT_PUBLIC_APP_ORIGIN` is unset, so these stay same-origin and nothing changes. The session cookie is scoped to `butwalhacks.com` ([`lib/cookie-domain.ts`](../my-app/src/lib/cookie-domain.ts)), and the app answers CORS only for the marketing origins ([`lib/cors.ts`](../my-app/src/lib/cors.ts)).
 
 **No server actions on marketing pages.** A static export fails if any `"use server"` module is in a marketing page's import graph. Public reads live in [`lib/public-reads/`](../my-app/src/lib/public-reads/) (plain server modules guarded by `server-only`, each keeping its public filter: published, active or approved). Writes from a marketing page go through an API route.
+
+## App maintenance mode
+
+`app.butwalhacks.com` is paused on Vercel until **26 December 2026**. While `APP_MAINTENANCE` in [`my-app/src/lib/app-maintenance.ts`](../my-app/src/lib/app-maintenance.ts) is set:
+
+- every app path (`APP_PREFIXES` and `APP_DETAIL_PARENTS`, including `/sign-in`, `/dashboard`, `/portal`, `/p/*`, `/teams`, `/transparency`, `/api/*`) serves the "Under maintenance" page in place. It is a 200 rewrite in `_redirects`, so nothing redirects to the app;
+- every page shows a site-wide banner linking to `/maintenance`;
+- browser calls a marketing page makes to the app (session probe, search, chat, gallery paging past the first page, event registration, likes, feedback) fail quietly, and the page falls back to its signed-out or static state.
+
+Only the static export is affected; Vercel builds never render the banner, and `/maintenance` is a 404 there.
+
+**To end maintenance:** set `APP_MAINTENANCE` to `null`, merge to `main` and let the workflow redeploy. App paths then 302 to `app.butwalhacks.com` again (307 for `/api`). Check sign-in end to end before announcing it.
 
 ## How the static build works
 
