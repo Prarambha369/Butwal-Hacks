@@ -154,7 +154,7 @@ export function ExternalRegisterAction({
 
   return (
     <a id={id} href={href} target="_blank" rel="noopener noreferrer" className={cn("bh-btn-primary", size)}>
-      Register
+      {bar ? "Register" : "Register — it's free"}
       <ExternalLink aria-hidden="true" className="h-4 w-4" />
       <span className="sr-only"> (opens in a new tab)</span>
     </a>
