@@ -42,10 +42,16 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STATIC_SUPABASE_URL: ${{ secrets.STATIC_SUPABASE_URL }}
+          STATIC_SUPABASE_ANON_KEY: ${{ secrets.STATIC_SUPABASE_ANON_KEY }}
+          STATIC_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STATIC_SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID or SUPABASE_SERVICE_ROLE_KEY is not set; skipping (owner action, see docs/CLOUDFLARE.md)."
+          missing=""
+          for name in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID STATIC_SUPABASE_URL STATIC_SUPABASE_ANON_KEY STATIC_SUPABASE_SERVICE_ROLE_KEY; do
+            if [ -z "${!name}" ]; then missing="$missing $name"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "Not set:$missing; skipping (owner action, see docs/CLOUDFLARE.md)."
             echo "ready=false" >> "$GITHUB_OUTPUT"
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
@@ -69,11 +75,14 @@ jobs:
         if: steps.check.outputs.ready == 'true'
         working-directory: my-app
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
-          NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
+          # Production Supabase (the project Vercel production uses). Not the
+          # NEXT_PUBLIC_SUPABASE_* / SUPABASE_SERVICE_ROLE_KEY secrets, which
+          # point CI and the tests at a separate database.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.STATIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.STATIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STATIC_SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.STATIC_CLOUDINARY_CLOUD_NAME || secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+          NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.STATIC_CLOUDINARY_UPLOAD_PRESET || secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
           NEXT_PUBLIC_POSTHOG_HOST: ${{ vars.NEXT_PUBLIC_POSTHOG_HOST }}
           NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ vars.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN }}
         run: |
