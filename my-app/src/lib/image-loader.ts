@@ -1,7 +1,7 @@
 /**
- * next/image loader used off Vercel (Cloudflare Workers).
+ * next/image loader for the static export (Cloudflare Pages).
  *
- * The Workers image optimiser needs a paid Cloudflare Images plan, so instead
+ * Cloudflare image resizing needs a paid Cloudflare Images plan, so instead
  * of routing images through /_next/image we let each host size them:
  *
  * - res.cloudinary.com: append `w_<width>,c_limit,f_auto,q_<q|auto>` as the

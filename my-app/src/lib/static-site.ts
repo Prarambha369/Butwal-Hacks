@@ -1,6 +1,6 @@
 /**
- * The static marketing site (butwalhacks.com on Cloudflare Workers static
- * assets) versus the app (app.butwalhacks.com on Vercel). docs/CLOUDFLARE.md.
+ * The static marketing site (www.butwalhacks.com on Cloudflare Pages)
+ * versus the app (app.butwalhacks.com on Vercel). docs/CLOUDFLARE.md.
  *
  * Single source for:
  *   - which URL paths belong to the app (auth, dashboards, API, and pages
@@ -129,7 +129,7 @@ export function staticSiteCsp(appOrigin = DEFAULT_APP_ORIGIN): string {
 /**
  * `_headers` for the static site: the app's transport headers and CSP on
  * every response, immutable caching for hashed build assets, and noindex on
- * previews so a workers.dev copy never competes with the real site.
+ * previews so a pages.dev preview never competes with the real site.
  */
 export function staticHeadersFile(options: { appOrigin?: string; noindex?: boolean } = {}): string {
   const appOrigin = options.appOrigin ?? DEFAULT_APP_ORIGIN;

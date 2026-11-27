@@ -47,7 +47,7 @@ The lean reference for how the system is built and why. It records the decisions
 ![Butwal Hacks system architecture: the browser reaches the Next.js app on Vercel, which passes through proxy.ts for Auth0 session and subdomain routing, then fans out to Auth0, Supabase, Cloudinary, Upstash Redis, Resend, Groq, and Open Collective. An Auth0 Post-Login Action webhook upserts the profile into Supabase.](images/architecture.png)
 
 ```text
-Browser ──► butwalhacks.com ──► Cloudflare Workers static assets (static export, rebuilt hourly)
+Browser ──► www.butwalhacks.com ──► Cloudflare Pages (static export; apex forwards to www)
    │
    └──────► app.butwalhacks.com ──► Vercel (Next.js 16) ──┬── Auth0 (identity)
                                                             ├── Supabase      (PostgreSQL)
@@ -58,7 +58,7 @@ Browser ──► butwalhacks.com ──► Cloudflare Workers static assets (st
                                                             └── Open Collective (funding)
 ```
 
-- **Hosting split:** `butwalhacks.com` and `www` are a static export on Cloudflare Workers static assets (no Worker code); `app.butwalhacks.com` is the Next.js app on Vercel, where `my-app/src/proxy.ts` enforces sessions and routing. The split is defined once in `my-app/src/lib/static-site.ts`. See [CLOUDFLARE.md](CLOUDFLARE.md).
+- **Hosting split:** the marketing site is a static export on Cloudflare Pages at `www.butwalhacks.com` (the apex forwards to `www` at Porkbun, which manages DNS); `app.butwalhacks.com` is the Next.js app on Vercel, where `my-app/src/proxy.ts` enforces sessions and routing. The split is defined once in `my-app/src/lib/static-site.ts`. See [CLOUDFLARE.md](CLOUDFLARE.md).
 - **App maintenance:** the app is paused until 26 December 2026. While `APP_MAINTENANCE` in `my-app/src/lib/app-maintenance.ts` is set, app paths on the static site show an "Under maintenance" page instead of redirecting, and every page shows a banner.
 - **Auth:** Auth0 v4. Supabase Auth is disabled; the database is reached with the Service Role Key only.
 - **RBAC:** five roles enforced through the predicates in `my-app/src/lib/dashboard-access.ts`, called from the proxy and from API routes.
@@ -79,7 +79,7 @@ Browser ──► butwalhacks.com ──► Cloudflare Workers static assets (st
 | ADR-010 | Open Collective over Stripe | Transparent community funding, with no payment processing on the platform |
 | ADR-011 | Single-app monorepo | The root `package.json` delegates into `my-app/`. One codebase builds both targets: the Vercel app and the static marketing export (ADR-013) |
 | ADR-012 | PostHog for analytics | Vercel Analytics for traffic, PostHog for behavioral funnel tracking |
-| ADR-013 | Static marketing site on Cloudflare | `butwalhacks.com` is a static export on Workers static assets (free, no per-request CPU), rebuilt hourly from Supabase; the app stays on Vercel at `app.butwalhacks.com`. Chosen over OpenNext on Workers, which still ran server code per request. See [CLOUDFLARE.md](CLOUDFLARE.md) |
+| ADR-013 | Static marketing site on Cloudflare | `www.butwalhacks.com` is a static export on Cloudflare Pages (free, no per-request CPU), rebuilt from Supabase on every push to `main`; the app stays on Vercel at `app.butwalhacks.com`. Chosen over OpenNext on Workers, which still ran server code per request. See [CLOUDFLARE.md](CLOUDFLARE.md) |
 
 ### Authentication
 
@@ -117,7 +117,7 @@ The Action syncs the user to the Supabase `profiles` table on every login. Witho
 #### Trust boundaries
 
 ```text
-Internet → Cloudflare (static files only, no code, no secrets)
+Internet → Cloudflare Pages (static files only, no code, no secrets)
 Internet → Vercel edge → Vercel serverless → Supabase
                 │                             │
            Auth0 SDK                    Auth0 webhook
@@ -146,12 +146,12 @@ Two targets, one codebase:
 
 | Setting | Marketing site | App |
 |---------|----------------|-----|
-| Host | Cloudflare Workers static assets, Worker `butwal-hacks-site` (Free plan) | Vercel project `butwal-hacks` (Hobby; paused until 26 Dec 2026) |
-| Domains | `butwalhacks.com`, `www.butwalhacks.com` | `app.butwalhacks.com` |
+| Host | Cloudflare Pages, project `butwal-hacks-site` (Free plan, direct upload) | Vercel project `butwal-hacks` (Hobby; paused until 26 Dec 2026) |
+| Domains | `www.butwalhacks.com` (apex forwards to it at Porkbun) | `app.butwalhacks.com` |
 | Build | `node my-app/scripts/build-static.mjs` (`BUILD_TARGET=static`, `output: "export"`) | `npm run build`, which runs `cd my-app && npm run build` |
-| Deploys | `.github/workflows/static-site.yml`: push to `main`, hourly, on demand | `.github/workflows/deploy.yml` on push to `main` |
+| Deploys | `.github/workflows/static-site.yml` (`wrangler pages deploy`): push to `main`, on demand | `.github/workflows/deploy.yml` on push to `main` |
 | Node.js | 22.x | 22.x |
-| Cron | Hourly rebuild (GitHub Actions) | `/api/health` daily at 06:00, Google Calendar sync at 07:17 |
+| Cron | None | `/api/health` daily at 06:00, Google Calendar sync at 07:17 |
 
 Marketing pages must export statically: no server actions in their import graph (public reads live in `my-app/src/lib/public-reads/`), no `searchParams`, `cookies()` or `headers()` at render time. [CLOUDFLARE.md](CLOUDFLARE.md) has the build, costs, cutover and rollback.
 

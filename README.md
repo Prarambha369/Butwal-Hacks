@@ -117,7 +117,7 @@ Auth0 owns identity. Supabase stores relational data through the Service Role Ke
 
 `my-app/src/proxy.ts` is the single entry point for both Auth0 session enforcement and subdomain routing on the app host.
 
-**Hosting.** `butwalhacks.com` and `www` are a fully static export served from Cloudflare Workers static assets (Worker `butwal-hacks-site`), with no per-request code. `app.butwalhacks.com` (auth, dashboards, the API, certificates, profiles) runs on Vercel. The app is **paused until 26 December 2026**: meanwhile the static site serves an "Under maintenance" page on every app path and shows a site-wide banner (`my-app/src/lib/app-maintenance.ts`; set `APP_MAINTENANCE` to `null` to end it). Data pages are rebuilt hourly by `.github/workflows/static-site.yml`. Details: [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
+**Hosting.** The marketing site is a fully static export on Cloudflare Pages (project `butwal-hacks-site`) at `https://www.butwalhacks.com`; the apex `butwalhacks.com` forwards to `www` at Porkbun, which manages DNS. `app.butwalhacks.com` (auth, dashboards, the API, certificates, profiles) runs on Vercel. The app is **paused until 26 December 2026**: meanwhile the static site serves an "Under maintenance" page on every app path and shows a site-wide banner (`my-app/src/lib/app-maintenance.ts`; set `APP_MAINTENANCE` to `null` to end it). `.github/workflows/static-site.yml` rebuilds and deploys it on every push to `main` and on demand. Details: [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
 
 ![Login and profile sync sequence diagram: the browser signs in through Auth0, proxy.ts validates the session and reads the profile from Supabase, and the Auth0 Post-Login Action fires a webhook that upserts the profile row.](docs/images/auth-flow.png)
 
@@ -153,7 +153,7 @@ All five must pass before a PR is opened. See [AGENTS.md](AGENTS.md) for the ful
 | Error tracking | Sentry |
 | Payments | Open Collective |
 | AI | Groq (team matching, chatbot, certificate OCR) |
-| Hosting | Cloudflare Workers static assets (`butwalhacks.com`, `www`); Vercel (`app.butwalhacks.com`) |
+| Hosting | Cloudflare Pages (`www.butwalhacks.com`); Vercel (`app.butwalhacks.com`) |
 
 ### By the numbers
 

@@ -109,7 +109,7 @@ This is the most important step. Production `NEXT_PUBLIC_SUPABASE_URL` and `SUPA
 3. **Delete** the manually created `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from Settings, Environment Variables, across all three targets: Production, Preview, Development. The integration re-injects them; keeping both copies is what caused the drift.
 4. Update `SUPABASE_DB_URL`, if Vercel holds a copy, to the new password.
 5. Redeploy so pooled connections pick up the new database password.
-6. Update the GitHub repository secret `SUPABASE_SERVICE_ROLE_KEY` too. The static marketing site's hourly rebuild (`.github/workflows/static-site.yml`) reads Supabase with it; with a stale key the rebuild fails and the site keeps serving its last good deploy until the secret is fixed. The same applies to `CLOUDFLARE_API_TOKEN` if it is ever rotated: create the new token (Workers Scripts: Edit), update the secret, revoke the old one, then run the workflow by hand.
+6. Update the GitHub repository secret `SUPABASE_SERVICE_ROLE_KEY` too. The static marketing site's deploy workflow (`.github/workflows/static-site.yml`) reads Supabase with it; with a stale key the build fails and the site keeps serving its last good deploy until the secret is fixed. The same applies to `CLOUDFLARE_API_TOKEN` if it is ever rotated: create the new token (Cloudflare Pages: Edit), update the secret, revoke the old one, then run the workflow by hand.
 
 Verify afterwards:
 

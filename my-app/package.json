@@ -14,7 +14,7 @@
     "test": "vitest run",
     "audit:ui": "node scripts/audit-ui.mjs",
     "static:build": "node scripts/build-static.mjs",
-    "static:deploy:preview": "node scripts/build-static.mjs --noindex --site-url https://butwal-hacks-site-preview.butwalhacks.workers.dev && wrangler deploy -c wrangler.static.jsonc --env preview"
+    "static:deploy:preview": "node scripts/build-static.mjs --noindex --site-url https://preview.butwal-hacks-site.pages.dev && wrangler pages deploy ../.static-build/out --project-name butwal-hacks-site --branch preview"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.30.0",

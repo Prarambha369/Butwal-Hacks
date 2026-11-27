@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Builds the static marketing site (butwalhacks.com) for Cloudflare Workers
-// static assets. The app (auth, dashboards, API, user-edited pages) stays on
+// Builds the static marketing site (www.butwalhacks.com) for Cloudflare
+// Pages. The app (auth, dashboards, API, user-edited pages) stays on
 // Vercel at app.butwalhacks.com. See docs/CLOUDFLARE.md.
 //
 //   node scripts/build-static.mjs [--app-origin URL] [--site-url URL] [--noindex]
@@ -28,7 +28,7 @@ const opt = (name, fallback) => {
   return i === -1 ? fallback : args[i + 1];
 };
 const appOrigin = opt("--app-origin", "https://app.butwalhacks.com").replace(/\/$/, "");
-const siteUrl = opt("--site-url", "https://butwalhacks.com").replace(/\/$/, "");
+const siteUrl = opt("--site-url", "https://www.butwalhacks.com").replace(/\/$/, "");
 const noindex = args.includes("--noindex");
 
 const FREE_PLAN_ASSET_FILES = 20_000;
@@ -140,6 +140,11 @@ let files = 0;
     else files++;
   }
 })(outDir);
-if (files > FREE_PLAN_ASSET_FILES) fail(`${files} files is over the ${FREE_PLAN_ASSET_FILES}-file Workers Free asset limit`);
+if (files > FREE_PLAN_ASSET_FILES) fail(`${files} files is over the ${FREE_PLAN_ASSET_FILES}-file Cloudflare Pages Free limit`);
+
+// Pages applies at most 2,000 static and 100 dynamic _redirects rules.
+const rules = fs.readFileSync(path.join(outDir, "_redirects"), "utf8").split("\n").filter((l) => l.trim() && !l.startsWith("#"));
+const dynamicRules = rules.filter((l) => /[*:]/.test(l.split(/\s+/)[0])).length;
+if (dynamicRules > 100 || rules.length - dynamicRules > 2000) fail(`_redirects has ${dynamicRules} dynamic and ${rules.length - dynamicRules} static rules; Pages allows 100 and 2,000`);
 
 console.log(`\n✔ Static site in ${path.relative(repoRoot, outDir)}: ${files} files, app origin ${appOrigin}${noindex ? ", noindex" : ""}`);
