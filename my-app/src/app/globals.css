@@ -240,6 +240,18 @@
     100% { transform: translateX(-50%); }
   }
 
+  /* Partner logos: the brand's light/dark variants follow the .dark class
+     (Tailwind's dark: variant here keys off prefers-color-scheme, not the
+     site toggle). Raster emblems sit on a light plate in dark mode. */
+  .bh-partner-logo-dark { display: none; }
+  .dark .bh-partner-logo-light { display: none; }
+  .dark .bh-partner-logo-dark { display: block; }
+  .dark .bh-partner-logo-plate {
+    background: var(--bh-action-ink);
+    border-radius: 6px;
+    padding: 2px;
+  }
+
   /* 🧱 Solid surface — flat white/gray card, 1px border, no blur */
   .bh-surface-solid {
     background: var(--bh-surface);

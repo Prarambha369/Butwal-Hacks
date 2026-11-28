@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/components/language-provider";
-import { t } from "@/lib/i18n";import type { Partner } from "@/lib/public-reads/partners";
+import { t } from "@/lib/i18n";
+import type { Partner } from "@/lib/public-reads/partners";
+import { partnerLogoFor } from "@/lib/partner-logos";
+import { PartnerLogoImage } from "@/components/partners/partner-logo-image";
 
 const CLOUDINARY_CLOUD_NAME = typeof process !== "undefined" ? (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "") : "";
 
@@ -81,7 +84,21 @@ export default function TrustedByClient({ partners }: { partners: Partner[] }) {
             style={{ animation: "bh-trustedby-marquee 26s linear infinite" }}
           >
             {marqueeItems.map((partner, idx) => {
-              const inner = (
+              const local = partnerLogoFor(partner.href);
+              const inner = local ? (
+                <>
+                  <PartnerLogoImage
+                    logo={local}
+                    alt={partner.name}
+                    height={local.wordmark && local.width / local.height > 3 ? 24 : 32}
+                  />
+                  {!local.wordmark && (
+                    <span aria-hidden="true" className="text-sm font-semibold text-secondary transition-colors group-hover:text-primary">
+                      {partner.name}
+                    </span>
+                  )}
+                </>
+              ) : (
                 <>
                   {(partner.cloudinary_public_id || partner.logo_url) && (
                     <span className="flex h-8 w-8 items-center justify-center">
@@ -109,8 +126,9 @@ export default function TrustedByClient({ partners }: { partners: Partner[] }) {
                   </span>
                 </>
               );
-              const cls =
-                "group flex items-center gap-2.5 opacity-65 transition-all duration-300 hover:opacity-100";
+              // Official logos render at full strength (dimming them would alter
+              // the brand marks); the text-only fallback keeps the muted look.
+              const cls = `group flex items-center gap-2.5 transition-all duration-300 hover:opacity-100 ${local ? "" : "opacity-65"}`;
               return partner.href ? (
                 <Link
                   key={`${partner.id}-${idx}`}
