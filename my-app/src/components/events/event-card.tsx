@@ -14,6 +14,7 @@ import {
 } from "@/lib/event-status";
 import { cn } from "@/lib/utils";
 import { externalRegistrationUrl } from "@/lib/external-registration";
+import { isShareBanner } from "@/lib/event-share-banners";
 
 /** Card CTA: an in-site Link, or a new-tab anchor for partner registration. */
 function CardLink({
@@ -163,7 +164,13 @@ export function FeaturedEventCard({ event, now }: { event: PublicEvent; now: num
         startDate={event.start_date}
         sizes="(max-width: 1024px) 100vw, 640px"
         priority
-        className="lg:h-full lg:aspect-auto lg:min-h-[20rem]"
+        // A 1200×630 share banner keeps its own shape (its text runs close to
+        // the edges); other banners fill the card's height.
+        className={
+          isShareBanner(event.banner_url)
+            ? "aspect-[40/21] lg:self-center"
+            : "lg:h-full lg:aspect-auto lg:min-h-[20rem]"
+        }
         zoomOnHover
       />
       <div className="flex flex-col gap-5 p-6 sm:p-8">
