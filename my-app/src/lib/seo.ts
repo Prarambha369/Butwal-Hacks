@@ -8,14 +8,25 @@ export const siteUrl = SITE_URL
 export const siteKeywords = DEFAULT_KEYWORDS
 
 /**
+ * The site-wide share card (designed in Figma, exported to public/og-image.png).
+ * Every page falls back to it so a link preview never renders without an image.
+ */
+export const SITE_OG_IMAGE = {
+  url: `${SITE_URL}/og-image.png`,
+  width: 1200,
+  height: 630,
+  alt: "Butwal Hacks: Lumbini's youth tech hub. Free tech events in Western Nepal.",
+  type: "image/png",
+} as const
+
+/**
  * Build the metadata for a public page.
  *
- * `image` and `robots` are opt-in so the ~40 existing call sites keep emitting
- * exactly the defaults they emitted before: no empty `images` arrays (which
- * Next renders as nothing but tools flag as a broken card) and no robots
- * change. When an image is supplied the whole `openGraph` object is re-emitted
- * rather than patched, because Next replaces `openGraph` shallowly and a
- * partial object would drop `siteName`/`locale` from the shared card.
+ * `image` and `robots` are optional. Without an image the page gets the
+ * site-wide share card (`SITE_OG_IMAGE`). The whole `openGraph` object is
+ * always re-emitted rather than patched, because Next replaces `openGraph`
+ * shallowly and a partial object would drop `siteName`/`locale`/`images`
+ * from the shared card.
  */
 export function buildPageMetadata({ title, description, path, keywords = [], image, robots }: {
   title: string
@@ -33,7 +44,7 @@ export function buildPageMetadata({ title, description, path, keywords = [], ima
         ...(image.width !== undefined ? { width: image.width } : {}),
         ...(image.height !== undefined ? { height: image.height } : {}),
       }]
-    : undefined
+    : [{ ...SITE_OG_IMAGE }]
 
   return {
     title, description,
@@ -44,11 +55,11 @@ export function buildPageMetadata({ title, description, path, keywords = [], ima
     robots: robots ?? { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
     openGraph: {
       title, description, url: canonical, siteName: SITE_NAME, locale: "en_US", type: "website",
-      ...(ogImage ? { images: ogImage } : {}),
+      images: ogImage,
     },
     twitter: {
       card: "summary_large_image", title, description,
-      ...(image ? { images: [image.url] } : {}),
+      images: [image ? image.url : SITE_OG_IMAGE.url],
     },
   }
 }

@@ -20,6 +20,7 @@ import { LanguageProvider } from "@/components/language-provider";
 import { AuthUserProvider } from "@/components/auth-user-provider";
 import { Analytics } from "@vercel/analytics/react"
 import { SITE_URL } from "@/lib/constants";
+import { SITE_OG_IMAGE } from "@/lib/seo";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PostHogProvider } from "@/components/posthog-provider";
 import PWARegister from "@/components/pwa-register";
@@ -151,19 +152,14 @@ export const metadata: Metadata = {
     siteName: "Butwal Hacks",
     locale: "en_US",
     type: "website",
-    images: [{
-      url: `${baseUrl}/icon-512.png`,
-      width: 512,
-      height: 512,
-      alt: "Butwal Hacks — Build, Ship, and Earn Verified Credentials in Nepal",
-      type: "image/png",
-    }],
+    images: [{ ...SITE_OG_IMAGE }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Butwal Hacks — Build, Ship, and Earn Verified Credentials in Nepal",
     description:
       "A student-run nonprofit organizing free hackathons and hands-on workshops for young builders in Nepal.",
+    images: [SITE_OG_IMAGE.url],
   },
 };
 
