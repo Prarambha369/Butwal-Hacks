@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildPageMetadata } from "../seo";
+import { buildPageMetadata, SITE_OG_IMAGE } from "../seo";
+import { SITE_URL } from "@/lib/constants";
 
 type OpenGraphShape = {
   images?: unknown;
@@ -16,13 +17,15 @@ const base = {
 };
 
 describe("buildPageMetadata", () => {
-  it("leaves images absent and keeps the default robots when none is supplied", () => {
+  it("falls back to the site share card and keeps the default robots when no image is supplied", () => {
     const meta = buildPageMetadata(base);
     const og = meta.openGraph as OpenGraphShape | null | undefined;
     const twitter = meta.twitter as TwitterShape | null | undefined;
 
-    expect(og?.images).toBeUndefined();
-    expect(twitter?.images).toBeUndefined();
+    expect(og?.images).toEqual([{ ...SITE_OG_IMAGE }]);
+    expect(SITE_OG_IMAGE.url).toBe(`${SITE_URL}/og-image.png`);
+    expect(SITE_OG_IMAGE).toMatchObject({ width: 1200, height: 630, type: "image/png" });
+    expect(twitter?.images).toEqual([SITE_OG_IMAGE.url]);
     expect(twitter?.card).toBe("summary_large_image");
     expect(meta.robots).toMatchObject({ index: true, follow: true });
   });
