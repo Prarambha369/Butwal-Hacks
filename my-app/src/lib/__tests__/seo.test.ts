@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildPageMetadata, SITE_OG_IMAGE } from "../seo";
+import { SITE_URL } from "@/lib/constants";
 
 type OpenGraphShape = {
   images?: unknown;
@@ -22,7 +23,7 @@ describe("buildPageMetadata", () => {
     const twitter = meta.twitter as TwitterShape | null | undefined;
 
     expect(og?.images).toEqual([{ ...SITE_OG_IMAGE }]);
-    expect(SITE_OG_IMAGE.url).toBe("https://www.butwalhacks.com/og-image.png");
+    expect(SITE_OG_IMAGE.url).toBe(`${SITE_URL}/og-image.png`);
     expect(SITE_OG_IMAGE).toMatchObject({ width: 1200, height: 630, type: "image/png" });
     expect(twitter?.images).toEqual([SITE_OG_IMAGE.url]);
     expect(twitter?.card).toBe("summary_large_image");
