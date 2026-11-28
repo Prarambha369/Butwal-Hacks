@@ -14,6 +14,13 @@ import SafeJsonLd from "@/lib/json-ld";
 import { eventJsonLd, faqPageJsonLd } from "@/lib/schema";
 import { SITE_URL } from "@/lib/constants";
 import { socialCardUrl } from "@/lib/cloudinary-url";
+import {
+  SHARE_BANNER_HEIGHT,
+  SHARE_BANNER_WIDTH,
+  absoluteBannerUrl,
+  resolveEventBanner,
+  shareBannerPath,
+} from "@/lib/event-share-banners";
 import { isOnlineLocation } from "@/lib/event-status";
 import { t } from "@/lib/i18n"
 import type { Locale } from "@/lib/i18n"
@@ -44,9 +51,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? `Register for ${event.title} in ${event.location}. Join the hackathon, meet fellow builders, and ship something real.`
     : `Register for ${event.title}. Join the hackathon and build with fellow students in Nepal.`
 
-  // The banner becomes the share card, cropped by Cloudinary to the 1200×630
-  // Open Graph / Twitter size. Without a banner, the site default applies.
-  const card = event.banner_url ? socialCardUrl(event.banner_url) : null
+  // An uploaded banner becomes the share card, cropped by Cloudinary to the
+  // 1200×630 Open Graph / Twitter size. Otherwise the event's own share banner
+  // (lib/event-share-banners.ts, already 1200×630), else the site default.
+  const uploaded = event.banner_url?.trim() ? socialCardUrl(event.banner_url) : null
+  const shareBanner = shareBannerPath(slug)
+  const card =
+    uploaded ??
+    (shareBanner
+      ? { url: absoluteBannerUrl(shareBanner), width: SHARE_BANNER_WIDTH, height: SHARE_BANNER_HEIGHT }
+      : null)
 
   return buildPageMetadata({
     title: event.title,
@@ -87,7 +101,7 @@ export default async function EventDetailPage({ params }: Props) {
     start_date: event.start_date,
     end_date: event.end_date,
     location: event.location,
-    banner_url: event.banner_url?.trim() ? event.banner_url : null,
+    banner_url: resolveEventBanner(event.slug || slug, event.banner_url),
   }
 
   // Approved photos for this event (powers the gallery preview on the page).
@@ -123,7 +137,7 @@ export default async function EventDetailPage({ params }: Props) {
           startDate: eventData.start_date,
           endDate: eventData.end_date,
           url: eventUrl,
-          image: eventData.banner_url,
+          image: eventData.banner_url ? absoluteBannerUrl(eventData.banner_url) : null,
           locationName: eventData.location,
           attendanceMode: isOnlineLocation(eventData.location)
             ? "OnlineEventAttendanceMode"

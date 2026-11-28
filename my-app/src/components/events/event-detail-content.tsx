@@ -25,6 +25,8 @@ import { SITE_URL } from "@/lib/constants";
 import { externalRegistrationUrl } from "@/lib/external-registration";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { EventBanner } from "./event-banner";
+import { isShareBanner } from "@/lib/event-share-banners";
+import { cn } from "@/lib/utils";
 import { EventPhaseBadge } from "./event-phase-badge";
 import { PhotoTile } from "./photo-tile";
 import {
@@ -333,7 +335,8 @@ export default function EventDetailContent({ event, photos = [] }: Props) {
                 startDate={event.start_date}
                 sizes="(max-width: 1024px) 100vw, 620px"
                 priority
-                className="rounded-2xl border border-border"
+                // A 1200×630 share banner shows whole here; cards crop it to 16:9.
+                className={cn("rounded-2xl border border-border", isShareBanner(event.banner_url) && "aspect-[40/21]")}
               />
             </div>
           </div>

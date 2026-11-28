@@ -13,6 +13,7 @@ import { initiatives } from "@/lib/content"
 import { logger } from "@/lib/logger"
 import { degradeOnReadError } from "@/lib/build-phase"
 import { partitionEvents } from "@/lib/event-status"
+import { resolveEventBanner } from "@/lib/event-share-banners"
 import Breadcrumbs from "@/components/breadcrumbs"
 import { EventCard, FeaturedEventCard } from "@/components/events/event-card"
 import { PastEvents } from "@/components/events/past-events"
@@ -61,7 +62,7 @@ export default async function EventsPage() {
       start_date: e.start_date,
       end_date: e.end_date,
       location: e.location,
-      banner_url: e.banner_url?.trim() ? e.banner_url : null,
+      banner_url: resolveEventBanner(e.slug, e.banner_url),
     }))
 
   // The server's clock decides upcoming vs past at render time, and `now` is
