@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { partnerLogoFor } from "@/lib/partner-logos";
+import { fallbackPartnerLogoSrc, partnerLogoFor } from "@/lib/partner-logos";
 
 describe("partnerLogoFor", () => {
   it("matches on hostname, ignoring www and path", () => {
@@ -35,5 +35,14 @@ describe("partnerLogoFor", () => {
         expect(existsSync(join(process.cwd(), "public", file)), file).toBe(true);
       }
     }
+  });
+});
+
+describe("fallbackPartnerLogoSrc", () => {
+  it("uses logo_url when there is no Cloudinary id", () => {
+    expect(fallbackPartnerLogoSrc({ cloudinary_public_id: null, logo_url: "https://x.test/a.png" })).toBe(
+      "https://x.test/a.png",
+    );
+    expect(fallbackPartnerLogoSrc({ cloudinary_public_id: null, logo_url: null })).toBeNull();
   });
 });

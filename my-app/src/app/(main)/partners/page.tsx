@@ -4,7 +4,7 @@ import Breadcrumbs from "@/components/breadcrumbs"
 import { buildPageMetadata } from "@/lib/seo"
 import { ComingSoon } from "@/components/ui/coming-soon"
 import { getActivePartners } from "@/lib/public-reads/partners"
-import { partnerLogoFor } from "@/lib/partner-logos"
+import { fallbackPartnerLogoSrc, partnerLogoFor } from "@/lib/partner-logos"
 import { PartnerLogoImage } from "@/components/partners/partner-logo-image"
 
 export const metadata: Metadata = buildPageMetadata({
@@ -40,11 +40,15 @@ export default async function PartnersPage() {
             <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {partners.map((partner) => {
                 const logo = partnerLogoFor(partner.href)
+                const fallbackSrc = logo ? null : fallbackPartnerLogoSrc(partner)
                 const body = (
                   <>
                     <span className="flex h-10 items-center justify-center">
                       {logo ? (
                         <PartnerLogoImage logo={logo} alt="" height={logo.wordmark && logo.width / logo.height > 3 ? 28 : 40} />
+                      ) : fallbackSrc ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- maintainer-set logo on an arbitrary host; static export has no optimiser
+                        <img src={fallbackSrc} alt="" height={40} width={40} loading="lazy" decoding="async" className="h-10 w-auto object-contain" />
                       ) : null}
                     </span>
                     <span className="text-center text-sm font-semibold text-secondary transition-colors group-hover:text-primary">

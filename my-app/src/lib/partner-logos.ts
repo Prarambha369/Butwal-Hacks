@@ -70,3 +70,18 @@ export function partnerLogoFor(href: string | null | undefined): PartnerLogo | n
   }
   return LOGOS[ALIASES[host] ?? host] ?? null;
 }
+
+/**
+ * Logo URL for a partner with no local entry: the maintainer-uploaded
+ * Cloudinary asset, else the legacy `logo_url`. Null when neither is set.
+ */
+export function fallbackPartnerLogoSrc(partner: {
+  cloudinary_public_id: string | null;
+  logo_url: string | null;
+}): string | null {
+  const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  if (partner.cloudinary_public_id && cloud) {
+    return `https://res.cloudinary.com/${cloud}/image/upload/f_auto,q_auto,c_limit,h_120/${encodeURIComponent(partner.cloudinary_public_id)}`;
+  }
+  return partner.logo_url;
+}
